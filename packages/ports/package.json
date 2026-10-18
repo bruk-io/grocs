@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Ports: interfaces, in-memory fakes and contract suites (R28, R29, R48)",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./src/test-support.ts"
   },
   "dependencies": {
     "@grocs/core": "workspace:*"

@@ -18,7 +18,5 @@ export { instrumentDeps, instrumentPort } from './instrumentation/instrument.ts'
 export { addItem } from './commands/add-item.ts';
 export type { AddItem, ItemAdded } from './commands/add-item.ts';
 export { commandHandlers } from './commands/index.ts';
-export { createTestClient } from './testing/client.ts';
-export type { TestClient, TestClientOptions } from './testing/client.ts';
 export { watchWeekItems } from './queries/watch-week.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';

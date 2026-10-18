@@ -1,4 +1,4 @@
-import { clockContract } from '@grocs/ports';
+import { clockContract } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { SystemClock } from './system-clock.ts';
 

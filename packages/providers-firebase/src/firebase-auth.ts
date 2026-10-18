@@ -1,13 +1,14 @@
-import type { AuthPort, TestSignIn, Unsubscribe, User } from '@grocs/ports';
+import type { AuthPort, Unsubscribe, User } from '@grocs/ports';
 import type { AuthFns, AuthUserLike } from './sdk.ts';
 
 const toUser = (u: AuthUserLike): User => ({ uid: u.uid, email: u.email, displayName: u.displayName });
 
 /**
- * Firebase Auth behind the auth port. `signInWithTestAccount` is the development-only way in
- * (R53): a build that does not construct this class through src/dev has no path to it.
+ * Firebase Auth behind the auth port. It has no sign-in method of its own yet: Google sign-in
+ * joins in a later task (R1). Development builds sign in through apps/mobile/src/dev (R53),
+ * which this class knows nothing about, so release builds carry no test sign-in.
  */
-export class FirebaseAuth implements AuthPort, TestSignIn {
+export class FirebaseAuth implements AuthPort {
   #current: User | null = null;
 
   constructor(
@@ -25,12 +26,6 @@ export class FirebaseAuth implements AuthPort, TestSignIn {
 
   onAuthStateChanged(listener: (user: User | null) => void): Unsubscribe {
     return this.fns.onAuthStateChanged(this.auth, (u) => listener(u ? toUser(u) : null));
-  }
-
-  async signInWithTestAccount(email: string, password: string): Promise<User> {
-    const credential = await this.fns.signInWithEmailAndPassword(this.auth, email, password);
-    this.#current = toUser(credential.user);
-    return this.#current;
   }
 
   async signOut(): Promise<void> {

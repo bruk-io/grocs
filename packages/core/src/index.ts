@@ -10,3 +10,4 @@ export type { AddItemError, WeekList } from './model/list.ts';
 export { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './schema/item-doc.ts';
 export type { ItemDoc, SchemaError } from './schema/item-doc.ts';
 export { CIRCULAR, PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './schema/personal.ts';
+export { weekIdFor } from './model/week.ts';

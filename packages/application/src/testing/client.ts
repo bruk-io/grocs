@@ -1,6 +1,6 @@
 // A client built from the in-memory fakes, for scenario tests (R47). Two clients that share
 // one store stand in for the two phones.
-import { FakeAuth, FakeClock, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports';
+import { FakeAuth, FakeClock, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import type { SyncStore } from '@grocs/ports';
 import { commandHandlers } from '../commands/index.ts';
 import { createDispatcher } from '../dispatch/dispatcher.ts';

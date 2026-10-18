@@ -91,6 +91,12 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     why: 'A deep or relative path into another package skips the layer table and lets internals leak. The entry point is the package\'s public surface.',
     fix: 'Import from "@grocs/<package>" and export what you need from that package\'s src/index.ts.',
   },
+  'import-layers/testing-entry-test-only': {
+    req: 'R49, R53',
+    summary: 'Fakes and contract suites are imported from "@grocs/<package>/testing", by tests only',
+    why: 'Metro does not drop unused exports, so anything a shipped file imports from a package entry ends up in the release bundle. A fake auth with a hard-coded password in a release build is a way in, and test code is dead weight.',
+    fix: 'Import fakes and contract suites from "@grocs/<package>/testing" in *.test.ts(x), stories or files under a testing/ folder. Shipped code takes the real implementation as a parameter.',
+  },
   'import-layers/no-cycles': {
     req: 'R27',
     summary: 'No import cycles',
@@ -195,10 +201,15 @@ export function run(ctx: CheckContext): Finding[] {
         const [pkg, ...deep] = rest.split('/');
         if (!pkg) continue;
         const targetUnit = unitOf(`packages/${pkg}/x`);
-        if (deep.length > 0) {
+        const isTestingEntry = deep.length === 1 && deep[0] === 'testing';
+        if (isTestingEntry) {
+          if (!testish && !/(^|\/)testing\//.test(file)) {
+            add('import-layers/testing-entry-test-only', `"${spec}" is the test-support entry; only test, story and testing/ files may import it`);
+          }
+        } else if (deep.length > 0) {
           add('import-layers/package-entry-only', `"${spec}" is a deep import; use "@grocs/${pkg}"`);
         }
-        if (targetUnit) edges.push(`packages/${pkg}/src/index.ts`);
+        if (targetUnit && !isTestingEntry) edges.push(`packages/${pkg}/src/index.ts`);
         if (!unit || !targetUnit || targetUnit.name === unit.name) continue;
         if (!ALLOWED_PROJECT[unit.layer].includes(targetUnit.layer)) {
           const rule =

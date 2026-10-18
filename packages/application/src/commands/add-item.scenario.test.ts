@@ -1,6 +1,6 @@
 import { normaliseName } from '@grocs/core';
 import type { Item } from '@grocs/core';
-import { InMemorySyncStore } from '@grocs/ports';
+import { InMemorySyncStore } from '@grocs/ports/testing';
 import type { SyncStore } from '@grocs/ports';
 import { describe, expect, it } from 'vitest';
 import { createTestClient } from '../testing/client.ts';

@@ -9,6 +9,7 @@ interface Account extends User {
 export class FakeAuth implements AuthPort, TestSignIn {
   #current: User | null = null;
   readonly #listeners = new Set<(user: User | null) => void>();
+  readonly #awaitingFirst = new Set<(user: User | null) => void>();
   readonly #accounts: readonly Account[];
 
   constructor(accounts: readonly Account[] = []) {
@@ -21,12 +22,14 @@ export class FakeAuth implements AuthPort, TestSignIn {
 
   onAuthStateChanged(listener: (user: User | null) => void): Unsubscribe {
     this.#listeners.add(listener);
-    const first = this.#current;
+    this.#awaitingFirst.add(listener);
     queueMicrotask(() => {
-      if (this.#listeners.has(listener)) listener(first);
+      // Only if no change has already told this listener the current state.
+      if (this.#awaitingFirst.delete(listener) && this.#listeners.has(listener)) listener(this.#current);
     });
     return () => {
       this.#listeners.delete(listener);
+      this.#awaitingFirst.delete(listener);
     };
   }
 
@@ -44,6 +47,9 @@ export class FakeAuth implements AuthPort, TestSignIn {
 
   #set(user: User | null): void {
     this.#current = user;
-    for (const listener of [...this.#listeners]) listener(user);
+    for (const listener of [...this.#listeners]) {
+      this.#awaitingFirst.delete(listener);
+      listener(user);
+    }
   }
 }

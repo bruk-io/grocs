@@ -1,4 +1,4 @@
-import { idsContract } from '@grocs/ports';
+import { idsContract } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { RandomIds } from './random-ids.ts';
 

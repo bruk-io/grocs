@@ -1,7 +1,7 @@
-import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports';
+import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { instrumentDeps, instrumentPort } from './instrument.ts';
-import { InMemorySyncStore, FakeAuth } from '@grocs/ports';
+import { InMemorySyncStore, FakeAuth } from '@grocs/ports/testing';
 
 const correlation = { correlationId: 'corr-1', runtime: { appVersion: '1.2.3', platform: 'ios', kitchenRole: 'owner' } };
 

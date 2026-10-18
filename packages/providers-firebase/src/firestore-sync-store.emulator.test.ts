@@ -1,5 +1,5 @@
 import { createExtraItem } from '@grocs/core';
-import { syncStoreContract } from '@grocs/ports';
+import { syncStoreContract } from '@grocs/ports/testing';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createEmulatorClient, createKitchen, ensureSeeded, readRaw, seedAccount, writeRaw } from '../../../firebase/emulator-client.ts';
 import type { EmulatorClient } from '../../../firebase/emulator-client.ts';

@@ -70,6 +70,14 @@ describe('import layers (R26, R27, R60)', () => {
     expect(rulesOf(run({ 'packages/ui/src/atoms/A.tsx': "import { x } from '@storybook/react'; export { x };" }))).toEqual(['import-layers/no-io-packages']);
   });
 
+  it('lets only tests import the test-support entry, so fakes stay out of release bundles (R49, R53)', () => {
+    const ports = { 'packages/ports/src/index.ts': 'export {};' };
+    expect(run({ ...ports, 'packages/application/src/a.test.ts': "import { FakeAuth } from '@grocs/ports/testing'; export { FakeAuth };" })).toEqual([]);
+    const findings = run({ ...ports, 'packages/application/src/a.ts': "import { FakeAuth } from '@grocs/ports/testing'; export { FakeAuth };" });
+    expect(rulesOf(findings)).toEqual(['import-layers/testing-entry-test-only']);
+    expect(message(check, findings[0]!)).toContain('Why: Metro does not drop unused exports');
+  });
+
   it('rejects deep and by-path imports into another package', () => {
     const findings = run({
       'packages/application/src/a.ts': "import '@grocs/ports/src/clock/fake.ts'; import '../../core/src/index.ts';",

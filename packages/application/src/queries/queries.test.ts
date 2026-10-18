@@ -1,5 +1,5 @@
 import { createExtraItem } from '@grocs/core';
-import { FakeAuth, FakeClock, InMemorySyncStore, SequentialIds } from '@grocs/ports';
+import { FakeAuth, FakeClock, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
 import { watchSession, signOut } from './watch-session.ts';
@@ -36,6 +36,7 @@ describe('watchSession', () => {
     const deps = make();
     const seen: (string | null)[] = [];
     const stop = watchSession(deps, (u) => seen.push(u?.uid ?? null));
+    await new Promise((r) => setTimeout(r, 0));
     await (deps.auth as FakeAuth).signInWithTestAccount('a@grocs.test', 'pw');
     await signOut(deps);
     await new Promise((r) => setTimeout(r, 10));

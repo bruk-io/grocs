@@ -1,4 +1,4 @@
-import { loggerContract } from '@grocs/ports';
+import { loggerContract } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { ConsoleLogger } from './console-logger.ts';
 

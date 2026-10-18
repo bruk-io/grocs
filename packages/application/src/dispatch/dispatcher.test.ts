@@ -1,5 +1,5 @@
 import { err, ok } from '@grocs/core';
-import { FakeAuth, FakeClock, InMemorySyncStore, SequentialIds } from '@grocs/ports';
+import { FakeAuth, FakeClock, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { createDispatcher } from './dispatcher.ts';
 import type { Deps, Handler, Middleware } from './types.ts';

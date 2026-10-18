@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "check": "node tools/checks/run.ts --mode all",
     "check:edit": "node tools/checks/run.ts --mode files",
+    "check:release": "node --disable-warning=ExperimentalWarning tools/release-bundle.ts",
     "tokens": "node --disable-warning=ExperimentalWarning tools/build-tokens.ts",
     "hooks:install": "lefthook install"
   },

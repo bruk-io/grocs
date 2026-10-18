@@ -51,7 +51,7 @@ const SOURCE_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 
 export function listFiles(root: string, accept: (name: string) => boolean, dir = root, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (SKIP_DIRS.has(name)) continue;
+    if (SKIP_DIRS.has(name) || name.startsWith('dist-')) continue; // build output, such as dist-release
     const full = join(dir, name);
     const st = statSync(full);
     if (st.isDirectory()) listFiles(root, accept, full, out);
