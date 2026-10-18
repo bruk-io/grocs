@@ -30,3 +30,16 @@ One pnpm TypeScript workspace; the layout and the reasons are in spec doc-1 (`ba
 - `pnpm check`: every check script over the repo. The same script runs from agent hooks (`.claude/settings.json`), `lefthook.yml` (pre-commit; install with `pnpm hooks:install`) and `.github/workflows/ci.yml`. Each failure names the rule and why it exists.
 - `pnpm test`: unit tests. `pnpm test:emulator`: provider contract suites and the two-client test against the Firebase emulators (needs Java, no Docker). `pnpm emulators`: start the emulators with seed data. `pnpm typecheck`.
 - Checks live in `tools/checks`, hook entry points in `tools/hooks`. Fix the code, not the check; hooks block edits that skip, focus or delete tests or loosen a check.
+
+## Working with agents
+
+How slices are delivered by an orchestrator and per-layer agents, with pinned models and efforts, is decision-3 (`backlog decision list`). Until the layer agents are generated (DRAFT-1), the orchestrator delegates by hand under the same rules:
+
+- The board is the source. The orchestrator keeps statuses current on `main` and pushes whenever work changes hands.
+- A worker gets a task ID, the model and effort `board-check route <id>` gives, and its own worktree. It writes its plan (`philosophy:plan-change`) before editing, and reports in the task's notes.
+- Agent worktrees live in `.claude/worktrees/` (gitignored). The orchestrator never `cd`s into one; a worker's uncommitted edits are not the orchestrator's to commit.
+- Run commands from the repo root. Chaining `cd … &&` in front triggers permission prompts.
+- On the web, open only URLs a search returned; fetching a recalled or hand-built URL asks the person for approval.
+- `philosophy:reviewer` closes tasks. It can't commit a follow-up draft it files, so the orchestrator reads it and files it on `main`.
+
+The design canvas source is in `design/canvas/`; how to check and publish it is in the handoff doc (`backlog doc list`).
