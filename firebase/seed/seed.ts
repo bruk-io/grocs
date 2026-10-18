@@ -18,14 +18,32 @@ export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> 
   const db = getFirestore(app);
 
   for (const u of seedUsers) {
-    try {
-      await auth.getUser(u.uid);
-      await auth.updateUser(u.uid, { email: u.email, password: u.password, displayName: u.displayName });
-    } catch {
-      await auth.createUser({ uid: u.uid, email: u.email, password: u.password, displayName: u.displayName });
-    }
+    await createOrGetUser(auth, u);
   }
   await db.doc(`kitchens/${seedKitchen.id}`).set({ name: seedKitchen.name, members: [...seedKitchen.members] });
+}
+
+type SeedUser = (typeof seedUsers)[number];
+type Auth = ReturnType<typeof getAuth>;
+
+// Creates the user, or returns the one that already exists. Emulator test files
+// run in parallel workers that each seed, so checking for the user and then
+// creating it races: two workers both see it missing and the second create fails.
+// Creating first and treating "already exists" as success has no such gap. The
+// Admin SDK reports that case only as an error, so that one code is handled; any
+// other error is rethrown.
+async function createOrGetUser(auth: Auth, u: SeedUser): Promise<Awaited<ReturnType<Auth['getUser']>>> {
+  try {
+    return await auth.createUser({ uid: u.uid, email: u.email, password: u.password, displayName: u.displayName });
+  } catch (error) {
+    if (!isAlreadyExists(error)) throw error;
+    return auth.getUser(u.uid);
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === 'auth/uid-already-exists' || code === 'auth/email-already-exists';
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
