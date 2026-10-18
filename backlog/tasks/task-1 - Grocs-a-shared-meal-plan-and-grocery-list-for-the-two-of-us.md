@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 17:31'
+updated_date: '2026-10-18 19:18'
 labels:
   - size-8
   - product
@@ -34,7 +34,7 @@ The backend is Firebase. We need to be able to test our code quickly, on our own
 - Bruk (Google Pixel 10 Fold, Android) and Shazya (recent iPhone, iOS).
 - Our Google accounts, used to sign in (Google sign-in only).
 - Firebase: Firestore for our data, Firebase Auth for sign-in, Cloud Functions for push notifications.
-- The canvas designs in the Grocs project (screens and atomic design system). They move into the repo, and Storybook becomes where we browse the built design system.
+- Storybook, where we design, browse and review the design system. The old canvas designs are retired and kept in the repo only as a reference until built.
 
 ## Open questions
 
@@ -79,4 +79,6 @@ Finish moved again on 2026-10-18, before any children started: Bruk chose Fireba
 Finish moved on 2026-10-18, before any children started: Bruk chose Storybook for viewing the design system in a browser and on device (decision-2), and asked for the canvas to move into the repo. Criterion 19 was added and the affected systems updated.
 
 Spec approved by @bruk
+
+Finish moved on 2026-10-18: Bruk retired the canvas in favour of Storybook. Spec R59 and R66, its layout and its canvas section changed; the affected systems now name Storybook. TASK-1.19 was rescoped and TASK-1.6 and TASK-1.7 lost their canvas criterion. Bruk also accepted every slice and follow-up draft (now TASK-1.18 to TASK-1.35) and answered that push notifications may name the item.
 <!-- SECTION:NOTES:END -->

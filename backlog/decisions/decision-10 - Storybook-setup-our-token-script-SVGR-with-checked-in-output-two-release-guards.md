@@ -11,14 +11,14 @@ status: proposed
 Design question D9 in doc-1 (TASK-1.14): how Storybook is set up (decision-2). It covers token generation, story conventions for every state, keeping the on-device route out of release builds, the SVG conversion tool for icons, mascots and the kitchen scene, and whether the browser build is hosted for Shazya.
 
 Requirements served:
-- R59: one token file; the app's tokens and the canvas stylesheet are generated from it and checked.
+- R59: one token file; the app's tokens are generated from it and checked.
 - R60: design levels import downward.
 - R61: rest, pressed, focus and disabled states, plus loading and error where they apply.
 - R62: one icon set using the token stroke; one Mascot with data.
 - R63: a story per declared state, checked.
 - R64: the same stories in the browser and on both phones; the on-device route only in development builds.
 - R65: component tests render the stories.
-- R66: the canvas holds only what isn't built.
+- R66: the canvas is retired; its boards are a read-only reference in `design/reference/`, deleted as each is built.
 
 decision-5 adds two needs: mascot parts named in the converted art (`body`, `cap`, `eyeL`, `eyeR`, `mouth`), and motion tokens, including easings.
 
@@ -64,7 +64,7 @@ Hosting the browser build
 Tokens:
 - Keep `tokens.json` and `tools/build-tokens.ts`.
 - Add the `motion.easing` group (decision-5) and the mascot palette (`color.mascot.*`) to `tokens.json`.
-- When the canvas moves (doc-1 steps 1 and 2), `build-tokens.ts` also writes `design/canvas/grocs.css` as CSS custom properties (`--grocs-color-surface`, `--grocs-space-4`, ...). `design-tokens/generated-in-sync` then checks both outputs.
+- The canvas was retired on Oct 18, 2026, so no canvas stylesheet is generated. The values in `design/reference/grocs.css` move into `tokens.json` once (TASK-1.19).
 
 Story conventions (R61, R63, R65):
 - Each component file exports `<NAME>_STATES` as a const array. The stories file exports one story per state, named in PascalCase.
@@ -93,7 +93,7 @@ SVG conversion (R62, decision-5):
   - Every hex colour is mapped to a `color.mascot.*` token. The script fails if a colour has no token, so `design-tokens/raw-value` stays meaningful.
 - Each generated file starts with a `GENERATED from design/svg/... by tools/build-svg.ts` header.
 - New check `svg/generated-in-sync` (R59, R62): rerunning the generator in memory must reproduce every generated file, and every SVG source must have its output. decision-5's mouth-path structure check runs on the same parsed source.
-- After the move, the canvas board checker (R66) reads the generated names to find components that are both built and still on the canvas.
+- The `reference-built` check (R66, decision-9) reads the generated names to find components that are both built and still in `design/reference/`.
 
 Hosting the browser build:
 - Hosted for Shazya as a static-assets Cloudflare Worker (`wrangler` 4.x) behind the same Google sign-in as Bruk's other workers, with access for Bruk's and Shazya's Google accounts only.

@@ -3,7 +3,7 @@ id: doc-3
 title: 'Handoff: from the cloud session (Oct 18, 2026)'
 type: guide
 created_date: '2026-10-18 19:03'
-updated_date: '2026-10-18 19:03'
+updated_date: '2026-10-18 19:18'
 ---
 Handoff from the claude.ai cloud session of Oct 18, 2026 to Claude Code on Bruk's machine. Everything the session knew that wasn't already in the repo is here, in `CLAUDE.md`, or on the board. Read this, then `backlog task list --plain` and the board.
 
@@ -24,19 +24,19 @@ Handoff from the claude.ai cloud session of Oct 18, 2026 to Claude Code on Bruk'
 
 ## Waiting on Bruk
 
-1. Accept or change each proposed decision above. Accepting one: `backlog decision edit <id> -s accepted`, then the reviewer closes its design task.
-2. Push notifications (decision-4): may the body name the item ("Bruk added lemons")? It passes through FCM and APNs and shows on the lock screen. The alternative is "Bruk added something", a one-line change in `planPartnerPush`.
-3. Choose between the design options on the canvas's "Design options" page: the combine prompt (D1, TASK-1.6) and the Fold's inner screen (D2, TASK-1.7). The designer's picks: D1 option A (the tray), borrowing option C's slide-under motion; D2 option B (plan and list side by side). The inner screen measured 791 x 820 dp (outer 412 x 901 dp); one source says 755 x 783.
-4. Accept, change or drop the drafts: DRAFT-1 to DRAFT-15 are the slices and the canvas move, DRAFT-16 to DRAFT-18 are follow-ups from review and CI. Their dependencies get set on promotion, because a draft's id changes then.
-5. Outside the repo: the Apple Developer account (the release pipeline waits on it); a Firebase project with an Android and an iOS app and Google sign-in turned on (the kitchen slice and release pipeline wait on it; the emulators don't).
+1. Accept or change each proposed decision above. Accepting one: `backlog decision edit <id> -s accepted`, then the reviewer closes its design task. Already answered: push notifications may name the item (recorded in decision-4 and doc-1).
+2. Choose the D1 and D2 options (TASK-1.6, TASK-1.7). They are on the "Design options" page of the frozen design artifact (link below) and as boards in `design/reference/`. The designer's picks: D1 option A (the tray), borrowing option C's slide-under motion; D2 option B (plan and list side by side). The inner screen measured 791 x 820 dp (outer 412 x 901 dp); one source says 755 x 783.
+3. Outside the repo: the Apple Developer account (the release pipeline, TASK-1.25, waits on it); a Firebase project with an Android and an iOS app and Google sign-in turned on (the kitchen slice and release pipeline wait on it; the emulators don't).
+
+Already done by Bruk on Oct 18: the slices and follow-ups were accepted (TASK-1.18 to TASK-1.35, dependencies set), and the canvas was retired in favour of Storybook.
 
 ## Next, in order
 
 1. The device spikes, now possible on Bruk's machine: TASK-1.16 (Firestore offline across restarts with the native SDK) feeds D4; TASK-1.15 (Google sign-in in an Expo dev build) feeds the kitchen slice.
-2. Accept D3, D4, D7, D8 and D9, and close their design tasks.
-3. DRAFT-16 (declare `.claude/checks.json`, so `record-check` works for reviewers), then DRAFT-1 (generate the layer agents and the launch hook from decision-3, using the skeleton's files as the examples).
-4. DRAFT-2, the rest of the canvas move: tokens.json as the source of grocs.css, SVG conversion. Step 1 (copying the canvas into `design/canvas/`) is done.
-5. The First real shop slices, through the layer workflow in decision-3.
+2. Accept D3, D4, D7, D8 and D9, and close their design tasks. Each accepted decision that changes the code (D3's tooling changes, D4's change log, D7's gaps, D8's new checks, D9's setup) then needs its own build task; none exists yet.
+3. TASK-1.33 (declare `.claude/checks.json`, so `record-check` works for reviewers), then TASK-1.18 (generate the layer agents and the launch hook from decision-3, using the skeleton's files as the examples).
+4. TASK-1.19: extract the tokens and art from the retired canvas, with the design-system checks.
+5. The First real shop slices, starting at TASK-1.20, through the layer workflow in decision-3. `backlog task list --plain` shows what each waits on.
 
 ## Lessons from this session
 
@@ -52,10 +52,11 @@ These are operational, not design. The ones every session needs are also in `CLA
 - The Firebase providers take Firebase's modular API by injection, so the web SDK stands in for `@react-native-firebase` in Node tests. The native modules themselves are untested until a device run.
 - R16 (offline) is unmet: the skeleton's transaction-based merge fails offline. D4's proposal addresses it.
 
-## The design canvas
+## The retired canvas
 
-- The canvas is a Design artifact on claude.ai, private to Bruk: https://claude.ai/artifact/MYK7qqUoy4cUmQdDirgdtq (version 18, with the Design options page).
-- Its source is now in `design/canvas/`: the boards (`*.dc.html`), `canvas.json`, `grocs.css`, `AGENT-BRIEF.md` (the board format and the rules that fail silently) and `source/kitchen-scene.svg`, and `tools/` (the board checker, the generators and token pass used to build the boards, and the render helper). `design/canvas/README.md` has the commands. The spec's step 1 put the checker in `tools/checks/`; it lives in `design/canvas/tools/` instead, beside the files it checks, because the repo's checks runner is TypeScript. The design reviews are doc doc-2.
-- Check the boards: `python3 design/canvas/tools/dc_check.py design/canvas`.
-- Publishing goes through the Artifact tool, which a claude.ai session has. If Claude Code on the desktop doesn't offer it, publish from a claude.ai chat with this repo attached. The artifact's published paths are `project/<file>`. Before publishing, list the artifact's files and compare them with the repo: edits made in the canvas editor save a new version there, and those must be committed to `design/canvas/` before anything else is published.
-- Two low findings left from the canvas review: Welcome's sign-in sheet has an empty band above the Google button, and icon stroke widths weren't confirmed as one width.
+- Bruk retired the canvas on Oct 18, 2026. Storybook is the only record of the design system (doc-1 R66, decision-2).
+- The boards are in `design/reference/`, read-only, as the visual reference for building. Delete a board in the same change that builds what it shows. `design/reference/README.md` explains the folder.
+- The Welcome kitchen scene is in `design/svg/scenes/kitchen.svg`. The mascots and icons are still to be extracted from the boards into `design/svg/` (TASK-1.19).
+- The design artifact on claude.ai is frozen at version 18 and is not published again: https://claude.ai/artifact/MYK7qqUoy4cUmQdDirgdtq. It is the only place the boards render, including the D1 and D2 options. Bruk can delete it once those are chosen.
+- The canvas tools (board checker, generators, render helper) were removed with the retirement; they are in git history at commit b0dadf0 under `design/canvas/tools/`.
+- The design reviews are doc-2.

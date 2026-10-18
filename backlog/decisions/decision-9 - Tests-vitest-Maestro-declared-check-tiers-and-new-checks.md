@@ -38,7 +38,7 @@ Findings:
   - allow and deny tests for security rules (R49): no rules tests exist;
   - schema version bumps (R54);
   - end-to-end flows pointing only at the emulators (R51, R52), covered today only because `firebase-isolation` scans every `.yaml` file;
-  - nothing both built and on the canvas (R66), which waits for the canvas move.
+  - nothing both built and still in `design/reference/` (R66), which waits for TASK-1.19.
 - Not yet verified: lefthook has not run through a real `git commit`; the hooks have not run inside a live Claude Code session. Post-edit timing is about 1 s measured by hand (`check --mode files`, 416 ms in-process), and `hooks.test.ts` asserts under 5,000 ms.
 - Current versions on 2026-10-18: vitest 5.0.5 (5.0.0 on 2026-09-03; needs Node 22.12+ and Vite 6.4+; inline projects now `extends: true` by default; `clearMocks` on by default; `-t` matches the full joined name); Maestro CLI 2.6.0 (2026-05-25; Java 17+); Detox 20.51.4; Stryker 10.0.0 with `@stryker-mutator/vitest-runner` 10.0.0 (peer `vitest >=2`).
 
@@ -85,7 +85,7 @@ Checks: every script check is listed in `tools/checks/registry.ts`, each with fi
 - `sync/no-transactions` (R16): there is no `runTransaction` under `packages/providers-firebase` or `apps/mobile` (D4).
 - `e2e-emulator-only` (R51, R52): every flow in `apps/mobile/e2e/` launches the development app id, and `run.ts` starts the emulators and sets `EXPO_PUBLIC_EMULATOR_HOST`. This is on top of `firebase-isolation`'s scan.
 - `svg/generated-in-sync` and `interactive-states` (R59, R61, R62; D9).
-- `canvas-built` (R66), added with the canvas move.
+- `reference-built` (R66): fails when a name is both built and still in `design/reference/` (the canvas was retired on Oct 18, 2026).
 - `import-layers` gains `unknown-ui-folder` and `no-self-barrel` (D3).
 
 Which hook runs what:

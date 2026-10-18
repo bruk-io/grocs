@@ -1,14 +1,16 @@
 ---
-id: DRAFT-14
+id: TASK-1.31
 title: 'Fold layout: the inner screen'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-3
   - slice
 milestone: m-3
-dependencies: []
+dependencies:
+  - TASK-1.7
 parent_task_id: TASK-1
 type: task
 ---

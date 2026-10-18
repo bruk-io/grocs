@@ -1,17 +1,19 @@
 ---
-id: DRAFT-17
+id: TASK-1.34
 title: >-
   Release-bundle check catches dev code by what it is, not by three marker
   strings
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:39'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-2
   - architecture
 milestone: m-1
 dependencies: []
 parent_task_id: TASK-1
+type: task
 ---
 
 ## Description

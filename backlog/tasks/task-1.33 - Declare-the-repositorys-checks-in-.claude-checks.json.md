@@ -1,15 +1,17 @@
 ---
-id: DRAFT-16
+id: TASK-1.33
 title: Declare the repository's checks in .claude/checks.json
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:39'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-1
   - architecture
 milestone: m-1
 dependencies: []
 parent_task_id: TASK-1
+type: task
 ---
 
 ## Description

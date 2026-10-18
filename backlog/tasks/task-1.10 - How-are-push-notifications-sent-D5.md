@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 18:37'
+updated_date: '2026-10-18 19:18'
 labels:
   - size-2
   - architecture
@@ -34,4 +34,6 @@ Design question D5 in doc-1: the Cloud Function, its trigger, and how it respect
 
 <!-- SECTION:NOTES:BEGIN -->
 Proposed as decision-4 on 2026-10-18, from research. Waiting on Bruk: accepting it, and whether the notification body may name the item (it passes through FCM and APNs and shows on the lock screen).
+
+Bruk answered on 2026-10-18: push notifications may name the item or meal. Recorded in decision-4 and as a resolved area of concern in doc-1. The decision itself is still waiting on his acceptance.
 <!-- SECTION:NOTES:END -->

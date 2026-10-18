@@ -1,14 +1,17 @@
 ---
-id: DRAFT-13
+id: TASK-1.30
 title: Mascots and motion
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-5
   - design-system
 milestone: m-3
-dependencies: []
+dependencies:
+  - TASK-1.11
+  - TASK-1.19
 parent_task_id: TASK-1
 type: task
 ---

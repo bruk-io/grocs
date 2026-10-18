@@ -1,14 +1,16 @@
 ---
-id: DRAFT-8
+id: TASK-1.25
 title: 'Release pipeline: builds reach both phones privately'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-3
   - delivery
 milestone: m-2
-dependencies: []
+dependencies:
+  - TASK-1.20
 parent_task_id: TASK-1
 type: task
 ---

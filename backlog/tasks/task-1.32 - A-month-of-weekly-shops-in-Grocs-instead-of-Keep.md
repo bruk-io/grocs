@@ -1,15 +1,18 @@
 ---
-id: DRAFT-15
+id: TASK-1.32
 title: A month of weekly shops in Grocs instead of Keep
-status: Draft
+status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-3
   - product
 milestone: m-4
-dependencies: []
+dependencies:
+  - TASK-1.24
+  - TASK-1.25
 parent_task_id: TASK-1
 type: task
 ---

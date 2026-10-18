@@ -1,14 +1,16 @@
 ---
-id: DRAFT-4
+id: TASK-1.21
 title: 'Meal plan: we plan a week of meals'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-3
   - slice
 milestone: m-2
-dependencies: []
+dependencies:
+  - TASK-1.20
 parent_task_id: TASK-1
 type: task
 ---

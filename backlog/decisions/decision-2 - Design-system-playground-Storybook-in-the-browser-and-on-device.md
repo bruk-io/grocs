@@ -25,4 +25,5 @@ Use Storybook. Story files sit beside each component in `packages/ui` and are sh
 - A browser can't show true iOS or Android rendering: react-native-web draws web elements. Shadows, text rendering and native controls differ, so sign-off happens on the phones.
 - The on-device Storybook hooks into the app's bundler config, and release builds must not contain it.
 - The canvas becomes a place to sketch designs that aren't built yet. A built component's stories are its record.
+- Oct 18, 2026, later the same day: Bruk retired the canvas entirely. Storybook is the only record of the design system; the old boards are a read-only reference in `design/reference/`, deleted as each is built (doc-1 R66).
 - Setup details (config locations, story conventions, hosting the web build) are design question D9 in the spec.

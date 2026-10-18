@@ -1,14 +1,17 @@
 ---
-id: DRAFT-9
+id: TASK-1.26
 title: 'Combine prompt: two meals needing the same ingredient'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-3
   - slice
 milestone: m-3
-dependencies: []
+dependencies:
+  - TASK-1.6
+  - TASK-1.22
 parent_task_id: TASK-1
 type: task
 ---

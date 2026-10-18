@@ -1,14 +1,16 @@
 ---
-id: DRAFT-10
+id: TASK-1.27
 title: 'Activity and toast: I see when Shazya adds something'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-2
   - slice
 milestone: m-3
-dependencies: []
+dependencies:
+  - TASK-1.22
 parent_task_id: TASK-1
 type: task
 ---

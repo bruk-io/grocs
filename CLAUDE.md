@@ -42,4 +42,4 @@ How slices are delivered by an orchestrator and per-layer agents, with pinned mo
 - On the web, open only URLs a search returned; fetching a recalled or hand-built URL asks the person for approval.
 - `philosophy:reviewer` closes tasks. It can't commit a follow-up draft it files, so the orchestrator reads it and files it on `main`.
 
-The design canvas source is in `design/canvas/`; how to check and publish it is in the handoff doc (`backlog doc list`).
+The design canvas is retired: Storybook is the design system. The old boards are a read-only reference in `design/reference/`, deleted as each is built (spec R66).

@@ -1,15 +1,17 @@
 ---
-id: DRAFT-18
+id: TASK-1.35
 title: Update CI actions off deprecated versions
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 18:45'
+updated_date: '2026-10-18 19:16'
 labels:
   - size-1
   - delivery
 milestone: m-1
 dependencies: []
 parent_task_id: TASK-1
+type: task
 ---
 
 ## Description

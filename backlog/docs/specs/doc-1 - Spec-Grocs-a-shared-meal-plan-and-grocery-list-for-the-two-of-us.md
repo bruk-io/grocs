@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:30'
+updated_date: '2026-10-18 19:17'
 ---
 Intent: TASK-1
 
@@ -100,21 +100,21 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 ### Enforcement
 
-- R55 Every rule that a script can check is enforced by that script, run by agent hooks, by pre-commit and in continuous integration. This covers at least the import layers (R26, R27), console use (R37), raw design values (R39), test presence for domain functions and commands (R46, R47), contract coverage of port methods (R48), allow and deny tests for security rules (R49), schema version bumps (R54), end-to-end flows pointing only at the emulators (R51, R52), the test sign-in and on-device Storybook being absent from release builds (R53, R64), generated token files matching their source (R59), import order between design levels (R60), story coverage (R63) and nothing being both built and still on the canvas (R66). Every failure message names the rule and why it exists.
+- R55 Every rule that a script can check is enforced by that script, run by agent hooks, by pre-commit and in continuous integration. This covers at least the import layers (R26, R27), console use (R37), raw design values (R39), test presence for domain functions and commands (R46, R47), contract coverage of port methods (R48), allow and deny tests for security rules (R49), schema version bumps (R54), end-to-end flows pointing only at the emulators (R51, R52), the test sign-in and on-device Storybook being absent from release builds (R53, R64), generated token files matching their source (R59), import order between design levels (R60), story coverage (R63) and nothing being both built and still in the design reference (R66). Every failure message names the rule and why it exists.
 - R56 Agent hooks run fast checks on the changed files after every edit and finish within 5 seconds. Checks on the whole change run before an agent finishes.
 - R57 Changes that weaken a check are blocked by a hook before the edit and fail continuous integration: focusing or skipping a test, deleting a test, or loosening a check's configuration.
 - R58 Rule files under `.claude/rules/` hold only guidance that no script can check. Each file holds one rule, is scoped to the paths it governs, and gives its reason. When a rule becomes checkable, it moves into a script and its file is deleted.
 
 ### Design system and playground
 
-- R59 Design tokens are defined once, in one token file in `packages/ui`. The app's tokens and the canvas stylesheet are generated from it, and a check fails when a generated file differs from its source.
+- R59 Design tokens are defined once, in one token file in `packages/ui`. The app's tokens are generated from it, and a check fails when the generated file differs from its source.
 - R60 Within the UI library, each design level imports only from the levels below it: atoms from tokens; molecules from atoms and tokens; organisms from molecules, atoms and tokens; templates from any of those.
 - R61 Every interactive component has rest, pressed, focus and disabled states, plus loading and error states wherever it can be in them.
 - R62 Icons are one named set in the UI library, drawn with the stroke width from the tokens. There is one Mascot component, and each mushroom's look, lines and reaction are data passed to it.
 - R63 Every component has a Storybook story for each state it declares. A check fails when a component or one of its states has no story.
 - R64 The same story files run in a browser (Storybook for React Native Web) and on both phones (Storybook for React Native). The browser version offers screen sizes for the iPhone and both Fold screens, and a switch between iOS and Android styling. The on-device version is a route in development builds only; release builds don't contain it.
 - R65 Component tests (R50) render the stories, so each state is written once and is both viewed and tested.
-- R66 The canvas design holds only what isn't built yet. Once a component or screen is built, its stories are its record and its canvas board is removed. A check fails when a name is both built and still on the canvas.
+- R66 The canvas design is retired, and Storybook is the only record of the design system. The retired boards are kept read-only in `design/reference/` as the visual reference for building components and screens. Nothing new is designed there, and a board is deleted once what it shows is built. A check fails when a name is both built and still in `design/reference/`.
 
 ## Repository layout
 
@@ -151,17 +151,15 @@ grocs/
 │           ├── mascots/        the Mascot component and each mushroom's data (R62)
 │           └── atoms/, molecules/, organisms/, templates/   each component with its stories and tests (R60, R63, R65)
 ├── design/
-│   └── canvas/                 the canvas boards still to be built, published as the design artifact (R66)
-│       ├── *.dc.html
-│       ├── canvas.json
-│       └── grocs.css           generated from packages/ui/src/tokens/tokens.json (R59)
+│   ├── reference/              the retired canvas boards, read-only, deleted as they are built (R66)
+│   └── svg/                    art sources for icons, mascots and scenes, converted by a tool (R62)
 ├── firebase/
 │   ├── firestore.rules         security rules (R4)
 │   ├── firestore.rules.test.ts allow and deny tests (R49)
 │   ├── firestore.indexes.json
 │   └── seed/                   emulator seed data (R52)
 ├── tools/
-│   ├── checks/                 one script per check, each failure naming its rule and reason (R55), including the canvas board checker
+│   ├── checks/                 one script per check, each failure naming its rule and reason (R55)
 │   └── hooks/                  agent hook entry points that call the checks (R56, R57)
 ├── .claude/
 │   ├── settings.json           hook wiring
@@ -172,12 +170,14 @@ grocs/
 └── CLAUDE.md
 ```
 
-## Moving the canvas into the repo
+## Retiring the canvas
 
-1. When the current design fix is published, copy the canvas boards, `canvas.json` and `grocs.css` into `design/canvas/`, the board checker into `tools/checks/`, and the design reviews into a Backlog document. From then on the design artifact is published from `design/canvas/` to the same link. A publish over a newer version made in the canvas editor is refused and hands back that version, which is committed before any other change.
-2. Move the values in `grocs.css` into `tokens.json` once. After that, `grocs.css` is generated (R59).
-3. Convert the mascot, icon and kitchen-scene SVGs to React Native components with a tool, run the same way each time, not by hand.
-4. Build components level by level (atoms, molecules, organisms, templates) from their canvas boards, each with its stories. Remove each board from the canvas as its component lands (R66).
+Bruk retired the canvas on Oct 18, 2026, in favour of Storybook.
+
+1. Done: the boards are in `design/reference/`, the design reviews are doc-2, and the design artifact on claude.ai is frozen at version 18 and not published again.
+2. Move the values in the reference's `grocs.css` into `tokens.json` once (R59).
+3. Extract the mascot, icon and kitchen-scene art from the boards into `design/svg/`, and convert it to React Native components with a tool, run the same way each time (R62).
+4. Build components level by level (atoms, molecules, organisms, templates) with their stories, using the boards as the visual reference. Delete each board once what it shows is built (R66).
 5. Build screens in `apps/mobile/app` from the templates.
 
 ## Policies applied
@@ -195,6 +195,7 @@ grocs/
 - Resolved: R44 and R45 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
 - R53 against R1: the test sign-in is a second way in. It is acceptable only because release builds don't contain it, and a check on release builds must prove that.
 - R64: the browser Storybook draws web elements through react-native-web, so shadows, text rendering and native controls differ from the phones. It is for browsing and review; sign-off on a component happens on the phones.
+- Resolved: R24 against the privacy policy. A push notification names the item or meal ("Bruk added lemons"), so that text passes through FCM and APNs and shows on the lock screen. Bruk accepted this on Oct 18, 2026 (decision-4).
 - R34 against R36, for later: if a hosted log service such as Datadog is added, its mobile tooling can capture screen text and view names by default. That provider must be configured so it doesn't, and it must pass the redaction tests in R36.
 
 ## Open questions
