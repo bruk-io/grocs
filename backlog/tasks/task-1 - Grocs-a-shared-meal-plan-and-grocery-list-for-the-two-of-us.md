@@ -5,11 +5,15 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 16:54'
+updated_date: '2026-10-18 17:02'
 labels:
   - size-8
   - product
 dependencies: []
+documentation:
+  - >-
+    backlog/docs/specs/doc-1 -
+    Spec-Grocs-a-shared-meal-plan-and-grocery-list-for-the-two-of-us.md
 type: intent
 ---
 
