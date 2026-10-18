@@ -5,10 +5,11 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 17:02'
+updated_date: '2026-10-18 17:09'
 labels:
   - size-8
   - product
+  - finish-moved
 dependencies: []
 documentation:
   - >-
@@ -54,13 +55,16 @@ The two apps must not drift apart. The rules live once, in a pure TypeScript SDK
 - [ ] #10 Must not break: editing or ticking the same item at the same time never creates a duplicate or silently undoes the other person's tick.
 - [ ] #11 Must not break: something deleted never comes back.
 - [ ] #12 The domain rules live once, in a pure TypeScript SDK that both apps use, with no I/O inside it.
-- [ ] #13 Network, storage, config, logging and telemetry are reached only through interfaces the SDK defines; each app supplies providers for them.
-- [ ] #14 Both apps use the same UI component library, named after the atomic design system.
-- [ ] #15 Telemetry can be sent to Datadog later by adding a provider, with no change to the SDK's domain code.
+- [ ] #13 Both apps use the same UI component library, named after the atomic design system.
+- [ ] #14 Network, storage, config and logging are reached only through interfaces the SDK defines; each app supplies providers for them.
+- [ ] #15 Logging is instrumented automatically at the interfaces and commands, never by hand in features, and logs can go to a hosted service such as Datadog later by adding a provider.
+- [ ] #16 The layers' import rules are enforced automatically, so the domain can never depend on I/O, platform or UI code.
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Sized 8: the whole first version, with real unknowns in the combine-ingredient flow, the fold layout and two-phone conflict handling. At 8 it gets a spec first, and the split follows the spec.
+
+Finish moved on 2026-10-18, before any children started: Bruk paused telemetry, asked for automatic logging instrumentation, and asked for import-layer enforcement to be part of the spec. Criteria 13 and 15 were rewritten for logging, and one criterion was added for import-layer enforcement.
 <!-- SECTION:NOTES:END -->

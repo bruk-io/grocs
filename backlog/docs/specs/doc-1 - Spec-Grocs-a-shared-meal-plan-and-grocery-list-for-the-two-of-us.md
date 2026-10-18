@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:06'
+updated_date: '2026-10-18 17:09'
 ---
 Intent: TASK-1
 
@@ -50,44 +50,56 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R23 While the app is open, a member sees a short in-app message when the other member adds something.
 - R24 Push notifications for the other member's additions are off by default. Each member can turn them on and off in settings. The operating system's permission prompt appears only when a member turns them on.
 
-### Architecture
+### Architecture and import layers
 
-- R25 The domain rules live in one TypeScript package used by both apps. It imports no I/O, platform or UI framework code, and continuous integration fails if it does.
-- R26 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation, logging and telemetry. Only the application layer calls them; domain functions take data and return data.
-- R27 Each port has one shared contract test suite, and every provider for that port passes it in continuous integration.
-- R28 The shapes of stored documents and activity records are defined once in the SDK with a schema version. Providers validate them on read and write.
-- R29 Logging goes only through the logging port, with levels and structured fields. Development builds use a console provider and release builds a no-op provider by default.
-- R30 Telemetry (events, metrics, errors) goes only through the telemetry port. The default provider does nothing. A Datadog provider can be added later without changing domain or application code.
-- R31 No personal content (item names, amounts, meal names, links) is passed to the logging or telemetry ports.
-- R32 Both apps are built from one shared UI component library whose components are organised and named by the atomic design system: tokens, atoms, molecules, organisms and templates.
-- R33 Design tokens are defined once and are the only source of colours, sizes, radii, type and motion in the UI library. Continuous integration flags raw values.
+- R25 The domain rules live in one TypeScript package used by both apps. Domain functions take data and return data; they never perform I/O, read the clock or generate ids.
+- R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: application and design tokens, never providers. App (the composition root): every layer, and it is the only place providers are chosen and wired.
+- R27 The import rules in R26 are checked in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another.
+- R28 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation and logging. Only the application layer calls them.
+- R29 Each port has one shared contract test suite, and every provider for that port passes it in continuous integration.
+- R30 The shapes of stored documents and activity records are defined once in the SDK with a schema version. Providers validate them on read and write.
+
+### Logging
+
+- R31 Every provider is wrapped once, at the composition root, by an instrumentation layer that logs each port call's port, method, duration, outcome and error. Providers and features contain no logging code of their own.
+- R32 Every command runs through one dispatcher. Its logging middleware records the command type, duration, outcome and the types of the events returned. Each command gets a correlation id, which is attached to every log record written while it runs, together with the app version, platform and kitchen role.
+- R33 Uncaught errors, unhandled promise rejections, UI render errors and screen changes are logged automatically by handlers installed once at app start.
+- R34 Every log record has one structured shape (timestamp, severity, message, attributes, correlation id) that fits the OpenTelemetry log data model, so a hosted log service can be added later as one more provider.
+- R35 Development builds log to the console. Release builds keep the most recent log records in a bounded buffer on the phone, which a member can copy from a diagnostics action.
+- R36 Fields marked personal in the SDK's schemas (item names, amounts, meal names, links) are removed automatically before any log record is written. The logging port's contract tests fail if a personal field gets through.
+- R37 Only the console provider writes to the console directly. Continuous integration flags any other direct console use.
+
+### Shared UI
+
+- R38 Both apps are built from one shared UI component library whose components are organised and named by the atomic design system: tokens, atoms, molecules, organisms and templates.
+- R39 Design tokens are defined once and are the only source of colours, sizes, radii, type and motion in the UI library. Continuous integration flags raw values.
 
 ### Look, feel and access
 
-- R34 Each screen has its mushroom host from the design. Tapping a mascot plays its reaction and a speech bubble, and the line is announced to screen readers.
-- R35 All motion follows the operating system's reduce-motion setting.
-- R36 Every touch target is at least 44 by 44 points, and text meets a 4.5:1 contrast ratio.
+- R40 Each screen has its mushroom host from the design. Tapping a mascot plays its reaction and a speech bubble, and the line is announced to screen readers.
+- R41 All motion follows the operating system's reduce-motion setting.
+- R42 Every touch target is at least 44 by 44 points, and text meets a 4.5:1 contrast ratio.
 
 ### Platforms and delivery
 
-- R37 The app runs on a Google Pixel 10 Fold, on both the outer and inner screens, and keeps its state when the phone folds or unfolds.
-- R38 The app runs on Shazya's iPhone on its current iOS version.
-- R39 Builds reach both phones through private channels (TestFlight and Google Play internal testing), with no public store listing.
+- R43 The app runs on a Google Pixel 10 Fold, on both the outer and inner screens, and keeps its state when the phone folds or unfolds.
+- R44 The app runs on Shazya's iPhone on its current iOS version.
+- R45 Builds reach both phones through private channels (TestFlight and Google Play internal testing), with no public store listing.
 
 ## Policies applied
 
-- Engineering philosophy (Bruk's standing constraints): functional core and imperative shell (R25, R26), checks that run as scripts in CI rather than by memory (R25, R27, R33), and a concrete case before an abstraction.
-- Privacy: personal content stays in the kitchen's own data and is kept out of logs and telemetry (R31). Access is checked on the server (R4).
-- Accessibility, using WCAG 2.2 AA as the baseline: contrast and target size (R36), reduce motion (R35), and announced mascot speech (R34).
-- Platform guidelines: Google's sign-in branding rules for the sign-in button (R1), and Android large-screen guidance for the fold (R37).
+- Engineering philosophy (Bruk's standing constraints): functional core and imperative shell (R25, R28), layers enforced by import rules rather than convention (R26, R27), and checks that run as scripts in continuous integration rather than by memory (R27, R29, R37, R39).
+- Privacy: personal content stays in the kitchen's own data and is stripped from logs by type (R36). Access is checked on the server (R4).
+- Accessibility, using WCAG 2.2 AA as the baseline: contrast and target size (R42), reduce motion (R41), and announced mascot speech (R40).
+- Platform guidelines: Google's sign-in branding rules for the sign-in button (R1), and Android large-screen guidance for the fold (R43).
 
 ## Areas of concern
 
 - Resolved: R18 against the must-not-break line on ticks. When one member ticks and the other unticks at the same moment, the later action wins. Bruk accepted this as product owner on Oct 18, 2026, and it is now part of R18.
 - R15 depends on the sync provider and the network. 3 seconds is a target on good connections, not a guarantee in a basement grocery store; R16 and R21 cover that case.
 - R24 needs a small server-side function to send pushes. That is the first code outside the apps, and it must use the same SDK and ports.
-- Resolved: R38 and R39 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
-- R30 against R31: Datadog's mobile tooling can capture screen text and view names by default. A future Datadog provider must be configured so it doesn't, and the contract suite for the telemetry port should test that personal fields are rejected.
+- Resolved: R44 and R45 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
+- R34 against R36, for later: if a hosted log service such as Datadog is added, its mobile tooling can capture screen text and view names by default. That provider must be configured so it doesn't, and it must pass the redaction tests in R36.
 
 ## Open questions
 
@@ -96,15 +108,17 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - [x] Carried forward: recipe-link ingredient extraction is parked by Bruk so it does not block the first version.
 - [x] Carried forward: moving a dropped meal to the next week is parked by Bruk. A dropped meal stays where it is (R8).
 - [x] A day can hold more than one meal (answered by Bruk; R5). The plan screens in the design show one meal per day and need updating.
+- [x] Carried forward: telemetry (events, metrics and errors) and a Datadog provider are paused by Bruk. The log shape in R34 keeps the door open.
 
 ## Design questions
 
 - D1 The playful inline flow for combining a shared ingredient on the duplicated item (R12, R19).
-- D2 How the layout uses the Pixel 10 Fold's inner screen, and how it moves between postures (R37).
-- D3 Repository and package layout for the TypeScript SDK, providers, UI library and app, and how the import boundaries are enforced (R25, R26, R32).
-- D4 The sync model: the store, document shapes, field-level merges, tombstones, the activity outbox and the schema versioning (R15 to R22, R28).
+- D2 How the layout uses the Pixel 10 Fold's inner screen, and how it moves between postures (R43).
+- D3 Repository and package layout for the SDK, providers, UI library and app, and the tool and rule set that enforce the import layers (R25 to R27, R38).
+- D4 The sync model: the store, document shapes, field-level merges, tombstones, the activity outbox and the schema versioning (R15 to R22, R30).
 - D5 How push notifications are sent: which server-side function, triggered by what, and how it respects each member's setting (R24).
-- D6 Animation runtime for the mascots and the Welcome scene, and how it honours reduce motion (R34, R35).
+- D6 Animation runtime for the mascots and the Welcome scene, and how it honours reduce motion (R40, R41).
+- D7 The logging design: the port wrapper, the command middleware, the correlation context, the redaction marking and the on-phone buffer (R31 to R37).
 
 ## Out of scope
 
@@ -115,4 +129,4 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - A web app.
 - Pantry stock, prices and store-specific aisle order.
 - Sharing a list with anyone outside the kitchen.
-- Setting up Datadog itself. Only the telemetry port and its no-op provider are in scope.
+- Telemetry (events, metrics, errors), paused by Bruk, and any hosted log or monitoring service such as Datadog.
