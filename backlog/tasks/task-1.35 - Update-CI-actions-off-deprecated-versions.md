@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:45'
-updated_date: '2026-10-18 21:06'
+updated_date: '2026-10-18 21:58'
 labels:
   - size-1
   - delivery
@@ -57,4 +57,20 @@ GitHub's first runs warn that checkout, setup-node, setup-java, cache and pnpm a
 ### Next Verification:
 - Full verification of deprecation warnings clearing requires actual GitHub Actions run
 - The updated workflow should run without Node.js 20 deprecation annotations
+
+## Review (philosophy:reviewer, 2026-10-18)
+
+Verdict: not closed. Neither acceptance criterion has evidence, and board-check close reports both unmet. No criteria ticked.
+
+Blocker: the change is on local main only. `main` is 10 commits ahead of `origin/main` (origin/main at 962eae2, which does not contain 0a26823), so the updated workflow has never run on GitHub. The newest ci run (39160677940, 2026-10-18T19:51Z) predates the change. Both criteria are stated in terms of a CI run, so they cannot be judged until main is pushed and ci runs on the merge commit, with all three jobs green and no deprecation annotations in the run.
+
+Verified locally against current main:
+- .github/workflows/ci.yml pins checkout@v7, pnpm/action-setup@v6, setup-node@v7, setup-java@v6, cache@v6 across all three jobs; all CI logic otherwise unchanged. All five majors exist upstream (latest releases: checkout v7.0.1, setup-node v7.1.0, setup-java v6.1.0, cache v6.1.0, pnpm/action-setup v6.1.0).
+- pnpm check: 9 checks passed. pnpm typecheck: clean. pnpm test: 271 passed (35 files). These do not bear on either criterion -- they exercise no actions.
+- record-check --tier full could not run: no .claude/checks.json in this repo.
+
+Findings:
+1. Medium: 0a26823 was committed with --no-verify, bypassing weakening/loosen-check-config (R57), with the approval recorded only in the commit body. Re-running `node tools/checks/run.ts --mode ci --base 0a26823~1` still FAILs on this diff. Because the ci-mode step is gated on `github.event_name == 'pull_request'`, a push to main skips it -- so criterion #2 may pass on main while the same change as a PR would fail. Filed as a draft: the weakening check has no sanctioned override and treats an action version bump as a loosening.
+2. Low: notes record "8 checks passed / 226 tests" and "checkout v4 -> v7.1.0"; current main is 9 checks / 271 tests and the latest checkout release is v7.0.1 (the pin is the floating @v7, so the workflow itself is fine). The notes' evidence was gathered against a different tree and cannot serve as criterion evidence.
+3. Informational: keeping ubuntu-latest through the Oct 19 - Nov 19 migration is not required or forbidden by either criterion; residual risk only.
 <!-- SECTION:NOTES:END -->

@@ -4,7 +4,7 @@ title: >-
   Animation: Reanimated CSS animations on react-native-svg for mascots and the
   kitchen
 date: '2026-10-18 18:36'
-status: proposed
+status: accepted
 ---
 ## Context
 

@@ -2,7 +2,7 @@
 id: decision-4
 title: 'Push: an activity trigger sends through FCM to the partner''s opted-in devices'
 date: '2026-10-18 18:36'
-status: proposed
+status: accepted
 ---
 ## Context
 

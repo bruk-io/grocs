@@ -2,7 +2,7 @@
 id: decision-9
 title: 'Tests: vitest, Maestro, declared check tiers and new checks'
 date: '2026-10-18 19:01'
-status: proposed
+status: accepted
 ---
 ## Context
 

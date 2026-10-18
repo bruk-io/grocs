@@ -4,7 +4,7 @@ title: >-
   Storybook setup: our token script, SVGR with checked-in output, two release
   guards
 date: '2026-10-18 19:01'
-status: proposed
+status: accepted
 ---
 ## Context
 

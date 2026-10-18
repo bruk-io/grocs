@@ -2,7 +2,7 @@
 id: decision-8
 title: 'Logging: keep the skeleton''s wiring and close its gaps'
 date: '2026-10-18 19:01'
-status: proposed
+status: accepted
 ---
 ## Context
 

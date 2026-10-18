@@ -2,7 +2,7 @@
 id: decision-6
 title: 'Workspace tooling: pnpm 10 hoisted, no task runner, our own import checker'
 date: '2026-10-18 19:01'
-status: proposed
+status: accepted
 ---
 ## Context
 
