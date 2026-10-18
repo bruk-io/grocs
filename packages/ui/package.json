@@ -7,5 +7,21 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "dependencies": {}
+  "dependencies": {
+    "react": "19.3.1"
+  },
+  "devDependencies": {
+    "@storybook/react-native-web-vite": "10.6.2",
+    "@types/react": "^19.3.0",
+    "react-dom": "19.3.1",
+    "react-native": "0.88.0",
+    "react-native-web": "^0.21.4",
+    "storybook": "10.6.2",
+    "vite": "^8.3.4"
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006",
+    "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o storybook-static"
+  }
 }

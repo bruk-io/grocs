@@ -10,5 +10,9 @@
   "dependencies": {
     "@grocs/core": "workspace:*",
     "@grocs/ports": "workspace:*"
+  },
+  "devDependencies": {
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0"
   }
 }

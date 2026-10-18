@@ -65,6 +65,11 @@ describe('import layers (R26, R27, R60)', () => {
     expect(run({ 'packages/core/src/a.test.ts': "import { it } from 'vitest'; import fc from 'fast-check'; it('x', () => fc);" })).toEqual([]);
   });
 
+  it('lets Storybook config files use Storybook', () => {
+    expect(run({ 'packages/ui/.storybook/main.ts': "import type { StorybookConfig } from '@storybook/react-native-web-vite'; export type C = StorybookConfig;" })).toEqual([]);
+    expect(rulesOf(run({ 'packages/ui/src/atoms/A.tsx': "import { x } from '@storybook/react'; export { x };" }))).toEqual(['import-layers/no-io-packages']);
+  });
+
   it('rejects deep and by-path imports into another package', () => {
     const findings = run({
       'packages/application/src/a.ts': "import '@grocs/ports/src/clock/fake.ts'; import '../../core/src/index.ts';",

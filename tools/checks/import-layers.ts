@@ -163,7 +163,7 @@ export function run(ctx: CheckContext): Finding[] {
 
   for (const file of ctx.files) {
     const unit = unitOf(file);
-    const testish = isTestFile(file) || isStoryFile(file);
+    const testish = isTestFile(file) || isStoryFile(file) || /(^|\/)\.(rn)?storybook\//.test(file);
     const edges: string[] = [];
     graph.set(file, edges);
     if (!unit && !/^packages\//.test(file) && !/^apps\//.test(file)) continue;
