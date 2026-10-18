@@ -3,10 +3,11 @@ id: TASK-1.34
 title: >-
   Release-bundle check catches dev code by what it is, not by three marker
   strings
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:39'
-updated_date: '2026-10-18 19:16'
+updated_date: '2026-10-18 20:47'
 labels:
   - size-2
   - architecture

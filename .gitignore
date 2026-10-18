@@ -1,5 +1,6 @@
 # Agent worktrees are separate checkouts, not part of this repo
 .claude/worktrees/
+.claude/settings.local.json
 node_modules/
 dist/
 dist-*/

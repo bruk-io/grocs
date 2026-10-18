@@ -1,10 +1,11 @@
 ---
 id: TASK-1.18
 title: Generate the layer agents and the launch hook
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 19:16'
+updated_date: '2026-10-18 20:47'
 labels:
   - size-5
   - agents

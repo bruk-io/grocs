@@ -1,10 +1,11 @@
 ---
 id: TASK-1.35
 title: Update CI actions off deprecated versions
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:45'
-updated_date: '2026-10-18 19:16'
+updated_date: '2026-10-18 20:47'
 labels:
   - size-1
   - delivery

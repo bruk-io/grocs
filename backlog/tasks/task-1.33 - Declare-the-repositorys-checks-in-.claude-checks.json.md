@@ -1,10 +1,11 @@
 ---
 id: TASK-1.33
 title: Declare the repository's checks in .claude/checks.json
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:39'
-updated_date: '2026-10-18 19:16'
+updated_date: '2026-10-18 20:47'
 labels:
   - size-1
   - architecture
