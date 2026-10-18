@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 17:38'
-updated_date: '2026-10-18 17:39'
+updated_date: '2026-10-18 17:52'
 labels:
   - size-3
   - architecture
@@ -30,3 +30,9 @@ Sets up the repository layout in doc-1 and the checks that guard it, before any 
 - [ ] #6 One command starts the Firebase emulators (Firestore, Auth) with seed data, and nothing in the repo points at a production project (R52)
 - [ ] #7 .claude/rules/ holds only the judgement-only rules from the conversation that apply so far, one rule per file, each with its reason (R58)
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. pnpm workspace, one package per layer. 2. tools/checks scripts behind one runner (all, files, staged, ci). 3. tools/hooks (pre-edit, post-edit, stop). 4. lefthook and GitHub Actions call the same runner. 5. Firebase emulators with seed, one command. 6. Judgement-only rules. 7. Fixture tests for every check, asserting message content.
+<!-- SECTION:PLAN:END -->
