@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 17:21'
+updated_date: '2026-10-18 17:30'
 labels:
   - size-8
   - product
@@ -34,7 +34,7 @@ The backend is Firebase. We need to be able to test our code quickly, on our own
 - Bruk (Google Pixel 10 Fold, Android) and Shazya (recent iPhone, iOS).
 - Our Google accounts, used to sign in (Google sign-in only).
 - Firebase: Firestore for our data, Firebase Auth for sign-in, Cloud Functions for push notifications.
-- The canvas designs in the Grocs project (screens and atomic design system).
+- The canvas designs in the Grocs project (screens and atomic design system). They move into the repo, and Storybook becomes where we browse the built design system.
 
 ## Open questions
 
@@ -64,6 +64,7 @@ The backend is Firebase. We need to be able to test our code quickly, on our own
 - [ ] #16 The layers' import rules are enforced automatically by hooks and CI, so the domain can never depend on I/O, platform or UI code.
 - [ ] #17 Anything a script can check is enforced by hooks, pre-commit and CI. Written rules are small, one per file, and hold only what no script can check.
 - [ ] #18 Every test runs on our own machines, using the Firebase emulators wherever a backend is needed, with no access to production data and no Docker.
+- [ ] #19 We can browse the design system in a browser and on our phones, built from the same components the app uses.
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -74,4 +75,6 @@ Sized 8: the whole first version, with real unknowns in the combine-ingredient f
 Finish moved on 2026-10-18, before any children started: Bruk paused telemetry, asked for automatic logging instrumentation, and asked for import-layer enforcement to be part of the spec. Criteria 13 and 15 were rewritten for logging, and one criterion was added for import-layer enforcement.
 
 Finish moved again on 2026-10-18, before any children started: Bruk chose Firebase as the backend (decision-1), asked for quick local testing, and asked that anything a script can check be enforced by hooks rather than written rules. Criterion 16 was reworded to name hooks, and criteria 17 and 18 were added. The problem and affected systems now name Firebase.
+
+Finish moved on 2026-10-18, before any children started: Bruk chose Storybook for viewing the design system in a browser and on device (decision-2), and asked for the canvas to move into the repo. Criterion 19 was added and the affected systems updated.
 <!-- SECTION:NOTES:END -->

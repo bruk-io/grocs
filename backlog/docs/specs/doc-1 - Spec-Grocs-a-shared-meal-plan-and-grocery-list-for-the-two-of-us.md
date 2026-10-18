@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:22'
+updated_date: '2026-10-18 17:30'
 ---
 Intent: TASK-1
 
@@ -53,7 +53,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 ### Architecture and import layers
 
 - R25 The domain rules live in one TypeScript package used by both apps. Domain functions take data and return data; they never perform I/O, read the clock or generate ids.
-- R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: application and design tokens, never providers. App (the composition root): every layer, and it is the only place providers are chosen and wired.
+- R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: design tokens only; its components take data and callbacks as props and never import the application layer or providers. App (the composition root): every layer. It is the only place providers are chosen and wired, and its screens connect the application layer to the UI.
 - R27 The import rules in R26 are checked by an agent hook after every edit, by pre-commit and in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another.
 - R28 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation and logging. Only the application layer calls them.
 - R29 Each port has one shared contract test suite, and every provider for that port passes it in continuous integration.
@@ -100,22 +100,34 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 ### Enforcement
 
-- R55 Every rule that a script can check is enforced by that script, run by agent hooks, by pre-commit and in continuous integration. This covers at least the import layers (R26, R27), console use (R37), raw design values (R39), test presence for domain functions and commands (R46, R47), contract coverage of port methods (R48), allow and deny tests for security rules (R49), schema version bumps (R54), end-to-end flows pointing only at the emulators (R51, R52) and the test sign-in being absent from release builds (R53). Every failure message names the rule and why it exists.
+- R55 Every rule that a script can check is enforced by that script, run by agent hooks, by pre-commit and in continuous integration. This covers at least the import layers (R26, R27), console use (R37), raw design values (R39), test presence for domain functions and commands (R46, R47), contract coverage of port methods (R48), allow and deny tests for security rules (R49), schema version bumps (R54), end-to-end flows pointing only at the emulators (R51, R52), the test sign-in and on-device Storybook being absent from release builds (R53, R64), generated token files matching their source (R59), import order between design levels (R60), story coverage (R63) and nothing being both built and still on the canvas (R66). Every failure message names the rule and why it exists.
 - R56 Agent hooks run fast checks on the changed files after every edit and finish within 5 seconds. Checks on the whole change run before an agent finishes.
 - R57 Changes that weaken a check are blocked by a hook before the edit and fail continuous integration: focusing or skipping a test, deleting a test, or loosening a check's configuration.
 - R58 Rule files under `.claude/rules/` hold only guidance that no script can check. Each file holds one rule, is scoped to the paths it governs, and gives its reason. When a rule becomes checkable, it moves into a script and its file is deleted.
 
+### Design system and playground
+
+- R59 Design tokens are defined once, in one token file in `packages/ui`. The app's tokens and the canvas stylesheet are generated from it, and a check fails when a generated file differs from its source.
+- R60 Within the UI library, each design level imports only from the levels below it: atoms from tokens; molecules from atoms and tokens; organisms from molecules, atoms and tokens; templates from any of those.
+- R61 Every interactive component has rest, pressed, focus and disabled states, plus loading and error states wherever it can be in them.
+- R62 Icons are one named set in the UI library, drawn with the stroke width from the tokens. There is one Mascot component, and each mushroom's look, lines and reaction are data passed to it.
+- R63 Every component has a Storybook story for each state it declares. A check fails when a component or one of its states has no story.
+- R64 The same story files run in a browser (Storybook for React Native Web) and on both phones (Storybook for React Native). The browser version offers screen sizes for the iPhone and both Fold screens, and a switch between iOS and Android styling. The on-device version is a route in development builds only; release builds don't contain it.
+- R65 Component tests (R50) render the stories, so each state is written once and is both viewed and tested.
+- R66 The canvas design holds only what isn't built yet. Once a component or screen is built, its stories are its record and its canvas board is removed. A check fails when a name is both built and still on the canvas.
+
 ## Repository layout
 
-One TypeScript workspace. Each folder under `packages/` is one layer from R26, apart from the providers, which are split by platform so they never import one another. Each folder under `apps/` is a composition root. Tests sit beside the code they test (`*.test.ts`).
+One TypeScript workspace. Each folder under `packages/` is one layer from R26, apart from the providers, which are split by platform so they never import one another. Each folder under `apps/` is a composition root. Tests sit beside the code they test (`*.test.ts`), and stories beside the components they show (`*.stories.tsx`).
 
 ```
 grocs/
 ├── apps/
 │   ├── mobile/                 Expo app, the phones' composition root
-│   │   ├── app/                screens and navigation
+│   │   ├── app/                screens and navigation; screens connect application to UI (R26)
 │   │   ├── src/composition/    the only place providers are chosen, instrumented and wired (R26, R31)
-│   │   ├── src/dev/            test sign-in and emulator settings, development builds only (R53)
+│   │   ├── src/dev/            test sign-in, emulator settings and the on-device Storybook route, development builds only (R53, R64)
+│   │   ├── .rnstorybook/       on-device Storybook config, loading the stories from packages/ui (R64)
 │   │   └── e2e/                end-to-end flows (R51)
 │   └── functions/              Cloud Functions, the server's composition root (push, R24)
 ├── packages/
@@ -131,15 +143,25 @@ grocs/
 │   ├── providers-firebase/     Firestore sync store, Auth, push registration
 │   ├── providers-device/       key-value storage, clock, ids, console logger, on-phone log buffer (R35)
 │   ├── providers-server/       Admin SDK providers used by apps/functions
-│   └── ui/                     shared component library (R38)
-│       └── src/                tokens/, atoms/, molecules/, organisms/, templates/
+│   └── ui/                     shared component library, presentational only (R26, R38)
+│       ├── .storybook/         browser Storybook config: screen sizes, iOS/Android switch (R64)
+│       └── src/
+│           ├── tokens/         tokens.json (the source) and the generated tokens.ts (R59)
+│           ├── icons/          the named icon set (R62)
+│           ├── mascots/        the Mascot component and each mushroom's data (R62)
+│           └── atoms/, molecules/, organisms/, templates/   each component with its stories and tests (R60, R63, R65)
+├── design/
+│   └── canvas/                 the canvas boards still to be built, published as the design artifact (R66)
+│       ├── *.dc.html
+│       ├── canvas.json
+│       └── grocs.css           generated from packages/ui/src/tokens/tokens.json (R59)
 ├── firebase/
 │   ├── firestore.rules         security rules (R4)
 │   ├── firestore.rules.test.ts allow and deny tests (R49)
 │   ├── firestore.indexes.json
 │   └── seed/                   emulator seed data (R52)
 ├── tools/
-│   ├── checks/                 one script per check, each failure naming its rule and reason (R55)
+│   ├── checks/                 one script per check, each failure naming its rule and reason (R55), including the canvas board checker
 │   └── hooks/                  agent hook entry points that call the checks (R56, R57)
 ├── .claude/
 │   ├── settings.json           hook wiring
@@ -149,6 +171,14 @@ grocs/
 ├── lefthook.yml                pre-commit, calling tools/checks
 └── CLAUDE.md
 ```
+
+## Moving the canvas into the repo
+
+1. When the current design fix is published, copy the canvas boards, `canvas.json` and `grocs.css` into `design/canvas/`, the board checker into `tools/checks/`, and the design reviews into a Backlog document. From then on the design artifact is published from `design/canvas/` to the same link. A publish over a newer version made in the canvas editor is refused and hands back that version, which is committed before any other change.
+2. Move the values in `grocs.css` into `tokens.json` once. After that, `grocs.css` is generated (R59).
+3. Convert the mascot, icon and kitchen-scene SVGs to React Native components with a tool, run the same way each time, not by hand.
+4. Build components level by level (atoms, molecules, organisms, templates) from their canvas boards, each with its stories. Remove each board from the canvas as its component lands (R66).
+5. Build screens in `apps/mobile/app` from the templates.
 
 ## Policies applied
 
@@ -164,6 +194,7 @@ grocs/
 - R24 needs a small server-side function to send pushes. That is the first code outside the apps, and it must use the same SDK and ports.
 - Resolved: R44 and R45 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
 - R53 against R1: the test sign-in is a second way in. It is acceptable only because release builds don't contain it, and a check on release builds must prove that.
+- R64: the browser Storybook draws web elements through react-native-web, so shadows, text rendering and native controls differ from the phones. It is for browsing and review; sign-off on a component happens on the phones.
 - R34 against R36, for later: if a hosted log service such as Datadog is added, its mobile tooling can capture screen text and view names by default. That provider must be configured so it doesn't, and it must pass the redaction tests in R36.
 
 ## Open questions
@@ -185,6 +216,7 @@ grocs/
 - D6 Animation runtime for the mascots and the Welcome scene, and how it honours reduce motion (R40, R41).
 - D7 The logging design: the port wrapper, the command middleware, the correlation context, the redaction marking and the on-phone buffer (R31 to R37).
 - D8 The test tooling and its enforcement: test runners, the end-to-end tool, the check scripts and which hook runs each, the judgement-only rule files, and whether to add mutation testing on the domain later (R46 to R58).
+- D9 The Storybook setup. Storybook itself is decided by Bruk (decision-2, TASK-1.2). Still open: the token generation tool, the story conventions for states, how release builds exclude the on-device route, the SVG conversion tool, and whether the browser build is hosted for Shazya to view (R59 to R66).
 
 ## Out of scope
 
