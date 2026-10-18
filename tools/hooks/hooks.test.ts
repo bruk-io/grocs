@@ -23,7 +23,16 @@ function hook(name: string, payload: object): { status: number | null; stderr: s
   });
   return { status: r.status, stderr: r.stderr, stdout: r.stdout, ms: performance.now() - t0 };
 }
-const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+// A real git hook (this file's own pre-commit, via lefthook) sets GIT_DIR, GIT_WORK_TREE,
+// GIT_INDEX_FILE and GIT_CEILING_DIRECTORIES for its process tree. Inherited here, they make git
+// ignore `cwd` and operate on the real repository instead of this fixture's own tmp directory
+// (TASK-1.36): stripped so this fixture stays isolated no matter what invoked the test.
+const ISOLATE_ENV: NodeJS.ProcessEnv = { ...process.env };
+delete ISOLATE_ENV['GIT_DIR'];
+delete ISOLATE_ENV['GIT_WORK_TREE'];
+delete ISOLATE_ENV['GIT_INDEX_FILE'];
+delete ISOLATE_ENV['GIT_CEILING_DIRECTORIES'];
+const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8', env: ISOLATE_ENV });
 
 beforeAll(() => {
   root = mkdtempSync(join(tmpdir(), 'grocs-hooks-'));
