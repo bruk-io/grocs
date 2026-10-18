@@ -27,13 +27,23 @@ export function runChecks(ctx: CheckContext, only?: readonly string[]): Report[]
   return reports;
 }
 
+// A real git hook (this file's own "staged"/"ci" modes, via lefthook) sets GIT_DIR, GIT_WORK_TREE,
+// GIT_INDEX_FILE and GIT_CEILING_DIRECTORIES for its process tree. Stripped here so a caller that
+// passes a `root` other than the ambient repository (hooks.test.ts's isolated fixture, TASK-1.36)
+// still gets reviewed against that root, not whatever repository the hook env points at.
+const ISOLATE_ENV: NodeJS.ProcessEnv = { ...process.env };
+delete ISOLATE_ENV['GIT_DIR'];
+delete ISOLATE_ENV['GIT_WORK_TREE'];
+delete ISOLATE_ENV['GIT_INDEX_FILE'];
+delete ISOLATE_ENV['GIT_CEILING_DIRECTORIES'];
+
 function git(root: string, args: string[]): string {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: ISOLATE_ENV });
 }
 
 function gitShow(root: string, spec: string): string | null {
   try {
-    return execFileSync('git', ['show', spec], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
+    return execFileSync('git', ['show', spec], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024, env: ISOLATE_ENV });
   } catch {
     return null;
   }
