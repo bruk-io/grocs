@@ -28,6 +28,14 @@ export default defineConfig({
         },
       },
       {
+        resolve: { alias: { 'react-native': 'react-native-web' } },
+        test: {
+          name: 'app',
+          environment: 'jsdom',
+          include: ['apps/*/src/**/*.test.tsx'],
+        },
+      },
+      {
         test: {
           name: 'tools',
           environment: 'node',

@@ -64,5 +64,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @grocs/mobile export
+      - name: Android and iOS bundles, development and release; release must hold no dev-only code (R53, R64)
+        run: pnpm check:release
       - run: pnpm --filter @grocs/ui build-storybook
