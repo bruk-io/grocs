@@ -1,0 +1,9 @@
+{
+  "layer": "core",
+  "summary": "Domain: pure functions and types, no I/O (R25, R26)",
+  "paths": ["packages/core/**"],
+  "testCommand": "vitest run --project unit packages/core",
+  "typecheckCommand": "pnpm -s typecheck",
+  "rulesFiles": [],
+  "exampleFiles": ["packages/core/src/model/item.ts", "packages/core/src/merge/lww.ts", "packages/core/src/schema/item-doc.ts"]
+}

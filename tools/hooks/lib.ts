@@ -11,6 +11,9 @@ export interface HookPayload {
   readonly tool_input?: Record<string, unknown>;
   readonly stop_hook_active?: boolean;
   readonly cwd?: string;
+  /** Present when the hook fires inside a subagent (decision-3's enforcement seam). */
+  readonly agent_type?: string;
+  readonly agent_id?: string;
 }
 
 /** GROCS_ROOT lets the hook tests point the hooks at a throwaway repository. */

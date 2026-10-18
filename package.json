@@ -16,6 +16,7 @@
     "check:edit": "node tools/checks/run.ts --mode files",
     "check:release": "node --disable-warning=ExperimentalWarning tools/release-bundle.ts",
     "tokens": "node --disable-warning=ExperimentalWarning tools/build-tokens.ts",
+    "agents:generate": "node --disable-warning=ExperimentalWarning tools/agents/generate.ts",
     "hooks:install": "lefthook install"
   },
   "devDependencies": {

@@ -10,6 +10,17 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "NODE_NO_WARNINGS=1 node \"$CLAUDE_PROJECT_DIR/tools/hooks/launch-guard.ts\"",
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
       }
     ],
     "PostToolUse": [

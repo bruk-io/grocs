@@ -1,0 +1,9 @@
+{
+  "layer": "application",
+  "summary": "Application: commands and queries over the domain and ports; never I/O directly (R26)",
+  "paths": ["packages/application/**"],
+  "testCommand": "vitest run --project unit packages/application",
+  "typecheckCommand": "pnpm -s typecheck",
+  "rulesFiles": [],
+  "exampleFiles": ["packages/application/src/commands/add-item.ts", "packages/application/src/dispatch/dispatcher.ts", "packages/application/src/queries/watch-week.ts"]
+}

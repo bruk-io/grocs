@@ -1,0 +1,9 @@
+{
+  "layer": "providers",
+  "summary": "Providers: translate a port onto an SDK; never decide (R26, R27 providers-isolated)",
+  "paths": ["packages/providers-firebase/**", "packages/providers-device/**", "packages/providers-server/**"],
+  "testCommand": "vitest run --project unit packages/providers-",
+  "typecheckCommand": "pnpm -s typecheck",
+  "rulesFiles": [".claude/rules/providers-hold-no-rules.md"],
+  "exampleFiles": ["packages/providers-firebase/src/firestore-sync-store.ts", "packages/providers-device/src/system-clock.ts"]
+}

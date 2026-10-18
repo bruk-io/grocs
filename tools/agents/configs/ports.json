@@ -1,0 +1,9 @@
+{
+  "layer": "ports",
+  "summary": "Ports: interfaces the application calls, shaped from the domain's types, never from an SDK's (R26, R28, R29)",
+  "paths": ["packages/ports/**"],
+  "testCommand": "vitest run --project unit packages/ports",
+  "typecheckCommand": "pnpm -s typecheck",
+  "rulesFiles": [".claude/rules/ports-describe-intent.md"],
+  "exampleFiles": ["packages/ports/src/sync-store/port.ts", "packages/ports/src/sync-store/contract.ts", "packages/ports/src/sync-store/fake.ts"]
+}

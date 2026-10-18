@@ -7,10 +7,10 @@ import ts from 'typescript';
 import type { Check, CheckContext, Finding, RuleInfo } from './lib.ts';
 import { isStoryFile, isTestFile } from './lib.ts';
 
-type Layer = 'core' | 'ports' | 'application' | 'providers' | 'ui' | 'app';
+export type Layer = 'core' | 'ports' | 'application' | 'providers' | 'ui' | 'app';
 
 /** Package folder name -> layer. Provider packages are split by platform so they never import one another. */
-const PACKAGE_LAYER: Readonly<Record<string, Layer>> = {
+export const PACKAGE_LAYER: Readonly<Record<string, Layer>> = {
   core: 'core',
   ports: 'ports',
   application: 'application',
@@ -111,12 +111,12 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
   },
 };
 
-interface Unit {
+export interface Unit {
   readonly layer: Layer;
   readonly name: string;
 }
 
-function unitOf(file: string): Unit | null {
+export function unitOf(file: string): Unit | null {
   const parts = file.split('/');
   if (parts[0] === 'packages' && parts[1]) {
     const layer = PACKAGE_LAYER[parts[1]];
