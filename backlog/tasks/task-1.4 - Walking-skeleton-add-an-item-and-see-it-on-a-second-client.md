@@ -1,11 +1,11 @@
 ---
 id: TASK-1.4
 title: 'Walking skeleton: add an item and see it on a second client'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 17:38'
-updated_date: '2026-10-18 18:33'
+updated_date: '2026-10-18 18:37'
 labels:
   - size-5
   - architecture
@@ -23,15 +23,15 @@ The thinnest path through every layer, built in one session to discover the shap
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 core: adding an extra item to a week's list and normalising its name are pure functions with unit tests; one field-level last-write-wins merge has a property test (R25, R46)
-- [ ] #2 ports: sync store, auth, clock, ids and logging each have an interface, an in-memory fake and a contract suite, and every fake passes its suite (R28, R29, R48)
-- [ ] #3 application: an addItem command runs through one dispatcher whose logging middleware records type, duration, outcome and events with a correlation id; a scenario test runs it against the fakes (R32, R47)
-- [ ] #4 providers: the Firestore sync store and the Auth provider pass the same contract suites against the emulators (R49); the stored item shape has a schema version and is validated on read and write (R30)
-- [ ] #5 Every provider is wrapped once at the composition root by the instrumentation layer, and a test proves personal fields (item names) never reach a log record (R31, R34, R36)
-- [ ] #6 Two clients against the emulators: an item added on one appears on the other within 3 seconds, shown by an automated test (R15)
-- [ ] #7 ui: tokens come from one tokens.json (R59); one item-row molecule and the atoms it needs each have a story per state; the browser Storybook builds and component tests render the stories (R63 to R65)
-- [ ] #8 app: an Expo app with one list screen and an add bar, wired at the composition root, signs in with a test sign-in against the Auth emulator in development builds only (R53); Android and iOS bundles build
-- [ ] #9 Notes list what this workspace could not verify (device runs) and the findings for D4, D7, D8, D9 and the layer agent configs
+- [x] #1 core: adding an extra item to a week's list and normalising its name are pure functions with unit tests; one field-level last-write-wins merge has a property test (R25, R46)
+- [x] #2 ports: sync store, auth, clock, ids and logging each have an interface, an in-memory fake and a contract suite, and every fake passes its suite (R28, R29, R48)
+- [x] #3 application: an addItem command runs through one dispatcher whose logging middleware records type, duration, outcome and events with a correlation id; a scenario test runs it against the fakes (R32, R47)
+- [x] #4 providers: the Firestore sync store and the Auth provider pass the same contract suites against the emulators (R49); the stored item shape has a schema version and is validated on read and write (R30)
+- [x] #5 Every provider is wrapped once at the composition root by the instrumentation layer, and a test proves personal fields (item names) never reach a log record (R31, R34, R36)
+- [x] #6 Two clients against the emulators: an item added on one appears on the other within 3 seconds, shown by an automated test (R15)
+- [x] #7 ui: tokens come from one tokens.json (R59); one item-row molecule and the atoms it needs each have a story per state; the browser Storybook builds and component tests render the stories (R63 to R65)
+- [x] #8 app: an Expo app with one list screen and an add bar, wired at the composition root, signs in with a test sign-in against the Auth emulator in development builds only (R53); Android and iOS bundles build
+- [x] #9 Notes list what this workspace could not verify (device runs) and the findings for D4, D7, D8, D9 and the layer agent configs
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -50,4 +50,6 @@ FINDINGS. D4 (sync and data): LWW per field with permanent delete tombstone and 
 PER-LAYER AGENT CONFIG. core: pure functions only, no imports; example packages/core/src/merge/item-merge.ts and its property tests. ports: interface plus fake plus contract suite together, describe intent not SDK; example packages/ports/src/sync-store/ (port, fake, contract). Tests import from @grocs/ports/testing. application: one command per file with a scenario test on the fakes, register in commands/index.ts; example commands/add-item.ts and add-item.scenario.test.ts. providers-*: hold no rules, take the SDK by injection, pass the shared contract suite; example providers-firebase/src/firestore-sync-store.ts. ui: props and callbacks only, tokens only, export NAME_STATES and one PascalCase story per state; example molecules/ItemRow.tsx and atoms/Checkbox.tsx. app: wire at the composition root, screens use the App facade and never a port; example apps/mobile/src/composition/compose-app.ts and screens/ListScreen.tsx. Dev-only code goes in apps/mobile/src/dev and loads only through load-dev.ts.
 
 NOT VERIFIED. Nothing ran on an Android or iOS device or simulator: the screens, native @react-native-firebase modules, emulator host (10.0.2.2 on Android), keyboard and touch behaviour are untested; only the JS bundles build (expo export, both platforms, dev and release). The test sign-in runs in the app only through the web SDK in tests, not through the native Auth module. On-device Storybook is not built (needs @storybook/react-native and a dev client); the browser Storybook is. Native config (google-services files, expo prebuild, Google sign-in) is absent, so a dev client build was not attempted. Offline behaviour (R16) not met, see D4. Firestore security rules have no rules-unit tests yet. The release-bundle check looks for three marker strings; a leak under other names would pass. The 3 second sync test measures the web SDK on a local emulator, not a mobile network. CI has not run.
+
+REVIEW (reviewer, 2026-10-18): closed. Re-ran test:emulator (two-client test with 3000 ms budget, log-redaction test, provider contract suites pass), check:release (Android and iOS dev and release exports; release free of dev markers), ui build-storybook (succeeds), test (component tests render stories). Device-only, not verified and not claimed: screens on a device, native @react-native-firebase modules, on-device Storybook, native Firebase config; #8 is met on the JS bundles and dev-only test sign-in excluded from release, not on a device. Known limits, no task filed: release-bundle check matches 3 marker strings only; Firestore security rules have no rules tests; R16 offline unmet (D4), outside these criteria. Missing check tier: DRAFT-1.
 <!-- SECTION:NOTES:END -->
