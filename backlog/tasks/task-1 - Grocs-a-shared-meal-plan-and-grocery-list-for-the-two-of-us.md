@@ -1,7 +1,7 @@
 ---
-id: DRAFT-1
+id: TASK-1
 title: 'Grocs: a shared meal plan and grocery list for the two of us'
-status: Draft
+status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
