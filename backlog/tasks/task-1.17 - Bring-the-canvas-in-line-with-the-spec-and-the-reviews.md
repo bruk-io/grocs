@@ -1,11 +1,11 @@
 ---
 id: TASK-1.17
 title: Bring the canvas in line with the spec and the reviews
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 18:42'
+updated_date: '2026-10-18 18:44'
 labels:
   - size-3
   - design-system
@@ -56,11 +56,11 @@ Rescoped Oct 18: the canvas becomes a sketchpad for unbuilt designs (R66), so th
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every board uses the shared stylesheet and passes the board checker with no raw colours outside it
-- [ ] #2 The reviews' drift findings are fixed: one radius and type scale, matching sizes for repeated parts, missing states on interactive atoms
-- [ ] #3 EmailSignIn is removed, RecipeImport is marked parked, Plan has no rollover card and shows two meals on a day, and its badge is computed
-- [ ] #4 New boards: Settings, offline and waiting-to-send, invalid invite code, and the in-app toast
-- [ ] #5 Published to the design artifact
+- [x] #1 Every board uses the shared stylesheet and passes the board checker with no raw colours outside it
+- [x] #2 The reviews' drift findings are fixed: one radius and type scale, matching sizes for repeated parts, missing states on interactive atoms
+- [x] #3 EmailSignIn is removed, RecipeImport is marked parked, Plan has no rollover card and shows two meals on a day, and its badge is computed
+- [x] #4 New boards: Settings, offline and waiting-to-send, invalid invite code, and the in-app toast
+- [x] #5 Published to the design artifact
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -86,4 +86,8 @@ Rescoped Oct 18: the canvas becomes a sketchpad for unbuilt designs (R66), so th
 
 <!-- SECTION:NOTES:BEGIN -->
 Canvas pass finished 2026-10-18: 17 boards, checker 0 errors; EmailSignIn removed; Settings, JoinInviteInvalid, Offline and Toast added. Under independent review before publishing.
+
+Review (reviewer agent, Oct 18): AC1-4 met, AC5 pending (orchestrator publishes). dc_check.py: 17 files, 0 errors, no raw-hex warnings; 107 hex in Welcome are inside the kitchen-scene SVG (checker exempts SVG), DS-Tokens hex are swatch labels. Rendered all 17 boards with Playwright (no support.js; helper stubs it), screenshots in scratchpad/review/. Plan: no rollover card, Wed has two meals, badge {{remaining}}. EmailSignIn gone from files and canvas.json; RecipeImport titled 'Parked: recipe import'. New boards Settings, Offline, JoinInviteInvalid, Toast present. Child-component refactor dropped by rescope. Minor: Welcome scene overflows right (scrollWidth 1020, Enoki cut at edge) and the auth sheet has an empty band above the Google button; no checks.json, so record-check could not run. Not closed: AC5 open.
+
+Closed by reviewer. AC1-4 met on local evidence (dc_check 0 errors/no hex warnings; renders in scratchpad/review/). AC5: orchestrator reports publish as design artifact version 17 (id 1792349068-d652) with the 17 canvas.json boards plus canvas.json and grocs.css, EmailSignIn removed; reviewer cannot read the artifact, but confirmed canvas.json's 17 boards match the local project folder exactly. Welcome 1020 scrollWidth retracted: root is 390x844 with overflow hidden, so it is the clipped panning scene, not a regression. Remaining low findings, no drafts: Welcome auth sheet empty band above the Google button (likely bubble rest state); icon stroke widths and suggestion.row add size unverified; child-component refactor (review B1/B2, mascot drift) dropped by rescope; repo has no .claude/checks.json so record-check full could not run.
 <!-- SECTION:NOTES:END -->
