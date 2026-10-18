@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 18:18'
+updated_date: '2026-10-18 18:42'
 labels:
   - size-3
   - design-system
@@ -81,3 +81,9 @@ Rescoped Oct 18: the canvas becomes a sketchpad for unbuilt designs (R66), so th
 - The reviewer reports each REVIEWS.md finding as fixed, dropped (child-component refactor, rescoped) or not applicable.
 - The published artifact renders every board.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Canvas pass finished 2026-10-18: 17 boards, checker 0 errors; EmailSignIn removed; Settings, JoinInviteInvalid, Offline and Toast added. Under independent review before publishing.
+<!-- SECTION:NOTES:END -->

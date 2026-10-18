@@ -1,10 +1,11 @@
 ---
 id: TASK-1.9
 title: What is the sync model on Firestore? (D4)
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 18:17'
+updated_date: '2026-10-18 18:42'
 labels:
   - size-3
   - architecture

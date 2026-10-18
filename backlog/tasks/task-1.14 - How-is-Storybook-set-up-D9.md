@@ -1,10 +1,11 @@
 ---
 id: TASK-1.14
 title: How is Storybook set up? (D9)
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 18:17'
+updated_date: '2026-10-18 18:42'
 labels:
   - size-2
   - design-system
