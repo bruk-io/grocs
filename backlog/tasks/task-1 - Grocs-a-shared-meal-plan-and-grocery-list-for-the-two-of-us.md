@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 17:30'
+updated_date: '2026-10-18 17:31'
 labels:
   - size-8
   - product
@@ -77,4 +77,6 @@ Finish moved on 2026-10-18, before any children started: Bruk paused telemetry, 
 Finish moved again on 2026-10-18, before any children started: Bruk chose Firebase as the backend (decision-1), asked for quick local testing, and asked that anything a script can check be enforced by hooks rather than written rules. Criterion 16 was reworded to name hooks, and criteria 17 and 18 were added. The problem and affected systems now name Firebase.
 
 Finish moved on 2026-10-18, before any children started: Bruk chose Storybook for viewing the design system in a browser and on device (decision-2), and asked for the canvas to move into the repo. Criterion 19 was added and the affected systems updated.
+
+Spec approved by @bruk
 <!-- SECTION:NOTES:END -->
