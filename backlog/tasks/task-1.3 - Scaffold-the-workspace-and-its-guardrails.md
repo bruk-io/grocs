@@ -1,11 +1,11 @@
 ---
 id: TASK-1.3
 title: Scaffold the workspace and its guardrails
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 17:38'
-updated_date: '2026-10-18 18:32'
+updated_date: '2026-10-18 18:37'
 labels:
   - size-3
   - architecture
@@ -22,13 +22,13 @@ Sets up the repository layout in doc-1 and the checks that guard it, before any 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The workspace has the folders from the spec's repository layout that the walking skeleton needs, each layer a package; unused ones are absent rather than empty
-- [ ] #2 An import-layer check enforces R26 and R27 (no cycles, providers never import each other, ui imports tokens only) and every failure names the rule and why it exists
-- [ ] #3 A guard blocks weakening edits (focusing or skipping a test, deleting a test, loosening a check's config) with the reason (R57)
-- [ ] #4 Direct console use outside the console provider fails a check (R37)
-- [ ] #5 The same check scripts run from agent hooks (after an edit, before an edit, before stop), from pre-commit and from a CI workflow; after-edit hooks finish within 5 seconds (R55, R56)
-- [ ] #6 One command starts the Firebase emulators (Firestore, Auth) with seed data, and nothing in the repo points at a production project (R52)
-- [ ] #7 .claude/rules/ holds only the judgement-only rules from the conversation that apply so far, one rule per file, each with its reason (R58)
+- [x] #1 The workspace has the folders from the spec's repository layout that the walking skeleton needs, each layer a package; unused ones are absent rather than empty
+- [x] #2 An import-layer check enforces R26 and R27 (no cycles, providers never import each other, ui imports tokens only) and every failure names the rule and why it exists
+- [x] #3 A guard blocks weakening edits (focusing or skipping a test, deleting a test, loosening a check's config) with the reason (R57)
+- [x] #4 Direct console use outside the console provider fails a check (R37)
+- [x] #5 The same check scripts run from agent hooks (after an edit, before an edit, before stop), from pre-commit and from a CI workflow; after-edit hooks finish within 5 seconds (R55, R56)
+- [x] #6 One command starts the Firebase emulators (Firestore, Auth) with seed data, and nothing in the repo points at a production project (R52)
+- [x] #7 .claude/rules/ holds only the judgement-only rules from the conversation that apply so far, one rule per file, each with its reason (R58)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -49,4 +49,6 @@ AC EVIDENCE. #1 packages/{core,ports,application,providers-device,providers-fire
 TOOL CHOICES (provisional, proposed for D3, D8, D9). Package manager: pnpm 10 with node-linker=hoisted; rejected npm workspaces (slower, no catalog of strict hoisting control) and yarn; hoisted is needed because Metro does not follow pnpm symlinked layout. Test runner: vitest 4 with projects (unit, ui, app, tools, emulator); rejected jest (needs transform config for TS and ESM, slower). Property tests: fast-check. Import-layer checker: custom script using the TypeScript parser; rejected dependency-cruiser and eslint-plugin-boundaries because neither could print the rule, the reason and the fix in our format, nor express the design-level and testing-entry rules without plugins. Checks and hooks run as TypeScript directly with Node 22 type stripping (no build step); rejected tsx/ts-node (extra dependency, slower start). Pre-commit runner: lefthook; rejected husky (shell scripts per hook, no parallel or staged-file globbing). CI: GitHub Actions calling the same scripts. Emulators: firebase-tools emulators:exec with Java, no Docker (R52).
 
 NOT VERIFIED. GitHub Actions workflow has not run (no push allowed). lefthook run was exercised with --no-auto-install only; a real git commit through the installed hook was not. Claude Code hook wiring in .claude/settings.json is tested by running the scripts with the hook JSON, not inside a live Claude Code session. Emulator seed checked only through the emulator tests. Findings for D8: hook latency stays low because checks read only changed files in files mode; weakening review needs the before text, which pre-edit gets from disk and CI gets from git.
+
+REVIEW (reviewer, 2026-10-18): closed. Re-ran pnpm check (8 checks pass), typecheck, test (226 pass), test:emulator (22 pass). Probed guards with in-memory violations: core importing providers-firebase gives import-layers/allowed-imports and no-cycles; ui importing application gives ui-tokens-only; providers-device importing providers-firebase gives providers-isolated; console.log in core gives console-use/direct-console; pre-edit hook denies it.only, it.skip and rm of a test (exit 2) and asks on loosening tsconfig strict. Each message names rule, reqs, Why and Fix. Emulators use demo-grocs only, seeded. Findings: record-check cannot run, .claude/checks.json missing (DRAFT-1); CI has not run on GitHub; the 5 s post-edit budget is proven only by hooks.test.ts timing.
 <!-- SECTION:NOTES:END -->
