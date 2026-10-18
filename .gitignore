@@ -1,0 +1,2 @@
+# Agent worktrees are separate checkouts, not part of this repo
+.claude/worktrees/
