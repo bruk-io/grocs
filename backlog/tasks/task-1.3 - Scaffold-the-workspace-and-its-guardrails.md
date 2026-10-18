@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 17:38'
-updated_date: '2026-10-18 17:52'
+updated_date: '2026-10-18 18:32'
 labels:
   - size-3
   - architecture
@@ -36,3 +36,17 @@ Sets up the repository layout in doc-1 and the checks that guard it, before any 
 <!-- SECTION:PLAN:BEGIN -->
 1. pnpm workspace, one package per layer. 2. tools/checks scripts behind one runner (all, files, staged, ci). 3. tools/hooks (pre-edit, post-edit, stop). 4. lefthook and GitHub Actions call the same runner. 5. Firebase emulators with seed, one command. 6. Judgement-only rules. 7. Fixture tests for every check, asserting message content.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+BUILT (commit cf5e775 on branch worktree-agent-a8e68e0f38ff55593; later commits extend the checks). pnpm workspace with one package per layer (packages/core, ports, application, providers-device, providers-firebase, ui; apps/mobile). tools/checks: one runner (modes all, files, staged, ci) and 8 checks (import-layers, console-use, firebase-isolation, weakening, core-purity, design-tokens, story-coverage, test-presence, port-contracts). Every finding prints: FAIL rule (reqs): summary, location, Why, Fix. tools/hooks: pre-edit, post-edit, stop. lefthook.yml and .github/workflows/ci.yml call the same runner. firebase.json, firestore.rules, seed, tools/emulators.ts. .claude/rules: 3 judgement-only rules.
+
+Correction: the registry runs 8 checks in all mode; the weakening guard (R57) is a diff review run by the pre-edit hook, staged mode and CI --mode ci, not a registry check.
+
+AC EVIDENCE. #1 packages/{core,ports,application,providers-device,providers-firebase,ui}, apps/mobile, firebase/, tools/; no empty folders (no server, functions, or providers-server yet). #2 tools/checks/import-layers.ts, tests in import-layers.test.ts assert rule id, Why and Fix text; covers layer table, providers isolated, ui tokens only, barrel-only imports, cycles, design levels, third-party allow-lists. #3 tools/checks/weakening.ts reviewChange: denies focus, skip, test deletion; asks on loosened protected config or shrunk check code; hooks.test.ts runs pre-edit as a subprocess. #4 console-use.ts, only providers-device/src/console-logger may use console. #5 hooks.test.ts asserts post-edit under 5000 ms (measured in the test); same node tools/checks/run.ts called by .claude/settings.json, lefthook.yml and ci.yml. #6 pnpm emulators (tools/emulators.ts) starts Firestore and Auth on project demo-grocs with seed; firebase-isolation check fails on any command or config that names a non-demo project. #7 .claude/rules: fix-the-code-not-the-check, ports-describe-intent, providers-hold-no-rules, each with its reason. Run: pnpm check (8 checks pass), pnpm test (226 pass).
+
+TOOL CHOICES (provisional, proposed for D3, D8, D9). Package manager: pnpm 10 with node-linker=hoisted; rejected npm workspaces (slower, no catalog of strict hoisting control) and yarn; hoisted is needed because Metro does not follow pnpm symlinked layout. Test runner: vitest 4 with projects (unit, ui, app, tools, emulator); rejected jest (needs transform config for TS and ESM, slower). Property tests: fast-check. Import-layer checker: custom script using the TypeScript parser; rejected dependency-cruiser and eslint-plugin-boundaries because neither could print the rule, the reason and the fix in our format, nor express the design-level and testing-entry rules without plugins. Checks and hooks run as TypeScript directly with Node 22 type stripping (no build step); rejected tsx/ts-node (extra dependency, slower start). Pre-commit runner: lefthook; rejected husky (shell scripts per hook, no parallel or staged-file globbing). CI: GitHub Actions calling the same scripts. Emulators: firebase-tools emulators:exec with Java, no Docker (R52).
+
+NOT VERIFIED. GitHub Actions workflow has not run (no push allowed). lefthook run was exercised with --no-auto-install only; a real git commit through the installed hook was not. Claude Code hook wiring in .claude/settings.json is tested by running the scripts with the hook JSON, not inside a live Claude Code session. Emulator seed checked only through the emulator tests. Findings for D8: hook latency stays low because checks read only changed files in files mode; weakening review needs the before text, which pre-edit gets from disk and CI gets from git.
+<!-- SECTION:NOTES:END -->
