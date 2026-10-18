@@ -12,3 +12,7 @@ firestore-debug.log
 ui-debug.log
 .DS_Store
 coverage/
+
+# Canvas render output and the render helper's own install
+design/canvas/.shots/
+design/canvas/tools/node_modules/

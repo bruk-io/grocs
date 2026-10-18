@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Offline and waiting to send</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="grocs.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--color-surface-canvas); color: var(--color-ink); font-family: var(--font-body);">
+  <header style="padding: var(--space-16) var(--space-20) var(--space-10); display: flex; flex-direction: column; gap: var(--space-10);">
+    <div style="min-height: var(--size-target); display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: var(--type-body); font-weight: var(--weight-heavy); color: var(--color-ink-muted);">Week of Oct 19</span>
+      <div style="display: flex; align-items: center; gap: var(--space-4);">
+      <div style="display: flex;">
+        <span style="width: var(--size-avatar-l); height: var(--size-avatar-l); box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-surface-canvas); background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-body); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Bruk</span></span>
+        <span style="position: relative; width: var(--size-avatar-l); height: var(--size-avatar-l); margin-left: calc(-1 * var(--space-10)); box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-surface-canvas); background: var(--color-chartreuse); color: var(--color-ink); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-body); font-weight: var(--weight-medium);"><span aria-hidden="true" class="pulse" style="position: absolute; inset: -4px; border-radius: 50%; border: var(--line-w) solid var(--color-tomato);"></span><span aria-hidden="true">S</span><span class="sr">Shazya, online now</span></span>
+      </div>
+      <a href="Settings.dc.html" aria-label="Settings" style="width: var(--size-target); height: var(--size-target); margin-right: calc(-1 * var(--space-12)); border-radius: var(--radius-14); color: var(--color-forest); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></a>
+      </div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: var(--space-12);">
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-10);">
+        <h1 style="margin: 0; font-family: var(--font-display); font-size: var(--type-title-l); font-weight: var(--weight-bold); line-height: 1;">Groceries</h1>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <div style="display: flex; justify-content: space-between; font-size: var(--type-small); font-weight: var(--weight-heavy); color: var(--color-ink-muted);"><span>{{remaining}} to go</span><span>{{cartCount}} in the cart</span></div>
+          <div role="progressbar" aria-label="Shopping progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{pctNum}}" style="height: var(--size-meter); border-radius: var(--radius-pill); background: var(--color-line-soft); overflow: hidden;">
+            <div style="height: 100%; width: {{pct}}; border-radius: var(--radius-pill); background: var(--color-forest); transition: width var(--dur-fill) var(--ease-hop);"></div>
+          </div>
+        </div>
+      </div>
+      <div style="position: relative; flex: none;">
+        <button class="mascot-btn" onClick="{{poke}}" aria-label="Ollie the oyster mushroom. Tap to say hi.">
+          <span class="{{mushClass}}" style="display: flex;">
+            <svg width="68" height="68" viewBox="0 0 64 64" aria-hidden="true" style="overflow: visible;">
+              <g class="ollie-lean">
+                <path d="M30 42h8l1 12a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4z" fill="var(--illo-ollie-stem)"></path>
+                <path d="M6 36C6 21 18 11 34 11c13 0 24 7 24 18 0 8-6 12-14 13l-24 2C12 44 6 42 6 36z" fill="var(--illo-ollie-cap)"></path>
+                <path d="M12 39c4 1.6 8 .8 12 1.6s8 0 12 .8 8-.8 10-1.6" fill="none" stroke="var(--illo-ollie-rim)" stroke-width="2.6" stroke-linecap="round"></path>
+                <path d="M20 18c4-3 9-4 14-4M14 25c5-6 13-9 22-9" fill="none" stroke="var(--illo-ollie-line)" stroke-width="1.6" stroke-linecap="round"></path>
+                <g class="blink"><ellipse cx="26" cy="29" rx="2" ry="2.4" fill="var(--color-ink)"></ellipse><ellipse cx="35" cy="29" rx="2" ry="2.4" fill="var(--color-ink)"></ellipse></g>
+                <ellipse cx="21.5" cy="33.5" rx="3.4" ry="2" fill="var(--illo-blush)"></ellipse><ellipse cx="39.5" cy="33.5" rx="3.4" ry="2" fill="var(--illo-blush)"></ellipse>
+                <path d="M28.5 34.5q1.2-1 2.4 0t2.4 0" fill="none" stroke="var(--color-ink)" stroke-width="1.6" stroke-linecap="round"></path>
+              </g>
+            </svg>
+          </span>
+        </button>
+        <sc-if value="{{talking}}" hint-placeholder-val="{{false}}">
+          <span aria-hidden="true" class="bubble-from-right {{bubbleClass}}" style="position: absolute; right: 76px; top: 2px; z-index: 5; width: max-content; max-width: var(--size-bubble); padding: var(--space-10) var(--space-12); border-radius: var(--radius-16); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); box-shadow: var(--shadow-float); font-size: var(--type-small); font-weight: var(--weight-bold); line-height: 1.3; color: var(--color-ink);">{{line}}<span style="position: absolute; right: -8px; top: 16px; width: var(--size-dot); height: var(--size-dot); background: var(--color-surface-card); border-right: var(--line-w) solid var(--color-line); border-top: var(--line-w) solid var(--color-line); transform: rotate(45deg);"></span></span>
+        </sc-if>
+      </div>
+    </div>
+    <div class="field-box" style="display: flex; gap: var(--space-8); align-items: center; border-radius: var(--radius-20); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-18);">
+      <label for="add-item" class="sr">Add an item</label>
+      <input id="add-item" type="text" placeholder="Add an item…" style="flex: 1; min-width: 0; height: var(--size-target); border: 0; outline: none; background: transparent; font: inherit; font-size: var(--type-label); font-weight: var(--weight-medium); color: var(--color-ink);">
+      <a href="QuickAdd.dc.html" aria-label="Add item" style="width: var(--size-target); height: var(--size-target); flex: none; border-radius: var(--radius-16); background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      </a>
+    </div>
+  </header>
+  <span role="status" class="sr">{{liveLine}}</span>
+
+  <sc-if value="{{isOffline}}" hint-placeholder-val="{{true}}">
+    <div role="status" class="land" style="margin: 0 var(--space-20) var(--space-12); display: flex; align-items: center; gap: var(--space-10); padding: var(--space-6) var(--space-6) var(--space-6) var(--space-14); min-height: var(--size-target); border-radius: var(--radius-16); background: var(--color-surface-done); border: var(--line-w) dashed var(--color-line-done); color: var(--color-ink-soft); font-size: var(--type-small); font-weight: var(--weight-bold);">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M9.5 5.2A6 6 0 0 1 18 9.3a4.5 4.5 0 0 1 3 7.4M6.3 7.3A5.5 5.5 0 0 0 7 18.5h10"></path></svg>
+      <span style="flex: 1; min-width: 0;">Offline. {{waitingCount}} changes waiting.</span>
+      <button class="btn btn-s btn-soft" onClick="{{retry}}">Try again</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{isSyncing}}" hint-placeholder-val="{{false}}">
+    <div role="status" class="land" style="margin: 0 var(--space-20) var(--space-12); display: flex; align-items: center; gap: var(--space-10); padding: var(--space-6) var(--space-6) var(--space-6) var(--space-14); min-height: var(--size-target); border-radius: var(--radius-16); background: var(--color-surface-done); border: var(--line-w) dashed var(--color-line-done); color: var(--color-ink-soft); font-size: var(--type-small); font-weight: var(--weight-bold);">
+      <span aria-hidden="true" class="btn-spinner" style="color: var(--color-forest);"></span>
+      <span style="flex: 1; min-width: 0;">Sending {{waitingCount}} changes…</span>
+      <button class="btn btn-s btn-soft is-disabled is-loading" disabled>Sending</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{isSynced}}" hint-placeholder-val="{{false}}">
+    <div role="status" class="land" style="margin: 0 var(--space-20) var(--space-12); display: flex; align-items: center; gap: var(--space-10); padding: var(--space-6) var(--space-6) var(--space-6) var(--space-14); min-height: var(--size-target); border-radius: var(--radius-16); background: var(--color-positive-tint); border: var(--line-w) solid transparent; color: var(--color-ink-soft); font-size: var(--type-small); font-weight: var(--weight-bold);">
+      <span style="color: var(--color-forest); display: flex;"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+      <span style="flex: 1; min-width: 0;">Back online. Everything is sent.</span>
+      
+    </div>
+  </sc-if>
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-4) var(--space-16) var(--size-nav-clearance); display: flex; flex-direction: column; gap: var(--space-18);">
+      <section style="display: flex; flex-direction: column; gap: var(--space-8);">
+        <h2 style="margin: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-8); font-family: var(--font-display); font-size: var(--type-heading); font-weight: var(--weight-medium);">
+          <span aria-hidden="true" style="width: var(--size-tile); height: var(--size-tile); border-radius: var(--radius-10); background: var(--color-surface-tint); color: var(--color-forest); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l9-11a3 3 0 0 1 4 4l-11 9z"></path><path d="M16 7l2-3M18 9l3-1M17 8l3-3"></path></svg></span>
+          <span style="flex: 1;">Produce</span>
+          <span style="min-width: var(--size-count); height: var(--size-count); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); display: flex; align-items: center; justify-content: center; font-family: var(--font-body); font-size: var(--type-caption); font-weight: var(--weight-heavy); color: var(--color-ink-muted);">{{produceCount}}</span>
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <button class="press rise" aria-pressed="false" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; animation-delay: 0ms;">
+            <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;"><span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+              <span style="align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">Bananas</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                <span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">6</span>
+                
+              </span>
+            </span>
+            <span style="width: var(--size-avatar-s); height: var(--size-avatar-s); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Added by Bruk</span></span>
+          </button>
+          <button class="press rise" aria-pressed="false" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; animation-delay: 45ms;">
+            <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;"><span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+              <span style="align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">Baby spinach</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                <span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">1 bag</span>
+                <sc-if value="{{waiting}}" hint-placeholder-val="{{true}}">
+                <span style="display: flex; align-items: center; gap: var(--space-4); font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-tag-neutral); color: var(--color-tag-neutral-ink);"><svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Waiting to send</span>
+              </sc-if>
+              </span>
+            </span>
+            <span style="width: var(--size-avatar-s); height: var(--size-avatar-s); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Added by Bruk</span></span>
+          </button>
+          <button class="press rise" aria-pressed="false" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; animation-delay: 90ms;">
+            <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;"><span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+              <span style="align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">Limes</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                <span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">4</span>
+                <sc-if value="{{waiting}}" hint-placeholder-val="{{true}}">
+                <span style="display: flex; align-items: center; gap: var(--space-4); font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-tag-neutral); color: var(--color-tag-neutral-ink);"><svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Waiting to send</span>
+              </sc-if>
+              </span>
+            </span>
+            <span style="width: var(--size-avatar-s); height: var(--size-avatar-s); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Added by Bruk</span></span>
+          </button>
+        </div>
+      </section>
+      <section style="display: flex; flex-direction: column; gap: var(--space-8);">
+        <h2 style="margin: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-8); font-family: var(--font-display); font-size: var(--type-heading); font-weight: var(--weight-medium);">
+          <span aria-hidden="true" style="width: var(--size-tile); height: var(--size-tile); border-radius: var(--radius-10); background: var(--color-surface-tint); color: var(--color-forest); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8l2 4v14H6V7z"></path><path d="M6 7h12M10 13h4"></path></svg></span>
+          <span style="flex: 1;">Dairy &amp; eggs</span>
+          <span style="min-width: var(--size-count); height: var(--size-count); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); display: flex; align-items: center; justify-content: center; font-family: var(--font-body); font-size: var(--type-caption); font-weight: var(--weight-heavy); color: var(--color-ink-muted);">2</span>
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <button class="press rise" aria-pressed="false" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; animation-delay: 135ms;">
+            <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;"><span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+              <span style="align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">Oat milk</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                <span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">1 carton</span>
+                
+              </span>
+            </span>
+            <span style="width: var(--size-avatar-s); height: var(--size-avatar-s); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">S</span><span class="sr">Added by Shazya</span></span>
+          </button>
+          <button class="press rise" aria-pressed="false" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; animation-delay: 180ms;">
+            <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;"><span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+              <span style="align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">Eggs</span>
+              <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                <span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">1 dozen</span>
+                <span style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-meal-tomato); color: var(--color-meal-tomato-ink);">Pizza night</span>
+              </span>
+            </span>
+            <span style="width: var(--size-avatar-s); height: var(--size-avatar-s); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Added by Bruk</span></span>
+          </button>
+        </div>
+      </section>
+  </main>
+
+  <nav aria-label="Sections" style="position: absolute; left: 16px; right: 16px; bottom: 20px; display: flex; gap: var(--space-6); padding: var(--space-6); border-radius: var(--radius-24); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); box-shadow: var(--shadow-nav);">
+    <a href="Plan.dc.html" style="flex: 1; height: var(--size-tab); border-radius: var(--radius-18); display: flex; align-items: center; justify-content: center; gap: var(--space-8); color: var(--color-ink); text-decoration: none; font-size: var(--type-body); font-weight: var(--weight-heavy);">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>
+      Meal plan
+    </a>
+    <a href="Main.dc.html" aria-current="page" style="flex: 1; height: var(--size-tab); border-radius: var(--radius-18); display: flex; align-items: center; justify-content: center; gap: var(--space-8); background: var(--color-forest); color: var(--color-on-brand); text-decoration: none; font-size: var(--type-body); font-weight: var(--weight-heavy);">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"></path><circle cx="9" cy="20" r="1.4"></circle><circle cx="17" cy="20" r="1.4"></circle></svg>
+      Groceries
+      <span style="min-width: var(--size-badge); height: var(--size-badge); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink); display: flex; align-items: center; justify-content: center; font-size: var(--type-caption); font-weight: var(--weight-heavy);">{{remaining}}</span>
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'offline', pk: 0, react: '', talking: false };
+  }
+  componentWillUnmount() { clearTimeout(this.rt); clearTimeout(this.tt); clearTimeout(this.st); clearTimeout(this.dt); }
+  poke() {
+    var self = this;
+    var n = this.state.pk + 1;
+    this.setState({ pk: n, react: n % 2 ? 'ollie-tap-a' : 'ollie-tap-b', talking: true });
+    clearTimeout(this.rt); clearTimeout(this.tt);
+    this.rt = setTimeout(function () { self.setState({ react: '' }); }, 1300);
+    this.tt = setTimeout(function () { self.setState({ talking: false }); }, 2800);
+  }
+  renderVals() {
+    var self = this;
+    var phase = this.state.phase;
+    var offline = phase === 'offline';
+    var syncing = phase === 'syncing';
+    var synced = phase === 'synced';
+    var lines = offline
+      ? ['No signal... I will hold on to these.', 'Your changes are safe with me.', '...hi. Still here.']
+      : ['Back! I sent everything. Shyly.', 'All sent. Phew.', '...hi.'];
+    var line = lines[(Math.max(this.state.pk, 1) - 1) % lines.length];
+    var waiting = 2;
+    var remaining = 14 + (synced ? 0 : 0);
+    var cart = 3;
+    var pct = Math.round((cart / (remaining + cart)) * 100);
+    return {
+      isOffline: offline,
+      isSyncing: syncing,
+      isSynced: synced,
+      waiting: !synced,
+      waitingCount: String(waiting),
+      produceCount: '3',
+      remaining: String(remaining),
+      cartCount: String(cart),
+      pct: pct + '%',
+      pctNum: pct,
+      retry: function () {
+        self.setState({ phase: 'syncing' });
+        clearTimeout(self.st);
+        self.st = setTimeout(function () { self.setState({ phase: 'synced', pk: 0, talking: false }); }, 1400);
+      },
+      mushClass: this.state.react,
+      talking: this.state.talking,
+      bubbleClass: this.state.pk % 2 ? 'bubble-pop-a' : 'bubble-pop-b',
+      line: line,
+      liveLine: this.state.talking ? 'Ollie says: ' + line : '',
+      poke: function () { self.poke(); }
+    };
+  }
+}
+</script>
+</body>
+</html>

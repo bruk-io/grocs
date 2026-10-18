@@ -1,0 +1,346 @@
+{
+  "v": 3,
+  "attachments": {},
+  "createdOnFiles": {
+    "at": "2026-10-18T15:10:00Z",
+    "v": 1
+  },
+  "title": "Grocery List App",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [
+    {
+      "id": "app",
+      "name": "App"
+    },
+    {
+      "id": "ds",
+      "name": "Design system"
+    },
+    {
+      "id": "options",
+      "name": "Design options",
+      "title": "Design options"
+    }
+  ],
+  "boards": {
+    "Plan.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Meal plan",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "AddMeal.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Add a meal",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "Main.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Groceries",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "QuickAdd.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Add an item",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "RecipeImport.dc.html": {
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Parked: recipe import",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "Welcome.dc.html": {
+      "x": 0,
+      "y": 1224,
+      "w": 390,
+      "h": 844,
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app",
+      "title": "Welcome"
+    },
+    "Household.dc.html": {
+      "x": 470,
+      "y": 1224,
+      "w": 390,
+      "h": 844,
+      "title": "Your kitchen",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "JoinInvite.dc.html": {
+      "x": 940,
+      "y": 1224,
+      "w": 390,
+      "h": 844,
+      "title": "Join from an invite",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "DS-Tokens.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 3062,
+      "title": "1 Tokens",
+      "page": "ds"
+    },
+    "DS-Atoms.dc.html": {
+      "x": 1280,
+      "y": 0,
+      "w": 1200,
+      "h": 3326,
+      "title": "2 Atoms",
+      "page": "ds"
+    },
+    "DS-Molecules.dc.html": {
+      "x": 2560,
+      "y": 0,
+      "w": 1200,
+      "h": 2525,
+      "title": "3 Molecules",
+      "page": "ds"
+    },
+    "DS-Organisms.dc.html": {
+      "x": 3840,
+      "y": 0,
+      "w": 1200,
+      "h": 2892,
+      "title": "4 Organisms",
+      "page": "ds"
+    },
+    "DS-Templates.dc.html": {
+      "x": 5120,
+      "y": 0,
+      "w": 1200,
+      "h": 1870,
+      "title": "5 Templates and pages",
+      "page": "ds"
+    },
+    "JoinInviteInvalid.dc.html": {
+      "x": 1410,
+      "y": 1224,
+      "w": 390,
+      "h": 844,
+      "title": "Join from an invite: invalid code",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "Settings.dc.html": {
+      "x": 0,
+      "y": 2188,
+      "w": 390,
+      "h": 844,
+      "title": "Settings",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "Offline.dc.html": {
+      "x": 470,
+      "y": 2188,
+      "w": 390,
+      "h": 844,
+      "title": "Offline, waiting to send",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "Toast.dc.html": {
+      "x": 940,
+      "y": 2188,
+      "w": 390,
+      "h": 844,
+      "title": "In-app toast",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "app"
+    },
+    "D1-OptionA.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "D1 A: The tray",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "options"
+    },
+    "D1-OptionB.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "D1 B: The enoki ask",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "options"
+    },
+    "D1-OptionC.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "D1 C: The stacked pair",
+      "is_interactive": true,
+      "radius": 40,
+      "page": "options"
+    },
+    "D2-OptionA.dc.html": {
+      "x": 0,
+      "y": 964,
+      "w": 791,
+      "h": 820,
+      "title": "D2 A: Stretched list",
+      "is_interactive": true,
+      "radius": 24,
+      "page": "options"
+    },
+    "D2-OptionB.dc.html": {
+      "x": 871,
+      "y": 964,
+      "w": 791,
+      "h": 820,
+      "title": "D2 B: Plan and list side by side",
+      "is_interactive": true,
+      "radius": 24,
+      "page": "options"
+    },
+    "D2-OptionC.dc.html": {
+      "x": 1742,
+      "y": 964,
+      "w": 791,
+      "h": 820,
+      "title": "D2 C: List with a meal rail",
+      "is_interactive": true,
+      "radius": 24,
+      "page": "options"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Plan.dc.html",
+    "AddMeal.dc.html",
+    "QuickAdd.dc.html",
+    "RecipeImport.dc.html",
+    "Welcome.dc.html",
+    "Household.dc.html",
+    "JoinInvite.dc.html",
+    "JoinInviteInvalid.dc.html",
+    "Settings.dc.html",
+    "Offline.dc.html",
+    "Toast.dc.html",
+    "DS-Tokens.dc.html",
+    "DS-Atoms.dc.html",
+    "DS-Molecules.dc.html",
+    "DS-Organisms.dc.html",
+    "DS-Templates.dc.html",
+    "D1-OptionA.dc.html",
+    "D1-OptionB.dc.html",
+    "D1-OptionC.dc.html",
+    "D2-OptionA.dc.html",
+    "D2-OptionB.dc.html",
+    "D2-OptionC.dc.html"
+  ],
+  "notes": {
+    "heading": {
+      "x": 0,
+      "y": -260,
+      "w": 240,
+      "text": "Grocs - plan the week, then shop",
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "app"
+    },
+    "signin": {
+      "x": 0,
+      "y": 964,
+      "w": 240,
+      "text": "Getting in",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "app"
+    },
+    "dsTitle": {
+      "x": 0,
+      "y": -260,
+      "w": 240,
+      "text": "Grocs design system - atomic",
+      "kind": "title1",
+      "maxW": 6320,
+      "page": "ds"
+    },
+    "states": {
+      "x": 0,
+      "y": 1928,
+      "w": 240,
+      "text": "Settings and states",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "app"
+    },
+    "optionsTitle": {
+      "x": 0,
+      "y": -260,
+      "w": 240,
+      "text": "Design options - D1 combine prompt (top), D2 Fold inner screen, 791 x 820 dp (bottom)",
+      "kind": "title1",
+      "maxW": 2533,
+      "page": "options"
+    },
+    "foldA": {
+      "x": 0,
+      "y": 1808,
+      "w": 791,
+      "text": "Fold or unfold mid-task: the same screen stays up. Scroll stays anchored to the aisle at the top, text in the add field, a ticking item and an open combine prompt all carry over. Only the aisle columns change: two inside, one outside.",
+      "maxW": 791,
+      "page": "options"
+    },
+    "foldB": {
+      "x": 871,
+      "y": 1808,
+      "w": 791,
+      "text": "Fold mid-task: the pane last touched fills the outer screen and the tab bar returns. A selected meal stays as the filter on the list, and half-typed text stays in its field. Unfold: both panes come back with their scroll and selection.",
+      "maxW": 791,
+      "page": "options"
+    },
+    "foldC": {
+      "x": 1742,
+      "y": 1808,
+      "w": 791,
+      "text": "Fold mid-task: the rail gives way to the bottom tab bar, and a selected meal stays as the filter bar above the list. Typing, ticks and an open prompt carry over. Unfold: the rail returns with the same meal selected.",
+      "maxW": 791,
+      "page": "options"
+    }
+  },
+  "designSystems": []
+}

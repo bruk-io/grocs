@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design system: templates and pages</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="grocs.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="ds-board" style="width: 1200px; height: 1870px;">
+  <div class="ds-head">
+    <span class="ds-label">Grocs design system · 5 of 5</span>
+    <h1 class="ds-title">Templates and pages</h1>
+    <p class="ds-lead">Three layouts hold every screen. Pages are templates filled with real content.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-24); align-items: start;">
+  <section class="ds-card" style="align-items: center;">
+    <span class="ds-name" style="align-self: flex-start;">template.main</span>
+    <div style="width: 220px; height: 476px; box-sizing: border-box; border-radius: var(--radius-28); background: var(--color-surface-canvas); border: var(--line-w) solid var(--color-line); padding: var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); position: relative;"><div class="ds-slot" style="height: 120px; background: var(--color-surface-tint);">header.main</div><div class="ds-slot" style="height: auto; flex: 1;">content<br>list.section, cart.section or week.list</div><div class="ds-slot" style="height: 44px; background: var(--color-surface-card);">nav.tabs</div></div>
+    <span class="ds-cap" style="align-self: flex-start;">The two homes. Content scrolls under the floating tab bar; the last row stays clear by the nav clearance token.</span>
+  </section>
+  <section class="ds-card" style="align-items: center;">
+    <span class="ds-name" style="align-self: flex-start;">template.task</span>
+    <div style="width: 220px; height: 476px; box-sizing: border-box; border-radius: var(--radius-28); background: var(--color-surface-canvas); border: var(--line-w) solid var(--color-line); padding: var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); position: relative;"><div class="ds-slot" style="height: 100px; background: var(--color-surface-tint);">header.sub</div><div class="ds-slot" style="height: auto; flex: 1;">content<br>fields, cards, rows</div><div class="ds-slot" style="height: 40px; background: var(--color-forest); color: var(--color-on-brand); border-color: var(--color-forest);">action.bar</div></div>
+    <span class="ds-cap" style="align-self: flex-start;">One job per screen. The back link names the parent. The action bar is optional when the job happens inline.</span>
+  </section>
+  <section class="ds-card" style="align-items: center;">
+    <span class="ds-name" style="align-self: flex-start;">template.stage</span>
+    <div style="width: 220px; height: 476px; box-sizing: border-box; border-radius: var(--radius-28); background: var(--color-surface-canvas); border: var(--line-w) solid var(--color-line); padding: var(--space-10); display: flex; flex-direction: column; gap: var(--space-8); position: relative;"><div class="ds-slot" style="height: 54px; ">wordmark</div><div class="ds-slot" style="height: auto; flex: 1; background: var(--color-positive-tint);">kitchen.scene<br>mascots living in it</div><div class="ds-slot" style="height: 130px; background: var(--color-surface-card);">auth.sheet</div></div>
+    <span class="ds-cap" style="align-self: flex-start;">First impressions only. The illustration fills the stage; the sheet holds every action.</span>
+  </section>
+  </div>
+  <section class="ds-card">
+    <span class="ds-label">Region · action.bar</span>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-24); align-items: center;"><div style="display: flex; flex-direction: column; gap: var(--space-8);"><span class="ds-name">action.bar--primary</span><span class="btn btn-m btn-primary" style="box-shadow: var(--shadow-action);">Add to Thursday</span></div><div style="display: flex; flex-direction: column; gap: var(--space-8);"><span class="ds-name">action.bar--secondary</span><span class="btn btn-m btn-secondary">Sign out</span></div></div><span class="ds-cap">action.bar is a template region, not an organism: one pinned button, 16 from each side and 24 from the bottom. 56 tall, radius 20. Primary carries the action shadow; a secondary action (Sign out) keeps its soft lip.</span>
+  </section>
+  <section class="ds-card">
+    <span class="ds-label">Pages</span>
+<table class="ds-table"><thead><tr><th>Page</th><th>Template</th><th>Parts</th><th>Host</th></tr></thead><tbody><tr><td>Welcome</td><td>template.stage</td><td>kitchen.scene, auth.sheet</td><td>Whole cast</td></tr><tr><td>Your kitchen</td><td>template.task</td><td>header.sub, field.labelled, invite.card, action.bar</td><td>Enoki</td></tr><tr><td>Join from an invite</td><td>template.task</td><td>header.sub (wordmark, no back link), invite.summary, one Google button (no action bar)</td><td>Chanty</td></tr><tr><td>Join from an invite: invalid code</td><td>template.task</td><td>header.sub, field.labelled--error, button.primary, button.text</td><td>Chanty</td></tr><tr><td>Meal plan</td><td>template.main</td><td>header.main (week.nav), week.list, nav.tabs</td><td>Shii</td></tr><tr><td>Add a meal</td><td>template.task</td><td>header.sub, field.labelled × 2, action.bar</td><td>Chanty</td></tr><tr><td>Groceries</td><td>template.main</td><td>header.main, toast, list.section × n, cart.section, celebration.banner, nav.tabs</td><td>Cremi, enoki when done</td></tr><tr><td>Add an item</td><td>template.task</td><td>header.sub, add field (input.text--focus plus button.primary--s), chip.group, suggestion.row × n</td><td>Ollie</td></tr><tr><td>Settings</td><td>template.task</td><td>header.sub, settings cards (switch, button.secondary--s), action.bar--secondary</td><td>Morty</td></tr><tr><td>Offline, waiting to send</td><td>template.main</td><td>header.main, status.banner, list.section × n (tag.sync), nav.tabs</td><td>Ollie</td></tr><tr><td>In-app toast</td><td>template.main</td><td>header.main, toast, list.section × n, nav.tabs</td><td>Cremi</td></tr><tr><td>Parked: recipe import</td><td>template.task</td><td>header.sub, recipe.summary, item.row × n (no section header), action.bar</td><td>Morty</td></tr></tbody></table>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1870}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>D1 A: The tray</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="grocs.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@500;600;700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="{{rootClass}}" style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; display: flex; flex-direction: column; background: var(--color-surface-canvas); color: var(--color-ink); font-family: var(--font-body);">
+  <header style="padding: var(--space-16) var(--space-20) var(--space-10); display: flex; flex-direction: column; gap: var(--space-10);">
+    <div style="min-height: var(--size-target); display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: var(--type-body); font-weight: var(--weight-heavy); color: var(--color-ink-muted);">Week of Oct 19</span>
+      <div style="display: flex; align-items: center; gap: var(--space-4);">
+      <div style="display: flex;">
+        <span style="width: var(--size-avatar-l); height: var(--size-avatar-l); box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-surface-canvas); background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-body); font-weight: var(--weight-medium);"><span aria-hidden="true">B</span><span class="sr">Bruk</span></span>
+        <span style="position: relative; width: var(--size-avatar-l); height: var(--size-avatar-l); margin-left: calc(-1 * var(--space-10)); box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-surface-canvas); background: var(--color-chartreuse); color: var(--color-ink); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-body); font-weight: var(--weight-medium);"><span aria-hidden="true" class="pulse" style="position: absolute; inset: -4px; border-radius: 50%; border: var(--line-w) solid var(--color-tomato);"></span><span aria-hidden="true">S</span><span class="sr">Shazya, online now</span></span>
+      </div>
+      <a href="Settings.dc.html" aria-label="Settings" style="width: var(--size-target); height: var(--size-target); margin-right: calc(-1 * var(--space-12)); border-radius: var(--radius-14); color: var(--color-forest); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></a>
+      </div>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: var(--space-12);">
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-10);">
+        <h1 style="margin: 0; font-family: var(--font-display); font-size: var(--type-title-l); font-weight: var(--weight-bold); line-height: 1;">Groceries</h1>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <div style="display: flex; justify-content: space-between; font-size: var(--type-small); font-weight: var(--weight-heavy); color: var(--color-ink-muted);"><span>{{remaining}} to go</span><span>{{cartCount}} in the cart</span></div>
+          <div role="progressbar" aria-label="Shopping progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{pctNum}}" style="height: var(--size-meter); border-radius: var(--radius-pill); background: var(--color-line-soft); overflow: hidden;">
+            <div style="height: 100%; width: {{pct}}; border-radius: var(--radius-pill); background: var(--color-forest); transition: width var(--dur-fill) var(--ease-hop);"></div>
+          </div>
+        </div>
+      </div>
+      <div style="position: relative; flex: none;">
+        <button class="mascot-btn" onClick="{{pokeCremi}}" aria-label="Cremi the cremini mushroom. Tap to say hi.">
+          <span class="{{cremiClass}}" style="display: flex;">
+            <svg width="68" height="68" viewBox="0 0 64 64" aria-hidden="true" class="cremi-bounce" style="overflow: visible;">
+              <path d="M22 34h20l2 20a5 5 0 0 1-5 6H25a5 5 0 0 1-5-6z" fill="var(--illo-cremi-stem)"></path>
+              <g class="cremi-cap">
+                <path d="M6 34C6 18 18 8 32 8s26 10 26 26c0 3-2 4-5 4H11c-3 0-5-1-5-4z" fill="var(--illo-cremi-cap)"></path>
+                <path d="M14 23c3-6 9-9 15-10" fill="none" stroke="var(--illo-cremi-shine)" stroke-width="3" stroke-linecap="round"></path>
+              </g>
+              <g class="blink"><ellipse cx="28" cy="45.5" rx="2" ry="2.6" fill="var(--color-ink)"></ellipse><ellipse cx="36" cy="45.5" rx="2" ry="2.6" fill="var(--color-ink)"></ellipse></g>
+              <ellipse cx="24.5" cy="50.5" rx="2.6" ry="1.6" fill="var(--illo-blush)"></ellipse><ellipse cx="39.5" cy="50.5" rx="2.6" ry="1.6" fill="var(--illo-blush)"></ellipse>
+              <path d="M29.5 50q2.5 3.6 5 0z" fill="var(--color-ink)"></path>
+            </svg>
+          </span>
+        </button>
+        <sc-if value="{{cremiTalking}}" hint-placeholder-val="{{false}}">
+          <span aria-hidden="true" class="bubble-from-right {{cremiBubble}}" style="position: absolute; right: 76px; top: 2px; z-index: 5; width: max-content; max-width: var(--size-bubble); padding: var(--space-10) var(--space-12); border-radius: var(--radius-16); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); box-shadow: var(--shadow-float); font-size: var(--type-small); font-weight: var(--weight-bold); line-height: 1.3; color: var(--color-ink);">{{cremiLine}}<span style="position: absolute; right: -8px; top: 16px; width: var(--size-dot); height: var(--size-dot); background: var(--color-surface-card); border-right: var(--line-w) solid var(--color-line); border-top: var(--line-w) solid var(--color-line); transform: rotate(45deg);"></span></span>
+        </sc-if>
+      </div>
+    </div>
+    <div class="field-box" style="display: flex; gap: var(--space-8); align-items: center; border-radius: var(--radius-20); padding: var(--space-4) var(--space-4) var(--space-4) var(--space-18);">
+      <label for="add-item" class="sr">Add an item</label>
+      <input id="add-item" type="text" placeholder="Add an item…" style="flex: 1; min-width: 0; height: var(--size-target); border: 0; outline: none; background: transparent; font: inherit; font-size: var(--type-label); font-weight: var(--weight-medium); color: var(--color-ink);">
+      <a href="QuickAdd.dc.html" aria-label="Add item" style="width: var(--size-target); height: var(--size-target); flex: none; border-radius: var(--radius-16); background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      </a>
+    </div>
+  </header>
+  <span role="status" class="sr">{{liveLine}}</span>
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-4) var(--space-16) var(--size-nav-clearance); display: flex; flex-direction: column; gap: var(--space-18);">
+    <sc-for list="{{sections}}" as="section" hint-placeholder-count="4">
+      <section style="display: flex; flex-direction: column; gap: var(--space-8);">
+        <h2 style="margin: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-8); font-family: var(--font-display); font-size: var(--type-heading); font-weight: var(--weight-medium);">
+          <span aria-hidden="true" style="width: var(--size-tile); height: var(--size-tile); border-radius: var(--radius-10); background: var(--color-surface-tint); color: var(--color-forest); display: flex; align-items: center; justify-content: center;">
+            <sc-if value="{{section.isProduce}}" hint-placeholder-val="{{true}}"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19l9-11a3 3 0 0 1 4 4l-11 9z"></path><path d="M16 7l2-3M18 9l3-1M17 8l3-3"></path></svg></sc-if>
+            <sc-if value="{{section.isMeat}}" hint-placeholder-val="{{false}}"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3a6 6 0 0 1 6 6c0 4-4 6-7 6l-3 3a2 2 0 1 1-3 1 2 2 0 1 1 1-3l3-3c0-3 1-10 3-10z"></path></svg></sc-if>
+            <sc-if value="{{section.isDairy}}" hint-placeholder-val="{{false}}"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l2 4v14H6V7z"></path><path d="M6 7h12M10 13h4"></path></svg></sc-if>
+            <sc-if value="{{section.isBakery}}" hint-placeholder-val="{{false}}"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4 2 2 0 0 1-1 2v6H5v-6a2 2 0 0 1-1-2z"></path><path d="M9 11v3M12 11v3M15 11v3"></path></svg></sc-if>
+            <sc-if value="{{section.isPantry}}" hint-placeholder-val="{{false}}"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v3H8z"></path><path d="M7 6h10a1 1 0 0 1 1 1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z"></path><path d="M6 11h12"></path></svg></sc-if>
+          </span>
+          <span style="flex: 1;">{{section.name}}</span>
+          <span style="min-width: var(--size-count); height: var(--size-check); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); display: flex; align-items: center; justify-content: center; font-family: var(--font-body); font-size: var(--type-caption); font-weight: var(--weight-heavy); color: var(--color-ink-muted);">{{section.count}}</span>
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <sc-for list="{{section.items}}" as="item" hint-placeholder-count="3">
+            <sc-if value="{{item.plain}}" hint-placeholder-val="{{true}}">
+            <button id="{{item.domId}}" class="press {{item.enter}}" onClick="{{item.toggle}}" aria-pressed="{{item.pressed}}" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; border: var(--line-w) solid var(--color-line-soft); animation-delay: {{item.delay}};">
+              <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;">
+                <sc-if value="{{item.idle}}" hint-placeholder-val="{{true}}">
+                  <span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span>
+                </sc-if>
+                <sc-if value="{{item.ticking}}" hint-placeholder-val="{{false}}">
+                  <span aria-hidden="true" class="pop" style="position: absolute; inset: 0; border-radius: 50%; background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span>
+                </sc-if>
+              </span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+                <span style="position: relative; align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">{{item.name}}<sc-if value="{{item.ticking}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" class="strike" style="position: absolute; left: -2px; right: -2px; top: 52%; height: var(--line-w-strong); border-radius: var(--radius-2); background: var(--color-ink);"></span></sc-if></span>
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                  <sc-if value="{{item.qtyPlain}}" hint-placeholder-val="{{true}}"><span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.qty}}</span></sc-if>
+                  <sc-if value="{{item.qtyFlash}}" hint-placeholder-val="{{false}}"><span style="position: relative; font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.qtyHead}} <span class="pop" style="display: inline-block; padding: 0 var(--space-6); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink); font-weight: var(--weight-heavy);">{{item.qtyTail}}</span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span></span></sc-if>
+                  <sc-for list="{{item.meals}}" as="meal" hint-placeholder-count="1">
+                    <span class="{{meal.cls}}" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: {{meal.bg}}; color: {{meal.fg}};">{{meal.name}}</span>
+                  </sc-for>
+                </span>
+              </span>
+              <sc-if value="{{item.fresh}}" hint-placeholder-val="{{false}}">
+                <span class="wiggle" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink);">New</span>
+              </sc-if>
+              <sc-if value="{{item.byS}}" hint-placeholder-val="{{false}}">
+                <span style="width: var(--size-check); height: var(--size-check); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">S</span><span class="sr">Added by Shazya</span></span>
+              </sc-if>
+            </button>
+            </sc-if>
+            <sc-if value="{{item.pair}}" hint-placeholder-val="{{false}}">
+            <div role="group" aria-labelledby="d1a-ask" style="display: flex; flex-direction: column; border: var(--line-w) solid var(--color-forest); border-radius: var(--radius-20); background: var(--color-surface-card); overflow: hidden;">
+              <button id="{{item.old.domId}}" class="press {{item.old.enter}}" onClick="{{item.old.toggle}}" aria-pressed="{{item.old.pressed}}" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; border: 0; border-radius: 0; animation-delay: {{item.old.delay}};">
+              <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;">
+                <sc-if value="{{item.old.idle}}" hint-placeholder-val="{{true}}">
+                  <span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span>
+                </sc-if>
+                <sc-if value="{{item.old.ticking}}" hint-placeholder-val="{{false}}">
+                  <span aria-hidden="true" class="pop" style="position: absolute; inset: 0; border-radius: 50%; background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span>
+                </sc-if>
+              </span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+                <span style="position: relative; align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">{{item.old.name}}<sc-if value="{{item.old.ticking}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" class="strike" style="position: absolute; left: -2px; right: -2px; top: 52%; height: var(--line-w-strong); border-radius: var(--radius-2); background: var(--color-ink);"></span></sc-if></span>
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                  <sc-if value="{{item.old.qtyPlain}}" hint-placeholder-val="{{true}}"><span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.old.qty}}</span></sc-if>
+                  <sc-if value="{{item.old.qtyFlash}}" hint-placeholder-val="{{false}}"><span style="position: relative; font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.old.qtyHead}} <span class="pop" style="display: inline-block; padding: 0 var(--space-6); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink); font-weight: var(--weight-heavy);">{{item.old.qtyTail}}</span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span></span></sc-if>
+                  <sc-for list="{{item.old.meals}}" as="meal" hint-placeholder-count="1">
+                    <span class="{{meal.cls}}" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: {{meal.bg}}; color: {{meal.fg}};">{{meal.name}}</span>
+                  </sc-for>
+                </span>
+              </span>
+              <sc-if value="{{item.old.fresh}}" hint-placeholder-val="{{false}}">
+                <span class="wiggle" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink);">New</span>
+              </sc-if>
+              <sc-if value="{{item.old.byS}}" hint-placeholder-val="{{false}}">
+                <span style="width: var(--size-check); height: var(--size-check); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">S</span><span class="sr">Added by Shazya</span></span>
+              </sc-if>
+            </button>
+              <sc-if value="{{item.asking}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; flex-direction: column; gap: var(--space-10); padding: var(--space-12) var(--space-14) var(--space-14); background: var(--color-surface-tint);">
+                <p id="d1a-ask" style="margin: 0; display: flex; align-items: flex-start; gap: var(--space-8); font-size: var(--type-body); line-height: var(--lh-body); font-weight: var(--weight-heavy); color: var(--color-ink);">
+                  <span aria-hidden="true" class="wiggle" style="flex: none; width: var(--size-check); height: var(--size-check); border-radius: 50%; background: var(--color-chartreuse); color: var(--color-ink); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg></span>
+                  <span>Garlic is on here twice! <span style="font-weight: var(--weight-medium); color: var(--color-ink-soft);">Shazya just added 1 head for Sheet-pan chicken. One row or two?</span></span>
+                </p>
+                <div style="display: flex; gap: var(--space-8);">
+                <button class="btn btn-s btn-primary" onClick="{{item.combine}}" aria-label="Combine the two garlic items" style="flex: 1;">Combine</button>
+                <button class="btn btn-s btn-secondary" onClick="{{item.decline}}" aria-label="Keep both garlic items" style="flex: 1;">Keep both</button>
+              </div>
+              </div>
+              </sc-if>
+              <div style="border-top: var(--line-w) dashed var(--color-line-soft); {{item.newAnim}}">
+                <button id="{{item.neu.domId}}" class="press {{item.neu.enter}}" onClick="{{item.neu.toggle}}" aria-pressed="{{item.neu.pressed}}" style="width: 100%; min-height: var(--size-row); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-10) var(--space-14); border-radius: var(--radius-20); background: var(--color-surface-card); font: inherit; color: inherit; text-align: left; cursor: pointer; border: 0; border-radius: 0; animation-delay: {{item.neu.delay}};">
+              <span style="position: relative; width: var(--size-check); height: var(--size-check); flex: none;">
+                <sc-if value="{{item.neu.idle}}" hint-placeholder-val="{{true}}">
+                  <span aria-hidden="true" style="position: absolute; inset: 0; box-sizing: border-box; border-radius: 50%; border: var(--line-w-strong) solid var(--color-forest);"></span>
+                </sc-if>
+                <sc-if value="{{item.neu.ticking}}" hint-placeholder-val="{{false}}">
+                  <span aria-hidden="true" class="pop" style="position: absolute; inset: 0; border-radius: 50%; background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span>
+                </sc-if>
+              </span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6);">
+                <span style="position: relative; align-self: flex-start; font-size: var(--type-label); font-weight: var(--weight-heavy);">{{item.neu.name}}<sc-if value="{{item.neu.ticking}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" class="strike" style="position: absolute; left: -2px; right: -2px; top: 52%; height: var(--line-w-strong); border-radius: var(--radius-2); background: var(--color-ink);"></span></sc-if></span>
+                <span style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6);">
+                  <sc-if value="{{item.neu.qtyPlain}}" hint-placeholder-val="{{true}}"><span style="font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.neu.qty}}</span></sc-if>
+                  <sc-if value="{{item.neu.qtyFlash}}" hint-placeholder-val="{{false}}"><span style="position: relative; font-size: var(--type-small); font-weight: var(--weight-medium); color: var(--color-ink-muted);">{{item.neu.qtyHead}} <span class="pop" style="display: inline-block; padding: 0 var(--space-6); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink); font-weight: var(--weight-heavy);">{{item.neu.qtyTail}}</span>
+                  <span aria-hidden="true" class="spark" style="--dx: 18px; --dy: -14px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -17px; --dy: -13px; background: var(--color-chartreuse);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 20px; --dy: 9px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -19px; --dy: 10px; background: var(--color-water);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: 2px; --dy: -22px; background: var(--color-tomato);"></span>
+                  <span aria-hidden="true" class="spark" style="--dx: -1px; --dy: 21px; background: var(--color-chartreuse);"></span></span></sc-if>
+                  <sc-for list="{{item.neu.meals}}" as="meal" hint-placeholder-count="1">
+                    <span class="{{meal.cls}}" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: {{meal.bg}}; color: {{meal.fg}};">{{meal.name}}</span>
+                  </sc-for>
+                </span>
+              </span>
+              <sc-if value="{{item.neu.fresh}}" hint-placeholder-val="{{false}}">
+                <span class="wiggle" style="font-size: var(--type-micro); font-weight: var(--weight-heavy); padding: var(--space-4) var(--space-10); border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink);">New</span>
+              </sc-if>
+              <sc-if value="{{item.neu.byS}}" hint-placeholder-val="{{false}}">
+                <span style="width: var(--size-check); height: var(--size-check); flex: none; border-radius: 50%; background: var(--color-surface-tint); color: var(--color-ink-on-tint); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: var(--type-caption); font-weight: var(--weight-medium);"><span aria-hidden="true">S</span><span class="sr">Added by Shazya</span></span>
+              </sc-if>
+            </button>
+              </div>
+            </div>
+            </sc-if>
+            <sc-if value="{{item.note}}" hint-placeholder-val="{{false}}">
+            <p aria-hidden="true" class="land" style="margin: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-6); font-size: var(--type-small); line-height: var(--lh-small); font-weight: var(--weight-bold); color: var(--color-ink-muted);"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>{{item.text}}</p>
+            </sc-if>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+
+    <sc-if value="{{hasCart}}" hint-placeholder-val="{{true}}">
+      <section style="display: flex; flex-direction: column; gap: var(--space-8);">
+        <h2 style="margin: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-8); font-family: var(--font-display); font-size: var(--type-heading); font-weight: var(--weight-medium);">
+          <span aria-hidden="true" style="width: var(--size-tile); height: var(--size-tile); border-radius: var(--radius-10); background: var(--color-positive-tint); color: var(--color-forest); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"></path><circle cx="9" cy="20" r="1.4"></circle><circle cx="17" cy="20" r="1.4"></circle></svg></span>
+          <span style="flex: 1;">In the cart</span>
+          <span style="min-width: var(--size-count); height: var(--size-check); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-chartreuse); display: flex; align-items: center; justify-content: center; font-family: var(--font-body); font-size: var(--type-caption); font-weight: var(--weight-heavy); color: var(--color-ink);">{{cartCount}}</span>
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <sc-for list="{{cart}}" as="item" hint-placeholder-count="2">
+            <button class="press land" onClick="{{item.toggle}}" aria-pressed="true" style="width: 100%; min-height: var(--size-row-done); display: flex; align-items: center; gap: var(--space-14); padding: var(--space-8) var(--space-14); border: var(--line-w) dashed var(--color-line-done); border-radius: var(--radius-20); background: var(--color-surface-done); font: inherit; color: var(--color-done-ink); text-align: left; cursor: pointer;">
+              <span aria-hidden="true" style="width: var(--size-check); height: var(--size-check); flex: none; border-radius: 50%; background: var(--color-forest); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+              <span style="flex: 1; min-width: 0; font-size: var(--type-body); font-weight: var(--weight-bold); text-decoration: line-through;">{{item.name}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <button style="align-self: center; min-height: var(--size-target); padding: 0 var(--space-18); border: 0; border-radius: var(--radius-pill); background: transparent; font: inherit; font-size: var(--type-body); font-weight: var(--weight-heavy); color: var(--color-forest); cursor: pointer;">Clear the cart</button>
+      </section>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{showReplay}}" hint-placeholder-val="{{false}}">
+    <button class="btn btn-s pop-in" onClick="{{replay}}" style="position: absolute; left: 0; right: 0; bottom: 104px; width: max-content; margin: 0 auto; background: var(--color-surface-card); color: var(--color-forest); border: var(--line-w) dashed var(--color-line-dashed); box-shadow: var(--shadow-float);"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"></path><path d="M4 4v4h4"></path></svg>Replay the prompt</button>
+  </sc-if>
+
+  <nav aria-label="Sections" style="position: absolute; left: 16px; right: 16px; bottom: 20px; display: flex; gap: var(--space-6); padding: var(--space-6); border-radius: var(--radius-24); background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); box-shadow: var(--shadow-nav);">
+    <a href="Plan.dc.html" style="flex: 1; height: var(--size-tab); border-radius: var(--radius-18); display: flex; align-items: center; justify-content: center; gap: var(--space-8); text-decoration: none; font-size: var(--type-body); font-weight: var(--weight-heavy); color: var(--color-ink);">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>
+      Meal plan
+    </a>
+    <a href="Main.dc.html" aria-current="page" style="flex: 1; height: var(--size-tab); border-radius: var(--radius-18); display: flex; align-items: center; justify-content: center; gap: var(--space-8); text-decoration: none; font-size: var(--type-body); font-weight: var(--weight-heavy); background: var(--color-forest); color: var(--color-on-brand);">
+      <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"></path><circle cx="9" cy="20" r="1.4"></circle><circle cx="17" cy="20" r="1.4"></circle></svg>
+      Groceries
+      <span style="min-width: var(--size-badge); height: var(--size-badge); padding: 0 var(--space-6); box-sizing: border-box; border-radius: var(--radius-pill); background: var(--color-chartreuse); color: var(--color-ink); display: flex; align-items: center; justify-content: center; font-size: var(--type-caption); font-weight: var(--weight-heavy);">{{remaining}}</span>
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"motion":{"editor":"boolean","default":true},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.timers = {};
+    this.state = this.fresh();
+  }
+  fresh() {
+    return {
+      seq: 1,
+      ticking: {},
+      pk: { cremi: 0, enoki: 0 },
+      react: { cremi: '', enoki: '' },
+      talk: { cremi: false, enoki: false },
+      say: { cremi: '', enoki: '' },
+      phase: 'ask',
+      outcome: '',
+      after: false,
+      flash: false,
+      items: [
+        { id: 'onion', name: 'Yellow onions', qty: '2', aisle: 'Produce', by: 'B', meals: ['Chana masala', 'Sheet-pan chicken'] },
+        { id: 'garlic', name: 'Garlic', qty: '4 cloves', aisle: 'Produce', by: 'B', meals: ['Chana masala'] },
+        { id: 'garlic2', name: 'Garlic', qty: '1 head', aisle: 'Produce', by: 'S', meals: ['Sheet-pan chicken'], fresh: true },
+        { id: 'pep', name: 'Bell peppers', qty: '3', aisle: 'Produce', by: 'B', meals: ['Sheet-pan chicken'] },
+        { id: 'lemon', name: 'Lemon', qty: '1', aisle: 'Produce', by: 'B', meals: ['Chana masala'] },
+        { id: 'ban', name: 'Bananas', qty: '6', aisle: 'Produce', by: 'B', checked: true, at: 1 },
+        { id: 'chicken', name: 'Chicken thighs', qty: '1 kg', aisle: 'Meat', by: 'B', meals: ['Sheet-pan chicken'] },
+        { id: 'mozz', name: 'Mozzarella', qty: '1 ball', aisle: 'Dairy & eggs', by: 'S', meals: ['Pizza night'] },
+        { id: 'egg', name: 'Eggs', qty: '1 dozen', aisle: 'Dairy & eggs', by: 'B' },
+        { id: 'chick', name: 'Chickpeas', qty: '2 cans', aisle: 'Pantry', by: 'B', meals: ['Chana masala'] },
+        { id: 'rice', name: 'Basmati rice', qty: '2 kg', aisle: 'Pantry', by: 'S' }
+      ]
+    };
+  }
+
+  componentWillUnmount() {
+    var t = this.timers;
+    Object.keys(t).forEach(function (k) { clearTimeout(t[k]); });
+  }
+  later(key, fn, ms) {
+    clearTimeout(this.timers[key]);
+    this.timers[key] = setTimeout(fn, ms);
+  }
+  setKey(field, key, value) {
+    var next = Object.assign({}, this.state[field]);
+    next[key] = value;
+    var patch = {};
+    patch[field] = next;
+    this.setState(patch);
+  }
+  poke(key, reactPrefix, line) {
+    var self = this;
+    var n = this.state.pk[key] + 1;
+    var pk = Object.assign({}, this.state.pk); pk[key] = n;
+    var react = Object.assign({}, this.state.react); react[key] = reactPrefix + (n % 2 ? 'a' : 'b');
+    var talk = Object.assign({}, this.state.talk); talk[key] = true;
+    var say = Object.assign({}, this.state.say); say[key] = line || '';
+    this.setState({ pk: pk, react: react, talk: talk, say: say });
+    this.later(key + 'r', function () { self.setKey('react', key, ''); }, 1300);
+    this.later(key + 't', function () { self.setKey('talk', key, false); }, 2800);
+  }
+  toggle(id) {
+    var self = this;
+    var item = this.state.items.find(function (i) { return i.id === id; });
+    if (!item) return;
+    if (item.checked) {
+      this.setState({ items: this.state.items.map(function (i) { return i.id === id ? Object.assign({}, i, { checked: false }) : i; }) });
+      return;
+    }
+    if (this.state.ticking[id]) return;
+    this.setKey('ticking', id, true);
+    this.later('tick-' + id, function () {
+      var t2 = Object.assign({}, self.state.ticking);
+      delete t2[id];
+      var n = self.state.seq + 1;
+      self.setState({
+        ticking: t2,
+        seq: n,
+        items: self.state.items.map(function (i) { return i.id === id ? Object.assign({}, i, { checked: true, fresh: false, at: n }) : i; })
+      });
+    }, 520);
+  }
+  mealTag(m, cls) {
+    var MEALS = {
+      'Chana masala': { bg: 'var(--color-meal-amber)', fg: 'var(--color-meal-amber-ink)' },
+      'Sheet-pan chicken': { bg: 'var(--color-meal-sky)', fg: 'var(--color-meal-sky-ink)' },
+      'Green salad': { bg: 'var(--color-meal-leaf)', fg: 'var(--color-meal-leaf-ink)' },
+      'Pizza night': { bg: 'var(--color-meal-tomato)', fg: 'var(--color-meal-tomato-ink)' }
+    };
+    var c = MEALS[m] || { bg: 'var(--color-tag-neutral)', fg: 'var(--color-tag-neutral-ink)' };
+    return { name: m, bg: c.bg, fg: c.fg, cls: cls || '' };
+  }
+  wrapItem(i, n, extra) {
+    var self = this;
+    var tick = !!this.state.ticking[i.id];
+    var qty = i.qty || '';
+    var flash = !!(extra && extra.flash);
+    return Object.assign({
+      plain: true, pair: false, note: false,
+      domId: 'row-' + i.id,
+      enter: 'rise',
+      fresh: !!i.fresh,
+      byS: i.by === 'S',
+      ticking: tick,
+      idle: !tick,
+      pressed: tick ? 'true' : 'false',
+      delay: (n * 45) + 'ms',
+      qtyPlain: !flash,
+      qtyFlash: flash,
+      qtyHead: i.qtyHead || qty,
+      qtyTail: i.qtyTail || '',
+      toggle: function () { self.toggle(i.id); }
+    }, i, {
+      meals: (i.meals || []).map(function (m) { return self.mealTag(m, flash && m === i.addedMeal ? 'pop-in' : ''); })
+    }, extra || {});
+  }
+  progress(items) {
+    var live = items.filter(function (i) { return !i.checked; });
+    var cart = items.filter(function (i) { return i.checked; }).sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+    var pct = Math.round((cart.length / items.length) * 100);
+    return { live: live, cart: cart, pct: pct };
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // Buttons vanish when the prompt resolves, so focus moves to the garlic row that remains.
+    if (prevState.phase !== 'done' && this.state.phase === 'done') {
+      var el = document.getElementById('row-garlic');
+      if (el && el.focus) el.focus();
+    }
+  }
+  combine() {
+    var self = this;
+    if (this.state.phase !== 'ask') return;
+    this.setState({ phase: 'merging' });
+    this.later('merge', function () {
+      var items = self.state.items
+        .filter(function (i) { return i.id !== 'garlic2'; })
+        .map(function (i) {
+          return i.id === 'garlic'
+            ? Object.assign({}, i, { qty: '4 cloves + 1 head', qtyHead: '4 cloves +', qtyTail: '1 head', meals: ['Chana masala', 'Sheet-pan chicken'], addedMeal: 'Sheet-pan chicken' })
+            : i;
+        });
+      self.setState({ phase: 'done', outcome: 'combined', after: true, flash: true, items: items });
+      self.react('combine');
+      self.later('flash', function () { self.setState({ flash: false }); }, 1300);
+      self.later('after', function () { self.setState({ after: false }); }, 2800);
+    }, 450);
+  }
+  decline() {
+    var self = this;
+    if (this.state.phase !== 'ask') return;
+    this.setState({ phase: 'done', outcome: 'kept', after: true,
+      items: this.state.items.map(function (i) { return i.id === 'garlic2' ? Object.assign({}, i, { declined: true }) : i; }) });
+    this.react('keep');
+    this.later('after', function () { self.setState({ after: false }); }, 2800);
+  }
+  react(what) {
+    var mascot = 'cremi';
+    var line = what === 'combine' ? 'One garlic, two meals. Tidy!' : 'Double garlic week. Bold!';
+    if (mascot === 'cremi') this.poke('cremi', 'cremi-tap-', line);
+    if (mascot === 'enoki') this.poke('enoki', what === 'combine' ? 'enoki-tap-' : 'enoki-wave-', line);
+  }
+  replay() {
+    var t = this.timers;
+    Object.keys(t).forEach(function (k) { clearTimeout(t[k]); });
+    this.setState(this.fresh());
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var items = st.items;
+    var g1 = items.find(function (i) { return i.id === 'garlic'; });
+    var g2 = items.find(function (i) { return i.id === 'garlic2'; });
+    // The prompt shows while both garlics are still to buy; ticking one parks it until it is unticked.
+    var bothLive = g1 && g2 && !g1.checked && !g2.checked && !st.ticking.garlic && !st.ticking.garlic2;
+    var asking = st.phase !== 'done' && bothLive;
+    var enokiClass = st.react.enoki === 'enoki-wave-a' || st.react.enoki === 'enoki-wave-b' ? 'enoki-wave' : st.react.enoki;
+    var n = 0;
+    var wrap = function (i) {
+      var w = self.wrapItem(i, n, {
+        flash: st.flash && i.id === 'garlic',
+        enter: i.declined && st.after ? 'land' : 'rise'
+      });
+      n += 1;
+      return w;
+    };
+    var p = this.progress(items);
+    var sections = ['Produce', 'Meat', 'Dairy & eggs', 'Bakery', 'Pantry'].map(function (name) {
+      var list = [];
+      p.live.filter(function (i) { return i.aisle === name; }).forEach(function (i) {
+        if (asking && i.id === 'garlic2') return;
+        if (asking && i.id === 'garlic') {
+          list.push({
+            plain: false, pair: true, note: false,
+            old: wrap(g1), neu: wrap(g2),
+            asking: st.phase === 'ask',
+            newAnim: st.phase === 'merging' ? 'animation: toast-in var(--dur-pop) ease-in reverse both;' : '',
+            enokiClass: enokiClass,
+            pokeEnoki: function () { self.poke('enoki', 'enoki-tap-', 'Psst. Two garlics, one list.'); },
+            combine: function () { self.combine(); },
+            decline: function () { self.decline(); }
+          });
+          return;
+        }
+        list.push(wrap(i));
+        var noteAfter = st.outcome === 'combined' ? 'garlic' : 'garlic2';
+        if (st.after && i.id === noteAfter) {
+          list.push({
+            plain: false, pair: false, note: true,
+            text: st.outcome === 'combined' ? 'Combined. One garlic, both meals.' : 'Kept both. I won\'t ask about this pair again.',
+            enokiClass: enokiClass,
+            pokeEnoki: function () { self.poke('enoki', 'enoki-tap-', 'Hehe. We love a pair.'); }
+          });
+        }
+      });
+      var count = p.live.filter(function (i) { return i.aisle === name; }).length;
+      return { name: name, count: String(count), items: list, isProduce: name === 'Produce', isMeat: name === 'Meat', isDairy: name === 'Dairy & eggs',
+        isBakery: name === 'Bakery', isPantry: name === 'Pantry' };
+    }).filter(function (s) { return s.items.length > 0; });
+    var motion = this.props.motion ?? true;
+
+    var cLines = [p.live.length + ' to go! I sorted them by aisle.', 'Tick, tick, tick! Best part.', 'Hehe, that tickles!'];
+    var pk = st.pk, talk = st.talk, react = st.react, say = st.say;
+    var cremiLine = say.cremi || cLines[(Math.max(pk.cremi, 1) - 1) % cLines.length];
+    var enokiLine = say.enoki || 'Hehe!';
+    var result = st.outcome === 'combined'
+      ? 'Combined. Garlic, 4 cloves + 1 head, for Chana masala and Sheet-pan chicken.'
+      : (st.outcome === 'kept' ? 'Kept both garlic items. You will not be asked about this pair again.' : '');
+    var live = '';
+    if (st.after) live = result;
+    if (talk.cremi) live = (live ? live + ' ' : '') + 'Cremi says: ' + cremiLine;
+    else if (talk.enoki && !st.after) live = 'The enoki say: ' + enokiLine;
+
+    return {
+      rootClass: motion ? '' : 'calm',
+      sections: sections,
+      cart: p.cart.map(wrap),
+      hasCart: p.cart.length > 0,
+      cartCount: String(p.cart.length),
+      remaining: String(p.live.length),
+      pct: p.pct + '%',
+      pctNum: p.pct,
+      cremiClass: react.cremi,
+      cremiTalking: talk.cremi,
+      cremiBubble: pk.cremi % 2 ? 'bubble-pop-a' : 'bubble-pop-b',
+      cremiLine: cremiLine,
+      liveLine: live,
+      showReplay: st.phase === 'done' && !st.after,
+      replay: function () { self.replay(); },
+      pokeCremi: function () { self.poke('cremi', 'cremi-tap-'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

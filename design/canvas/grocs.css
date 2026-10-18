@@ -1,0 +1,537 @@
+/* =====================================================================
+   grocs.css - the single token source and shared CSS for every Grocs
+   artboard (screens, design-system boards and child components).
+
+   Rules
+   - One value per token. A token whose name carries a number IS that
+     value in px (--space-14 is 14px, --radius-18 is 18px), so the scale
+     is checkable at a glance.
+   - Components read tokens with var(--token). Raw hex lives here and in
+     SVG illustration only.
+   - Child components cannot carry their own <style> (their <helmet>
+     reruns in importers), so every class and keyframe they need is here.
+   ===================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------
+     Colour · brand
+     Forest carries every primary action. Chartreuse highlights counts,
+     newness and celebration. Tomato means live or presence.
+     --------------------------------------------------------------- */
+  --color-forest: #1F4D33;
+  --color-forest-deep: #143522;      /* pressed state, primary button lip */
+  --color-chartreuse: #CDEB5B;
+  --color-tomato: #E2583A;
+  --color-on-brand: #FFFFFF;         /* text and icons on forest or ink */
+
+  /* ---------------------------------------------------------------
+     Colour · ink (text). All pass 4.5:1 on canvas, card and tint.
+     --------------------------------------------------------------- */
+  --color-ink: #17241B;              /* primary text, mascot eyes */
+  --color-ink-soft: #3D4A41;         /* subtitles, neutral tag text */
+  --color-ink-muted: #4E5B52;        /* meta, hints, eyebrows */
+  --color-ink-hint: #6A766E;         /* placeholder text only */
+  --color-ink-on-tint: #2F3D33;      /* text on surface-tint (date tag, avatar.s) */
+  --color-ink-deep: #0B120D;         /* lip under the ink button (was #000000) */
+
+  /* ---------------------------------------------------------------
+     Colour · surface
+     --------------------------------------------------------------- */
+  --color-surface-canvas: #F1F3EC;   /* screen background */
+  --color-surface-card: #FFFFFF;     /* cards, rows, inputs, sheets */
+  --color-surface-tint: #E6EBE2;     /* soft buttons, icon tiles, date tag */
+  --color-surface-done: #F8F9F5;     /* ticked rows, waiting status */
+  --color-surface-stage: #E1E9E4;    /* Welcome kitchen wall */
+  --color-positive-tint: #E3EFD9;    /* done banner, joined status, "On your list" */
+
+  /* ---------------------------------------------------------------
+     Colour · line
+     --------------------------------------------------------------- */
+  --color-line: #D6DCD1;             /* input, button and nav borders */
+  --color-line-soft: #DCE1D8;        /* row and card borders */
+  --color-line-dashed: #9AA59D;      /* empty slots, invite code box */
+  --color-line-done: #CBD3C6;        /* dashed border of a ticked row */
+  --color-done-ink: #5A665E;         /* struck-through text of a ticked row */
+  --color-focus-ring: #E3F0B0;       /* 4px halo round a focused field */
+
+  /* ---------------------------------------------------------------
+     Colour · feedback
+     --------------------------------------------------------------- */
+  --color-error: #B42318;            /* 6.6:1 on card */
+  --color-error-tint: #FDE8E5;
+  --color-disabled: #E3E7DF;         /* disabled fill */
+  --color-disabled-ink: #7D877F;     /* disabled text (exempt from 4.5:1) */
+
+  /* ---------------------------------------------------------------
+     Colour · meal tags. Reserved for meals; status never borrows them.
+     Each pair is fill / text.
+     --------------------------------------------------------------- */
+  --color-meal-amber: #F6EBD3;
+  --color-meal-amber-ink: #5C4513;
+  --color-meal-sky: #DCE8F0;
+  --color-meal-sky-ink: #24455C;
+  --color-meal-tomato: #F8DED6;
+  --color-meal-tomato-ink: #8A2F1B;
+  --color-meal-leaf: #E3EFD9;
+  --color-meal-leaf-ink: #1F4D33;
+  --color-tag-neutral: #E9ECE6;      /* unknown meal, "Eating out", "Pantry staple" */
+  --color-tag-neutral-ink: #3D4A41;
+
+  /* ---------------------------------------------------------------
+     Colour · illustration palette (mascots and celebration).
+     Mascot.dc.html paints with these. The kitchen scene's one-off
+     colours stay inside KitchenScene.dc.html's SVG.
+     --------------------------------------------------------------- */
+  --color-water: #9CC3DC;            /* tap water, tick spark */
+  --illo-blush: #FF9E9E;
+  --illo-leaf: #6FA35C;
+  --illo-cremi-cap: #A9774F;
+  --illo-cremi-shine: #C99B73;
+  --illo-cremi-stem: #F4E9D8;
+  --illo-shii-cap: #6E4A33;
+  --illo-shii-spot: #D9C2A3;
+  --illo-shii-stem: #EFE3CF;
+  --illo-chanty-body: #F2B544;
+  --illo-chanty-shine: #F8D57E;
+  --illo-chanty-gill: #D9952A;
+  --illo-ollie-cap: #CFC8BA;
+  --illo-ollie-rim: #E8E2D6;
+  --illo-ollie-line: #B9B1A2;
+  --illo-ollie-stem: #EEE8DC;
+  --illo-morty-cap: #8C6A4A;
+  --illo-morty-pit: #5E4430;
+  --illo-morty-stem: #F1E6D2;
+  --illo-enoki-cap: #EFE6CF;
+  --illo-enoki-stem: #F7F2E6;
+  --illo-enoki-edge: #D8CDB4;
+  --illo-enoki-base: #C9B48E;
+
+  /* ---------------------------------------------------------------
+     Space. The screens rely on 6, 10, 14 and 18, so they are steps,
+     not exceptions. Use these for padding, gaps and margins.
+     --------------------------------------------------------------- */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;     /* tag gaps, label-to-input */
+  --space-8: 8px;
+  --space-10: 10px;   /* header rows, day rows */
+  --space-12: 12px;
+  --space-14: 14px;   /* row inner gap and side padding */
+  --space-16: 16px;   /* screen gutter */
+  --space-18: 18px;   /* card padding (invite) */
+  --space-20: 20px;   /* header inset */
+  --space-24: 24px;   /* card padding, action bar inset, field stack gap */
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-56: 56px;   /* DS board padding (top) */
+  --space-64: 64px;   /* DS board padding (side) */
+
+  /* ---------------------------------------------------------------
+     Radius. 22 is gone; primary buttons use 20 at size m, 16 at size s.
+     --------------------------------------------------------------- */
+  --radius-2: 2px;    /* strike line, thin bars */
+  --radius-10: 10px;  /* icon tile (30px) */
+  --radius-14: 14px;  /* ghost and text buttons, back link */
+  --radius-16: 16px;  /* size-s buttons, icon button, day tile, bubble, status row */
+  --radius-18: 18px;  /* tabs, invite code box, stepper */
+  --radius-20: 20px;  /* rows, inputs, size-m buttons, meal cards */
+  --radius-24: 24px;  /* cards, nav bar */
+  --radius-28: 28px;  /* sheets, phone frames */
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------
+     Sizes. Touch targets never go below --size-target.
+     --------------------------------------------------------------- */
+  --size-target: 44px;     /* minimum touch target, size-s button, icon button */
+  --size-control: 56px;    /* size-m button, field */
+  --size-row: 60px;        /* item row, suggestion row, meal card min height */
+  --size-row-done: 52px;   /* ticked row */
+  --size-tab: 52px;
+  --size-tile: 30px;       /* section header icon tile */
+  --size-check: 26px;
+  --size-count: 26px;      /* count tag */
+  --size-badge: 22px;      /* tab badge */
+  --size-avatar-s: 26px;
+  --size-avatar-l: 34px;
+  --size-avatar-xl: 64px;
+  --size-day-tile: 48px;
+  --size-mascot-header: 68px;
+  --size-bullet: 28px;     /* round add bullet in an empty meal slot */
+  --size-switch-w: 52px;   /* toggle switch track (inside a 56px row, so the target is the row) */
+  --size-switch-h: 32px;
+  --size-knob: 24px;       /* toggle switch knob */
+  --size-meter: 12px;      /* progress bar height */
+  --size-dot: 12px;        /* status dot */
+  --size-spinner: 18px;    /* loading spinner */
+  --size-bubble: 200px;    /* speech bubble max width */
+  --size-nav-clearance: 110px; /* bottom padding that keeps the last row clear of the floating tab bar or pinned action bar */
+  --line-w: 2px;           /* every border */
+  --line-w-strong: 2.5px;  /* checkbox ring, avatar stack ring, strike line */
+
+  /* ---------------------------------------------------------------
+     Type. Fixed sizes, one value each. Fredoka for display, title and
+     heading; Nunito for everything else. Each size has a line height.
+     --------------------------------------------------------------- */
+  --font-display: 'Fredoka', sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+
+  --type-display: 60px;   --lh-display: 60px;   /* Welcome wordmark */
+  --type-title-l: 38px;   --lh-title-l: 38px;   /* home screen titles */
+  --type-title-m: 32px;   --lh-title-m: 34px;   /* task screen titles, invite code */
+  --type-heading: 18px;   --lh-heading: 24px;   /* section headers, cards, meal names */
+  --type-label: 16px;     --lh-label: 20px;     /* item names, size-m buttons, input text */
+  --type-body: 15px;      --lh-body: 22px;      /* body copy, field labels, tabs, size-s buttons */
+  --type-small: 13px;     --lh-small: 18px;     /* meta, hints, bubbles, toast, date tag */
+  --type-caption: 12px;   --lh-caption: 16px;   /* counts, invite code label, DS captions */
+  --type-micro: 11px;     --lh-micro: 14px;     /* tags, weekday */
+
+  --weight-medium: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+  --tracking-caps: 0.06em;  /* uppercase labels */
+  --tracking-code: 0.08em;  /* invite code */
+
+  /* ---------------------------------------------------------------
+     Shadows
+     --------------------------------------------------------------- */
+  --shadow-lip: 0 6px 0 var(--color-forest-deep);          /* primary button */
+  --shadow-lip-soft: 0 4px 0 var(--color-line);             /* secondary button */
+  --shadow-lip-ink: 0 4px 0 var(--color-ink-deep);          /* ink button */
+  --shadow-float: 0 6px 16px rgba(23, 36, 27, 0.12);        /* speech bubble, raised card */
+  --shadow-nav: 0 10px 24px rgba(23, 36, 27, 0.12);         /* floating tab bar */
+  --shadow-action: 0 6px 0 var(--color-forest-deep), 0 14px 24px rgba(23, 36, 27, 0.2); /* pinned action bar button */
+  --shadow-sheet: 0 -8px 24px rgba(23, 36, 27, 0.12);       /* bottom sheet */
+  --shadow-focus: 0 0 0 4px var(--color-focus-ring);        /* focused field halo */
+  --shadow-focus-error: 0 0 0 4px var(--color-error-tint);
+
+  /* ---------------------------------------------------------------
+     Motion. Durations and curves. JS timings mirror --tick, --react
+     and --talk (520ms, 1300ms, 2800ms).
+     --------------------------------------------------------------- */
+  --dur-press: 0.15s;
+  --dur-strike: 0.3s;
+  --dur-bubble: 0.35s;
+  --dur-pop: 0.4s;
+  --dur-pop-in: 0.45s;
+  --dur-rise: 0.5s;
+  --dur-land: 0.6s;
+  --dur-burst: 0.6s;
+  --dur-fill: 0.6s;      /* progress bar width */
+  --dur-sheet: 0.7s;
+  --stagger: 40ms;       /* per-row delay when a list enters */
+  --tick: 520ms;         /* tick animation before a row moves to the cart */
+  --react: 1.3s;         /* mascot tap reaction */
+  --talk: 2.8s;          /* speech bubble on screen */
+
+  --ease-pop: cubic-bezier(.3, 1.6, .5, 1);     /* ticks, chips, bubbles */
+  --ease-rise: cubic-bezier(.2, 1.2, .4, 1);    /* rows entering */
+  --ease-land: cubic-bezier(.2, 1.4, .4, 1);    /* items arriving in the cart, banners */
+  --ease-hop: cubic-bezier(.3, 1.4, .5, 1);     /* mascot hop, progress fill */
+  --ease-twirl: cubic-bezier(.4, 1.4, .5, 1);   /* Chanty's twirl */
+}
+
+/* =====================================================================
+   Base elements
+   ===================================================================== */
+a { color: var(--color-forest); }
+a:hover { color: var(--color-forest-deep); }
+input::placeholder { color: var(--color-ink-hint); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--color-forest); outline-offset: 2px; }
+
+/* Visually hidden, still read by screen readers */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Pose and variant switches inside SVG (sc-if cannot go in an <svg>) */
+.is-hidden { display: none; }
+/* Icons: one 2px stroke at every size. Put class="icon" on the <svg> (or on its wrapper). */
+.icon svg *, svg.icon * { vector-effect: non-scaling-stroke; }
+
+/* =====================================================================
+   Text atoms. One class per type token, so a board can show them and a
+   screen can reuse them. Screens may also read the tokens inline.
+   ===================================================================== */
+.t-display { font-family: var(--font-display); font-size: var(--type-display); line-height: var(--lh-display); font-weight: var(--weight-bold); }
+.t-title-l { font-family: var(--font-display); font-size: var(--type-title-l); line-height: var(--lh-title-l); font-weight: var(--weight-bold); }
+.t-title-m { font-family: var(--font-display); font-size: var(--type-title-m); line-height: var(--lh-title-m); font-weight: var(--weight-bold); }
+.t-heading { font-family: var(--font-display); font-size: var(--type-heading); line-height: var(--lh-heading); font-weight: var(--weight-medium); }
+.t-label { font-family: var(--font-body); font-size: var(--type-label); line-height: var(--lh-label); font-weight: var(--weight-heavy); }
+.t-body { font-family: var(--font-body); font-size: var(--type-body); line-height: var(--lh-body); font-weight: var(--weight-medium); }
+.t-small { font-family: var(--font-body); font-size: var(--type-small); line-height: var(--lh-small); font-weight: var(--weight-medium); }
+.t-caption { font-family: var(--font-body); font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-heavy); }
+.t-micro { font-family: var(--font-body); font-size: var(--type-micro); line-height: var(--lh-micro); font-weight: var(--weight-heavy); }
+
+/* =====================================================================
+   Press feedback
+   ===================================================================== */
+.btn { transition: transform var(--dur-press) ease; }
+.btn:active, .btn.is-pressed { transform: translateY(3px); }
+.btn.is-focus { outline: 3px solid var(--color-forest); outline-offset: 2px; }
+.press { transition: transform var(--dur-press) ease; }      /* rows */
+.press:active, .press.is-pressed { transform: scale(.97); }
+.chip { transition: transform var(--dur-press) ease; }
+.chip:active { transform: scale(.92); }
+
+/* =====================================================================
+   Buttons. Size m is the 56px action button; size s is the 44px button
+   used inside cards and fields. Variants: primary, secondary, soft, text.
+   States: rest, pressed (.is-pressed or :active), focus (.is-focus or
+   :focus-visible), disabled (:disabled or .is-disabled), loading
+   (.is-loading plus a .spin spinner inside).
+   ===================================================================== */
+.btn-m, .btn-s { display: flex; align-items: center; justify-content: center; gap: var(--space-8); box-sizing: border-box; border: 0; font-family: inherit; font-weight: var(--weight-heavy); text-decoration: none; cursor: pointer; }
+.btn-m { height: var(--size-control); padding: 0 var(--space-24); border-radius: var(--radius-20); font-size: var(--type-label); }
+.btn-s { height: var(--size-target); padding: 0 var(--space-16); border-radius: var(--radius-16); font-size: var(--type-body); }
+.btn-primary { background: var(--color-forest); color: var(--color-on-brand); box-shadow: var(--shadow-lip); }
+.btn-secondary { background: var(--color-surface-card); color: var(--color-ink); border: var(--line-w) solid var(--color-line); box-shadow: var(--shadow-lip-soft); }
+.btn-s.btn-secondary { box-shadow: none; }
+.btn-s.btn-primary { box-shadow: none; }
+.btn-icon { width: var(--size-target); padding: 0; flex: none; }
+.btn-soft { background: var(--color-surface-tint); color: var(--color-forest); }
+.btn-text { background: transparent; color: var(--color-forest); }
+a.btn-primary, a.btn-primary:hover { color: var(--color-on-brand); }
+a.btn-secondary, a.btn-secondary:hover { color: var(--color-ink); }
+a.btn-soft, a.btn-soft:hover, a.btn-text, a.btn-text:hover { color: var(--color-forest); }
+.btn.btn-primary.is-pressed, .btn.btn-primary:active { box-shadow: 0 3px 0 var(--color-forest-deep); }
+.btn:disabled, .btn.is-disabled { background: var(--color-disabled); color: var(--color-disabled-ink); border-color: var(--color-line-soft); box-shadow: none; cursor: not-allowed; }
+a.btn.is-disabled, a.btn.is-disabled:hover { color: var(--color-disabled-ink); }
+.btn:disabled:active, .btn.is-disabled:active { transform: none; }
+.btn.is-loading { cursor: progress; }
+.btn-spinner { flex: none; width: var(--size-spinner); height: var(--size-spinner); box-sizing: border-box; border: var(--line-w) solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+
+/* =====================================================================
+   Field box: rest, focus (real or forced), error, disabled
+   ===================================================================== */
+.field-box { border: var(--line-w) solid var(--color-line); background: var(--color-surface-card); transition: border-color var(--dur-press) ease, box-shadow var(--dur-press) ease; }
+.field-box:focus-within, .field-box.is-focus { border-color: var(--color-forest); box-shadow: var(--shadow-focus); }
+.field-box.is-error { border-color: var(--color-error); }
+.field-box.is-error:focus-within, .field-box.is-error.is-focus { border-color: var(--color-error); box-shadow: var(--shadow-focus-error); }
+.field-box.is-disabled { background: var(--color-disabled); border-color: var(--color-line-soft); }
+
+/* Switch: .switch is the track, .switch-knob the knob; .is-on turns it on. */
+.switch { position: relative; flex: none; width: var(--size-switch-w); height: var(--size-switch-h); box-sizing: border-box; border: var(--line-w) solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-surface-tint); transition: background var(--dur-press) ease, border-color var(--dur-press) ease; }
+.switch-knob { position: absolute; left: 2px; top: 2px; width: var(--size-knob); height: var(--size-knob); border-radius: 50%; background: var(--color-surface-card); border: var(--line-w) solid var(--color-line); box-sizing: border-box; transition: transform var(--dur-press) ease; }
+.switch.is-on { background: var(--color-forest); border-color: var(--color-forest); }
+.switch.is-on .switch-knob { transform: translateX(20px); border-color: var(--color-surface-card); }
+.switch.is-focus, .switch-input:focus-visible ~ .switch { outline: 3px solid var(--color-forest); outline-offset: 2px; }
+.switch.is-disabled { background: var(--color-disabled); border-color: var(--color-line-soft); }
+.switch.is-disabled .switch-knob { background: var(--color-surface-done); border-color: var(--color-line-soft); }
+
+/* =====================================================================
+   Entrance and feedback motion (shared by screens and components).
+   Entrances use fill "backwards" so :active transforms still work after.
+   ===================================================================== */
+.rise { animation: rise var(--dur-rise) var(--ease-rise) backwards; }
+.land { animation: land var(--dur-land) var(--ease-land) backwards; }
+.pop { animation: pop var(--dur-pop) var(--ease-pop) both; }
+.pop-in { animation: pop-in var(--dur-pop-in) var(--ease-pop) backwards; }
+.toast-in { animation: toast-in var(--dur-land) var(--ease-land) .4s both; }
+.sheet-in { animation: sheet-in var(--dur-sheet) var(--ease-rise) .2s both; }
+.blink { transform-box: fill-box; transform-origin: center; animation: blink 4.5s infinite; }
+.breathe { animation: breathe 2.4s ease-in-out infinite; }
+.pulse { animation: pulse 2s ease-out infinite; }
+.wiggle { animation: wiggle 2.8s ease-in-out infinite; }
+.twinkle { transform-box: fill-box; transform-origin: center; animation: twinkle 2.2s ease-in-out infinite; }
+.fly { animation: fly 2.6s ease-in-out infinite; }
+.wave-hello { transform-box: fill-box; transform-origin: 50% 100%; animation: wave-hello 1.8s ease-in-out infinite; }
+.spin { animation: spin .8s linear infinite; }
+.shimmer { animation: shimmer 1.2s ease-in-out infinite alternate; }
+/* Tick: the check pops, six sparks burst (--dx/--dy set inline), the name is struck */
+.spark { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; animation: burst var(--dur-burst) ease-out both; }
+.strike { transform-origin: left; animation: strike var(--dur-strike) ease-out .1s both; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes land { 0% { opacity: 0; transform: translateY(-14px) scale(.95); } 60% { opacity: 1; transform: translateY(3px); } 100% { transform: none; } }
+@keyframes pop { 0% { transform: scale(.3); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-14px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes sheet-in { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes pulse { from { transform: scale(1); opacity: .9; } to { transform: scale(1.7); opacity: 0; } }
+@keyframes wiggle { 0%, 78%, 100% { transform: rotate(0); } 84% { transform: rotate(-10deg); } 90% { transform: rotate(9deg); } 96% { transform: rotate(-4deg); } }
+@keyframes twinkle { 0%, 100% { transform: scale(.4); opacity: .3; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes fly { 0%, 100% { transform: translate(0, 0) rotate(-6deg); } 50% { transform: translate(6px, -8px) rotate(4deg); } }
+@keyframes wave-hello { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-14deg); } 80% { transform: rotate(10deg); } 90% { transform: rotate(-8deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer { from { opacity: .55; } to { opacity: 1; } }
+@keyframes burst { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(.3); opacity: 0; } }
+@keyframes strike { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* =====================================================================
+   Speech bubble pop. The a/b pair restarts the animation on every tap.
+   The from-* class sets which corner it grows from.
+   ===================================================================== */
+.bubble-pop-a { animation: bubble-pop-a var(--dur-bubble) var(--ease-pop) both; }
+.bubble-pop-b { animation: bubble-pop-b var(--dur-bubble) var(--ease-pop) both; }
+.bubble-from-right { transform-origin: right center; }
+.bubble-from-left { transform-origin: left center; }
+.bubble-from-below { transform-origin: center bottom; }
+.bubble-from-below-left { transform-origin: left bottom; }
+.bubble-from-below-right { transform-origin: right bottom; }
+@keyframes bubble-pop-a { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes bubble-pop-b { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+
+/* =====================================================================
+   Mascots. Mascot.dc.html applies these: an idle class on the body
+   group (by pose), a tap class on the wrapper (a/b alternate).
+   ===================================================================== */
+.mascot-btn { position: relative; display: flex; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: var(--radius-20); -webkit-tap-highlight-color: transparent; }
+.mascot-body { transform-box: fill-box; transform-origin: 50% 100%; }
+
+/* Cremi the cremini: bouncy, eager. Idle bounce + cap wobble; stir pose; tap hop + cap tip */
+.cremi-cap { transform-box: fill-box; transform-origin: 50% 100%; }
+.cremi-bounce { animation: cremi-bounce 1.8s ease-in-out infinite; }
+.cremi-bounce .cremi-cap { animation: cremi-wobble 3s ease-in-out infinite; }
+.cremi-stir { animation: cremi-stir 1.4s ease-in-out infinite; }
+.cremi-tap-a { animation: cremi-hop-a .8s var(--ease-hop); }
+.cremi-tap-b { animation: cremi-hop-b .8s var(--ease-hop); }
+.cremi-tap-a .cremi-cap { animation: cremi-tip-a .8s ease-in-out; }
+.cremi-tap-b .cremi-cap { animation: cremi-tip-b .8s ease-in-out; }
+@keyframes cremi-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes cremi-wobble { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes cremi-stir { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+@keyframes cremi-hop-a { 0% { transform: none; } 30% { transform: translateY(-16px) scale(.95, 1.06); } 55% { transform: translateY(0) scale(1.08, .92); } 75% { transform: translateY(-4px); } 100% { transform: none; } }
+@keyframes cremi-hop-b { 0% { transform: none; } 30% { transform: translateY(-16px) scale(.95, 1.06); } 55% { transform: translateY(0) scale(1.08, .92); } 75% { transform: translateY(-4px); } 100% { transform: none; } }
+@keyframes cremi-tip-a { 0%, 100% { transform: rotate(0); } 35% { transform: rotate(-18deg) translateY(-4px); } 70% { transform: rotate(6deg); } }
+@keyframes cremi-tip-b { 0%, 100% { transform: rotate(0); } 35% { transform: rotate(-18deg) translateY(-4px); } 70% { transform: rotate(6deg); } }
+
+/* Shii the shiitake: sleepy, wise. Asleep (shut eyes + zz) until tapped; .shii-awake opens her eyes */
+.shii-float { animation: shii-float 4s ease-in-out infinite; }
+.shii-snooze { animation: shii-snooze 3.6s ease-in-out infinite; }
+.shii-zz { opacity: 0; animation: shii-zz 3s ease-in infinite; }
+.shii-zz-late { animation-delay: 1.5s; }
+.shii-eyes-open { opacity: 0; transition: opacity var(--dur-press); }
+.shii-eyes-shut { transition: opacity var(--dur-press); }
+.shii-awake .shii-eyes-open { opacity: 1; }
+.shii-awake .shii-eyes-shut { opacity: 0; }
+.shii-awake .shii-zz { display: none; }
+.shii-tap-a { animation: shii-startle-a .7s ease-out; }
+.shii-tap-b { animation: shii-startle-b .7s ease-out; }
+@keyframes shii-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-3px) rotate(2deg); } }
+@keyframes shii-snooze { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .96); } }
+@keyframes shii-zz { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(8px, -14px) scale(1.1); } }
+@keyframes shii-startle-a { 0% { transform: none; } 20% { transform: scale(.9, 1.14) translateY(-8px); } 35% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 65% { transform: translateX(-2px); } 100% { transform: none; } }
+@keyframes shii-startle-b { 0% { transform: none; } 20% { transform: scale(.9, 1.14) translateY(-8px); } 35% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 65% { transform: translateX(-2px); } 100% { transform: none; } }
+
+/* Chanty the chanterelle: dramatic. Idle strut; tap twirl */
+.chanty-strut { animation: chanty-strut 3s ease-in-out infinite; }
+.chanty-tap-a { transform-origin: 50% 70%; animation: chanty-twirl-a 1s var(--ease-twirl); }
+.chanty-tap-b { transform-origin: 50% 70%; animation: chanty-twirl-b 1s var(--ease-twirl); }
+@keyframes chanty-strut { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes chanty-twirl-a { 0% { transform: none; } 70% { transform: rotate(380deg) scale(1.12); } 100% { transform: rotate(360deg); } }
+@keyframes chanty-twirl-b { 0% { transform: none; } 70% { transform: rotate(380deg) scale(1.12); } 100% { transform: rotate(360deg); } }
+
+/* Ollie the oyster: shy. Idle lean; peek pose slides in and out; tap hides */
+.ollie-lean { transform-origin: 30% 100%; animation: ollie-lean 5s ease-in-out infinite; }
+.ollie-peek { transform-origin: 30% 100%; animation: ollie-peek 9s ease-in-out infinite; }
+.ollie-tap-a { animation: ollie-hide-a 1.3s ease-in-out; }
+.ollie-tap-b { animation: ollie-hide-b 1.3s ease-in-out; }
+@keyframes ollie-lean { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-8deg) translateX(-2px); } 85% { transform: rotate(-8deg) translateX(-2px); } }
+@keyframes ollie-peek { 0%, 15% { transform: translateX(-14px) rotate(-6deg); } 25%, 70% { transform: translateX(0) rotate(0); } 80%, 100% { transform: translateX(-14px) rotate(-6deg); } }
+@keyframes ollie-hide-a { 0% { transform: none; opacity: 1; } 25% { transform: translateX(10px) scale(.6) rotate(12deg); opacity: .5; } 70% { transform: translateX(10px) scale(.6) rotate(12deg); opacity: .5; } 100% { transform: none; opacity: 1; } }
+@keyframes ollie-hide-b { 0% { transform: none; opacity: 1; } 25% { transform: translateX(10px) scale(.6) rotate(12deg); opacity: .5; } 70% { transform: translateX(10px) scale(.6) rotate(12deg); opacity: .5; } 100% { transform: none; opacity: 1; } }
+
+/* Morty the morel: nerdy. Idle ponder; scrub pose at the sink; tap nod */
+.morty-ponder { animation: morty-ponder 4.5s ease-in-out infinite; }
+.morty-scrub { animation: morty-scrub .9s ease-in-out infinite; }
+.morty-tap-a { animation: morty-nod-a .9s ease-in-out; }
+.morty-tap-b { animation: morty-nod-b .9s ease-in-out; }
+@keyframes morty-ponder { 0%, 70%, 100% { transform: rotate(0); } 80% { transform: rotate(8deg); } 90% { transform: rotate(8deg); } }
+@keyframes morty-scrub { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes morty-nod-a { 0%, 100% { transform: none; } 20% { transform: translateY(4px) scale(1.04, .96); } 40% { transform: none; } 60% { transform: translateY(4px) scale(1.04, .96); } 80% { transform: translateY(-6px); } }
+@keyframes morty-nod-b { 0%, 100% { transform: none; } 20% { transform: translateY(4px) scale(1.04, .96); } 40% { transform: none; } 60% { transform: translateY(4px) scale(1.04, .96); } 80% { transform: translateY(-6px); } }
+
+/* The enoki siblings: giggly. Three stalks sway out of step; peek pose waves; tap giggles */
+.enoki-stalk { transform-box: fill-box; transform-origin: 50% 100%; }
+.enoki-bob .enoki-stalk { animation: enoki-bob 1.6s ease-in-out infinite; }
+.enoki-wave .enoki-stalk { animation: enoki-wave 1.6s ease-in-out infinite; }
+.enoki-bob .enoki-2, .enoki-wave .enoki-2 { animation-delay: .2s; }
+.enoki-bob .enoki-3, .enoki-wave .enoki-3 { animation-delay: .4s; }
+.enoki-tap-a .enoki-stalk { animation: enoki-giggle-a .5s ease-in-out 2; }
+.enoki-tap-b .enoki-stalk { animation: enoki-giggle-b .5s ease-in-out 2; }
+.enoki-tap-a .enoki-2, .enoki-tap-b .enoki-2 { animation-delay: .08s; }
+.enoki-tap-a .enoki-3, .enoki-tap-b .enoki-3 { animation-delay: .16s; }
+@keyframes enoki-bob { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes enoki-wave { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes enoki-giggle-a { 0%, 100% { transform: rotate(0) translateY(0); } 25% { transform: rotate(-12deg) translateY(-4px); } 75% { transform: rotate(12deg) translateY(-4px); } }
+@keyframes enoki-giggle-b { 0%, 100% { transform: rotate(0) translateY(0); } 25% { transform: rotate(-12deg) translateY(-4px); } 75% { transform: rotate(12deg) translateY(-4px); } }
+
+/* =====================================================================
+   Kitchen scene (KitchenScene.dc.html): camera pan and kitchen life
+   ===================================================================== */
+.kitchen-pan { animation: kitchen-pan 44s ease-in-out infinite; }
+.kitchen-bob { animation: kitchen-bob 3.4s ease-in-out infinite; }
+.kitchen-garden { animation: kitchen-garden 44s ease-in-out infinite; }
+.kitchen-steam { transform-box: fill-box; transform-origin: center; animation: kitchen-steam 2.6s ease-out infinite; }
+.kitchen-st2 { animation-delay: .85s; }
+.kitchen-st3 { animation-delay: 1.7s; }
+.kitchen-stir { transform-box: view-box; transform-origin: 598px 400px; animation: kitchen-stir 1.4s ease-in-out infinite; }
+.kitchen-soap { transform-box: fill-box; transform-origin: center; animation: kitchen-soap 3s ease-out infinite; }
+.kitchen-sp2 { animation-delay: .7s; }
+.kitchen-sp3 { animation-delay: 1.4s; }
+.kitchen-sp4 { animation-delay: 2.1s; }
+.kitchen-water { transform-box: fill-box; transform-origin: top; animation: kitchen-water .25s linear infinite alternate; }
+.kitchen-fan { transform-box: fill-box; transform-origin: center; animation: kitchen-fan .6s linear infinite; }
+.kitchen-fan-late { animation-delay: -.3s; }
+.kitchen-can { transform-box: view-box; transform-origin: 800px 402px; animation: kitchen-can 3.2s ease-in-out infinite; }
+.kitchen-drip { transform-box: fill-box; transform-origin: center; animation: kitchen-drip 3.2s ease-in infinite; }
+.kitchen-dr2 { animation-delay: .15s; }
+.kitchen-dr3 { animation-delay: .3s; }
+.kitchen-basil { transform-box: fill-box; transform-origin: 50% 100%; animation: kitchen-basil 3.2s ease-in-out infinite; }
+.kitchen-door { transform-box: fill-box; transform-origin: right center; animation: kitchen-door 9s ease-in-out infinite; }
+.kitchen-glow { animation: kitchen-glow 4s ease-in-out infinite; }
+@keyframes kitchen-pan { 0%, 9% { transform: translateX(0); } 27%, 39% { transform: translateX(-290px); } 57%, 69% { transform: translateX(-630px); } 90%, 100% { transform: translateX(0); } }
+@keyframes kitchen-garden { 0%, 9% { transform: translateX(0); } 27%, 39% { transform: translateX(100px); } 57%, 69% { transform: translateX(220px); } 90%, 100% { transform: translateX(0); } }
+@keyframes kitchen-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes kitchen-steam { 0% { transform: translateY(0) scale(.5); opacity: 0; } 20% { opacity: .9; } 100% { transform: translateY(-56px) scale(1.5); opacity: 0; } }
+@keyframes kitchen-stir { 0%, 100% { transform: rotate(-7deg) translateX(-3px); } 50% { transform: rotate(6deg) translateX(4px); } }
+@keyframes kitchen-soap { 0% { transform: translateY(0) scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-60px) scale(1.1); opacity: 0; } }
+@keyframes kitchen-water { from { transform: scaleY(1); } to { transform: scaleY(.94); } }
+@keyframes kitchen-fan { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+@keyframes kitchen-can { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-26deg); } }
+@keyframes kitchen-drip { 0%, 30% { transform: translateY(0); opacity: 0; } 35% { opacity: 1; } 65% { transform: translateY(28px); opacity: 0; } 100% { opacity: 0; } }
+@keyframes kitchen-basil { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.08); } }
+@keyframes kitchen-door { 0%, 8% { transform: scaleX(1); } 18%, 76% { transform: scaleX(.1); } 86%, 100% { transform: scaleX(1); } }
+@keyframes kitchen-glow { 0%, 100% { opacity: .16; } 50% { opacity: .26; } }
+
+/* =====================================================================
+   Design-system boards (DS-*.dc.html). Class names carry the ds- prefix
+   so they never collide with the screens' own classes.
+   ===================================================================== */
+.ds-board { box-sizing: border-box; padding: var(--space-56) var(--space-64); background: var(--color-surface-canvas); color: var(--color-ink); font-family: var(--font-body); display: flex; flex-direction: column; gap: var(--space-24); }
+.ds-head { display: flex; flex-direction: column; gap: var(--space-6); }
+.ds-title { margin: 0; font-family: var(--font-display); font-size: var(--type-title-l); line-height: var(--lh-title-l); font-weight: var(--weight-bold); color: var(--color-forest); }
+.ds-lead { margin: 0; font-size: var(--type-label); line-height: var(--lh-label); font-weight: var(--weight-medium); color: var(--color-ink-soft); }
+.ds-card { box-sizing: border-box; background: var(--color-surface-card); border: var(--line-w) solid var(--color-line-soft); border-radius: var(--radius-24); padding: var(--space-24); display: flex; flex-direction: column; gap: var(--space-16); }
+.ds-card-s { padding: var(--space-20); gap: var(--space-12); }
+.ds-label { font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-heavy); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-muted); }
+.ds-cap { font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-medium); color: var(--color-ink-muted); }
+.ds-name { font-size: var(--type-small); line-height: var(--lh-small); font-weight: var(--weight-heavy); color: var(--color-ink); }
+.ds-mono { font-family: var(--font-mono); font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-medium); color: var(--color-ink-muted); }
+.ds-sw { display: flex; flex-direction: column; gap: var(--space-6); width: 124px; }
+.ds-swatch { height: 64px; border-radius: var(--radius-16); box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-weight: var(--weight-heavy); }
+.ds-slot { box-sizing: border-box; padding: var(--space-6); border: var(--line-w) dashed var(--color-line-dashed); border-radius: var(--radius-14); display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-heavy); color: var(--color-ink-soft); }
+.ds-table { border-collapse: collapse; width: 100%; }
+.ds-table td, .ds-table th { padding: var(--space-10) var(--space-12); text-align: left; border-bottom: var(--line-w) solid var(--color-surface-tint); font-size: var(--type-body); line-height: var(--lh-body); }
+.ds-table th { font-size: var(--type-caption); line-height: var(--lh-caption); font-weight: var(--weight-heavy); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-ink-muted); }
+.ds-table td:first-child { font-weight: var(--weight-heavy); }
+.ds-state { display: flex; flex-direction: column; gap: var(--space-6); align-items: flex-start; }
+.ds-demo-pulse { animation: ds-demo 1.6s var(--ease-pop) infinite; }
+@keyframes ds-demo { 0% { transform: scale(.3); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.ds-demo-rise { animation: ds-demo-rise 1.6s var(--ease-rise) infinite; }
+@keyframes ds-demo-rise { from { opacity: 0; transform: translateY(12px); } 40%, 100% { opacity: 1; transform: none; } }
+.ds-demo-land { animation: ds-demo-land 1.6s var(--ease-land) infinite; }
+@keyframes ds-demo-land { 0% { opacity: 0; transform: translateY(-14px) scale(.95); } 40% { opacity: 1; transform: translateY(3px); } 60%, 100% { transform: none; opacity: 1; } }
+
+/* =====================================================================
+   Motion off. .calm is the per-artboard switch (a "motion" prop);
+   the media query honours the system setting. Sparks are hidden
+   because without motion they would sit as dots on the check.
+   ===================================================================== */
+.calm *, .calm *::before, .calm *::after { animation: none !important; transition: none !important; }
+.calm .spark { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .spark { display: none; }
+}
