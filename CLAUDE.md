@@ -33,7 +33,9 @@ One pnpm TypeScript workspace; the layout and the reasons are in spec doc-1 (`ba
 
 ## Working with agents
 
-How slices are delivered by an orchestrator and per-layer agents, with pinned models and efforts, is decision-3 (`backlog decision list`). Until the layer agents are generated (DRAFT-1), the orchestrator delegates by hand under the same rules:
+How slices are delivered by an orchestrator and per-layer agents, with pinned models and efforts, is decision-3 (`backlog decision list`). The 18 layer agents (6 layers x `builder`, `builder-small`, `reviewer`) are generated under `.claude/agents/` from `tools/agents/template.md` and `tools/agents/configs/<layer>.json`; run `pnpm agents:generate` after changing either, never edit a generated `.md` file by hand (`pnpm check`'s `agent-definitions` check fails on drift or on a model/effort that disagrees with decision-3 and the plugin's route table). The write guard (`tools/hooks/pre-edit.ts`) and the agent-launch guard (`tools/hooks/launch-guard.ts`, on the `Agent` tool) enforce decision-3's Enforcement section for every launch and every edit.
+
+A layer task (a slice split into per-layer work) carries a `layer-<name>` label (`layer-core`, `layer-ports`, `layer-application`, `layer-providers`, `layer-ui`, `layer-app`) alongside its `size-*` label; the launch guard reads it to confirm a launch's layer, model and (for size-1) numbered steps before the agent starts. No task uses this label yet, since no slice has been split into layer tasks; the orchestrator sets it when it does.
 
 - The board is the source. The orchestrator keeps statuses current on `main` and pushes whenever work changes hands.
 - A worker gets a task ID, the model and effort `board-check route <id>` gives, and its own worktree. It writes its plan (`philosophy:plan-change`) before editing, and reports in the task's notes.

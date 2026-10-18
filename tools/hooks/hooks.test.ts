@@ -14,10 +14,23 @@ function put(rel: string, text: string): void {
   mkdirSync(dirname(join(root, rel)), { recursive: true });
   writeFileSync(join(root, rel), text);
 }
-function hook(name: string, payload: object): { status: number | null; stderr: string; stdout: string; ms: number } {
+/**
+ * Under decision-3's write guard, only a layer agent may edit packages/* or apps/*; the
+ * orchestrator (no agent_type at all) may not. A pre-edit payload that targets layer
+ * code and names no agent_type defaults to a core builder, so the pre-existing
+ * weakening-check tests below, written before that guard existed, keep testing the
+ * layer-code edit they describe without needing to repeat the same literal lines a
+ * naive line-diff would otherwise re-flag as "adding" a focused or skipped test merely
+ * for being touched. A test targeting root config, or naming its own `agent_type`
+ * (including `agent_type: undefined` for the orchestrator), is left exactly as given.
+ */
+function hook(name: string, payload: Record<string, unknown>): { status: number | null; stderr: string; stdout: string; ms: number } {
+  const filePath = (payload['tool_input'] as { file_path?: unknown } | undefined)?.file_path;
+  const isLayerCode = typeof filePath === 'string' && /\/(packages|apps)\//.test(filePath);
+  const withDefault = name === 'pre-edit' && isLayerCode && !('agent_type' in payload) ? { agent_type: 'builder-core', ...payload } : payload;
   const t0 = performance.now();
   const r = spawnSync('node', ['--disable-warning=ExperimentalWarning', join(here, `${name}.ts`)], {
-    input: JSON.stringify(payload),
+    input: JSON.stringify(withDefault),
     env: { ...process.env, GROCS_ROOT: root },
     encoding: 'utf8',
   });
@@ -116,6 +129,84 @@ describe('pre-edit hook (R57)', () => {
 
   it('asks before a shell rewrite of a check file', () => {
     expect(reviewBash("sed -i 's/a/b/' lefthook.yml").decision).toBe('ask');
+  });
+});
+
+describe('write guard (decision-3): layer agents and the orchestrator', () => {
+  it('denies a layer agent writing outside its own layer, naming the rule and why', () => {
+    const r = hook('pre-edit', {
+      tool_name: 'Write',
+      agent_type: 'builder-core',
+      tool_input: { file_path: join(root, 'packages/ports/src/new.ts'), content: 'export {};\n' },
+    });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('write-guard/layer-boundary');
+    expect(r.stderr).toContain('builder-core');
+    expect(r.stderr).toContain('Why:');
+  });
+
+  it('denies the small builder variant outside its own layer the same way', () => {
+    const r = hook('pre-edit', {
+      tool_name: 'Edit',
+      agent_type: 'builder-core-small',
+      tool_input: { file_path: join(root, 'packages/ui/src/new.ts'), old_string: 'a', new_string: 'b' },
+    });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('write-guard/layer-boundary');
+  });
+
+  it('denies a reviewer writing at all, even within its own layer', () => {
+    const r = hook('pre-edit', {
+      tool_name: 'Write',
+      agent_type: 'reviewer-core',
+      tool_input: { file_path: join(root, 'packages/core/src/new.ts'), content: 'export {};\n' },
+    });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('write-guard/reviewer-writes-nothing');
+  });
+
+  it('allows a layer agent writing within its own layer', () => {
+    const r = hook('pre-edit', {
+      tool_name: 'Edit',
+      agent_type: 'builder-core',
+      tool_input: { file_path: join(root, 'packages/core/src/index.ts'), old_string: '= 1', new_string: '= 2' },
+    });
+    expect(r.status).toBe(0);
+  });
+
+  it("narrows a layer agent's Bash to this layer's own test or type-check command", () => {
+    const blocked = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'rm -rf packages/ui' } });
+    expect(blocked.status).toBe(2);
+    expect(blocked.stderr).toContain('write-guard/bash-narrowed');
+
+    const allowed = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'vitest run --project unit packages/core' } });
+    expect(allowed.status).toBe(0);
+  });
+
+  it('denies the orchestrator (no agent_type) writing layer code directly', () => {
+    const r = hook('pre-edit', {
+      agent_type: undefined,
+      tool_name: 'Write',
+      tool_input: { file_path: join(root, 'packages/core/src/new.ts'), content: 'export {};\n' },
+    });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain('write-guard/orchestrator-scope');
+  });
+
+  it('allows the orchestrator writing the board, root config or .claude/', () => {
+    for (const rel of ['backlog/tasks/task-9.md', '.claude/settings.json', 'package.json']) {
+      const r = hook('pre-edit', { agent_type: undefined, tool_name: 'Write', tool_input: { file_path: join(root, rel), content: '{}\n' } });
+      expect(r.status).toBe(0);
+    }
+  });
+
+  it('does not apply decision-3 layer restrictions to an agent_type that names no generated agent', () => {
+    const r = hook('pre-edit', {
+      tool_name: 'Write',
+      agent_type: 'general-purpose',
+      tool_input: { file_path: join(root, 'packages/core/src/new.ts'), content: 'export {};\n' },
+    });
+    expect(r.status).toBe(0);
   });
 });
 
