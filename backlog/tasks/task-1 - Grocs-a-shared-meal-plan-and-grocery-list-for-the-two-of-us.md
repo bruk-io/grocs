@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 17:09'
+updated_date: '2026-10-18 17:21'
 labels:
   - size-8
   - product
@@ -27,10 +27,13 @@ We use Google Keep for groceries and it's janky. Each week we plan meals on spec
 
 The two apps must not drift apart. The rules live once, in a pure TypeScript SDK, and every kind of I/O (network, storage, config, logging, telemetry) goes through interfaces the SDK defines, which each platform provides. UI components are shared too. Telemetry should be ready for Datadog later without touching the rules.
 
+The backend is Firebase. We need to be able to test our code quickly, on our own machines, without touching the real data. Anything a script can check, such as the import layers, is enforced by hooks and CI rather than written down as a rule for someone to remember; written rules are small and cover only what a script can't check.
+
 ## Affected users and systems
 
 - Bruk (Google Pixel 10 Fold, Android) and Shazya (recent iPhone, iOS).
 - Our Google accounts, used to sign in (Google sign-in only).
+- Firebase: Firestore for our data, Firebase Auth for sign-in, Cloud Functions for push notifications.
 - The canvas designs in the Grocs project (screens and atomic design system).
 
 ## Open questions
@@ -58,7 +61,9 @@ The two apps must not drift apart. The rules live once, in a pure TypeScript SDK
 - [ ] #13 Both apps use the same UI component library, named after the atomic design system.
 - [ ] #14 Network, storage, config and logging are reached only through interfaces the SDK defines; each app supplies providers for them.
 - [ ] #15 Logging is instrumented automatically at the interfaces and commands, never by hand in features, and logs can go to a hosted service such as Datadog later by adding a provider.
-- [ ] #16 The layers' import rules are enforced automatically, so the domain can never depend on I/O, platform or UI code.
+- [ ] #16 The layers' import rules are enforced automatically by hooks and CI, so the domain can never depend on I/O, platform or UI code.
+- [ ] #17 Anything a script can check is enforced by hooks, pre-commit and CI. Written rules are small, one per file, and hold only what no script can check.
+- [ ] #18 Every test runs on our own machines, using the Firebase emulators wherever a backend is needed, with no access to production data and no Docker.
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -67,4 +72,6 @@ The two apps must not drift apart. The rules live once, in a pure TypeScript SDK
 Sized 8: the whole first version, with real unknowns in the combine-ingredient flow, the fold layout and two-phone conflict handling. At 8 it gets a spec first, and the split follows the spec.
 
 Finish moved on 2026-10-18, before any children started: Bruk paused telemetry, asked for automatic logging instrumentation, and asked for import-layer enforcement to be part of the spec. Criteria 13 and 15 were rewritten for logging, and one criterion was added for import-layer enforcement.
+
+Finish moved again on 2026-10-18, before any children started: Bruk chose Firebase as the backend (decision-1), asked for quick local testing, and asked that anything a script can check be enforced by hooks rather than written rules. Criterion 16 was reworded to name hooks, and criteria 17 and 18 were added. The problem and affected systems now name Firebase.
 <!-- SECTION:NOTES:END -->

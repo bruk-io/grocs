@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:19'
+updated_date: '2026-10-18 17:22'
 ---
 Intent: TASK-1
 
@@ -54,7 +54,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 - R25 The domain rules live in one TypeScript package used by both apps. Domain functions take data and return data; they never perform I/O, read the clock or generate ids.
 - R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: application and design tokens, never providers. App (the composition root): every layer, and it is the only place providers are chosen and wired.
-- R27 The import rules in R26 are checked in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another.
+- R27 The import rules in R26 are checked by an agent hook after every edit, by pre-commit and in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another.
 - R28 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation and logging. Only the application layer calls them.
 - R29 Each port has one shared contract test suite, and every provider for that port passes it in continuous integration.
 - R30 The shapes of stored documents and activity records are defined once in the SDK with a schema version. Providers validate them on read and write.
@@ -86,9 +86,73 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R44 The app runs on Shazya's iPhone on its current iOS version.
 - R45 Builds reach both phones through private channels (TestFlight and Google Play internal testing), with no public store listing.
 
+### Tests
+
+- R46 Domain functions have unit tests. The merge rules in R17 to R20 also have property tests showing that the result doesn't depend on the order changes arrive in, that applying a change twice has no further effect, and that a delete is never undone.
+- R47 Every command has a scenario test that runs against the in-memory fakes, including orderings where both members change the same record and where one member is offline.
+- R48 Every port has an in-memory fake that passes the port's contract suite (R29).
+- R49 The Firebase providers pass each port's contract suite against the Firebase emulators. Every Firestore security rule has at least one test that is allowed and one that is denied (R4).
+- R50 UI component tests find elements by their accessible role and label.
+- R51 End-to-end flows cover signing in, adding a meal, adding an item, ticking it, and a change reaching a second device. They run on development builds against the emulators.
+- R52 Every test runs on a developer's machine with no access to production data and without Docker. One command starts the Firebase emulators with seed data.
+- R53 Development builds offer a test sign-in that works with the Auth emulator. Release builds don't contain it (R1).
+- R54 Changing the shape of a stored document or activity record bumps its schema version and adds a migration test (R30).
+
+### Enforcement
+
+- R55 Every rule that a script can check is enforced by that script, run by agent hooks, by pre-commit and in continuous integration. This covers at least the import layers (R26, R27), console use (R37), raw design values (R39), test presence for domain functions and commands (R46, R47), contract coverage of port methods (R48), allow and deny tests for security rules (R49), schema version bumps (R54), end-to-end flows pointing only at the emulators (R51, R52) and the test sign-in being absent from release builds (R53). Every failure message names the rule and why it exists.
+- R56 Agent hooks run fast checks on the changed files after every edit and finish within 5 seconds. Checks on the whole change run before an agent finishes.
+- R57 Changes that weaken a check are blocked by a hook before the edit and fail continuous integration: focusing or skipping a test, deleting a test, or loosening a check's configuration.
+- R58 Rule files under `.claude/rules/` hold only guidance that no script can check. Each file holds one rule, is scoped to the paths it governs, and gives its reason. When a rule becomes checkable, it moves into a script and its file is deleted.
+
+## Repository layout
+
+One TypeScript workspace. Each folder under `packages/` is one layer from R26, apart from the providers, which are split by platform so they never import one another. Each folder under `apps/` is a composition root. Tests sit beside the code they test (`*.test.ts`).
+
+```
+grocs/
+├── apps/
+│   ├── mobile/                 Expo app, the phones' composition root
+│   │   ├── app/                screens and navigation
+│   │   ├── src/composition/    the only place providers are chosen, instrumented and wired (R26, R31)
+│   │   ├── src/dev/            test sign-in and emulator settings, development builds only (R53)
+│   │   └── e2e/                end-to-end flows (R51)
+│   └── functions/              Cloud Functions, the server's composition root (push, R24)
+├── packages/
+│   ├── core/                   domain: pure functions and types, no I/O (R25)
+│   │   ├── src/model/          kitchen, week, meal, item
+│   │   ├── src/merge/          last-write-wins, set-not-toggle, tombstones, badge union (R17 to R20)
+│   │   └── src/schema/         versioned document and activity shapes, personal-field marking (R30, R36)
+│   ├── ports/                  one folder per port (R28)
+│   │   └── src/<port>/         port.ts (the interface), fake.ts (in-memory), contract.ts (shared suite)
+│   ├── application/            commands, the dispatcher and its middleware (R32)
+│   │   ├── src/commands/
+│   │   └── src/dispatch/
+│   ├── providers-firebase/     Firestore sync store, Auth, push registration
+│   ├── providers-device/       key-value storage, clock, ids, console logger, on-phone log buffer (R35)
+│   ├── providers-server/       Admin SDK providers used by apps/functions
+│   └── ui/                     shared component library (R38)
+│       └── src/                tokens/, atoms/, molecules/, organisms/, templates/
+├── firebase/
+│   ├── firestore.rules         security rules (R4)
+│   ├── firestore.rules.test.ts allow and deny tests (R49)
+│   ├── firestore.indexes.json
+│   └── seed/                   emulator seed data (R52)
+├── tools/
+│   ├── checks/                 one script per check, each failure naming its rule and reason (R55)
+│   └── hooks/                  agent hook entry points that call the checks (R56, R57)
+├── .claude/
+│   ├── settings.json           hook wiring
+│   └── rules/                  judgement-only rules, one per file (R58)
+├── backlog/                    the board: intent, spec, tasks, decisions
+├── firebase.json               emulator and deploy settings
+├── lefthook.yml                pre-commit, calling tools/checks
+└── CLAUDE.md
+```
+
 ## Policies applied
 
-- Engineering philosophy (Bruk's standing constraints): functional core and imperative shell (R25, R28), layers enforced by import rules rather than convention (R26, R27), and checks that run as scripts in continuous integration rather than by memory (R27, R29, R37, R39).
+- Engineering philosophy (Bruk's standing constraints): functional core and imperative shell (R25, R28), layers enforced by import rules rather than convention (R26, R27), validation as scripts rather than instructions to a model (R55, R58), no enforcement without the reason attached (R55), and never weakening a check to make it pass (R57).
 - Privacy: personal content stays in the kitchen's own data and is stripped from logs by type (R36). Access is checked on the server (R4).
 - Accessibility, using WCAG 2.2 AA as the baseline: contrast and target size (R42), reduce motion (R41), and announced mascot speech (R40).
 - Platform guidelines: Google's sign-in branding rules for the sign-in button (R1), and Android large-screen guidance for the fold (R43).
@@ -99,6 +163,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R15 depends on the sync provider and the network. 3 seconds is a target on good connections, not a guarantee in a basement grocery store; R16 and R21 cover that case.
 - R24 needs a small server-side function to send pushes. That is the first code outside the apps, and it must use the same SDK and ports.
 - Resolved: R44 and R45 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
+- R53 against R1: the test sign-in is a second way in. It is acceptable only because release builds don't contain it, and a check on release builds must prove that.
 - R34 against R36, for later: if a hosted log service such as Datadog is added, its mobile tooling can capture screen text and view names by default. That provider must be configured so it doesn't, and it must pass the redaction tests in R36.
 
 ## Open questions
@@ -114,12 +179,12 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 - D1 The playful inline flow for combining a shared ingredient on the duplicated item (R12, R19).
 - D2 How the layout uses the Pixel 10 Fold's inner screen, and how it moves between postures (R43).
-- D3 Repository and package layout for the SDK, providers, UI library and app, and the tool and rule set that enforce the import layers (R25 to R27, R38).
+- D3 The workspace tooling behind the repository layout: package manager, task runner, and the tool that checks the import layers (R26, R27).
 - D4 The sync model. The store is decided: Firebase, chosen by Bruk (decision-1, TASK-1.1). Still open: document shapes, field-level merges, tombstones, the activity outbox and the schema versioning (R15 to R22, R30).
 - D5 How push notifications are sent: which server-side function, triggered by what, and how it respects each member's setting (R24).
 - D6 Animation runtime for the mascots and the Welcome scene, and how it honours reduce motion (R40, R41).
 - D7 The logging design: the port wrapper, the command middleware, the correlation context, the redaction marking and the on-phone buffer (R31 to R37).
-- D8 The test strategy: which kinds of tests each layer gets and when they are added, the local backend they run against, and how rule files, agent hooks, pre-commit and continuous integration enforce them (R27, R29, R36).
+- D8 The test tooling and its enforcement: test runners, the end-to-end tool, the check scripts and which hook runs each, the judgement-only rule files, and whether to add mutation testing on the domain later (R46 to R58).
 
 ## Out of scope
 
