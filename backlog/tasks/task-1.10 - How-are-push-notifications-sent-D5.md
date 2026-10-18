@@ -1,9 +1,11 @@
 ---
 id: TASK-1.10
 title: How are push notifications sent? (D5)
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 18:18'
 labels:
   - size-2
   - architecture

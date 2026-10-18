@@ -1,9 +1,11 @@
 ---
 id: TASK-1.11
 title: Which animation runtime runs the mascots and the Welcome scene? (D6)
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 18:18'
 labels:
   - size-2
   - design-system
