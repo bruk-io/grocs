@@ -1,9 +1,11 @@
 ---
 id: TASK-1.7
 title: How does the layout use the Fold's inner screen? (D2)
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 18:45'
 labels:
   - size-2
   - design
