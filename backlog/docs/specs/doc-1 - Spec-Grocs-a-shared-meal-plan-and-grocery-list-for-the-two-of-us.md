@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:11'
+updated_date: '2026-10-18 17:15'
 ---
 Intent: TASK-1
 
@@ -114,11 +114,12 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 - D1 The playful inline flow for combining a shared ingredient on the duplicated item (R12, R19).
 - D2 How the layout uses the Pixel 10 Fold's inner screen, and how it moves between postures (R43).
-- D3 Repository and package layout for the SDK, providers, UI library and app, and the tool and rule set that enforce the import layers (R25 to R27, R38). This includes the agent tooling checked into the repo: the Expo plugin (skills and MCP server) and which of Callstack's React Native skills to pin.
+- D3 Repository and package layout for the SDK, providers, UI library and app, and the tool and rule set that enforce the import layers (R25 to R27, R38).
 - D4 The sync model: the store, document shapes, field-level merges, tombstones, the activity outbox and the schema versioning (R15 to R22, R30).
 - D5 How push notifications are sent: which server-side function, triggered by what, and how it respects each member's setting (R24).
 - D6 Animation runtime for the mascots and the Welcome scene, and how it honours reduce motion (R40, R41).
 - D7 The logging design: the port wrapper, the command middleware, the correlation context, the redaction marking and the on-phone buffer (R31 to R37).
+- D8 The test strategy: which kinds of tests each layer gets and when they are added, the local backend they run against, and how rule files, agent hooks, pre-commit and continuous integration enforce them (R27, R29, R36).
 
 ## Out of scope
 
@@ -129,4 +130,5 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - A web app.
 - Pantry stock, prices and store-specific aisle order.
 - Sharing a list with anyone outside the kitchen.
+- Third-party agent skills or plugins, such as Expo's or Callstack's. The repo uses Bruk's own agent setup.
 - Telemetry (events, metrics, errors), paused by Bruk, and any hosted log or monitoring service such as Datadog.
