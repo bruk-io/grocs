@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 17:02'
+updated_date: '2026-10-18 17:06'
 ---
 Intent: TASK-1
 
@@ -20,7 +20,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 ### Meal plan
 
-- R5 A week runs Monday to Sunday, in the kitchen's time zone. Each day holds zero or one meal.
+- R5 A week runs Monday to Sunday, in the kitchen's time zone. Each day holds zero or more meals, shown in the order they were added.
 - R6 A meal has a name (required) and an optional link (an http or https URL). It has no other fields.
 - R7 Either member can add, rename, relink or remove a meal on any day of the current or a future week, and can move between weeks.
 - R8 Removing a meal never deletes grocery items. It removes that meal's badge from them, and an item left with no badge stays on the list as an extra.
@@ -39,7 +39,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R15 A change made on one phone appears on the other within 3 seconds when both phones are online (95th percentile on home Wi-Fi).
 - R16 Everything except signing in and joining a kitchen works offline. Offline changes are kept on the phone across app restarts and are sent when the connection returns, with no action from the user.
 - R17 Ticking and unticking record the resulting state, who did it and when. A tick is never sent as a toggle, so two people ticking the same item end with it in the cart.
-- R18 When both members change the same field of the same item or meal, the most recent change wins. Changes to different fields of the same record are both kept.
+- R18 When both members change the same field of the same item or meal, the most recent change wins. This includes one member ticking an item while the other unticks it: the later action wins. Changes to different fields of the same record are both kept.
 - R19 Items added by both members offline that match by normalised name are never merged silently. After sync they show the combine prompt from R12.
 - R20 A deleted item or meal never reappears because of a late or offline change made before the delete.
 - R21 The app shows when it is offline and when changes are waiting to send.
@@ -83,10 +83,10 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 ## Areas of concern
 
-- R18 against the must-not-break line on ticks: last-write-wins means that if one member ticks an item while the other unticks it at the same moment, the later action wins. Ticking the same way always converges (R17), but opposite actions cannot both win. Bruk, as product owner, should confirm that this is acceptable.
+- Resolved: R18 against the must-not-break line on ticks. When one member ticks and the other unticks at the same moment, the later action wins. Bruk accepted this as product owner on Oct 18, 2026, and it is now part of R18.
 - R15 depends on the sync provider and the network. 3 seconds is a target on good connections, not a guarantee in a basement grocery store; R16 and R21 cover that case.
 - R24 needs a small server-side function to send pushes. That is the first code outside the apps, and it must use the same SDK and ports.
-- R38 and R39 need a paid Apple Developer account for TestFlight. That is a cost and an account decision for Bruk.
+- Resolved: R38 and R39 need a paid Apple Developer account for TestFlight. Bruk will sign up for one.
 - R30 against R31: Datadog's mobile tooling can capture screen text and view names by default. A future Datadog provider must be configured so it doesn't, and the contract suite for the telemetry port should test that personal fields are rejected.
 
 ## Open questions
@@ -95,7 +95,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - [x] Fold inner-screen layout: carried forward as design question D2. It changes layout, not behaviour.
 - [x] Carried forward: recipe-link ingredient extraction is parked by Bruk so it does not block the first version.
 - [x] Carried forward: moving a dropped meal to the next week is parked by Bruk. A dropped meal stays where it is (R8).
-- [ ] Carried forward: R5 assumes one meal per day. If a day needs more than one (lunch and dinner), only R5 and the plan screens change, so it can be settled before the plan work starts.
+- [x] A day can hold more than one meal (answered by Bruk; R5). The plan screens in the design show one meal per day and need updating.
 
 ## Design questions
 
