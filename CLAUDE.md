@@ -22,3 +22,11 @@ Do not edit Backlog task, draft, document, decision, or milestone markdown files
 
 </CRITICAL_INSTRUCTION>
 <!-- BACKLOG.MD GUIDELINES END -->
+
+## Workspace
+
+One pnpm TypeScript workspace; the layout and the reasons are in spec doc-1 (`backlog doc view doc-1`).
+
+- `pnpm check`: every check script over the repo. The same script runs from agent hooks (`.claude/settings.json`), `lefthook.yml` (pre-commit; install with `pnpm hooks:install`) and `.github/workflows/ci.yml`. Each failure names the rule and why it exists.
+- `pnpm test`: unit tests. `pnpm test:emulator`: provider contract suites and the two-client test against the Firebase emulators (needs Java, no Docker). `pnpm emulators`: start the emulators with seed data. `pnpm typecheck`.
+- Checks live in `tools/checks`, hook entry points in `tools/hooks`. Fix the code, not the check; hooks block edits that skip, focus or delete tests or loosen a check.

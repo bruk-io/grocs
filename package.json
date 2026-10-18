@@ -1,0 +1,35 @@
+{
+  "name": "grocs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "vitest run --project unit --project ui --project app --project tools",
+    "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-grocs 'vitest run --project emulator'",
+    "emulators": "node --disable-warning=ExperimentalWarning tools/emulators.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "node tools/checks/run.ts --mode all",
+    "check:edit": "node tools/checks/run.ts --mode files",
+    "check:release": "node --disable-warning=ExperimentalWarning tools/release-bundle.ts",
+    "tokens": "node --disable-warning=ExperimentalWarning tools/build-tokens.ts",
+    "hooks:install": "lefthook install"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.0.0",
+    "fast-check": "^4.0.0",
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
+    "firebase-tools": "^15.0.0",
+    "jsdom": "^26.1.0",
+    "lefthook": "^2.0.0",
+    "typescript": "~5.9.0",
+    "vitest": "^4.0.0"
+  }
+}

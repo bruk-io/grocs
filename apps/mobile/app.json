@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Grocs",
+    "slug": "grocs",
+    "version": "0.0.1",
+    "scheme": "grocs",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router", "@react-native-firebase/app", "@react-native-firebase/auth"],
+    "ios": { "bundleIdentifier": "app.grocs.dev" },
+    "android": { "package": "app.grocs.dev" },
+    "web": { "bundler": "metro" }
+  }
+}

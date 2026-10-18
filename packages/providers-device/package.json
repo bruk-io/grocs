@@ -1,0 +1,14 @@
+{
+  "name": "@grocs/providers-device",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Device providers: clock, ids, console logger (R35, R37)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@grocs/core": "workspace:*",
+    "@grocs/ports": "workspace:*"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@grocs/application",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Application: commands, the dispatcher and its middleware (R32)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "dependencies": {
+    "@grocs/core": "workspace:*",
+    "@grocs/ports": "workspace:*"
+  }
+}
