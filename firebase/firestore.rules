@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// R4: a member can read and write only their own kitchen's data, enforced here and
+// not only in the app. Everything is denied unless a rule below allows it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(kitchenId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/kitchens/$(kitchenId)).data.members;
+    }
+
+    // A kitchen is readable by its members. Creating and joining go through
+    // server-side functions later (R2, R3); members cannot rewrite the member list here.
+    match /kitchens/{kitchenId} {
+      allow read: if isMember(kitchenId);
+      allow write: if false;
+
+      // Weeks, items, meals and activity all live under the kitchen.
+      match /{document=**} {
+        allow read, write: if isMember(kitchenId);
+      }
+    }
+  }
+}

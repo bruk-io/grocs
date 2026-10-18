@@ -1,0 +1,11 @@
+{
+  "name": "@grocs/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Domain: pure functions and types, no I/O (R25)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

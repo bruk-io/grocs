@@ -1,0 +1,14 @@
+{
+  "name": "@grocs/providers-firebase",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Firebase providers: Firestore sync store and Auth (R49)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@grocs/core": "workspace:*",
+    "@grocs/ports": "workspace:*"
+  }
+}

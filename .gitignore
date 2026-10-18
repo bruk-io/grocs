@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.expo/
+storybook-static/
+*.tsbuildinfo
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.DS_Store
+coverage/

@@ -1,9 +1,11 @@
 ---
 id: TASK-1.3
 title: Scaffold the workspace and its guardrails
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 17:38'
+updated_date: '2026-10-18 17:39'
 labels:
   - size-3
   - architecture
