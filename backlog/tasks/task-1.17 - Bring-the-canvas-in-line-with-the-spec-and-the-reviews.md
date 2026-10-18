@@ -1,0 +1,50 @@
+---
+id: TASK-1.17
+title: Bring the canvas in line with the spec and the reviews
+status: In Progress
+assignee:
+  - '@claude'
+created_date: '2026-10-18 18:16'
+updated_date: '2026-10-18 18:17'
+labels:
+  - size-3
+  - design-system
+milestone: m-1
+dependencies: []
+parent_task_id: TASK-1
+type: task
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Rescoped Oct 18: the canvas becomes a sketchpad for unbuilt designs (R66), so the child-component refactor from the reviews is dropped. Kept: token and drift fixes from REVIEWS.md and the spec alignment list in AGENT-BRIEF.md. The shared stylesheet is already written.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 Every board uses the shared stylesheet and passes the board checker with no raw colours outside it
+- [ ] #2 The reviews' drift findings are fixed: one radius and type scale, matching sizes for repeated parts, missing states on interactive atoms
+- [ ] #3 EmailSignIn is removed, RecipeImport is marked parked, Plan has no rollover card and shows two meals on a day, and its badge is computed
+- [ ] #4 New boards: Settings, offline and waiting-to-send, invalid invite code, and the in-app toast
+- [ ] #5 Published to the design artifact
+<!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Order of work
+1. Spec alignment in one agent pass over the app screens: remove EmailSignIn and its links, mark RecipeImport parked, Plan without the rollover card and with two meals on one day, computed badge.
+2. Drift fixes from REVIEWS.md across screens and DS boards: radius and type scales onto the tokens in grocs.css, repeated parts at one size, missing states on interactive atoms.
+3. New boards: Settings, offline and waiting-to-send, invalid invite code on JoinInvite, in-app toast. canvas.json updated by the same agent, since it is the only one editing.
+4. Independent review against REVIEWS.md and the spec alignment list, then the orchestrator publishes.
+
+### Risks
+- Editor changes on the published artifact since version 16: read the live version before publishing and merge.
+- One agent edits every file, so nothing collides, but it is a long run: it commits progress notes as it goes.
+
+### Proof
+- tools/dc_check.py exits 0 with no raw-hex warnings.
+- The reviewer reports each REVIEWS.md finding as fixed, dropped (child-component refactor, rescoped) or not applicable.
+- The published artifact renders every board.
+<!-- SECTION:PLAN:END -->

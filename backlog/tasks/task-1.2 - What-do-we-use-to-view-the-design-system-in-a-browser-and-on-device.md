@@ -4,8 +4,10 @@ title: What do we use to view the design system in a browser and on device?
 status: To Do
 assignee: []
 created_date: '2026-10-18 17:29'
+updated_date: '2026-10-18 18:15'
 labels:
   - size-1
+milestone: m-1
 dependencies: []
 references:
   - >-

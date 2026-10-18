@@ -4,9 +4,10 @@ title: 'Which backend runs sync, sign-in and push?'
 status: To Do
 assignee: []
 created_date: '2026-10-18 17:19'
-updated_date: '2026-10-18 17:19'
+updated_date: '2026-10-18 18:15'
 labels:
   - size-1
+milestone: m-1
 dependencies: []
 references:
   - backlog/decisions/decision-1 - Backend-Firebase-for-sync-sign-in-and-push.md

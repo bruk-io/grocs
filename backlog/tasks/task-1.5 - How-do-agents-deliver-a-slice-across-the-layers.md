@@ -4,8 +4,10 @@ title: How do agents deliver a slice across the layers?
 status: To Do
 assignee: []
 created_date: '2026-10-18 17:39'
+updated_date: '2026-10-18 18:15'
 labels:
   - size-1
+milestone: m-1
 dependencies: []
 references:
   - >-

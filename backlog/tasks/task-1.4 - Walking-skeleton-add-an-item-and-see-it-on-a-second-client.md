@@ -1,12 +1,15 @@
 ---
 id: TASK-1.4
 title: 'Walking skeleton: add an item and see it on a second client'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 17:38'
+updated_date: '2026-10-18 18:15'
 labels:
   - size-5
   - architecture
+milestone: m-0
 dependencies:
   - TASK-1.3
 parent_task_id: TASK-1

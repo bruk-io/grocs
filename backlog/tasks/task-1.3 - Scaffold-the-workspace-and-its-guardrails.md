@@ -1,12 +1,15 @@
 ---
 id: TASK-1.3
 title: Scaffold the workspace and its guardrails
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 17:38'
+updated_date: '2026-10-18 18:15'
 labels:
   - size-3
   - architecture
+milestone: m-0
 dependencies: []
 parent_task_id: TASK-1
 type: task
