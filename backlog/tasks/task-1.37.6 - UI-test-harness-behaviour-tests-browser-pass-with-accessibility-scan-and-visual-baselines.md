@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:19'
-updated_date: '2026-10-19 04:22'
+updated_date: '2026-10-19 04:29'
 labels:
   - size-5
   - design-system
@@ -43,12 +43,12 @@ Builds the shared tooling decision-11 (proposed) calls for, once, before the com
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A behaviour-test pattern exists for components with callbacks or state props (decision-11 level 2), shown by tests for the existing Button and Checkbox that press by role, assert the callback and its arguments, and assert disabled and checked in the accessibility state
-- [ ] #2 One browser pass over the built Storybook runs an axe-core scan on every story and fails on any violation, and fails any button, checkbox or link smaller than 44 by 44 points (R42)
-- [ ] #3 The same pass compares each story's screenshot with its approved baseline in packages/ui/visual-baselines/ on Linux, and on other systems skips only the image comparison and says so; fonts are bundled files, motion is reduced, and viewports are fixed, so two runs give the same images
-- [ ] #4 pnpm --filter @grocs/ui visual:update is the only way baselines are created or changed; editing or deleting a baseline any other way is blocked as a weakening (R57), with the reason
-- [ ] #5 A route render-test pattern exists for the app (decision-11 level 4), shown by a test for the existing index route
-- [ ] #6 The browser pass runs before an agent stops (the full tier in .claude/checks.json) and in CI, while the after-edit hook stays under 5 seconds (R56)
+- [x] #1 A behaviour-test pattern exists for components with callbacks or state props (decision-11 level 2), shown by tests for the existing Button and Checkbox that press by role, assert the callback and its arguments, and assert disabled and checked in the accessibility state
+- [x] #2 One browser pass over the built Storybook runs an axe-core scan on every story and fails on any violation, and fails any button, checkbox or link smaller than 44 by 44 points (R42)
+- [x] #3 The same pass compares each story's screenshot with its approved baseline in packages/ui/visual-baselines/ on Linux, and on other systems skips only the image comparison and says so; fonts are bundled files, motion is reduced, and viewports are fixed, so two runs give the same images
+- [x] #4 pnpm --filter @grocs/ui visual:update is the only way baselines are created or changed; editing or deleting a baseline any other way is blocked as a weakening (R57), with the reason
+- [x] #5 A route render-test pattern exists for the app (decision-11 level 4), shown by a test for the existing index route
+- [x] #6 The browser pass runs before an agent stops (the full tier in .claude/checks.json) and in CI, while the after-edit hook stays under 5 seconds (R56)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -105,4 +105,74 @@ pnpm check (13 checks) passed; pnpm typecheck passed; pnpm test 390+ tests in 43
 - First CI run: baselines were made on this Linux sandbox's Chromium, CI installs its own. If CI shows small differences, download the visual-diff artifact, then regenerate on one Linux machine and review.
 - The write guard hook is not registered in settings (per CLAUDE.md), so the pre-edit denial is proven by hook tests, not by this session's own edits.
 - Added dev dependencies: @axe-core/playwright, @testing-library/user-event, pixelmatch, pngjs, @babel/core and its modules-commonjs plugin. UI agent definitions regenerated to list visual and visual:update.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(259 earlier lines omitted)
+```text
+|  0.57 kB │ gzip:   0.34 kB
+|  storybook-static/assets/part-CPsKuf4c.js
+|  0.75 kB │ gzip:   0.48 kB
+|  storybook-static/assets/Badge-CesZknFR.js
+|  0.85 kB │ gzip:   0.53 kB
+|  storybook-static/assets/Text-DocQriIp.js
+|  1.08 kB │ gzip:   0.55 kB
+|  storybook-static/assets/rolldown-runtime-BCiCTKAo.js
+|  1.30 kB │ gzip:   0.71 kB
+|  storybook-static/assets/preload-helper-DQzUoscV.js
+|  1.64 kB │ gzip:   0.87 kB
+|  storybook-static/assets/Checkbox-CUKJzNBf.js
+|  2.42 kB │ gzip:   1.11 kB
+|  storybook-static/assets/Button.stories-mPGulRrI.js
+|  2.48 kB │ gzip:   1.14 kB
+|  storybook-static/assets/ItemRow.stories-BHkQEWWC.js
+|  2.69 kB │ gzip:   1.25 kB
+|  storybook-static/assets/TextField.stories-BNNplqgX.js
+|  2.94 kB │ gzip:   1.34 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascots.stories-B-4vznFn.js
+|  10.60 kB │ gzip:   2.70 kB
+|  storybook-static/assets/Kitchen.stories-B8k3ewnT.js
+|  13.91 kB │ gzip:   3.31 kB
+|  storybook-static/assets/Icons.stories-BEo2FhA3.js
+|  16.40 kB │ gzip:   2.95 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-D1AnYciA.js
+|  35.62 kB │ gzip:  10.08 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-B1YOB8k4.js
+|  1,218.80 kB │ gzip: 351.34 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 2.77s
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-ae65e1e40311b9f8c/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-ae65e1e40311b9f8c/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 39 story views checked (axe, 44 x 44, 39 images compared)
+```
+
+Review (philosophy:reviewer): every criterion met by evidence and ticked, but not closed. close-task refused: .claude/checks.json changed since acceptance (e4a3e2f) and there is no 'Checks changed:' note. The change only adds build-storybook and visual to the full tier, which criterion 6 asks for, so the orchestrator or builder should add a 'Checks changed:' note saying so, then re-run close-task. Evidence: full tier via record-check exit 0; visual pass run twice more, 39 views and 39 images compared, same result both times, tree clean; after-edit hook 1.4-1.6 s (R56 5 s); baselines inspected. Findings: (medium) CI baselines may differ through runner fonts or freetype even though the browser build matches (headless shell 1248), with no CI regeneration path: DRAFT-2 (size-2). (low) Checkbox toggles on Enter, not Space: noted on TASK-1.37.1. (low) Route-test shims in apps/mobile/testing/route-setup.ts are fragile on Expo upgrades; documented, not filed. vitest.config.ts and ci.yml diffs only add.
+
+Checks changed: .claude/checks.json, full tier only. Added '&& pnpm --filter @grocs/ui visual -- --no-build' after the existing build-storybook step, so the browser pass (axe scan, 44 x 44 targets, screenshot baselines) runs in the full tier, as acceptance criterion 6 asks. The fast tier is unchanged and no existing command was removed or loosened.
 <!-- SECTION:NOTES:END -->
