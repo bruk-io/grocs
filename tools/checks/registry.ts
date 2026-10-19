@@ -8,8 +8,11 @@ import { check as designTokens } from './design-tokens.ts';
 import { check as firebaseIsolation } from './firebase-isolation.ts';
 import { check as importLayers } from './import-layers.ts';
 import { check as portContracts } from './port-contracts.ts';
+import { check as referenceBuilt } from './reference-built.ts';
 import { check as storyCoverage } from './story-coverage.ts';
+import { check as svgArt } from './svg-art.ts';
 import { check as testPresence } from './test-presence.ts';
+import { check as uiLibrary } from './ui-library.ts';
 
 export const checks: readonly Check[] = [
   importLayers,
@@ -21,4 +24,7 @@ export const checks: readonly Check[] = [
   storyCoverage,
   testPresence,
   portContracts,
+  svgArt,
+  referenceBuilt,
+  uiLibrary,
 ];

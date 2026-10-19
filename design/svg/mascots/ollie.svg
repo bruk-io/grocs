@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g id="body">
+    <path id="stem" d="M30 42h8l1 12a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4z" fill="#EEE8DC"/>
+    <g id="cap">
+      <path d="M6 36C6 21 18 11 34 11c13 0 24 7 24 18 0 8-6 12-14 13l-24 2C12 44 6 42 6 36z" fill="#CFC8BA"/>
+      <path d="M12 39c4 1.6 8 .8 12 1.6s8 0 12 .8 8-.8 10-1.6" fill="none" stroke="#E8E2D6" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M20 18c4-3 9-4 14-4M14 25c5-6 13-9 22-9" fill="none" stroke="#B9B1A2" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+    <ellipse id="eyeL" cx="26" cy="29" rx="2" ry="2.4" fill="#17241B"/>
+    <ellipse id="eyeR" cx="35" cy="29" rx="2" ry="2.4" fill="#17241B"/>
+    <ellipse id="blushL" cx="21.5" cy="33.5" rx="3.4" ry="2" fill="#FF9E9E"/>
+    <ellipse id="blushR" cx="39.5" cy="33.5" rx="3.4" ry="2" fill="#FF9E9E"/>
+    <path id="mouth" d="M28.5 34.5q1.2-1 2.4 0t2.4 0" fill="none" stroke="#17241B" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+</svg>
