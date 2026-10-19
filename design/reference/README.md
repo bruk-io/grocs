@@ -10,4 +10,4 @@ These boards are kept read-only as the visual reference for building components 
 - `grocs.css`: the canvas tokens. Their values move into `packages/ui/src/tokens/tokens.json` once (R59, TASK-1.19); after that this file is not maintained.
 - The design reviews that shaped these boards are doc-2.
 
-Art sources extracted from the boards live in `design/svg/` (R62).
+Art sources extracted from the boards live in `design/svg/` (R62), and `grocs.css` values are now in `tokens.json` (TASK-1.19). The `reference-built` check fails when a board's name is also built in `packages/ui` or `apps/mobile`.

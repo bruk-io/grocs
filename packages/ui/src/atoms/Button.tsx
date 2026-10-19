@@ -35,31 +35,33 @@ export function Button({ label, onPress, disabled = false, loading = false, forc
         loading && styles.loading,
       ]}
     >
-      <Text style={styles.label}>{loading ? `${label}…` : label}</Text>
+      <Text style={[styles.label, disabled && styles.labelDisabled]}>{loading ? `${label}…` : label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: tokens.size.touch,
-    minWidth: tokens.size.touch,
-    paddingHorizontal: tokens.space[4],
-    borderRadius: tokens.radius.medium,
-    backgroundColor: tokens.color.primary,
-    borderWidth: tokens.size.borderWidth,
-    borderColor: tokens.color.primary,
+    minHeight: tokens.size.control,
+    minWidth: tokens.size.target,
+    paddingHorizontal: tokens.space[24],
+    borderRadius: tokens.radius[20],
+    backgroundColor: tokens.color.forest,
+    borderWidth: tokens.size.lineW,
+    borderColor: tokens.color.forest,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pressed: { backgroundColor: tokens.color.primaryPressed, borderColor: tokens.color.primaryPressed },
-  focused: { borderColor: tokens.color.focusRing, borderWidth: tokens.size.focusWidth },
-  disabled: { opacity: tokens.opacity.disabled },
+  pressed: { backgroundColor: tokens.color.forestDeep, borderColor: tokens.color.forestDeep },
+  focused: { borderColor: tokens.color.focusRing, borderWidth: tokens.size.lineWStrong },
+  disabled: { backgroundColor: tokens.color.disabled, borderColor: tokens.color.disabled },
   loading: { opacity: tokens.opacity.pressed },
   label: {
-    color: tokens.color.textOnPrimary,
-    fontSize: tokens.font.size.body,
-    lineHeight: tokens.font.lineHeight.body,
-    fontWeight: tokens.font.weight.bold,
+    color: tokens.color.onBrand,
+    fontFamily: tokens.font.family.body,
+    fontSize: tokens.font.size.label,
+    lineHeight: tokens.font.lineHeight.label,
+    fontWeight: tokens.font.weight.heavy,
   },
+  labelDisabled: { color: tokens.color.disabledInk },
 });

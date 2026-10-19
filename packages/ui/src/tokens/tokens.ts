@@ -3,60 +3,307 @@
 
 export const tokens = {
   "color": {
-    "surface": "#FFF7EC",
-    "surfaceRaised": "#FFFFFF",
-    "surfacePressed": "#F3E4CF",
-    "text": "#2B2118",
-    "textMuted": "#6B5B4D",
-    "textOnPrimary": "#FFFFFF",
-    "textDisabled": "#8C7F73",
-    "primary": "#B5472B",
-    "primaryPressed": "#8F361F",
-    "border": "#D9C7B0",
-    "borderStrong": "#8C7F73",
-    "focusRing": "#1F5FBF",
-    "danger": "#A32020",
-    "badge": "#F2D9A8",
-    "textOnBadge": "#4A3512",
-    "checkFill": "#2F6B3F",
-    "textOnCheckFill": "#FFFFFF"
+    "forest": "#1F4D33",
+    "forestDeep": "#143522",
+    "chartreuse": "#CDEB5B",
+    "tomato": "#E2583A",
+    "onBrand": "#FFFFFF",
+    "ink": "#17241B",
+    "inkSoft": "#3D4A41",
+    "inkMuted": "#4E5B52",
+    "inkHint": "#6A766E",
+    "inkOnTint": "#2F3D33",
+    "inkDeep": "#0B120D",
+    "surfaceCanvas": "#F1F3EC",
+    "surfaceCard": "#FFFFFF",
+    "surfaceTint": "#E6EBE2",
+    "surfaceDone": "#F8F9F5",
+    "surfaceStage": "#E1E9E4",
+    "positiveTint": "#E3EFD9",
+    "line": "#D6DCD1",
+    "lineSoft": "#DCE1D8",
+    "lineDashed": "#9AA59D",
+    "lineDone": "#CBD3C6",
+    "doneInk": "#5A665E",
+    "focusRing": "#E3F0B0",
+    "error": "#B42318",
+    "errorTint": "#FDE8E5",
+    "disabled": "#E3E7DF",
+    "disabledInk": "#7D877F",
+    "mealAmber": "#F6EBD3",
+    "mealAmberInk": "#5C4513",
+    "mealSky": "#DCE8F0",
+    "mealSkyInk": "#24455C",
+    "mealTomato": "#F8DED6",
+    "mealTomatoInk": "#8A2F1B",
+    "mealLeaf": "#E3EFD9",
+    "mealLeafInk": "#1F4D33",
+    "tagNeutral": "#E9ECE6",
+    "tagNeutralInk": "#3D4A41",
+    "water": "#9CC3DC",
+    "shadowSoft": "rgba(23, 36, 27, 0.12)",
+    "shadowStrong": "rgba(23, 36, 27, 0.2)",
+    "mascot": {
+      "ink": "#17241B",
+      "inkMuted": "#4E5B52",
+      "forest": "#1F4D33",
+      "chartreuse": "#CDEB5B",
+      "tomato": "#E2583A",
+      "blush": "#FF9E9E",
+      "leaf": "#6FA35C",
+      "cremiCap": "#A9774F",
+      "cremiShine": "#C99B73",
+      "cremiStem": "#F4E9D8",
+      "shiiCap": "#6E4A33",
+      "shiiSpot": "#D9C2A3",
+      "shiiStem": "#EFE3CF",
+      "chantyBody": "#F2B544",
+      "chantyShine": "#F8D57E",
+      "chantyGill": "#D9952A",
+      "ollieCap": "#CFC8BA",
+      "ollieRim": "#E8E2D6",
+      "ollieLine": "#B9B1A2",
+      "ollieStem": "#EEE8DC",
+      "mortyCap": "#8C6A4A",
+      "mortyPit": "#5E4430",
+      "mortyStem": "#F1E6D2",
+      "enokiCap": "#EFE6CF",
+      "enokiStem": "#F7F2E6",
+      "enokiEdge": "#D8CDB4",
+      "enokiBase": "#C9B48E"
+    },
+    "scene": {
+      "h000000": "#000000",
+      "h2b2f31": "#2B2F31",
+      "h3b4044": "#3B4044",
+      "h5a4836": "#5A4836",
+      "h5e9952": "#5E9952",
+      "h5f98b2": "#5F98B2",
+      "h6b7276": "#6B7276",
+      "h6f5a43": "#6F5A43",
+      "h7a5a44": "#7A5A44",
+      "h7fb069": "#7FB069",
+      "h7fb2c9": "#7FB2C9",
+      "h8a2f1b": "#8A2F1B",
+      "h8b6b53": "#8B6B53",
+      "h8e959a": "#8E959A",
+      "h8f948f": "#8F948F",
+      "h8fc07a": "#8FC07A",
+      "h9aa59d": "#9AA59D",
+      "h9cc3dc": "#9CC3DC",
+      "ha4aaa6": "#A4AAA6",
+      "ha8835f": "#A8835F",
+      "ha9cf94": "#A9CF94",
+      "hb3bac0": "#B3BAC0",
+      "hb9875b": "#B9875B",
+      "hb9bdba": "#B9BDBA",
+      "hbfc6cb": "#BFC6CB",
+      "hbfd9ea": "#BFD9EA",
+      "hc9452f": "#C9452F",
+      "hc97b5a": "#C97B5A",
+      "hc9a27e": "#C9A27E",
+      "hcfd5d9": "#CFD5D9",
+      "hd2383f": "#D2383F",
+      "hd6eaf2": "#D6EAF2",
+      "hd7ded9": "#D7DED9",
+      "hdad5ca": "#DAD5CA",
+      "hdadfe2": "#DADFE2",
+      "hdcc8a6": "#DCC8A6",
+      "hddd7cc": "#DDD7CC",
+      "he1e9e4": "#E1E9E4",
+      "he3e8eb": "#E3E8EB",
+      "he8dcc8": "#E8DCC8",
+      "he9e5dc": "#E9E5DC",
+      "hebdcc2": "#EBDCC2",
+      "hef7d63": "#EF7D63",
+      "hf0f2ee": "#F0F2EE",
+      "hf2d04b": "#F2D04B",
+      "hf2f4ee": "#F2F4EE",
+      "hf3c9c9": "#F3C9C9",
+      "hf4f2ec": "#F4F2EC",
+      "hffe7a3": "#FFE7A3",
+      "hfff3c4": "#FFF3C4",
+      "hfff7da": "#FFF7DA",
+      "hfffbea": "#FFFBEA",
+      "hffffff": "#FFFFFF"
+    }
   },
   "space": {
-    "1": 4,
-    "2": 8,
-    "3": 12,
-    "4": 16,
-    "5": 24,
-    "6": 32
+    "2": 2,
+    "4": 4,
+    "6": 6,
+    "8": 8,
+    "10": 10,
+    "12": 12,
+    "14": 14,
+    "16": 16,
+    "18": 18,
+    "20": 20,
+    "24": 24,
+    "28": 28,
+    "32": 32,
+    "40": 40,
+    "56": 56,
+    "64": 64
   },
   "radius": {
-    "small": 6,
-    "medium": 12,
-    "large": 20,
-    "round": 999
+    "2": 2,
+    "10": 10,
+    "14": 14,
+    "16": 16,
+    "18": 18,
+    "20": 20,
+    "24": 24,
+    "28": 28,
+    "pill": 999
   },
   "size": {
-    "touch": 44,
+    "target": 44,
+    "control": 56,
+    "row": 60,
+    "rowDone": 52,
+    "tab": 52,
+    "tile": 30,
+    "check": 26,
+    "count": 26,
+    "badge": 22,
+    "avatarS": 26,
+    "avatarL": 34,
+    "avatarXl": 64,
+    "dayTile": 48,
+    "mascotHeader": 68,
+    "bullet": 28,
+    "switchW": 52,
+    "switchH": 32,
+    "knob": 24,
+    "meter": 12,
+    "dot": 12,
+    "spinner": 18,
+    "bubble": 200,
+    "navClearance": 110,
     "icon": 24,
-    "check": 28,
-    "borderWidth": 1,
-    "focusWidth": 3
+    "lineW": 2,
+    "lineWStrong": 2.5
   },
   "font": {
+    "family": {
+      "display": "Fredoka",
+      "body": "Nunito",
+      "mono": "Menlo"
+    },
     "size": {
-      "caption": 13,
-      "body": 16,
-      "title": 22
+      "display": 60,
+      "titleL": 38,
+      "titleM": 32,
+      "heading": 18,
+      "label": 16,
+      "body": 15,
+      "small": 13,
+      "caption": 12,
+      "micro": 11
     },
     "lineHeight": {
-      "caption": 18,
+      "display": 60,
+      "titleL": 38,
+      "titleM": 34,
+      "heading": 24,
+      "label": 20,
       "body": 22,
-      "title": 28
+      "small": 18,
+      "caption": 16,
+      "micro": 14
     },
     "weight": {
-      "regular": "400",
-      "bold": "700"
+      "medium": "600",
+      "bold": "700",
+      "heavy": "800"
+    },
+    "tracking": {
+      "caps": 0.06,
+      "code": 0.08
     }
+  },
+  "shadow": {
+    "lip": [
+      {
+        "offsetX": 0,
+        "offsetY": 6,
+        "blurRadius": 0,
+        "color": "#143522"
+      }
+    ],
+    "lipSoft": [
+      {
+        "offsetX": 0,
+        "offsetY": 4,
+        "blurRadius": 0,
+        "color": "#D6DCD1"
+      }
+    ],
+    "lipInk": [
+      {
+        "offsetX": 0,
+        "offsetY": 4,
+        "blurRadius": 0,
+        "color": "#0B120D"
+      }
+    ],
+    "float": [
+      {
+        "offsetX": 0,
+        "offsetY": 6,
+        "blurRadius": 16,
+        "color": "rgba(23, 36, 27, 0.12)"
+      }
+    ],
+    "nav": [
+      {
+        "offsetX": 0,
+        "offsetY": 10,
+        "blurRadius": 24,
+        "color": "rgba(23, 36, 27, 0.12)"
+      }
+    ],
+    "action": [
+      {
+        "offsetX": 0,
+        "offsetY": 6,
+        "blurRadius": 0,
+        "color": "#143522"
+      },
+      {
+        "offsetX": 0,
+        "offsetY": 14,
+        "blurRadius": 24,
+        "color": "rgba(23, 36, 27, 0.2)"
+      }
+    ],
+    "sheet": [
+      {
+        "offsetX": 0,
+        "offsetY": -8,
+        "blurRadius": 24,
+        "color": "rgba(23, 36, 27, 0.12)"
+      }
+    ],
+    "focus": [
+      {
+        "offsetX": 0,
+        "offsetY": 0,
+        "blurRadius": 0,
+        "spreadDistance": 4,
+        "color": "#E3F0B0"
+      }
+    ],
+    "focusError": [
+      {
+        "offsetX": 0,
+        "offsetY": 0,
+        "blurRadius": 0,
+        "spreadDistance": 4,
+        "color": "#FDE8E5"
+      }
+    ]
   },
   "opacity": {
     "disabled": 0.5,
@@ -64,9 +311,27 @@ export const tokens = {
   },
   "motion": {
     "duration": {
-      "fast": 120,
-      "base": 200,
-      "slow": 320
+      "press": 150,
+      "strike": 300,
+      "bubble": 350,
+      "pop": 400,
+      "popIn": 450,
+      "rise": 500,
+      "land": 600,
+      "burst": 600,
+      "fill": 600,
+      "sheet": 700,
+      "stagger": 40,
+      "tick": 520,
+      "react": 1300,
+      "talk": 2800
+    },
+    "easing": {
+      "pop": "cubic-bezier(.3, 1.6, .5, 1)",
+      "rise": "cubic-bezier(.2, 1.2, .4, 1)",
+      "land": "cubic-bezier(.2, 1.4, .4, 1)",
+      "hop": "cubic-bezier(.3, 1.4, .5, 1)",
+      "twirl": "cubic-bezier(.4, 1.4, .5, 1)"
     }
   },
   "stroke": {

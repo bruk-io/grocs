@@ -49,11 +49,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    minHeight: tokens.size.touch,
-    paddingHorizontal: tokens.space[2],
-    borderRadius: tokens.radius.medium,
+    minHeight: tokens.size.row,
+    paddingHorizontal: tokens.space[8],
+    borderRadius: tokens.radius[20],
   },
-  rowPressed: { backgroundColor: tokens.color.surfacePressed },
-  body: { flex: 1, paddingVertical: tokens.space[2], paddingLeft: tokens.space[1], gap: tokens.space[1] },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.space[1] },
+  rowPressed: { backgroundColor: tokens.color.surfaceTint },
+  body: { flex: 1, paddingVertical: tokens.space[8], paddingLeft: tokens.space[4], gap: tokens.space[4] },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.space[4] },
 });

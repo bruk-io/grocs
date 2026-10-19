@@ -1,3 +1,4 @@
+import './fonts.css';
 import type { Preview } from '@storybook/react-native-web-vite';
 import { View } from 'react-native';
 import { PlatformStyleProvider } from '../src/platform/platform-style.tsx';
@@ -38,7 +39,7 @@ const preview: Preview = {
   decorators: [
     (Story, context) => (
       <PlatformStyleProvider value={(context.globals['platform'] as PlatformStyle | undefined) ?? 'android'}>
-        <View style={{ padding: tokens.space[4], backgroundColor: tokens.color.surface, minHeight: '100%' as never }}>
+        <View style={{ padding: tokens.space[16], backgroundColor: tokens.color.surfaceCanvas, minHeight: '100%' as never }}>
           <Story />
         </View>
       </PlatformStyleProvider>

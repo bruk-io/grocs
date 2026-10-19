@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g id="body">
+    <path id="stem" d="M22 34h20l2 20a5 5 0 0 1-5 6H25a5 5 0 0 1-5-6z" fill="#F4E9D8"/>
+    <g id="cap">
+      <path d="M6 34C6 18 18 8 32 8s26 10 26 26c0 3-2 4-5 4H11c-3 0-5-1-5-4z" fill="#A9774F"/>
+      <path d="M14 23c3-6 9-9 15-10" fill="none" stroke="#C99B73" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <ellipse id="eyeL" cx="28" cy="45.5" rx="2" ry="2.6" fill="#17241B"/>
+    <ellipse id="eyeR" cx="36" cy="45.5" rx="2" ry="2.6" fill="#17241B"/>
+    <ellipse id="blushL" cx="24.5" cy="50.5" rx="2.6" ry="1.6" fill="#FF9E9E"/>
+    <ellipse id="blushR" cx="39.5" cy="50.5" rx="2.6" ry="1.6" fill="#FF9E9E"/>
+    <path id="mouth" d="M29.5 50q2.5 3.6 5 0z" fill="#17241B"/>
+  </g>
+</svg>

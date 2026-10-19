@@ -4,7 +4,7 @@ title: Atoms from the design reference
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 03:19'
+updated_date: '2026-10-19 03:53'
 labels:
   - size-5
   - layer-ui
@@ -30,10 +30,13 @@ Every atom on design/reference/DS-Atoms.dc.html as a ui component (R38, R39, R60
 - [ ] #3 Rendered with pnpm --filter @grocs/ui shots, the atom stories match DS-Atoms.png in shape, colour, type and spacing; any difference is listed in the notes with its reason
 - [ ] #4 DS-Atoms.dc.html and its shot are deleted (R66)
 - [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
+- [ ] #6 The bundled Fredoka and Nunito fonts load on the device in the app, not only in Storybook, so text atoms render in them on both phones
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+
+Finish moved on 2026-10-18 before work started: the TASK-1.19 review found the fonts bundled for Storybook only. The text atoms are where that first shows, so on-device font loading joins this task.
 <!-- SECTION:NOTES:END -->
