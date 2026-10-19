@@ -16,6 +16,15 @@ const nativeSvg = {
 const webFirst = {
   name: 'web-modules-first',
   enforce: 'pre' as const,
+  // The ui and app projects also load @grocs/ui, which uses Reanimated (decision-5). Its web build has extensionless
+  // ES imports Node cannot load, reads the React Native global __DEV__, and needs matchMedia, which jsdom lacks.
+  config: () => ({
+    define: { __DEV__: 'true' },
+    test: {
+      setupFiles: ['packages/ui/test-setup.ts'],
+      server: { deps: { inline: [/react-native-reanimated/, /react-native-worklets/] } },
+    },
+  }),
   async resolveId(this: { resolve: (id: string, importer?: string) => Promise<unknown> }, source: string, importer?: string) {
     if (!importer || !importer.includes('/react-native-svg/') || !source.startsWith('.') || source.endsWith('.js')) return null;
     return (await this.resolve(`${source}.web.js`, importer)) ?? null;

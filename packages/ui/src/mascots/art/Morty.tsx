@@ -9,6 +9,11 @@ export function MortyArt(props: SvgProps) {
   return (
     <Svg viewBox="0 0 64 64" {...props}>
       <Part name="body" as={G}>
+        <Part name="scrub" as={Ellipse} cx={18} cy={46} rx={5} ry={3.2} fill={tokens.color.mascot.mortyStem} transform="rotate(-20 18 46)" opacity={0} />
+        <Part name="tomato" as={G} opacity={0}>
+          <Circle cx={12} cy={42} r={5.5} fill={tokens.color.mascot.tomato} />
+          <Path d="M12 37l1-2" stroke={tokens.color.mascot.leaf} strokeWidth={2} strokeLinecap="round" />
+        </Part>
         <Part name="stem" as={Path} d="M24 36h16l1 18a5 5 0 0 1-5 5h-8a5 5 0 0 1-5-5z" fill={tokens.color.mascot.mortyStem} />
         <Part name="cap" as={G}>
           <Path d="M32 3c10 0 16 12 16 26 0 6-3 9-8 9H24c-5 0-8-3-8-9C16 15 22 3 32 3z" fill={tokens.color.mascot.mortyCap} />

@@ -9,6 +9,7 @@ export function CremiArt(props: SvgProps) {
   return (
     <Svg viewBox="0 0 64 64" {...props}>
       <Part name="body" as={G}>
+        <Part name="spoon" as={Ellipse} cx={16} cy={47} rx={6} ry={3.5} fill={tokens.color.mascot.cremiStem} transform="rotate(20 16 47)" opacity={0} />
         <Part name="stem" as={Path} d="M22 34h20l2 20a5 5 0 0 1-5 6H25a5 5 0 0 1-5-6z" fill={tokens.color.mascot.cremiStem} />
         <Part name="cap" as={G}>
           <Path d="M6 34C6 18 18 8 32 8s26 10 26 26c0 3-2 4-5 4H11c-3 0-5-1-5-4z" fill={tokens.color.mascot.cremiCap} />
