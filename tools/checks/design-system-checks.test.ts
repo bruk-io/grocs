@@ -223,6 +223,10 @@ describe('one component library (R38)', () => {
     expect(rulesOf(uiLibrary.run(fixture({ 'apps/mobile/package.json': '{"dependencies":{}}' })))).toEqual(['ui-library/app-uses-ui-package']);
   });
 
+  it('exempts apps/functions, which has no UI at all (R26)', () => {
+    expect(uiLibrary.run(fixture({ 'apps/functions/package.json': '{"dependencies":{}}' }))).toEqual([]);
+  });
+
   it('fails a design level folder outside packages/ui', () => {
     const f = uiLibrary.run(fixture({ 'apps/mobile/package.json': '{"dependencies":{"@grocs/ui":"1"}}', 'apps/mobile/src/atoms/Button.tsx': 'export const B = 1;' }));
     expect(rulesOf(f)).toEqual(['ui-library/no-app-design-levels']);

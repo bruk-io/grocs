@@ -1,0 +1,15 @@
+{
+  "name": "@grocs/providers-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Admin SDK providers used by apps/functions (R26)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@grocs/core": "workspace:*",
+    "@grocs/ports": "workspace:*",
+    "firebase-admin": "^14.5.0"
+  }
+}

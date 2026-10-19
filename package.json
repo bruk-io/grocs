@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "vitest run --project unit --project ui --project app --project tools",
-    "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-grocs 'vitest run --project emulator'",
+    "test:emulator": "firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'",
     "emulators": "node tools/emulators.ts",
     "typecheck": "tsc --noEmit",
     "check": "node tools/checks/run.ts --mode all",

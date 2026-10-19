@@ -26,11 +26,11 @@ export default (): ExpoConfig => ({
       ],
   ios: {
     bundleIdentifier: demo ? 'io.bruk.grocs.demo' : 'io.bruk.grocs.dev',
-    ...(demo ? {} : { googleServicesFile: process.env['GOOGLE_SERVICE_INFO_PLIST_PATH'] }),
+    ...(demo || !process.env['GOOGLE_SERVICE_INFO_PLIST_PATH'] ? {} : { googleServicesFile: process.env['GOOGLE_SERVICE_INFO_PLIST_PATH'] }),
   },
   android: {
     package: demo ? 'io.bruk.grocs.demo' : 'io.bruk.grocs.dev',
-    ...(demo ? {} : { googleServicesFile: process.env['GOOGLE_SERVICES_JSON_PATH'] }),
+    ...(demo || !process.env['GOOGLE_SERVICES_JSON_PATH'] ? {} : { googleServicesFile: process.env['GOOGLE_SERVICES_JSON_PATH'] }),
   },
   web: { bundler: 'metro' },
 });

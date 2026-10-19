@@ -19,11 +19,14 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
 
 const LEVEL_FOLDER = /(^|\/)(atoms|molecules|organisms|templates)\//;
 
+/** apps/functions is the one app with no UI at all (R26: Cloud Functions, the server's composition root). */
+const NO_UI_APPS = new Set(['functions']);
+
 export function run(ctx: CheckContext): Finding[] {
   const out: Finding[] = [];
   for (const file of ctx.allFiles) {
     const app = /^apps\/([^/]+)\/package\.json$/.exec(file);
-    if (!app) continue;
+    if (!app || NO_UI_APPS.has(app[1]!)) continue;
     const pkg = JSON.parse(ctx.readSource(file)) as { dependencies?: Record<string, string> };
     if (!pkg.dependencies || !('@grocs/ui' in pkg.dependencies)) {
       out.push({ rule: 'ui-library/app-uses-ui-package', file, detail: `apps/${app[1]} does not list @grocs/ui in dependencies` });

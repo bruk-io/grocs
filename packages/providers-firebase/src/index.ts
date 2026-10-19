@@ -1,12 +1,14 @@
 export { FirebaseAuth } from './firebase-auth.ts';
 export { GoogleAuth } from './google-auth.ts';
 export { FirestoreSyncStore } from './firestore-sync-store.ts';
+export { FirebaseKitchenGateway } from './kitchen-gateway.ts';
 export { asSdk } from './sdk.ts';
 export type {
   AuthFns,
   AuthUserLike,
   DocumentSnapshotLike,
   FirestoreFns,
+  FunctionsFns,
   QuerySnapshotLike,
   TransactionLike,
 } from './sdk.ts';

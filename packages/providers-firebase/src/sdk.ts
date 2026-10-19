@@ -48,6 +48,10 @@ export interface AuthFns {
   readonly GoogleAuthProvider: { credential(idToken: string | null, accessToken?: string | null): unknown };
 }
 
+export interface FunctionsFns {
+  httpsCallable<Req, Res>(functionsInstance: unknown, name: string): (data: Req) => Promise<{ readonly data: Res }>;
+}
+
 /**
  * The SDK's own types are overloaded and richer than the slice above. Passing a module through this
  * function states, in one visible place, that the module is being used as that slice.

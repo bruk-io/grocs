@@ -4,6 +4,7 @@
 import { deleteApp, initializeApp } from 'firebase/app';
 import * as authSdk from 'firebase/auth';
 import * as firestoreSdk from 'firebase/firestore';
+import * as functionsSdk from 'firebase/functions';
 import { getApps as getAdminApps, initializeApp as initializeAdminApp } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
 import { DEMO_PROJECT, seedUsers } from './seed/data.ts';
@@ -21,10 +22,19 @@ function hostAndPort(envName: string): { host: string; port: number } {
 export interface EmulatorClient {
   readonly db: firestoreSdk.Firestore;
   readonly auth: authSdk.Auth;
+  readonly functions: functionsSdk.Functions;
   readonly firestoreFns: typeof firestoreSdk;
   readonly authFns: typeof authSdk;
+  readonly functionsFns: typeof functionsSdk;
   dispose(): Promise<void>;
 }
+
+/**
+ * The Functions emulator's port, pinned in firebase.json (unlike Firestore and Auth, the CLI sets
+ * no FIREBASE_FUNCTIONS_EMULATOR_HOST-style variable a client SDK can discover at runtime, so the
+ * pinned port is the only source of truth here too).
+ */
+const FUNCTIONS_EMULATOR_PORT = 5001;
 
 /** A separate client (own app, own session), as one phone would be. */
 export function createEmulatorClient(label = 'client'): EmulatorClient {
@@ -35,11 +45,15 @@ export function createEmulatorClient(label = 'client'): EmulatorClient {
   firestoreSdk.connectFirestoreEmulator(db, fs.host, fs.port);
   const auth = authSdk.getAuth(app);
   authSdk.connectAuthEmulator(auth, `http://${au.host}:${au.port}`, { disableWarnings: true });
+  const functions = functionsSdk.getFunctions(app);
+  functionsSdk.connectFunctionsEmulator(functions, '127.0.0.1', FUNCTIONS_EMULATOR_PORT);
   return {
     db,
     auth,
+    functions,
     firestoreFns: firestoreSdk,
     authFns: authSdk,
+    functionsFns: functionsSdk,
     async dispose() {
       await firestoreSdk.terminate(db);
       await deleteApp(app);
@@ -63,6 +77,11 @@ export const seedAccount = {
 function adminDb() {
   const app = getAdminApps()[0] ?? initializeAdminApp({ projectId: DEMO_PROJECT });
   return getAdminFirestore(app);
+}
+
+/** The Admin SDK's Firestore instance, for provider tests that exercise the Admin SDK directly. */
+export function adminFirestore(): ReturnType<typeof getAdminFirestore> {
+  return adminDb();
 }
 
 /** A new kitchen with both seed members, and nothing in it. */

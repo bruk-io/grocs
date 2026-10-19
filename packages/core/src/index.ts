@@ -11,3 +11,7 @@ export { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './schema/item-doc.t
 export type { ItemDoc, SchemaError } from './schema/item-doc.ts';
 export { CIRCULAR, PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './schema/personal.ts';
 export { weekIdFor } from './model/week.ts';
+export { addMember, createKitchen, isKitchenFull, KITCHEN_SCHEMA_VERSION, MAX_MEMBERS } from './model/kitchen.ts';
+export type { Kitchen, JoinKitchenError, NewKitchenError, NewKitchenInput } from './model/kitchen.ts';
+export { checkInvite, INVITE_CODE_PATTERN, INVITE_LIFETIME_MS, inviteCodeFromId, isInviteExpired } from './model/invite.ts';
+export type { InviteCheckError, InviteRecord } from './model/invite.ts';
