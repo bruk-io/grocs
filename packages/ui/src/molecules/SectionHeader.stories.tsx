@@ -8,3 +8,4 @@ type Story = StoryObj<typeof meta>;
 export const Rest: Story = {};
 /** Not a state: the second section of the board. */
 export const DairyAndEggs: Story = { args: { icon: 'dairy', title: 'Dairy & eggs', count: 2 } };
+export const Cart: Story = { args: { icon: 'cart', title: 'In the cart', count: 3, tone: 'cart' } };

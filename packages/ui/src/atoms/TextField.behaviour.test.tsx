@@ -7,7 +7,7 @@ import * as stories from './TextField.stories.tsx';
 
 afterEach(cleanup);
 
-const { Rest, Filled, Disabled, Invalid, InlineRest, InlineDisabled } = composeStories(stories);
+const { Rest, Filled, Disabled, Invalid, InlineRest, InlineDisabled, InlinePrimaryAction } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
 describe('TextField', () => {
@@ -65,5 +65,14 @@ describe('TextField', () => {
     expect(button.getAttribute('aria-disabled')).toBe('true');
     await user.click(button);
     expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it('shows a primary action as a button with its word on it, and presses it', async () => {
+    const onAction = vi.fn();
+    render(<InlinePrimaryAction onAction={onAction} />);
+    const button = screen.getByRole('button', { name: 'Add' });
+    expect(button.textContent).toBe('Add');
+    await user.click(button);
+    expect(onAction).toHaveBeenCalledExactlyOnceWith();
   });
 });

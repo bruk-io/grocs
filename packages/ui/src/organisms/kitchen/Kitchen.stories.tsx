@@ -1,25 +1,21 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { View } from 'react-native';
-import { KitchenArt } from './art/Kitchen.tsx';
-import { KitchenDoorArt } from './art/KitchenDoor.tsx';
+import { MotionProvider } from '../../platform/motion.tsx';
+import { tokens } from '../../tokens/tokens.ts';
+import { KitchenScene } from './KitchenScene.tsx';
 
-/** The Welcome kitchen scene, drawn still. It is wider than any phone; the pan comes with the Welcome screen. */
-function KitchenScene({ withDoor }: { withDoor: boolean }) {
-  return (
-    <View style={{ aspectRatio: 1020 / 600 }}>
-      <KitchenArt width="100%" height="100%" />
-      {withDoor ? (
-        <View style={{ position: 'absolute', left: '37.5%', top: '40.5%', width: '8.1%', aspectRatio: 83 / 120 }}>
-          <KitchenDoorArt width="100%" height="100%" />
-        </View>
-      ) : null}
-    </View>
-  );
-}
+// The stage as a phone window onto the scene, at full size: the camera pans along the kitchen behind it.
+const phoneWindow = (Story: () => React.JSX.Element) => (
+  <View style={{ width: '100%', aspectRatio: 0.6, borderRadius: tokens.radius[20], overflow: 'hidden' }}>
+    <Story />
+  </View>
+);
 
-const meta = { title: 'Organisms/Kitchen scene', component: KitchenScene, args: { withDoor: true } } satisfies Meta<typeof KitchenScene>;
+const meta = { title: 'Organisms/Kitchen scene', component: KitchenScene, decorators: [phoneWindow] } satisfies Meta<typeof KitchenScene>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Still: Story = {};
-export const WithoutDoor: Story = { args: { withDoor: false } };
+/** Moving: the camera pans along the kitchen and the cupboard door opens. Held still in the browser pass and wherever reduce motion is on. */
+export const Panning: Story = {};
+/** Reduce motion on: the camera rests at the fridge and nothing moves. */
+export const Reduced: Story = { decorators: [(Story) => <MotionProvider reduced><Story /></MotionProvider>] };

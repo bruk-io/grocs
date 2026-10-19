@@ -31,10 +31,12 @@ export interface ButtonProps {
   loadingLabel?: string;
   /** The glyph of an icon button. */
   icon?: IconName;
+  /** Fills the width it is given instead of hugging its label. */
+  stretch?: boolean;
   forceState?: 'pressed' | 'focus';
 }
 
-export function Button({ label, onPress, variant = 'primary', size, disabled = false, loading = false, loadingLabel, icon = 'add', forceState }: ButtonProps) {
+export function Button({ label, onPress, variant = 'primary', size, disabled = false, loading = false, loadingLabel, icon = 'add', stretch = false, forceState }: ButtonProps) {
   const [focused, setFocused] = useState(false);
   const inactive = disabled || loading;
   const iconOnly = variant === 'icon' || variant === 'iconSoft' || variant === 'iconGhost';
@@ -59,6 +61,7 @@ export function Button({ label, onPress, variant = 'primary', size, disabled = f
           big ? styles.big : styles.small,
           iconOnly && styles.iconOnly,
           styles[variant],
+          stretch && styles.stretch,
           big && variant === 'primary' && !down && styles.lip,
           filled && down && !disabled && styles.lipPressed,
           big && variant === 'secondary' && styles.lipSoft,
@@ -86,6 +89,7 @@ const styles = StyleSheet.create({
   big: { height: tokens.size.control, paddingHorizontal: tokens.space[24], borderRadius: tokens.radius[20] },
   small: { alignSelf: 'flex-start', height: tokens.size.target, paddingHorizontal: tokens.space[16], borderRadius: tokens.radius[16] },
   iconOnly: { width: tokens.size.target, paddingHorizontal: 0, alignSelf: 'flex-start' },
+  stretch: { alignSelf: 'stretch' },
   primary: { backgroundColor: tokens.color.forest },
   secondary: { backgroundColor: tokens.color.surfaceCard, borderWidth: tokens.size.lineW, borderColor: tokens.color.line },
   soft: { backgroundColor: tokens.color.surfaceTint },

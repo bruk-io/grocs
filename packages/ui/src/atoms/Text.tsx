@@ -13,11 +13,13 @@ export type TextVariant = (typeof TEXT_STATES)[number];
 export interface TextProps extends Omit<NativeTextProps, 'style'> {
   variant?: TextVariant;
   /** Overrides the ink colour: an error message, a label on a dark fill, a brand-coloured title. */
-  tone?: 'error' | 'forest' | 'onBrand';
+  tone?: 'error' | 'forest' | 'onBrand' | 'muted';
+  /** Centres the lines of a paragraph. */
+  align?: 'center';
 }
 
-export function Text({ variant = 'body', tone, ...rest }: TextProps) {
-  return <NativeText {...rest} style={tone ? [styles[variant], tones[tone]] : styles[variant]} />;
+export function Text({ variant = 'body', tone, align, ...rest }: TextProps) {
+  return <NativeText {...rest} style={[styles[variant], tone && tones[tone], align === 'center' && styles.centred]} />;
 }
 
 const base = {
@@ -42,6 +44,7 @@ const styles = StyleSheet.create({
   // Screens built before the board: title is a bold heading, muted a quieter small, struck a ticked-off name.
   title: { ...base, ...fontFace('display', tokens.font.weight.bold), fontSize: tokens.font.size.heading, lineHeight: tokens.font.lineHeight.heading },
   muted: { ...small, color: tokens.color.inkMuted },
+  centred: { textAlign: 'center' },
   struck: { ...base, color: tokens.color.doneInk, textDecorationLine: 'line-through' },
 });
 
@@ -49,4 +52,5 @@ const tones = StyleSheet.create({
   error: { color: tokens.color.error },
   forest: { color: tokens.color.forest },
   onBrand: { color: tokens.color.onBrand },
+  muted: { color: tokens.color.inkMuted },
 });
