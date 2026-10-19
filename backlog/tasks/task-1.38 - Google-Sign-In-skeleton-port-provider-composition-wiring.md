@@ -1,14 +1,15 @@
 ---
 id: TASK-1.38
 title: 'Google Sign-In skeleton: port, provider, composition wiring'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:21'
-updated_date: '2026-10-19 03:37'
+updated_date: '2026-10-19 04:01'
 labels:
   - size-3
   - architecture
+  - finish-moved
 dependencies:
   - TASK-1.4
 modified_files:
@@ -44,12 +45,12 @@ Out of scope, deliberately: the actual 'Sign in with Google' button and its bran
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/ports/src/auth/port.ts declares GoogleSignIn with no Firebase or Google SDK types in its signature
-- [ ] #2 FakeGoogleSignIn passes the same contract suite real providers will, and is usable from scenario tests
-- [ ] #3 The contract suite covers the credential-exchange half against the Auth emulator; its own comment names the native-picker gap this cannot cover and points at TASK-1.15
-- [ ] #4 GoogleAuth in packages/providers-firebase implements GoogleSignIn using @react-native-google-signin/google-signin and GoogleAuthProvider.credential()/signInWithCredential(), with no decision logic beyond translating (providers-hold-no-rules.md)
-- [ ] #5 apps/mobile/src/composition/native.ts wires signInWithGoogle onto NativeApp the same way dev/diagnostics are wired, not through the command dispatcher
-- [ ] #6 import-layers and the full check suite pass with no new raw SDK references outside packages/providers-firebase
+- [x] #1 packages/ports/src/auth/port.ts declares GoogleSignIn with no Firebase or Google SDK types in its signature
+- [x] #2 FakeAuth (or an equivalent fake) passes the same contract suite real providers will, and is usable from scenario tests
+- [x] #3 The contract suite covers the credential-exchange half against the Auth emulator; its own comment names the native-picker gap this cannot cover and points at TASK-1.15
+- [x] #4 GoogleAuth in packages/providers-firebase implements GoogleSignIn using GoogleAuthProvider.credential()/signInWithCredential(), with no decision logic beyond translating (providers-hold-no-rules.md); the native ID token is injected via a stub, since wiring the real @react-native-google-signin/google-signin picker is TASK-1.15's job
+- [x] #5 apps/mobile/src/composition/native.ts wires signInWithGoogle onto NativeApp the same way dev/diagnostics are wired, not through the command dispatcher
+- [x] #6 import-layers and the full check suite pass with no new raw SDK references outside packages/providers-firebase
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -126,4 +127,167 @@ Partially satisfiable as worded, and I'm not checking this box myself: `GoogleAu
 Did not install `@react-native-google-signin/google-signin`, did not touch `app.config.ts`, did not touch `packages/ui` or any mobile screen/button. `git diff --stat` against origin/main matches the plan's `modified_files` list exactly, plus the two new files it already named (`google-auth.ts`, `google-auth.emulator.test.ts`).
 
 Status left as-is (In Progress) per instructions; not changing it myself.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook` exited 0
+
+(155 earlier lines omitted)
+```text
+│  option. You can remove the plugin and set resolve.tsconfigPaths: true
+│  in your Vite config instead.
+│  Vite vite v8.3.4 building client environment for production...
+transforming...
+✓ 302 modules transformed.
+rendering chunks...
+computing gzip size...
+│  Vite storybook-static/iframe.html                              18.66
+│  kB │ gzip:   5.27 kB
+│  storybook-static/assets/iframe-Dz6ySFS4.js                 0.04 kB │
+│  gzip:   0.06 kB
+│  storybook-static/assets/Badge.stories-Bw1bWDLG.js          0.28 kB │
+│  gzip:   0.23 kB
+│  storybook-static/assets/Checkbox.stories-CWKP0SXZ.js       0.50 kB │
+│  gzip:   0.32 kB
+│  storybook-static/assets/Text.stories-JiK2ywtu.js           0.57 kB │
+│  gzip:   0.34 kB
+│  storybook-static/assets/Badge-DAi34iyw.js                  0.85 kB │
+│  gzip:   0.53 kB
+│  storybook-static/assets/Text-BnbgowVj.js                   1.05 kB │
+│  gzip:   0.53 kB
+│  storybook-static/assets/rolldown-runtime-BCiCTKAo.js       1.30 kB │
+│  gzip:   0.71 kB
+│  storybook-static/assets/preload-helper-DQzUoscV.js         1.64 kB │
+│  gzip:   0.87 kB
+│  storybook-static/assets/Button.stories-CesRtrie.js         2.43 kB │
+│  gzip:   1.12 kB
+│  storybook-static/assets/Checkbox-CqMRbPVr.js               2.45 kB │
+│  gzip:   1.13 kB
+│  storybook-static/assets/ItemRow.stories-DFwaSh4d.js        2.70 kB │
+│  gzip:   1.25 kB
+│  storybook-static/assets/Text-D2guw9ro.js                   3.62 kB │
+│  gzip:   1.55 kB
+│  storybook-static/assets/react-BWPDF9mI.js                  7.87 kB │
+│  gzip:   3.00 kB
+│  storybook-static/assets/TextField.stories-C4QECVHX.js      8.35 kB │
+│  gzip:   3.44 kB
+│  storybook-static/assets/Pressable-DfI3QPHN.js             12.06 kB │
+│  gzip:   4.36 kB
+│  storybook-static/vite-inject-mocker-entry.js              27.81 kB │
+│  gzip:   9.67 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js             211.29 kB │
+│  gzip:  66.04 kB
+│  storybook-static/assets/iframe-D0mY_p35.js             1,192.99 kB │
+│  gzip: 342.28 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│  Vite ✓ built in 619ms
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+```
+
+## Review (philosophy:reviewer, 2026-10-18)
+
+Not closed. Five of six criteria verified against the code on main; AC#4 blocks.
+
+Verified independently (not from the worker's report):
+- #1 `packages/ports/src/auth/port.ts` declares `GoogleSignIn { signInWithGoogle(): Promise<User> }`, no SDK import, no SDK type in the signature.
+- #2 Met in substance under a different name: there is no `FakeGoogleSignIn` class; `FakeAuth` (`packages/ports/src/auth/fake.ts`) implements `AuthPort, TestSignIn, GoogleSignIn` and passes `googleSignInContract` (`fake.test.ts:22`), exported from `@grocs/ports/testing`. The recorded plan's step 2 said to extend `FakeAuth`; the AC's name was never updated to match.
+- #3 `googleSignInContract` (`contract.ts:121`) covers the credential-exchange half; the emulator test's own comment names the native-picker boundary and points at TASK-1.15.
+- #5 `apps/mobile/src/composition/native.ts:65,73` constructs `GoogleAuth` and calls it directly on `NativeApp`, same shape as `dev`/`diagnostics`, no dispatcher.
+- #6 `record-check --tier full` exited 0 on this review (recorded above): check (incl. import-layers, firebase-isolation), typecheck, test, test:emulator, check:release, storybook build.
+
+AC#4 is not met as worded. `GoogleAuth` does the `GoogleAuthProvider.credential()`/`signInWithCredential()` half with translation only, which satisfies providers-hold-no-rules.md. It does not use `@react-native-google-signin/google-signin`: the native ID token arrives through an injected `getGoogleIdToken`, whose only implementation is the `native.ts` stub throwing 'not implemented - see TASK-1.15'. The criterion's first clause describes work the plan's own step 7 and Risks explicitly forbid this task from doing.
+
+Remedy, for whoever owns the board: amend AC#4 to drop the `@react-native-google-signin/google-signin` clause (leaving the credential-exchange and no-decision-logic requirements, which are met), add the `finish-moved` label, and commit the change with the reason, per the board rule that AC changes after acceptance carry that label and a note. Then close. No follow-up draft filed: the native picker is already TASK-1.15's scope, so a new one would duplicate it. This is a stale criterion, not missing work.
+
+Acceptance criteria amended by the orchestrator on 2026-10-19 after philosophy:reviewer's review: AC#2's wording (FakeGoogleSignIn) and AC#4's wording (requiring @react-native-google-signin/google-signin itself) both predated the plan that scoped this task narrowly (plan step 7 and Risks explicitly forbid installing that library here - it's TASK-1.15's device spike). The criteria text lagged the plan; the built code matches the plan exactly, which the reviewer verified independently against main. Reworded #2 and #4 to match what was actually planned and built; #1, #3, #5, #6 are unchanged. finish-moved label added per board convention.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook` exited 0
+
+(251 earlier lines omitted)
+```text
+│  0.04 kB │ gzip:   0.06 kB
+│  storybook-static/assets/Badge.stories-CNW1IWeJ.js
+│  0.28 kB │ gzip:   0.23 kB
+│  storybook-static/assets/Checkbox.stories-By6hHF6f.js
+│  0.50 kB │ gzip:   0.32 kB
+│  storybook-static/assets/Text.stories-B-rbQeR-.js
+│  0.57 kB │ gzip:   0.34 kB
+│  storybook-static/assets/part-Bb3WXiws.js
+│  0.75 kB │ gzip:   0.48 kB
+│  storybook-static/assets/Badge-Bh5THtk9.js
+│  0.85 kB │ gzip:   0.53 kB
+│  storybook-static/assets/Text-B1L0kBdg.js
+│  1.08 kB │ gzip:   0.55 kB
+│  storybook-static/assets/rolldown-runtime-BCiCTKAo.js
+│  1.30 kB │ gzip:   0.71 kB
+│  storybook-static/assets/preload-helper-DQzUoscV.js
+│  1.64 kB │ gzip:   0.87 kB
+│  storybook-static/assets/Checkbox-Cjf3GWta.js
+│  2.42 kB │ gzip:   1.10 kB
+│  storybook-static/assets/Button.stories-BrJ3AXsj.js
+│  2.48 kB │ gzip:   1.13 kB
+│  storybook-static/assets/ItemRow.stories-C2fY4TJ9.js
+│  2.69 kB │ gzip:   1.25 kB
+│  storybook-static/assets/TextField.stories-VereLGRK.js
+│  2.94 kB │ gzip:   1.34 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/Mascots.stories-lG7h1n29.js
+│  10.60 kB │ gzip:   2.71 kB
+│  storybook-static/assets/Kitchen.stories-hrshF_97.js
+│  13.91 kB │ gzip:   3.32 kB
+│  storybook-static/assets/Icons.stories-ULtwe2nQ.js
+│  16.40 kB │ gzip:   2.96 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-DGubCEc7.js
+│  35.62 kB │ gzip:  10.08 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-CrKkLiWv.js
+│  1,218.80 kB │ gzip: 351.35 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 967ms
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+```
+
+Closed on re-review of current main (0de35fa), after the AC#2/AC#4 amendment this review asked for.
+
+All six criteria now hold against the code:
+- #1 `packages/ports/src/auth/port.ts`: `GoogleSignIn { signInWithGoogle(): Promise<User> }`, no SDK import or SDK type in the signature.
+- #2 `FakeAuth` (`packages/ports/src/auth/fake.ts`) implements `AuthPort, TestSignIn, GoogleSignIn` and passes `googleSignInContract` (`fake.test.ts:22`), exported from `@grocs/ports/testing` - the amended wording now matches the plan's step 2.
+- #3 `googleSignInContract` (`contract.ts:121`) covers the credential-exchange half; `google-auth.emulator.test.ts`'s own comment names the native-picker gap and points at TASK-1.15.
+- #4 `GoogleAuth` (`providers-firebase/src/google-auth.ts`) does `GoogleAuthProvider.credential()` + `signInWithCredential()` and maps the result, no decision logic (providers-hold-no-rules.md); the ID token is injected, the real picker is TASK-1.15's.
+- #5 `apps/mobile/src/composition/native.ts:65,73`: `GoogleAuth` constructed and called directly on `NativeApp`, same shape as `dev`/`diagnostics`, no dispatcher.
+- #6 `record-check --tier full` exited 0 twice: once at 93e9b47 and again on current main after unrelated design-system work (TASK-1.37.x) changed `tools/checks/import-layers.ts` and added checks. Re-run deliberately, since AC#6 is a claim about the check suite and the suite itself had moved. No drift in this task's own files between the two runs (`git diff 93e9b47..HEAD -- packages/ports packages/providers-firebase apps/mobile/src/composition` is empty).
+
+The two reviewed deviations from the plan's literal text (`GoogleAuthProvider.credential` as a class static rather than a flat `googleCredential`, and a `GoogleSignInSubject` that asserts uid agreement rather than a known uid) are both better than what the plan named, for the reasons the worker's notes give; the emulator test proves the first against the real web SDK with no adapter.
+
+No follow-up draft: the native Google picker is already TASK-1.15's scope.
 <!-- SECTION:NOTES:END -->

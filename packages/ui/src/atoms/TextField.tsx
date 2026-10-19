@@ -4,7 +4,7 @@ import { tokens } from '../tokens/tokens.ts';
 import { Text } from './Text.tsx';
 
 /** The states of TextField; each has a story (R61, R63). */
-export const TEXTFIELD_STATES = ['rest', 'filled', 'focus', 'disabled', 'invalid'] as const;
+export const TEXTFIELD_STATES = ['rest', 'filled', 'pressed', 'focus', 'disabled', 'invalid'] as const;
 
 export interface TextFieldProps {
   value: string;
@@ -15,7 +15,8 @@ export interface TextFieldProps {
   disabled?: boolean;
   /** Shown under the field, and makes the field read as invalid. */
   errorMessage?: string;
-  forceState?: 'focus';
+  /** Draws a state without the interaction that causes it. For Storybook and tests. */
+  forceState?: 'pressed' | 'focus';
 }
 
 export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, forceState }: TextFieldProps) {
@@ -27,7 +28,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
         aria-label={label}
         aria-invalid={invalid}
         placeholder={label}
-        placeholderTextColor={tokens.color.textMuted}
+        placeholderTextColor={tokens.color.inkHint}
         value={value}
         editable={!disabled}
         onChangeText={onChangeText}
@@ -37,6 +38,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
         returnKeyType="done"
         style={[
           styles.input,
+          forceState === 'pressed' && styles.pressed,
           (focused || forceState === 'focus') && styles.focused,
           invalid && styles.invalid,
           disabled && styles.disabled,
@@ -52,18 +54,21 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: tokens.space[1] },
+  wrap: { gap: tokens.space[4] },
   input: {
-    minHeight: tokens.size.touch,
-    borderWidth: tokens.size.borderWidth,
-    borderColor: tokens.color.borderStrong,
-    borderRadius: tokens.radius.medium,
-    paddingHorizontal: tokens.space[3],
-    backgroundColor: tokens.color.surfaceRaised,
-    color: tokens.color.text,
-    fontSize: tokens.font.size.body,
+    minHeight: tokens.size.control,
+    borderWidth: tokens.size.lineW,
+    borderColor: tokens.color.line,
+    borderRadius: tokens.radius[20],
+    paddingHorizontal: tokens.space[16],
+    backgroundColor: tokens.color.surfaceCard,
+    color: tokens.color.ink,
+    fontFamily: tokens.font.family.body,
+    fontSize: tokens.font.size.label,
+    fontWeight: tokens.font.weight.heavy,
   },
-  focused: { borderColor: tokens.color.focusRing, borderWidth: tokens.size.focusWidth },
-  invalid: { borderColor: tokens.color.danger },
-  disabled: { opacity: tokens.opacity.disabled },
+  pressed: { backgroundColor: tokens.color.surfaceTint },
+  focused: { borderColor: tokens.color.forest },
+  invalid: { borderColor: tokens.color.error },
+  disabled: { backgroundColor: tokens.color.disabled, color: tokens.color.disabledInk },
 });

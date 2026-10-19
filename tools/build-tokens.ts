@@ -11,9 +11,37 @@ export const HEADER = `// GENERATED from tokens.json by tools/build-tokens.ts (R
 // Change tokens.json, then run: pnpm tokens
 `;
 
+const REFERENCE = /^\{([\w.]+)\}$/;
+
+/**
+ * Replaces every "{group.name}" string with the value it names, so a token that is built from
+ * another (a shadow's colour) is written once. An unknown reference throws, naming the path.
+ */
+export function resolveReferences(root: Record<string, unknown>): Record<string, unknown> {
+  const lookup = (path: string): unknown => {
+    let node: unknown = root;
+    for (const key of path.split('.')) {
+      if (typeof node !== 'object' || node === null || !(key in node)) throw new Error(`tokens.json: reference {${path}} names no token`);
+      node = (node as Record<string, unknown>)[key];
+    }
+    if (typeof node === 'string' && REFERENCE.test(node)) throw new Error(`tokens.json: reference {${path}} points at another reference`);
+    return node;
+  };
+  const walk = (node: unknown): unknown => {
+    if (typeof node === 'string') {
+      const match = REFERENCE.exec(node);
+      return match ? lookup(match[1]!) : node;
+    }
+    if (Array.isArray(node)) return node.map(walk);
+    if (typeof node === 'object' && node !== null) return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, walk(v)]));
+    return node;
+  };
+  return walk(root) as Record<string, unknown>;
+}
+
 /** The text of tokens.ts for a parsed tokens.json. Pure. */
 export function renderTokensTs(source: Record<string, unknown>): string {
-  const { contrastPairs: _pairs, ...values } = source;
+  const { contrastPairs: _pairs, ...values } = resolveReferences(source);
   return `${HEADER}
 export const tokens = ${JSON.stringify(values, null, 2)} as const;
 

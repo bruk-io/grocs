@@ -44,8 +44,8 @@ export function ListScreen({ app, kitchenId }: ListScreenProps) {
   const rows = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) });
 
   return (
-    <View style={{ flex: 1, backgroundColor: tokens.color.surface }}>
-      <ScrollView contentContainerStyle={{ padding: tokens.space[3], gap: tokens.space[1] }}>
+    <View style={{ flex: 1, backgroundColor: tokens.color.surfaceCanvas }}>
+      <ScrollView contentContainerStyle={{ padding: tokens.space[12], gap: tokens.space[4] }}>
         <Text variant="title">Groceries - {weekId}</Text>
         {loadError ? <Text variant="muted">Could not load the list: {loadError}</Text> : null}
         {rows.length === 0 && !loadError ? <Text variant="muted">Nothing on the list yet</Text> : null}
@@ -53,7 +53,7 @@ export function ListScreen({ app, kitchenId }: ListScreenProps) {
           <ItemRow key={item.id} name={item.name.value} amount={item.amount.value} inCart={item.state.value === 'in-cart'} />
         ))}
       </ScrollView>
-      <View style={{ padding: tokens.space[3], gap: tokens.space[2], flexDirection: 'row', alignItems: 'flex-start' }}>
+      <View style={{ padding: tokens.space[12], gap: tokens.space[8], flexDirection: 'row', alignItems: 'flex-start' }}>
         <View style={{ flex: 1 }}>
           <TextField
             label="Add an item"

@@ -16,6 +16,8 @@ apps/mobile/ios/
 # resolution, and breaks vitest/typecheck until removed.
 apps/mobile/tsconfig.json
 storybook-static/
+# One PNG per story from `pnpm --filter @grocs/ui shots`
+.shots/
 *.tsbuildinfo
 .firebase/
 firebase-debug.log

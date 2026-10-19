@@ -3,9 +3,11 @@ id: TASK-1.37.6
 title: >-
   UI test harness: behaviour tests, browser pass with accessibility scan and
   visual baselines
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-19 03:19'
+updated_date: '2026-10-19 03:53'
 labels:
   - size-5
   - design-system

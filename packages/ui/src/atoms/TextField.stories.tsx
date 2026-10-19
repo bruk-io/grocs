@@ -11,6 +11,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Rest: Story = {};
 export const Filled: Story = { args: { value: 'Oat milk' } };
+export const Pressed: Story = { args: { forceState: 'pressed' } };
 export const Focus: Story = { args: { forceState: 'focus' } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Invalid: Story = { args: { value: ' ', errorMessage: 'Give the item a name' } };

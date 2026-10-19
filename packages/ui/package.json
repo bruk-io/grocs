@@ -8,9 +8,13 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "react": "19.3.1"
+    "react": "19.3.1",
+    "react-native-svg": "15.16.0"
   },
   "devDependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
+    "@react-native/assets-registry": "0.88.0",
     "@storybook/react-native-web-vite": "10.6.2",
     "@types/react": "^19.3.0",
     "react-dom": "19.3.1",
@@ -22,6 +26,7 @@
   "main": "src/index.ts",
   "scripts": {
     "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006",
+    "shots": "node --disable-warning=ExperimentalWarning ../../tools/shots.ts",
     "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o storybook-static"
   }
 }

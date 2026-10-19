@@ -10,7 +10,7 @@ import type { DevAccess } from '../composition/native.ts';
 export function SignInScreen({ dev }: { dev: DevAccess | null }) {
   const [problem, setProblem] = useState<string | null>(null);
   return (
-    <View style={{ flex: 1, padding: tokens.space[4], gap: tokens.space[3], backgroundColor: tokens.color.surface, justifyContent: 'center' }}>
+    <View style={{ flex: 1, padding: tokens.space[16], gap: tokens.space[12], backgroundColor: tokens.color.surfaceCanvas, justifyContent: 'center' }}>
       <Text variant="title">Grocs</Text>
       {dev ? (
         dev.accounts.map((account) => (
