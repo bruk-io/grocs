@@ -136,7 +136,7 @@ describe('Groceries samples (dev-only route)', () => {
   it('shows the list with the partner toast', async () => {
     await openSample('/groceries-samples');
     expect(await screen.findByText('Yellow onions')).toBeTruthy();
-    expect(screen.getByText('Shazya added Oat milk · just now')).toBeTruthy();
+    expect(screen.getByText('Sam added Oat milk · just now')).toBeTruthy();
   });
 
   it('shows the offline state with its waiting changes', async () => {
@@ -146,7 +146,7 @@ describe('Groceries samples (dev-only route)', () => {
 
   it('shows the toast state', async () => {
     await openSample('/groceries-samples?state=toast');
-    expect(await screen.findByText('Shazya added Oat milk · just now')).toBeTruthy();
+    expect(await screen.findByText('Sam added Oat milk · just now')).toBeTruthy();
     expect(screen.queryByText('Offline. 2 changes waiting.')).toBeNull();
   });
 

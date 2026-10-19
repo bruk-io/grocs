@@ -17,7 +17,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Rest: Story = { args: { addedBy: 'Shazya' } };
+export const Rest: Story = { args: { addedBy: 'Sam' } };
 export const InCart: Story = { args: { name: 'Coffee beans', inCart: true } };
 export const Pressed: Story = { args: { name: 'Garlic', amount: '4 cloves', mealBadges: [{ label: 'Chana masala' }], forceState: 'pressed' } };
 export const Focus: Story = { args: { forceState: 'focus' } };
@@ -28,4 +28,4 @@ export const Loading: Story = { args: { loading: true } };
 /** Not a state: the row as the list screen shows it, with the amount only. */
 export const AmountOnly: Story = { args: { name: 'Oat milk', amount: '2 cartons', mealBadges: [] } };
 export const Waiting: Story = { args: { name: 'Baby spinach', amount: '1 bag', mealBadges: [], addedBy: 'Bruk', waiting: true } };
-export const New: Story = { args: { name: 'Oat milk', amount: '1 carton', mealBadges: [], addedBy: 'Shazya', isNew: true } };
+export const New: Story = { args: { name: 'Oat milk', amount: '1 carton', mealBadges: [], addedBy: 'Sam', isNew: true } };

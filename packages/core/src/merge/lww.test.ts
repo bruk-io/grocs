@@ -3,20 +3,20 @@ import { describe, expect, it } from 'vitest';
 import { compareStamps, laterStamp, mergeStamped, stamped } from './lww.ts';
 import type { Stamp } from './lww.ts';
 
-const stamp = fc.record({ at: fc.integer({ min: 0, max: 20 }), by: fc.constantFrom('bruk', 'shazya') });
+const stamp = fc.record({ at: fc.integer({ min: 0, max: 20 }), by: fc.constantFrom('bruk', 'sam') });
 const field = fc.record({ value: fc.constantFrom('to-buy', 'in-cart', 'x'), stamp });
 
 describe('last-write-wins', () => {
   it('the later change wins', () => {
     const a = stamped('to-buy', { at: 1, by: 'bruk' });
-    const b = stamped('in-cart', { at: 2, by: 'shazya' });
+    const b = stamped('in-cart', { at: 2, by: 'sam' });
     expect(mergeStamped(a, b)).toBe(b);
     expect(mergeStamped(b, a)).toBe(b);
   });
 
   it('at the same instant the member id breaks the tie', () => {
     const a = stamped('to-buy', { at: 5, by: 'bruk' });
-    const b = stamped('in-cart', { at: 5, by: 'shazya' });
+    const b = stamped('in-cart', { at: 5, by: 'sam' });
     expect(mergeStamped(a, b)).toBe(b);
     expect(mergeStamped(b, a)).toBe(b);
   });

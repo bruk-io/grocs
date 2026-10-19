@@ -18,7 +18,7 @@ export interface PreferencesTemplateProps {
   email: string;
   /** The kitchen they belong to. */
   kitchen: string;
-  /** The partner, named in the notification line: "Tell me when Shazya adds something". */
+  /** The partner, named in the notification line: "Tell me when Sam adds something". */
   partnerName: string;
   notificationsOn: boolean;
   /** Sends the state it wants, never a toggle. */

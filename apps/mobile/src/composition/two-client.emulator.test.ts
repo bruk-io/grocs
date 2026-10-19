@@ -30,7 +30,7 @@ class RawLogger implements Logger {
   }
 }
 
-async function signedInClient(who: 'bruk' | 'shazya'): Promise<{ app: App; logger: RawLogger }> {
+async function signedInClient(who: 'bruk' | 'sam'): Promise<{ app: App; logger: RawLogger }> {
   await ensureSeeded();
   const client = createEmulatorClient(who);
   clients.push(client);
@@ -49,7 +49,7 @@ describe('two clients on one kitchen', () => {
   it('shows an item added on one phone on the other within 3 seconds, every time', async () => {
     const kitchenId = await createKitchen('two-client');
     const a = await signedInClient('bruk');
-    const b = await signedInClient('shazya');
+    const b = await signedInClient('sam');
     const weekId = weekIdFor(a.app.now());
 
     let seen: readonly Item[] = [];

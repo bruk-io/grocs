@@ -16,7 +16,7 @@ describe('item document (R30)', () => {
   });
 
   it('round-trips through the stored form, including JSON', () => {
-    const item = { ...make(), badges: ['m1', 'm2'], deleted: { at: 9, by: 'shazya' } };
+    const item = { ...make(), badges: ['m1', 'm2'], deleted: { at: 9, by: 'sam' } };
     expect(decodeItem(encodeItem(item))).toEqual({ ok: true, value: item });
     expect(decodeItem(JSON.parse(JSON.stringify(encodeItem(item))))).toEqual({ ok: true, value: item });
   });

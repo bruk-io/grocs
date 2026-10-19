@@ -33,7 +33,7 @@ describe('InviteCard', () => {
     expect(screen.getByText('Link sent. Waiting for them to join…')).toBeTruthy();
     cleanup();
     render(<Joined />);
-    expect(screen.getByText('Shazya joined your kitchen!')).toBeTruthy();
+    expect(screen.getByText('Sam joined your kitchen!')).toBeTruthy();
   });
 
   it('has no status line before the link is shared', () => {

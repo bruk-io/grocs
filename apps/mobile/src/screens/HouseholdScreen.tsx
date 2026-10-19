@@ -12,7 +12,7 @@ export function HouseholdScreen() {
       kitchenName={name}
       onKitchenNameChange={setName}
       inviteCode="MOREL-24"
-      inviteStatus={{ kind: 'waiting', message: 'Waiting for Shazya to join' }}
+      inviteStatus={{ kind: 'waiting', message: 'Waiting for Sam to join' }}
       onStart={go.plan}
     />
   );

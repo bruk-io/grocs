@@ -6,4 +6,4 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Waiting: Story = {};
-export const Joined: Story = { args: { kind: 'joined', name: 'Shazya', message: 'Shazya joined your kitchen!' } };
+export const Joined: Story = { args: { kind: 'joined', name: 'Sam', message: 'Sam joined your kitchen!' } };

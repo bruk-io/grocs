@@ -9,7 +9,7 @@ export const ACTIVITYTOAST_STATES = ['rest'] as const;
 export interface ActivityToastProps {
   /** Who did it; their initial shows on a chartreuse avatar. */
   name: string;
-  /** What happened, such as "Shazya added Oat milk · just now". */
+  /** What happened, such as "Sam added Oat milk · just now". */
   message: string;
 }
 
