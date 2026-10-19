@@ -1,11 +1,11 @@
 ---
 id: TASK-5
 title: 'vitest projects ignore the root allowOnly, so it.only passes CI'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 23:31'
-updated_date: '2026-10-19 04:06'
+updated_date: '2026-10-19 11:53'
 labels:
   - size-2
 dependencies: []
@@ -80,4 +80,17 @@ Verification (all run from the repo root in this worktree, all green):
 - `node tools/checks/run.ts --mode staged` run against the exact staged diff (vitest.config.ts, tools/checks/repo-checks.test.ts, tools/checks/fixtures/focused-test.fixture.txt) -> "checks passed", confirming the new fixture file (new, so `before === null`) and the reworded comments do not trip the weakening review's FOCUS/isProtected checks.
 
 Left In Progress for reviewer close per the task's instructions.
+
+No repro: the bug's failure mode is a *green* run - a stray it.only exits 0 and silently skips the rest of its file - so it cannot produce a failing command on main. The executable repro lives committed in tools/checks/repo-checks.test.ts as the paired spawn tests: the real config exits 1 with 'Unexpected .only modifier', and the control (same config, tools project's extends: true stripped) exits 0 with '1 skipped'. The reviewer re-reproduced the pre-fix defect by hand against git show 9251449^:vitest.config.ts copied into an OS temp dir with the it.only fixture, run under the repo's own vitest 4.1.12: 'Tests 1 passed | 1 skipped (2)', exit 0.
+
+Reviewer close (philosophy:reviewer, did not do the work), 2026-10-19:
+- AC1: vitest.config.ts has extends: true on all five inline projects (unit, ui, app, tools, emulator); root test.allowOnly: false unchanged.
+- AC2: tools/checks/repo-checks.test.ts:151-164 imports the config's default export, asserts exactly 5 projects (non-vacuity guard), then extends: true on each plus root allowOnly === false.
+- AC3: repo-checks.test.ts:166-213 spawns the repo's own vitest 4.1.12 against a copy of the real committed config text plus the it.only fixture in an OS temp dir outside the repo tree; asserts exit 1 and the literal 'Unexpected .only modifier', not a bare non-zero exit. The paired control strips extends: true from the tools project, guards the replace with not.toBe(realConfigText), and asserts exit 0 with '1 skipped'.
+- Reviewer's own runs on main under Node 24 (mise): pnpm check 'checks passed (12 checks, all mode)'; pnpm typecheck clean; pnpm test 'Test Files 37 passed, Tests 381 passed'. A verbose run confirmed both spawn tests execute (278 ms / 289 ms) rather than being skipped.
+- Not verified by the reviewer: pnpm test:emulator was not re-run (fast tier only). The root test block carries no plugins/resolve/define, so extends: true gives the emulator project nothing but allowOnly; no behaviour change to regress. The worker reported it green (5 files, 27 tests).
+
+Checks changed: .claude/checks.json changed after this task was accepted, in 5a3cecc (unrelated: decision-11's browser pass over Storybook). The diff only appends 'pnpm --filter @grocs/ui visual -- --no-build' to the 'full' tier; the 'fast' tier this task was verified under is byte-identical to the accepted one. The change is strictly stricter and touches nothing about vitest project inheritance, so the checks agreed for TASK-5 are the ones that ran.
+
+Closed by philosophy:reviewer. All three acceptance criteria independently verified on main (fix commit 9251449, an ancestor of HEAD). Fast tier green under Node 24. No code findings; see the reviewer close note above for the per-criterion evidence and the two scope caveats.
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-2
 title: Weakening check flags CI action version bumps with no sanctioned override
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 21:59'
-updated_date: '2026-10-19 04:04'
+updated_date: '2026-10-19 11:57'
 labels:
   - size-2
 dependencies: []
@@ -81,4 +81,54 @@ Verification: node tools/checks/run.ts --mode all passes (9 checks). pnpm check,
 Test evidence: weakening.test.ts now embeds the real before/after content of commit 0a26823 (the checkout/setup-node/setup-java/cache/pnpm-action-setup v4-to-v6-or-v7 bump that previously needed --no-verify), extracted from the two blobs on either side of that commit. reviewChange() on that exact diff returns [] (AC1). continue-on-error, a dropped field, and paths-ignore each still fail even layered on the same legitimate bumps (AC2). A mispairing-safety test drops the java-version field alongside unrelated legitimate bumps and confirms the removal still surfaces, naming java-version in the finding. An override entry keyed to one exact before/after hash suppresses that one diff and stops applying once the file changes again, and does not apply to a file deletion or a different file (AC3).
 
 Did not run the end-to-end run.ts --mode ci --base 0a26823~1 command mentioned in the task description: from this worktree's branch that would compare the whole branch, including this task's own edits, against that ancestor and conflate the two. The unit tests against the real extracted blobs are the hermetic equivalent and are what AC1 is judged on.
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 1
+
+```text
+ ERR_PNPM_UNSUPPORTED_ENGINE  Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+```text
+
+> grocs@0.0.0 check /Users/brukhabtu/src/github.com/bruk-io/grocs
+> node tools/checks/run.ts --mode all
+
+checks passed (12 checks, all mode, 211 ms)
+
+> grocs@0.0.0 typecheck /Users/brukhabtu/src/github.com/bruk-io/grocs
+> tsc --noEmit
+
+
+> grocs@0.0.0 test /Users/brukhabtu/src/github.com/bruk-io/grocs
+> vitest run --project unit --project ui --project app --project tools
+
+
+ RUN  v4.1.12 /Users/brukhabtu/src/github.com/bruk-io/grocs
+
+
+ Test Files  37 passed (37)
+      Tests  381 passed (381)
+   Start at  00:28:15
+   Duration  6.02s (transform 3.17s, setup 0ms, import 8.27s, tests 7.89s, environment 1.68s)
+```
+
+Reviewer note (philosophy:reviewer, 2026-10-19): the first `pnpm check && pnpm typecheck && pnpm test` record above, exited 1, is an artifact of my shell running Node 22 instead of the repo-pinned Node 24 (mise.toml) - not a real failure of this task. The exit-0 record immediately after it is the true fast-tier result, run under `mise exec`.
+
+Reviewer verification of AC1 against reality: extracted the actual `.github/workflows/ci.yml` blobs from 0a26823~1 and 0a26823 with `git show` and ran `reviewChange(".github/workflows/ci.yml", before, after)` on them directly. Result: `[]`. That is stronger evidence for AC1 than the embedded fixture, since it uses the real committed content rather than a reconstruction.
+
+No repro: the failing command this bug names (node tools/checks/run.ts --mode ci --base 0a26823~1) can no longer fail, since the fix (b4af711) is already on main - running it now would pass, which record-check --repro refuses to record as a repro. The hermetic equivalent is already in the test suite: weakening.test.ts's 'allows a pure version-only bump of pinned CI actions (TASK-2, the real 0a26823 diff)' test and the reviewer's own independent probe (reviewChange() run directly against the real git-show blobs of .github/workflows/ci.yml at 0a26823~1 and 0a26823, result []) both exercise the exact historical failure against the real content, just without needing to roll the repo back to reproduce it live.
+
+Checks changed: .claude/checks.json changed after TASK-2 was accepted, in 5a3cecc (decision-11's browser pass over Storybook). The diff only appends 'pnpm --filter @grocs/ui visual -- --no-build' to the 'full' tier; the 'fast' tier this task was verified under (pnpm check && pnpm typecheck && pnpm test) is byte-identical to the accepted one.
+
+Confirmed closed by the orchestrator after philosophy:reviewer's independent review (verified against the real git-show blobs of .github/workflows/ci.yml at 0a26823~1 and 0a26823, not just the test fixture). All three ACs met: AC1 version-only bumps pass clean, AC2 continue-on-error/dropped-step/paths-ignore/dropped-field all still fail even layered on a legitimate bump, AC3 the content-hash-pinned override mechanism is wired into both enforcement points and can never waive a deletion. No repro recorded (see implementation notes) since the failing command this bug names can no longer fail now that the fix (b4af711) is on main.
 <!-- SECTION:NOTES:END -->
