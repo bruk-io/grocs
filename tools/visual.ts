@@ -3,6 +3,8 @@
 //   1. runs axe-core and fails on any violation, colour contrast included (R42);
 //   2. fails any button, checkbox or link smaller than 44 x 44 points (R42);
 //   3. compares a screenshot with the approved image in packages/ui/visual-baselines/.
+// A few stories also get a motion check (MOTION_EXPECTATIONS): opened again with motion allowed, the kitchen
+// scene must pan and its reduced twin must hold still, since the views above are all held still.
 //
 //   pnpm --filter @grocs/ui visual                 build, then check every story
 //   pnpm --filter @grocs/ui visual -- --no-build   reuse storybook-static from the last build
@@ -16,11 +18,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Page } from 'playwright-core';
+import type { Browser, Page } from 'playwright-core';
 import { BASELINE_DIR, MANIFEST_FILE, UPDATE_COMMAND, readManifest, sha256 } from './checks/visual-baselines.ts';
 import type { Manifest } from './checks/visual-baselines.ts';
-import { buildStorybook, launch, listStories, newStoryPage, openStory, root, serve, staticDir, viewportsFor } from './storybook-browser.ts';
-import type { Viewport } from './storybook-browser.ts';
+import { buildStorybook, judgeMotion, launch, listStories, newStoryPage, openStory, PHONE, readMotion, root, serve, staticDir, viewportsFor } from './storybook-browser.ts';
+import type { MotionExpectation, Viewport } from './storybook-browser.ts';
 import { compareImages } from './visual-compare.ts';
 
 const baselineDir = join(root, BASELINE_DIR);
@@ -58,6 +60,28 @@ async function axeViolations(page: Page): Promise<string[]> {
   return result.violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length}x, e.g. ${v.nodes[0]?.target.join(' ')})`);
 }
 
+/**
+ * Stories whose motion is checked, because the pass shows every story still and so cannot show that these
+ * move (or, for the reduced one, that they stay still when the app says so). Each is opened a second time,
+ * on a page of its own with the browser allowing motion, and never screenshotted from that page.
+ */
+const MOTION_EXPECTATIONS: Readonly<Record<string, MotionExpectation>> = {
+  'organisms-kitchen-scene--panning': 'pans',
+  'organisms-kitchen-scene--reduced': 'still',
+};
+
+async function motionFailures(browser: Browser, baseUrl: string, id: string, expected: MotionExpectation): Promise<string[]> {
+  const label = `${id} @ ${PHONE.name}, motion allowed`;
+  const page = await newStoryPage(browser, PHONE, 'allowed');
+  try {
+    const { errors } = await openStory(page, baseUrl, id, PHONE, 'allowed');
+    if (errors.length > 0) return errors.map((e) => `${label}: story did not render: ${e}`);
+    return judgeMotion(await readMotion(page), expected).map((f) => `${label}: ${f}`);
+  } finally {
+    await page.context().close();
+  }
+}
+
 const baselineName = (id: string, viewport: Viewport): string => (viewport.name === 'iphone' ? `${id}.png` : `${id}--${viewport.name}.png`);
 
 async function main(): Promise<number> {
@@ -84,12 +108,19 @@ async function main(): Promise<number> {
   const server = await serve(staticDir);
   const browser = await launch();
   const failures: string[] = [];
+  if (!filter) {
+    // A renamed or deleted story must not quietly drop its motion check.
+    const known = new Set(stories.map((s) => s.id));
+    for (const id of Object.keys(MOTION_EXPECTATIONS)) if (!known.has(id)) failures.push(`${id}: has a motion check but no story; update MOTION_EXPECTATIONS in tools/visual.ts`);
+  }
   const approved: Record<string, string> = update && filter ? { ...(readManifest(baselineDir)?.baselines ?? {}) } : {};
   let compared = 0;
   rmSync(diffDir, { recursive: true, force: true });
   if (update) mkdirSync(baselineDir, { recursive: true });
   try {
     for (const story of stories) {
+      const expected = MOTION_EXPECTATIONS[story.id];
+      if (expected) failures.push(...(await motionFailures(browser, server.url, story.id, expected)));
       for (const viewport of viewportsFor(story)) {
         const label = `${story.id} @ ${viewport.name}`;
         const page = await newStoryPage(browser, viewport);
