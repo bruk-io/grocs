@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 06:13'
+updated_date: '2026-10-19 06:28'
 labels:
   - size-5
   - layer-ui
@@ -27,10 +27,10 @@ Every molecule on design/reference/DS-Molecules.dc.html as a ui component built 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every molecule on the DS-Molecules board except the Mascot is a component in packages/ui/src/molecules built from atoms and tokens only, and the task notes map each board molecule to its component (R60)
-- [ ] #2 Each molecule has a story for every state it declares (R61, R63)
-- [ ] #3 Rendered with pnpm --filter @grocs/ui shots, the molecule stories match DS-Molecules.png; any difference is listed in the notes with its reason
-- [ ] #4 DS-Molecules.dc.html and its shot are deleted once the Mascot (TASK-1.30) is also built (R66)
+- [x] #1 Every molecule on the DS-Molecules board except the Mascot is a component in packages/ui/src/molecules built from atoms and tokens only, and the task notes map each board molecule to its component (R60)
+- [x] #2 Each molecule has a story for every state it declares (R61, R63)
+- [x] #3 Rendered with pnpm --filter @grocs/ui shots, the molecule stories match DS-Molecules.png; any difference is listed in the notes with its reason
+- [x] #4 DS-Molecules.dc.html and its shot are deleted once the Mascot (TASK-1.30) is also built (R66)
 - [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
 <!-- AC:END -->
 
@@ -104,4 +104,76 @@ Rendered stories: packages/ui/visual-baselines/molecules-*.png (approved, commit
 - The tab story wraps TabItem in a tablist (nav.tabs, an organism, will supply it).
 
 Correction to the table above: the toast molecule is ActivityToast (stories molecules-activitytoast--rest, --planned), not Toast. The reference-built check matches a built component named Toast to the Toast screen board (TASK-1.37.5) and would have asked for that board to be deleted, so the molecule took a different name.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(408 earlier lines omitted)
+```text
+|  4.16 kB │ gzip:   1.64 kB
+|  storybook-static/assets/Button-YP8kWkLO.js
+|  5.29 kB │ gzip:   1.89 kB
+|  storybook-static/assets/ItemRow.stories-BklIW-_8.js
+|  5.51 kB │ gzip:   2.19 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/art-DwOOJHCf.js
+|  9.90 kB │ gzip:   2.30 kB
+|  storybook-static/assets/Mascot-BSHKHLor.js
+|  11.40 kB │ gzip:   4.22 kB
+|  storybook-static/assets/Kitchen.stories-BBTCS1K1.js
+|  13.91 kB │ gzip:   3.31 kB
+|  storybook-static/assets/icons-DaYknPM1.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-DheltA1o.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/part-DBgYM3dk.js
+|  157.12 kB │ gzip:  47.60 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-DgvSXTsk.js
+|  1,353.31 kB │ gzip: 390.60 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.16s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 2.8s of this 4.1s
+|  build (68%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin vite:css transform (35%, 1.4s, 2 calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-af0f123a85161ade2/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-af0f123a85161ade2/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 234 story views checked (axe, 44 x 44, 234 images compared)
+```
+
+Review (philosophy:reviewer, 2026-10-19): NOT CLOSED. Full-tier record-check exit 0 (check, typecheck, 940 tests, emulator, check:release, storybook build, visual 234 views axe and 44x44 clean). AC1-4 ticked: 17 molecules mapped, stories per declared state, baselines match DS-Molecules.png with differences listed, board/shot/canvas entry deleted. AC5 unmet: StatusRow.kind (joined adds a named avatar) and AvatarStack member.online (announced ', online') are state props with no behaviour test; add StatusRow and AvatarStack behaviour tests by role and name. Accepted as reasoned: ActivityToast name; stepper disabled keeps the atom's grey fill; ItemRow pressed is a tint without the 97% scale (R42); atom edits each serve a molecule; ListScreen's ItemRow call (name, amount, inCart) unchanged and typechecks. Low: Avatar xl with online announces ', online' but draws no ring. close-task also reports .claude/checks.json changed since acceptance in 81a13b9 with no 'Checks changed:' note; the builder or orchestrator must explain or revert it.
+
+Checks changed: .claude/checks.json's full tier gained the browser pass (pnpm --filter @grocs/ui visual -- --no-build) in TASK-1.37.6 (commit 5a3cecc), merged into main after this task was accepted; this task did not change checks.json.
+
+Review follow-ups: StatusRow and AvatarStack behaviour tests added (role and name); an xl Avatar with online now draws its tomato ring (story XlOnline, state xlOnline).
 <!-- SECTION:NOTES:END -->

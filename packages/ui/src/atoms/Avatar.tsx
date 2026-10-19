@@ -3,7 +3,7 @@ import { fontFace } from '../platform/font-face.ts';
 import { tokens } from '../tokens/tokens.ts';
 
 /** avatar.l, avatar.l--online (a tomato ring) and avatar.s; an avatar is only ever read, so each state is a look. */
-export const AVATAR_STATES = ['large', 'online', 'small', 'xl'] as const;
+export const AVATAR_STATES = ['large', 'online', 'small', 'xl', 'xlOnline'] as const;
 
 export interface AvatarProps {
   /** The person's name; the avatar shows its first letter and says the whole name. */
@@ -21,7 +21,7 @@ export function Avatar({ name, size = 'l', tone = 'forest', online = false }: Av
   const xl = size === 'xl';
   return (
     <View accessible accessibilityRole="image" accessibilityLabel={online ? `${name}, online` : name} style={[xl ? styles.xl : large ? styles.large : styles.small, (large || tone === 'chartreuse') && (tone === 'forest' ? styles.forest : styles.chartreuse)]}>
-      {large && !xl && online ? <View aria-hidden style={styles.ring} /> : null}
+      {large && online ? <View aria-hidden style={styles.ring} /> : null}
       <Text aria-hidden style={[styles.initial, xl ? styles.initialXl : large ? styles.initialLarge : styles.initialSmall, { color: large ? (tone === 'forest' ? tokens.color.onBrand : tokens.color.ink) : tone === 'chartreuse' ? tokens.color.ink : tokens.color.inkOnTint }]}>
         {initial}
       </Text>
