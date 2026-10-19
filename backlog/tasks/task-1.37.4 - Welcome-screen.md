@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.4
 title: Welcome screen
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 06:49'
+updated_date: '2026-10-19 08:32'
 labels:
   - size-3
   - layer-app
