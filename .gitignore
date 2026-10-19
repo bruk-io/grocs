@@ -26,3 +26,5 @@ ui-debug.log
 .DS_Store
 coverage/
 
+# Failed picture comparisons from `pnpm --filter @grocs/ui visual`
+.visual-diff/

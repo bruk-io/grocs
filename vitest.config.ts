@@ -22,6 +22,19 @@ const webFirst = {
   },
 };
 
+// expo-modules-core's build imports './ts-declarations/global', which is a type declaration file with
+// no JavaScript beside it (Metro skips it). Route tests load that import as an empty module.
+const declarationOnly = {
+  name: 'declaration-only-imports',
+  enforce: 'pre' as const,
+  resolveId(source: string) {
+    return source.endsWith('/ts-declarations/global') ? '\0declaration-only' : null;
+  },
+  load(id: string) {
+    return id === '\0declaration-only' ? 'export {};' : null;
+  },
+};
+
 export default defineConfig({
   test: {
     // Focused tests are always an error, not only when CI is set (R57).
@@ -50,14 +63,18 @@ export default defineConfig({
       },
       {
         extends: true,
-        resolve: { alias: { 'react-native': 'react-native-web' } },
-        plugins: [webFirst],
+        // Route tests load the Expo packages the way Metro's web build does: .web files first.
+        resolve: { alias: { 'react-native': 'react-native-web' }, extensions: ['.web.tsx', '.web.ts', '.web.js', '.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'] },
+        plugins: [webFirst, declarationOnly],
         test: {
           name: 'app',
           environment: 'jsdom',
           include: ['apps/*/src/**/*.test.tsx'],
+          setupFiles: ['apps/mobile/testing/route-setup.ts'],
           alias: nativeSvg,
-          server: { deps: { inline: [/react-native-svg/] } },
+          // Route tests (decision-11 level 4) render expo-router, which requires 'react-native' from
+          // CommonJS; inlining it, and the Expo packages it loads, makes them see the react-native-web alias.
+          server: { deps: { inline: [/react-native-svg/, /node_modules\/expo(-[^/]+)?\//] } },
         },
       },
       {

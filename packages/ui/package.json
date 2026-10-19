@@ -27,6 +27,8 @@
   "scripts": {
     "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook dev -p 6006",
     "shots": "node --disable-warning=ExperimentalWarning ../../tools/shots.ts",
-    "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o storybook-static"
+    "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build -o storybook-static",
+    "visual": "node --disable-warning=ExperimentalWarning ../../tools/visual.ts",
+    "visual:update": "node --disable-warning=ExperimentalWarning ../../tools/visual.ts --update"
   }
 }

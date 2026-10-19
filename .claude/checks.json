@@ -1,4 +1,4 @@
 {
   "fast": "pnpm check && pnpm typecheck && pnpm test",
-  "full": "pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook"
+  "full": "pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build"
 }

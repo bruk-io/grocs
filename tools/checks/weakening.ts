@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Check, Finding, RuleInfo } from './lib.ts';
 import { isStoryFile, isTestFile } from './lib.ts';
+import { BASELINE_FIX, BASELINE_WHY, isBaselinePath } from './visual-baselines.ts';
 
 export const rules: Readonly<Record<string, RuleInfo>> = {
   'weakening/focus-test': {
@@ -33,6 +34,12 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     why: 'A check that can be edited by the thing it checks proves nothing. Removing a rule, excluding a path or turning a failure into a warning makes the change under review pass without making it correct.',
     fix: "Change the code so the check passes. If the check itself is wrong, ask the person who owns the spec; a human makes that change. A sanctioned exception for one specific diff (not a standing bypass) is recorded in tools/checks/weakening-overrides.json, keyed to that diff's exact before/after content - never only in a commit message. A version-only bump of a pinned action or tool (e.g. actions/checkout@v4 -> @v7) does not need one; a bump pinned by commit SHA rather than a bare tag does, since the line shapes differ.",
   },
+  'weakening/edit-baseline': {
+    req: 'R57, R65',
+    summary: 'Do not edit or delete a visual baseline outside visual:update',
+    why: BASELINE_WHY,
+    fix: BASELINE_FIX,
+  },
 };
 
 export type Severity = 'deny' | 'ask';
@@ -51,6 +58,25 @@ const CHECK_CONFIG = [
   /^firebase\.json$/,
 ];
 const LOOSENING_WORDS = /\b(exclude|excludes|ignore|ignored|allowOnly|passWithNoTests|continue-on-error|warn|off|disable\w*|skip\w*|todo|threshold|bail)\b/i;
+
+/**
+ * A tool edit (Edit or Write) to anything in the baseline folder. Baselines are images and a manifest that
+ * `pnpm --filter @grocs/ui visual:update` writes; no hand edit is a legitimate way to change them. A change
+ * that reaches the repository some other way is caught by the visual-baselines check, which compares the
+ * folder with the manifest.
+ */
+export function reviewBaselineEdit(file: string): Weakening[] {
+  if (!isBaselinePath(file)) return [];
+  return [{ rule: 'weakening/edit-baseline', severity: 'deny', file, detail: `${file} is a visual baseline, and only visual:update may create, change or delete it` }];
+}
+
+/** Shell commands that write to or delete from the baseline folder. A visual:update run does not name the folder. */
+const BASELINE_PATH_IN_COMMAND = /visual-baselines/;
+const BASELINE_MUTATION = /\b(rm|mv|cp|rsync|install|touch|truncate|dd|tee|ln|unlink|chmod|git\s+(rm|mv))\b|\bsed\s+-\w*i|\bperl\s+-\w*i|-delete\b|-exec\b|(?<![0-9&])>(?!&)/;
+export function reviewBaselineBash(command: string): Weakening[] {
+  if (!BASELINE_PATH_IN_COMMAND.test(command) || !BASELINE_MUTATION.test(command)) return [];
+  return [{ rule: 'weakening/edit-baseline', severity: 'deny', file: 'bash', detail: `the command changes the visual baselines from the shell: ${command.slice(0, 120)}` }];
+}
 
 export const isCheckCode = (f: string): boolean => CHECK_CODE.test(f);
 export const isCheckConfig = (f: string): boolean => CHECK_CONFIG.some((re) => re.test(f));

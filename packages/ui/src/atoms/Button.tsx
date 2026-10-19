@@ -24,7 +24,7 @@ export function Button({ label, onPress, disabled = false, loading = false, forc
       aria-disabled={inactive}
       aria-busy={loading}
       disabled={inactive}
-      onPress={onPress}
+      onPress={() => onPress?.()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={({ pressed }) => [

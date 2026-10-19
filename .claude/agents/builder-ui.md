@@ -28,6 +28,8 @@ Your Bash is narrowed to this layer's own checks, enforced by the write guard
 - `pnpm -s typecheck`
 - `pnpm --filter @grocs/ui build-storybook`
 - `pnpm --filter @grocs/ui shots`
+- `pnpm --filter @grocs/ui visual`
+- `pnpm --filter @grocs/ui visual:update`
 
 ## Examples from the walking skeleton (TASK-1.4)
 

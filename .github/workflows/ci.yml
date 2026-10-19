@@ -67,3 +67,14 @@ jobs:
       - name: Android and iOS bundles, development and release; release must hold no dev-only code (R53, R64)
         run: pnpm check:release
       - run: pnpm --filter @grocs/ui build-storybook
+      - name: Chromium for the browser pass
+        run: pnpm exec playwright-core install --with-deps chromium
+      - name: Browser pass over every story, axe scan, 44 x 44 targets, screenshots against packages/ui/visual-baselines (R42, R57, decision-11)
+        run: pnpm --filter @grocs/ui visual -- --no-build
+      - name: Pictures that differ from their baselines
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diff
+          path: packages/ui/.visual-diff
+          if-no-files-found: ignore

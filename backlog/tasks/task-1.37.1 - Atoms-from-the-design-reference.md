@@ -4,7 +4,7 @@ title: Atoms from the design reference
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 03:53'
+updated_date: '2026-10-19 04:28'
 labels:
   - size-5
   - layer-ui
@@ -39,4 +39,6 @@ Every atom on design/reference/DS-Atoms.dc.html as a ui component (R38, R39, R60
 Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
 
 Finish moved on 2026-10-18 before work started: the TASK-1.19 review found the fonts bundled for Storybook only. The text atoms are where that first shows, so on-device font loading joins this task.
+
+Review of TASK-1.37.6 found: on react-native-web the Checkbox toggles on Enter but not on Space (WAI-ARIA checkbox pattern requires Space). Fix it here and add a Space case to packages/ui/src/atoms/Checkbox.behaviour.test.tsx.
 <!-- SECTION:NOTES:END -->
