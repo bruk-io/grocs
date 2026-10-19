@@ -5,10 +5,10 @@ import { GroceriesScreen } from '../src/screens/GroceriesScreen.tsx';
 import { WelcomeScreen } from '../src/screens/WelcomeScreen.tsx';
 
 export default function Home() {
-  const { app, dev } = useNativeApp();
+  const { app, dev, demo } = useNativeApp();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   useEffect(() => app.watchSession(setUser), [app]);
   if (user === undefined) return null;
-  if (user === null) return <WelcomeScreen dev={dev} />;
-  return <GroceriesScreen app={app} kitchenId={dev?.kitchenId ?? ''} />;
+  if (user === null) return <WelcomeScreen dev={dev} demo={demo} />;
+  return <GroceriesScreen app={app} kitchenId={demo?.kitchenId ?? dev?.kitchenId ?? ''} />;
 }

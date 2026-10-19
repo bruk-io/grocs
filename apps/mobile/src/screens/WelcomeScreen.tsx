@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, SignInTemplate, Text } from '@grocs/ui';
-import type { DevAccess } from '../composition/native.ts';
+import type { DemoAccess, DevAccess } from '../composition/native.ts';
 import { useGo } from './navigate.ts';
 
 /**
@@ -9,7 +9,7 @@ import { useGo } from './navigate.ts';
  * the invite link do nothing). In development builds the seeded test accounts sign in against the
  * Auth emulator from the foot of the sheet (R53).
  */
-export function WelcomeScreen({ dev }: { dev: DevAccess | null }) {
+export function WelcomeScreen({ dev, demo = null }: { dev: DevAccess | null; demo?: DemoAccess | null }) {
   const go = useGo();
   return (
     <View style={styles.screen}>
@@ -17,10 +17,15 @@ export function WelcomeScreen({ dev }: { dev: DevAccess | null }) {
         title="Grocs"
         tagline="Plan the week. Shop together."
         onOpenInvite={go.join}
-        {...(dev ? { footer: <DevSignIn dev={dev} /> } : {})}
+        {...(demo ? { footer: <TryDemo demo={demo} /> } : dev ? { footer: <DevSignIn dev={dev} /> } : {})}
       />
     </View>
   );
+}
+
+/** The demo variant's way in: no account, and sample data that stays on the phone (decision-12). */
+function TryDemo({ demo }: { demo: DemoAccess }) {
+  return <Button variant="text" size="s" label="Try the demo" onPress={() => void demo.signIn()} />;
 }
 
 function DevSignIn({ dev }: { dev: DevAccess }) {

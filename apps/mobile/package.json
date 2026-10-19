@@ -17,6 +17,7 @@
     "@grocs/ports": "workspace:*",
     "@grocs/providers-device": "workspace:*",
     "@grocs/providers-firebase": "workspace:*",
+    "@grocs/providers-memory": "workspace:*",
     "@grocs/ui": "workspace:*",
     "@react-native-firebase/app": "^26.4.0",
     "@react-native-firebase/auth": "^26.4.0",

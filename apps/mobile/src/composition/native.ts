@@ -18,10 +18,18 @@ export interface DevAccess {
   readonly signIn: (email: string, password: string) => Promise<void>;
 }
 
+/** What the demo variant adds: a way in with no account, and the kitchen it opens on (decision-12). */
+export interface DemoAccess {
+  readonly kitchenId: string;
+  readonly signIn: () => Promise<void>;
+}
+
 export interface NativeApp {
   readonly app: App;
   /** Null in release builds. */
   readonly dev: DevAccess | null;
+  /** Null in every build but the demo variant. */
+  readonly demo: DemoAccess | null;
   /** Release builds keep a bounded buffer of log records for the diagnostics action (R35). */
   readonly diagnostics: (() => string) | null;
   /** Google sign-in produces no domain event, so it is wired here directly, not through the command dispatcher. */
@@ -69,6 +77,7 @@ export function createNativeApp(): NativeApp {
     dev: dev
       ? { kitchenId: dev.kitchenId, accounts: dev.accounts, signIn: dev.signInFunction(authFns, authInstance) }
       : null,
+    demo: null,
     diagnostics: buffer ? () => buffer.dump() : null,
     signInWithGoogle: () => googleAuth.signInWithGoogle(),
   };

@@ -104,6 +104,9 @@ importers:
       '@grocs/providers-firebase':
         specifier: workspace:*
         version: link:../../packages/providers-firebase
+      '@grocs/providers-memory':
+        specifier: workspace:*
+        version: link:../../packages/providers-memory
       '@grocs/ui':
         specifier: workspace:*
         version: link:../../packages/ui
