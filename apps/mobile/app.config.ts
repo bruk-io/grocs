@@ -7,7 +7,13 @@ export default (): ExpoConfig => ({
   scheme: 'grocs',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
-  plugins: ['expo-router', '@react-native-firebase/app', '@react-native-firebase/auth'],
+  plugins: [
+    'expo-router',
+    ['@react-native-firebase/app', { ios: { disableSPM: true } }],
+    '@react-native-firebase/auth',
+    ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
+    './plugins/withFirebaseConfigure.js',
+  ],
   ios: {
     bundleIdentifier: 'io.bruk.grocs.dev',
     googleServicesFile: process.env.GOOGLE_SERVICE_INFO_PLIST_PATH,
