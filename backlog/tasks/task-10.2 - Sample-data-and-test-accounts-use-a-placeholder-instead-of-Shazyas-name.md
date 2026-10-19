@@ -1,11 +1,11 @@
 ---
 id: TASK-10.2
 title: Sample data and test accounts use a placeholder instead of Shazya's name
-status: In Progress
+status: Done
 assignee:
   - '@builder'
 created_date: '2026-10-19 14:27'
-updated_date: '2026-10-19 14:54'
+updated_date: '2026-10-19 15:22'
 labels:
   - size-2
 dependencies: []
@@ -21,9 +21,9 @@ Before the repo goes public (TASK-10), the app's sample data, seeded emulator ac
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No file outside backlog/ names Shazya (git grep -i shazya -- ':!backlog' is empty)
-- [ ] #2 Tests assert the placeholder where they asserted her name, with no test removed or skipped, and pnpm check, typecheck, test and test:emulator pass
-- [ ] #3 Any baseline that changes because a story showed her name is regenerated through visual:update and listed in the report
+- [x] #1 No file outside backlog/ names Shazya (git grep -i shazya -- ':!backlog' is empty)
+- [x] #2 Tests assert the placeholder where they asserted her name, with no test removed or skipped, and pnpm check, typecheck, test and test:emulator pass
+- [x] #3 Any baseline that changes because a story showed her name is regenerated through visual:update and listed in the report
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -47,4 +47,72 @@ Builder report. Every file outside backlog/ that named her now says Sam (Shazya-
 Beyond the files the task listed: packages/ui stories, behaviour tests and templates/fixtures.ts; apps/mobile SampleGroceriesScreen.tsx and SettingsScreen.tsx; firebase/emulator-client.ts; the uid in packages/core, packages/application and packages/ports/src/sync-store/contract.ts tests; and the read-only mockups design/reference/*.dc.html (AC #1 covers every file outside backlog/; the avatar initial S still fits). The PNG shots in design/reference/shots could not be grepped and were not touched; if any shows her name, it goes when that board is deleted.
 Verification (all in this worktree): pnpm check passed (13 checks); pnpm typecheck clean; pnpm test 88 files, 1193 tests passed; pnpm test:emulator 5 files, 27 tests passed (two-client test now signs in sam); pnpm --filter @grocs/ui visual failed on 13 views whose pixels changed because the name is shorter, then passed 311/311 after visual:update.
 Baselines regenerated through visual:update (13 PNGs plus manifest.json), in packages/ui/visual-baselines/: molecules-activitytoast--planned, molecules-activitytoast--rest, molecules-statusrow--joined, organisms-invitecard--joined, templates-grocery-list--groceries, templates-grocery-list--groceries--fold-inner, templates-grocery-list--groceries--fold-outer, templates-grocery-list--toast, templates-grocery-list--toast--fold-inner, templates-grocery-list--toast--fold-outer, templates-preferences--rest, templates-preferences--rest--fold-inner, templates-preferences--rest--fold-outer. The other 298 baselines matched unchanged. Caveat: they were written in this Linux sandbox, not the visual baselines workflow that CLAUDE.md names as the reference; the unchanged 298 matching suggests the same rendering, but re-running the workflow on the pushed branch would confirm.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(508 earlier lines omitted)
+```text
+|  3.25 kB │ gzip:   1.46 kB
+|  storybook-static/assets/SignInTemplate.stories-BJ7sbCBj.js
+|  3.69 kB │ gzip:   1.53 kB
+|  storybook-static/assets/ItemPickerTemplate.stories-84KNSM2C.js
+|  4.34 kB │ gzip:   1.52 kB
+|  storybook-static/assets/Button.stories-oKuUPhPX.js
+|  4.47 kB │ gzip:   1.31 kB
+|  storybook-static/assets/PreferencesTemplate.stories-x1S07O_a.js
+|  4.55 kB │ gzip:   1.74 kB
+|  storybook-static/assets/TextField-BUQ8W6wa.js
+|  4.58 kB │ gzip:   1.76 kB
+|  storybook-static/assets/ItemRow-DlxtsPQG.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-CG-L9128.js
+|  5.75 kB │ gzip:   1.97 kB
+|  storybook-static/assets/Button-HlTd63fv.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-CVO2Zfzk.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-D4zA4yxG.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-_dK9hVdg.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-d75twOs6.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-wrpbBZ8J.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-7rNFOYcX.js
+|  1,359.38 kB │ gzip: 391.72 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.81s
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a5d8dc81e86594d21/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-a5d8dc81e86594d21/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 311 story views checked (axe, 44 x 44, 311 images compared)
+```
+
+Review (philosophy:reviewer, 2026-10-19) of ca6f89a. Closed: all three criteria met. Evidence: record-check --tier full exit 0 in the worktree (13 checks, 1193 unit tests, 27 emulator tests including two-client, check:release, storybook, visual 311 views, 311 images compared); no load re-runs needed; the check changed no files. AC1: git grep -i shazya -- ':!backlog' is empty (exit 1), and the read-only design/reference/*.dc.html boards were swapped too, which AC1's wording covers. AC2: a script normalised Shazya to Sam over every changed line outside backlog/, PNGs and the manifest: 96 lines removed and 96 added, all identical after normalisation, so no test was removed, skipped or loosened, and only strings and the lowercase uid changed. AC3: 13 baselines were regenerated and listed in the report. The orchestrator's visual-baselines workflow run 39273755071 on this commit matched them byte for byte. I viewed templates-grocery-list--toast and templates-preferences--rest before and after: the only change is Shazya to Sam, with the layout otherwise identical. Question for Bruk, not a blocker: design/reference/shots/options PNGs still show her name in their pixels (seen in D1-OptionA-ask, where the conflict banner reads 'Shazya just added'; the D2 shots I looked at show only an S avatar). AC1 as written (git grep) is met. Whether these images must go before the visibility flip is Bruk's call: replace or delete the D1 shots, or leave them until the D1 board is retired under R66. Expected and not a finding: her name in backlog/ and git history, per Bruk's choice.
 <!-- SECTION:NOTES:END -->
