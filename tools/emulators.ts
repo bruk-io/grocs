@@ -29,4 +29,4 @@ async function waitFor(url: string, tries = 120): Promise<void> {
 await waitFor('http://127.0.0.1:8080');
 await waitFor('http://127.0.0.1:9099');
 await seed({ ...process.env, FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080', FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099' });
-console.log('\nEmulators are up and seeded. Sign in with bruk@grocs.test or shazya@grocs.test (password: local-only-password). Ctrl-C to stop.');
+console.log('\nEmulators are up and seeded. Sign in with bruk@grocs.test or sam@grocs.test (password: local-only-password). Ctrl-C to stop.');

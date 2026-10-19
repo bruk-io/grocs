@@ -54,7 +54,7 @@ describe('ItemRow (R50, R65)', () => {
     expect(screen.getByText('2')).toBeTruthy();
     expect(screen.getByText('Chana masala')).toBeTruthy();
     expect(screen.getByText('Sheet-pan chicken')).toBeTruthy();
-    expect(screen.getByRole('img', { name: 'Shazya' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Sam' })).toBeTruthy();
   });
 
   it('shows just the amount for an extra', () => {

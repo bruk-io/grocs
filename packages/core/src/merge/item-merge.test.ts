@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { Item } from '../model/item.ts';
 import { isDeleted, mergeItem } from './item-merge.ts';
 
-const members = fc.constantFrom('bruk', 'shazya');
+const members = fc.constantFrom('bruk', 'sam');
 const stamp = fc.record({ at: fc.integer({ min: 0, max: 12 }), by: members });
 const stampedOf = <T>(value: fc.Arbitrary<T>) => fc.record({ value, stamp });
 
@@ -39,7 +39,7 @@ describe('mergeItem examples (R17 to R20)', () => {
 
   it('keeps both changes when members change different fields (R18)', () => {
     const renamed = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'bruk' } } };
-    const ticked = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'shazya' } } };
+    const ticked = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'sam' } } };
     const merged = mergeItem(renamed, ticked);
     expect(merged.name.value).toBe('Oat milk');
     expect(merged.state.value).toBe('in-cart');
@@ -47,14 +47,14 @@ describe('mergeItem examples (R17 to R20)', () => {
 
   it('the later of a tick and an untick wins (R17, R18)', () => {
     const tick = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'bruk' } } };
-    const untick = { ...base, state: { value: 'to-buy' as const, stamp: { at: 6, by: 'shazya' } } };
+    const untick = { ...base, state: { value: 'to-buy' as const, stamp: { at: 6, by: 'sam' } } };
     expect(mergeItem(tick, untick).state.value).toBe('to-buy');
     expect(mergeItem(untick, tick).state.value).toBe('to-buy');
   });
 
   it('two ticks end with the item in the cart (R17)', () => {
     const a = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'bruk' } } };
-    const b = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'shazya' } } };
+    const b = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'sam' } } };
     expect(mergeItem(a, b).state.value).toBe('in-cart');
   });
 
@@ -63,7 +63,7 @@ describe('mergeItem examples (R17 to R20)', () => {
   });
 
   it('a late change made before the delete does not bring the item back (R20)', () => {
-    const deleted = { ...base, deleted: { at: 10, by: 'shazya' } };
+    const deleted = { ...base, deleted: { at: 10, by: 'sam' } };
     const lateEdit = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'bruk' } } };
     const merged = mergeItem(deleted, lateEdit);
     expect(isDeleted(merged)).toBe(true);

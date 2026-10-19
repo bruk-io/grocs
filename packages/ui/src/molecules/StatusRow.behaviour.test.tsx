@@ -16,8 +16,8 @@ describe('StatusRow', () => {
 
   it('adds the joined person as a named avatar', () => {
     render(<Joined />);
-    expect(screen.getByRole('img', { name: 'Shazya' })).toBeTruthy();
-    expect(screen.getByText('Shazya joined your kitchen!')).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Sam' })).toBeTruthy();
+    expect(screen.getByText('Sam joined your kitchen!')).toBeTruthy();
   });
 
   it('draws no avatar when joined without a name', () => {

@@ -7,7 +7,7 @@ const meta = {
   args: {
     members: [
       { name: 'Bruk', tone: 'forest' },
-      { name: 'Shazya', tone: 'chartreuse' },
+      { name: 'Sam', tone: 'chartreuse' },
     ],
   },
 } satisfies Meta<typeof AvatarStack>;
@@ -19,7 +19,7 @@ export const Online: Story = {
   args: {
     members: [
       { name: 'Bruk', tone: 'forest' },
-      { name: 'Shazya', tone: 'chartreuse', online: true },
+      { name: 'Sam', tone: 'chartreuse', online: true },
     ],
   },
 };

@@ -10,13 +10,13 @@ afterEach(cleanup);
 describe('AvatarStack', () => {
   it('names every member', () => {
     render(<Away />);
-    expect(screen.getAllByRole('img').map((el) => el.getAttribute('aria-label'))).toEqual(['Bruk', 'Shazya']);
+    expect(screen.getAllByRole('img').map((el) => el.getAttribute('aria-label'))).toEqual(['Bruk', 'Sam']);
   });
 
   it('reads an online member as "name, online" and the others by name', () => {
     render(<Online />);
-    expect(screen.getByRole('img', { name: 'Shazya, online' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Sam, online' })).toBeTruthy();
     expect(screen.getByRole('img', { name: 'Bruk' })).toBeTruthy();
-    expect(screen.queryByRole('img', { name: 'Shazya' })).toBeNull();
+    expect(screen.queryByRole('img', { name: 'Sam' })).toBeNull();
   });
 });

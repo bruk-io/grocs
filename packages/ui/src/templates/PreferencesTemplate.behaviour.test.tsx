@@ -16,21 +16,21 @@ describe('PreferencesTemplate', () => {
     expect(screen.getByRole('heading', { name: 'Notifications' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Diagnostics' })).toBeTruthy();
     expect(screen.getByText('you@example.com · Our kitchen')).toBeTruthy();
-    expect(screen.getByText(/We only nudge you when Shazya adds to the plan or the list/)).toBeTruthy();
+    expect(screen.getByText(/We only nudge you when Sam adds to the plan or the list/)).toBeTruthy();
   });
 
   it('shows notifications off, and on when asked', () => {
     render(<Rest />);
-    expect(screen.getByRole('switch', { name: 'Tell me when Shazya adds something' }).getAttribute('aria-checked')).toBe('false');
+    expect(screen.getByRole('switch', { name: 'Tell me when Sam adds something' }).getAttribute('aria-checked')).toBe('false');
     cleanup();
     render(<Rest notificationsOn />);
-    expect(screen.getByRole('switch', { name: 'Tell me when Shazya adds something' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('switch', { name: 'Tell me when Sam adds something' }).getAttribute('aria-checked')).toBe('true');
   });
 
   it('sends the state it wants when notifications are switched', async () => {
     const onNotificationsChange = vi.fn();
     render(<Rest onNotificationsChange={onNotificationsChange} />);
-    await user.click(screen.getByRole('switch', { name: 'Tell me when Shazya adds something' }));
+    await user.click(screen.getByRole('switch', { name: 'Tell me when Sam adds something' }));
     expect(onNotificationsChange).toHaveBeenCalledExactlyOnceWith(true);
   });
 
