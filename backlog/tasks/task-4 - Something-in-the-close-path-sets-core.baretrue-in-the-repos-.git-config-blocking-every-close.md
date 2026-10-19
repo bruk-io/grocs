@@ -1,13 +1,14 @@
 ---
-id: DRAFT-3
+id: TASK-4
 title: >-
   Something in the close path sets core.bare=true in the repo's .git/config,
   blocking every close
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 22:10'
-updated_date: '2026-10-18 22:19'
-labels: []
+updated_date: '2026-10-19 03:28'
+labels:
+  - size-1
 dependencies: []
 type: bug
 ---

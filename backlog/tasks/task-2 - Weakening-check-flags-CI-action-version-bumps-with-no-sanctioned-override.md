@@ -1,10 +1,12 @@
 ---
-id: DRAFT-1
+id: TASK-2
 title: Weakening check flags CI action version bumps with no sanctioned override
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 21:59'
-labels: []
+updated_date: '2026-10-19 03:28'
+labels:
+  - size-2
 dependencies: []
 type: bug
 ---

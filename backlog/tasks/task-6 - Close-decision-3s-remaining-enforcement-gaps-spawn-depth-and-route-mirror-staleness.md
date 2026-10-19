@@ -1,12 +1,14 @@
 ---
-id: DRAFT-5
+id: TASK-6
 title: >-
   Close decision-3's remaining enforcement gaps: spawn depth and route-mirror
   staleness
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-19 00:32'
-labels: []
+updated_date: '2026-10-19 03:28'
+labels:
+  - size-2
 dependencies: []
 type: bug
 ---
