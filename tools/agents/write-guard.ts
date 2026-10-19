@@ -69,9 +69,10 @@ export function reviewLayerEdit(agent: ParsedAgent, file: string): Finding[] {
   ];
 }
 
-export function reviewLayerBash(agent: ParsedAgent, command: string, config: Pick<LayerConfig, 'testCommand' | 'typecheckCommand'>): Finding[] {
+export function reviewLayerBash(agent: ParsedAgent, command: string, config: Pick<LayerConfig, 'testCommand' | 'typecheckCommand' | 'extraCommands'>): Finding[] {
   const trimmed = command.trim();
   if (trimmed === config.testCommand || trimmed === config.typecheckCommand) return [];
+  if ((config.extraCommands ?? []).includes(trimmed)) return [];
   return [
     {
       rule: 'write-guard/bash-narrowed',

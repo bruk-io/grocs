@@ -5,5 +5,6 @@
   "testCommand": "vitest run --project ui",
   "typecheckCommand": "pnpm -s typecheck",
   "rulesFiles": [],
-  "exampleFiles": ["packages/ui/src/atoms/Button.tsx", "packages/ui/src/molecules/ItemRow.tsx", "packages/ui/src/tokens/tokens.ts"]
+  "exampleFiles": ["packages/ui/src/atoms/Button.tsx", "packages/ui/src/molecules/ItemRow.tsx", "packages/ui/src/tokens/tokens.ts"],
+  "extraCommands": ["pnpm --filter @grocs/ui build-storybook", "pnpm --filter @grocs/ui shots"]
 }

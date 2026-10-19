@@ -7,10 +7,9 @@ assignee:
 created_date: '2026-10-18 18:16'
 updated_date: '2026-10-19 03:14'
 labels:
-  - size-3
   - design-system
   - finish-moved
-  - layer-ui
+  - size-5
 milestone: m-1
 dependencies:
   - TASK-1.14
@@ -31,6 +30,7 @@ Bruk retired the canvas on Oct 18, 2026; Storybook is the design system (R66). T
 - [ ] #3 A check fails when a name is both built in packages/ui or apps/mobile and still in design/reference/ (R66)
 - [ ] #4 Checks fail when a design level imports upward, or an interactive component misses a required state (R60, R61)
 - [ ] #5 Every story is checked for 4.5:1 text contrast and 44-point touch targets (R42), and both apps build from the one ui package (R38)
+- [ ] #6 One command, pnpm --filter @grocs/ui shots, builds the browser Storybook and saves a PNG of every story at phone size, so a builder can compare a story with design/reference/shots/
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -38,5 +38,11 @@ Bruk retired the canvas on Oct 18, 2026; Storybook is the design system (R66). T
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18, right after acceptance and before work started: Bruk retired the canvas in favour of Storybook. The task changed from moving the canvas into the repo to extracting its tokens and art, and gained the design-system checks for R38, R39, R42, R60 and R61, which no task cited.
 
-Paused before any work started: the first launch attempt was blocked by the launch guard (missing layer-ui label, now added), and before it was retried, Bruk asked to hold off on UI-adjacent work since a separate session is building out buttons and screens. No files touched, no commit exists. Pick back up once that coordination is settled.
+Finish moved on 2026-10-18 before work started: added the story renderer, which every later UI task uses to compare its stories with the reference screenshots (now in design/reference/shots/). Bruk asked for the UI components and screens to be built from the design, without logic; that work follows this task (TASK-1.37 and its children).
+
+Re-sized from 3 to 5 before work started: six criteria across tokens, art conversion, four checks and the renderer.
+
+Label layer-ui removed on 2026-10-18: this task writes outside packages/ui (design/svg, the converter, new checks in tools/checks, package scripts), so it runs as a general builder at the routed model and effort rather than as builder-ui, whose definition is limited to packages/ui.
+
+Separately, in another session: a first launch attempt here was blocked by the (now-moot) layer-ui label before any work started, and Bruk asked that session to hold off on UI-adjacent work pending this restructuring. Deferring to the above - this task runs as planned.
 <!-- SECTION:NOTES:END -->

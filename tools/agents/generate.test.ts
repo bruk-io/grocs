@@ -46,6 +46,13 @@ describe('agent generation (decision-3)', () => {
     expect(content).not.toContain('packages/core/**');
   });
 
+  it('lists a layer\'s extra commands after its test and typecheck commands', () => {
+    const template = loadTemplate();
+    const ui = { ...loadConfigs().find((c) => c.layer === 'ui')!, extraCommands: ['pnpm --filter @grocs/ui shots'] };
+    const content = renderDefinition(template, 'builder', ui);
+    expect(content).toContain(`- \`${ui.typecheckCommand}\`\n- \`pnpm --filter @grocs/ui shots\``);
+  });
+
   it('gives a reviewer no Write or Edit tool', () => {
     expect(ROLE_SPECS.reviewer.tools).not.toContain('Write');
     expect(ROLE_SPECS.reviewer.tools).not.toContain('Edit');

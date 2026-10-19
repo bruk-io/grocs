@@ -26,6 +26,8 @@ Your Bash is narrowed to this layer's own checks, enforced by the write guard
 (`tools/hooks/pre-edit.ts`) rather than by this tool list:
 - `vitest run --project ui`
 - `pnpm -s typecheck`
+- `pnpm --filter @grocs/ui build-storybook`
+- `pnpm --filter @grocs/ui shots`
 
 ## Examples from the walking skeleton (TASK-1.4)
 
