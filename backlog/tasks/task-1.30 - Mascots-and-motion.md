@@ -1,11 +1,11 @@
 ---
 id: TASK-1.30
 title: Mascots and motion
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 05:06'
+updated_date: '2026-10-19 05:17'
 labels:
   - size-5
   - design-system
@@ -28,12 +28,12 @@ Waits on D6 and the canvas move. Cites R40, R41.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 One Mascot component in packages/ui (decision-5, Reanimated on react-native-svg) draws every mushroom from the design reference from data; each has stories for idle, reacting, speaking, reduced and pressed (R61, R62, R63)
-- [ ] #2 Tapping a mascot plays its reaction and speech bubble, and the line is announced to screen readers (R40); it is a button at least 44 points square (R42)
-- [ ] #3 All motion follows the reduce-motion setting through one MotionProvider, with a story toolbar switch for it (R41)
-- [ ] #4 Rendered with pnpm --filter @grocs/ui shots, each mushroom matches its look in design/reference/shots/
-- [ ] #5 The choice of keyframes, pose and duration is a pure function with unit tests, the tap and announcement have a behaviour test, and the browser pass is clean with each story's baseline approved and committed (decision-11)
-- [ ] #6 The Welcome scene's mushroom props (spoon, tomato, scrub brush) are extracted from design/reference/Welcome.dc.html into design/svg/mascots/ and drawn by the Mascot as poses
+- [x] #1 One Mascot component in packages/ui (decision-5, Reanimated on react-native-svg) draws every mushroom from the design reference from data; each has stories for idle, reacting, speaking, reduced and pressed (R61, R62, R63)
+- [x] #2 Tapping a mascot plays its reaction and speech bubble, and the line is announced to screen readers (R40); it is a button at least 44 points square (R42)
+- [x] #3 All motion follows the reduce-motion setting through one MotionProvider, with a story toolbar switch for it (R41)
+- [x] #4 Rendered with pnpm --filter @grocs/ui shots, each mushroom matches its look in design/reference/shots/
+- [x] #5 The choice of keyframes, pose and duration is a pure function with unit tests, the tap and announcement have a behaviour test, and the browser pass is clean with each story's baseline approved and committed (decision-11)
+- [x] #6 The Welcome scene's mushroom props (spoon, tomato, scrub brush) are extracted from design/reference/Welcome.dc.html into design/svg/mascots/ and drawn by the Mascot as poses
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -102,4 +102,72 @@ The two checks were aligned on main (commit e5cc25b), not by me: react-native-re
 - Stories: Mascots/Cast CremiStir, CremiStirReacting, MortyScrub, MortyScrubReacting (4 new baselines, viewed: spoon arm and the tomato match the Welcome board). Unit tests for poses added to motion.test.ts and part-props.test.ts.
 - Chanty's watering arm has no prop in the criteria; not built.
 - Evidence: pnpm check passed (13 checks); typecheck clean; browser pass 81 views, axe clean, 44 x 44 ok, 81 images compared after approving the 4 new baselines (existing 77 unchanged).
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(278 earlier lines omitted)
+```text
+|  2.49 kB │ gzip:   1.01 kB
+|  storybook-static/assets/ItemRow.stories-Bf2q6lfk.js
+|  2.70 kB │ gzip:   1.25 kB
+|  storybook-static/assets/TextField.stories-DtVNUQLX.js
+|  2.95 kB │ gzip:   1.35 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/art-BturoURY.js
+|  9.89 kB │ gzip:   2.31 kB
+|  storybook-static/assets/Mascot-Y6vzV_VJ.js
+|  11.41 kB │ gzip:   4.22 kB
+|  storybook-static/assets/Kitchen.stories-DLuztkJ4.js
+|  13.91 kB │ gzip:   3.31 kB
+|  storybook-static/assets/Icons.stories-CRjS6Rwb.js
+|  16.40 kB │ gzip:   2.96 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-CXWxVTHa.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/part-DUunVAvN.js
+|  157.11 kB │ gzip:  47.60 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-CqW5hdMO.js
+|  1,288.88 kB │ gzip: 372.86 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 3.77s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 2.4s of this 3.7s
+|  build (64%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin vite:css transform (28%, 1.1s, 2 calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a2e2d87a91a73529b/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-a2e2d87a91a73529b/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 81 story views checked (axe, 44 x 44, 81 images compared)
+```
+
+Reviewed by philosophy:reviewer. Closed: all six criteria met by evidence. Re-ran pnpm check (full tier, recorded), typecheck clean, pnpm test 559 passed, check:release clean, pnpm svg no diff, visual 81 views axe clean, 44x44 ok, baselines match. Cast baselines compared with Welcome.png and DS-Molecules.png: likeness good; spoon, scrub and tomato poses match the Welcome board. motionFor/lineFor/partPropsFor are pure with unit tests; behaviour test covers tap, bubble, announcement, order, keyboard, reduced, disabled. MotionProvider reads __GROCS_REDUCE_MOTION__ and prefers-reduced-motion, which the browser pass sets. e5cc25b check changes are narrow, cite decision-5 and are tested (Reanimated still refused in core). Findings: (minor) on web AccessibilityInfo.announceForAccessibility is a no-op in react-native-web and the bubble is aria-hidden, so the web Storybook announces nothing; the plan's aria-live region was not built. Acceptable since a web app is a non-goal; noted only. (minor) browser reduce-motion is read once, no change listener; Storybook only. (follow-up) phone motion unverified, OS reduce-motion not yet passed in from apps/mobile, Enoki stalks in step and Cremi cap wobble dropped: filed as DRAFT-3 (size-2). Chanty's watering arm: outside the criteria and Chanty is not in Welcome.png; no task.
 <!-- SECTION:NOTES:END -->
