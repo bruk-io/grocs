@@ -1,10 +1,11 @@
 ---
 id: TASK-10.8
 title: 'In-memory providers for sign-in and sync, so the demo runs without test fakes'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-providers'
 created_date: '2026-10-19 15:52'
-updated_date: '2026-10-19 15:52'
+updated_date: '2026-10-19 15:56'
 labels:
   - size-3
   - layer-providers
