@@ -10,6 +10,11 @@ dist-*/
 # locally, which firebase-isolation forbids anywhere in the tree (R51, R52).
 apps/mobile/android/
 apps/mobile/ios/
+# expo CLI auto-generates this on every prebuild; the repo uses one root tsconfig.json
+# (include: apps, packages, tools, firebase) and never had a local one. The generated
+# version extends "expo/tsconfig.base", unresolvable from this hoisted layout's module
+# resolution, and breaks vitest/typecheck until removed.
+apps/mobile/tsconfig.json
 storybook-static/
 *.tsbuildinfo
 .firebase/
