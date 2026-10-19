@@ -6,6 +6,7 @@ title: >-
 status: Draft
 assignee: []
 created_date: '2026-10-19 04:32'
+updated_date: '2026-10-19 04:39'
 labels:
   - size-2
   - testing
@@ -25,3 +26,9 @@ Filed from the review of TASK-1.37.6. The baselines in packages/ui/visual-baseli
 - [ ] #1 The bundles job's browser pass has passed on CI against the committed baselines, or the baselines were regenerated in the CI environment and committed with the manifest through visual:update
 - [ ] #2 The repo documents one environment where baselines are generated (a CI job, a pinned container, or the sandbox) and how to regenerate them there
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-19: criterion 1 is met. CI run 39200078012's bundles job compared all 39 story images against the committed baselines and passed (visual: 39 story views checked, 39 images compared). Criterion 2 (document where baselines are generated) remains.
+<!-- SECTION:NOTES:END -->
