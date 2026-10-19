@@ -1,10 +1,11 @@
 ---
 id: TASK-10.3
 title: A demo build that runs on sample data with no account
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-19 14:28'
-updated_date: '2026-10-19 15:52'
+updated_date: '2026-10-19 16:50'
 labels:
   - size-3
   - layer-app
@@ -36,4 +37,6 @@ For TASK-10: friends install an APK and use the app without signing in. A demo v
 
 <!-- SECTION:NOTES:BEGIN -->
 Oct 19, 2026: the builder stopped before editing. The demo would have needed the test fakes, which import-layers rightly keeps test-only, and check:release can't see fakes at all. Bruk chose a real in-memory provider (decision-12). This task now builds the demo composition on packages/providers-memory (TASK-10.8), and its criterion 3 relies on the stricter release check (TASK-10.6). Builder's findings for TASK-10.4: native.ts imports @react-native-firebase at the top level, so the demo must reach it only through a build-time gate (EXPO_PUBLIC_APP_VARIANT); the Firebase config plugins and googleServicesFile must be skipped in the demo variant, and Firebase may need excluding from autolinking or the app crashes at launch without google-services.json.
+
+Unblocked Oct 19, 2026: TASK-10.8 (packages/providers-memory: MemoryAuth with signInAsDemoMember(), MemorySyncStore) and TASK-10.6 (check:release bars test fakes, contract suites, apps/mobile/src/demo/ and packages/providers-memory/ from real release bundles, with a blindSpots self-check) are on main. Keep every demo-only file under apps/mobile/src/demo/: the blindSpots sweep fails on a demo-named file outside it that no pattern matches. The demo variant's own bundle legitimately holds demo code, so check:release cannot judge it unchanged; that belongs to TASK-10.4, not here.
 <!-- SECTION:NOTES:END -->
