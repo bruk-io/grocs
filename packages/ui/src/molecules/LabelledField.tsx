@@ -23,12 +23,14 @@ export interface LabelledFieldProps {
   actionLabel?: string;
   onAction?: () => void;
   onSubmit?: () => void;
+  /** Sets the typed value in the display font, as for an invite code. */
+  display?: boolean;
   disabled?: boolean;
   forceState?: 'focus';
 }
 
 /** A label over a text field, with an optional action inside it and a hint or error under it (text.body, input.text, button.soft, text.small). */
-export function LabelledField({ label, optional = false, value, onChangeText, placeholder, hint, errorMessage, actionLabel, onAction, onSubmit, disabled = false, forceState }: LabelledFieldProps) {
+export function LabelledField({ label, optional = false, value, onChangeText, placeholder, hint, errorMessage, actionLabel, onAction, onSubmit, display = false, disabled = false, forceState }: LabelledFieldProps) {
   return (
     <View style={styles.wrap}>
       <Text variant="label" aria-hidden>
@@ -45,6 +47,7 @@ export function LabelledField({ label, optional = false, value, onChangeText, pl
         {...(actionLabel !== undefined ? { actionLabel, actionKind: 'soft' as const } : {})}
         {...(onAction ? { onAction } : {})}
         {...(onSubmit ? { onSubmit } : {})}
+        {...(display ? { display } : {})}
         {...(forceState ? { forceState } : {})}
       />
       {hint && errorMessage === undefined ? <Text variant="muted">{hint}</Text> : null}

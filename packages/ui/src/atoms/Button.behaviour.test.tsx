@@ -9,7 +9,7 @@ import * as stories from './Button.stories.tsx';
 
 afterEach(cleanup);
 
-const { Rest, Disabled, Loading } = composeStories(stories);
+const { Rest, Disabled, Loading, LeadingIconPrimary, LeadingIconLoading } = composeStories(stories);
 // The disabled and loading buttons ignore the pointer, which is what these tests check, so userEvent must
 // still try the click instead of refusing it first.
 const user = userEvent.setup({ pointerEventsCheck: 0 });
@@ -57,5 +57,24 @@ describe('Button', () => {
     expect(button.getAttribute('aria-disabled')).toBe('true');
     await user.click(button);
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps its name and calls onPress with a leading icon', async () => {
+    const onPress = vi.fn();
+    const { container } = render(<LeadingIconPrimary onPress={onPress} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Share link' }));
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  it('drops the leading icon while loading', () => {
+    const { container } = render(<LeadingIconLoading />);
+    expect(screen.getByRole('button', { name: 'Sharing' }).getAttribute('aria-busy')).toBe('true');
+    expect(container.querySelectorAll('svg')).toHaveLength(0);
+  });
+
+  it('shows no icon without leadingIcon', () => {
+    const { container } = render(<Rest />);
+    expect(container.querySelectorAll('svg')).toHaveLength(0);
   });
 });

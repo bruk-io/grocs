@@ -31,19 +31,21 @@ export interface ButtonProps {
   loadingLabel?: string;
   /** The glyph of an icon button. */
   icon?: IconName;
+  /** A glyph before the label, on the labelled variants ("share" on Share link). Ignored on the icon buttons and back. */
+  leadingIcon?: IconName;
   /** Fills the width it is given instead of hugging its label. */
   stretch?: boolean;
   forceState?: 'pressed' | 'focus';
 }
 
-export function Button({ label, onPress, variant = 'primary', size, disabled = false, loading = false, loadingLabel, icon = 'add', stretch = false, forceState }: ButtonProps) {
+export function Button({ label, onPress, variant = 'primary', size, disabled = false, loading = false, loadingLabel, icon = 'add', leadingIcon, stretch = false, forceState }: ButtonProps) {
   const [focused, setFocused] = useState(false);
   const inactive = disabled || loading;
   const iconOnly = variant === 'icon' || variant === 'iconSoft' || variant === 'iconGhost';
   const big = (variant === 'primary' || variant === 'secondary') && (size ?? 'm') === 'm';
   const filled = variant === 'primary' || variant === 'icon';
   const ink = disabled ? tokens.color.disabledInk : filled ? tokens.color.onBrand : variant === 'secondary' ? tokens.color.ink : tokens.color.forest;
-  const Glyph = iconOnly ? icons[icon] : variant === 'back' ? icons.back : null;
+  const Glyph = iconOnly ? icons[icon] : variant === 'back' ? icons.back : leadingIcon ? icons[leadingIcon] : null;
   return (
     <Pressable
       role="button"
@@ -72,7 +74,7 @@ export function Button({ label, onPress, variant = 'primary', size, disabled = f
         ];
       }}
     >
-      {loading ? <Spinner color={filled ? tokens.color.onBrand : tokens.color.forest} /> : Glyph ? <Glyph color={ink} size={iconOnly ? tokens.size.iconButton : tokens.size.iconBack} /> : null}
+      {loading ? <Spinner color={filled ? tokens.color.onBrand : tokens.color.forest} /> : Glyph ? <Glyph color={ink} size={iconOnly ? tokens.size.iconButton : variant === 'back' ? tokens.size.iconBack : tokens.size.iconChip} /> : null}
       {iconOnly ? null : <Text style={[styles.label, big ? styles.labelBig : styles.labelSmall, { color: ink }]}>{loading ? (loadingLabel ?? label) : label}</Text>}
     </Pressable>
   );

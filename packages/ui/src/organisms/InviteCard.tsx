@@ -30,7 +30,7 @@ export function InviteCard({ code, status, onShare, onCopy }: InviteCardProps) {
       <InviteCode code={code} />
       <View style={styles.buttons}>
         <View style={styles.button}>
-          <Button stretch size="s" variant="primary" label="Share link" {...(onShare ? { onPress: onShare } : {})} />
+          <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" {...(onShare ? { onPress: onShare } : {})} />
         </View>
         <View style={styles.button}>
           <Button stretch size="s" variant="secondary" label="Copy code" {...(onCopy ? { onPress: onCopy } : {})} />

@@ -75,3 +75,10 @@ export const IconGhostPressed: Story = { args: { ...iconGhost, forceState: 'pres
 export const IconGhostFocus: Story = { args: { ...iconGhost, forceState: 'focus' } };
 export const IconGhostDisabled: Story = { args: { ...iconGhost, disabled: true } };
 export const IconGhostLoading: Story = { args: { ...iconGhost, loading: true } };
+
+// A glyph before the label, as on Share link and Copy diagnostics.
+const leading = { size: 's', label: 'Share link', leadingIcon: 'share', loadingLabel: 'Sharing' } as const;
+export const LeadingIconPrimary: Story = { args: { ...leading, variant: 'primary' } };
+export const LeadingIconSecondary: Story = { args: { ...leading, variant: 'secondary', label: 'Copy diagnostics', leadingIcon: 'copy' } };
+export const LeadingIconDisabled: Story = { args: { ...leading, variant: 'primary', disabled: true } };
+export const LeadingIconLoading: Story = { args: { ...leading, variant: 'primary', loading: true } };

@@ -36,6 +36,7 @@ export function InviteRetryTemplate({ inviter, code, onCodeChange, errorMessage,
         label={`Invite code from ${inviter}`}
         value={code}
         onChangeText={onCodeChange}
+        display
         disabled={checking}
         {...(errorMessage ? { errorMessage } : {})}
         {...(onCheck ? { onSubmit: onCheck } : {})}
