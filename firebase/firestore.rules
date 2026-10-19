@@ -20,8 +20,11 @@ service cloud.firestore {
       allow read: if isMember(kitchenId);
       allow write: if false;
 
-      // Weeks, items, meals and activity all live under the kitchen.
-      match /{document=**} {
+      // Weeks, items, meals and activity all live under the kitchen, in their own subcollections.
+      // Requiring one path segment before the recursive wildcard keeps this from also matching
+      // kitchens/{kitchenId} itself (a bare {document=**} can match zero segments, which would
+      // silently grant the write the rule above just denied).
+      match /{collection}/{document=**} {
         allow read, write: if isMember(kitchenId);
       }
     }
