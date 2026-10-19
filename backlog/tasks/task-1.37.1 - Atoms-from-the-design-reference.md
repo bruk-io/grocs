@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 05:05'
+updated_date: '2026-10-19 05:14'
 labels:
   - size-5
   - layer-ui
@@ -26,11 +26,11 @@ Every atom on design/reference/DS-Atoms.dc.html as a ui component (R38, R39, R60
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every atom on the DS-Atoms board is a component in packages/ui/src/atoms built only from tokens, and the task notes map each board atom to its component
-- [ ] #2 Each atom has a story for every state it declares, including pressed, focus, disabled, loading and error where they apply (R61, R63)
-- [ ] #3 Rendered with pnpm --filter @grocs/ui shots, the atom stories match DS-Atoms.png in shape, colour, type and spacing; any difference is listed in the notes with its reason
-- [ ] #4 DS-Atoms.dc.html and its shot are deleted (R66)
-- [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
+- [x] #1 Every atom on the DS-Atoms board is a component in packages/ui/src/atoms built only from tokens, and the task notes map each board atom to its component
+- [x] #2 Each atom has a story for every state it declares, including pressed, focus, disabled, loading and error where they apply (R61, R63)
+- [x] #3 Rendered with pnpm --filter @grocs/ui shots, the atom stories match DS-Atoms.png in shape, colour, type and spacing; any difference is listed in the notes with its reason
+- [x] #4 DS-Atoms.dc.html and its shot are deleted (R66)
+- [x] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
 - [ ] #6 The bundled Fredoka and Nunito fonts load on the device in the app, not only in Storybook, so text atoms render in them on both phones
 <!-- AC:END -->
 
@@ -118,4 +118,79 @@ The one edit outside packages/ui: apps/mobile/app/_layout.tsx registers the five
 
 ### Evidence
 pnpm check passes (13 checks); pnpm typecheck passes; pnpm test: 627 tests pass (new behaviour tests: Switch, Chip, TextField, and Space on Checkbox; Button updated); pnpm --filter @grocs/ui visual: 135 story views, axe clean, 44 x 44 clean, 135 images compared; baselines regenerated with visual:update and looked at against DS-Atoms.png in contact sheets (buttons all ten variants x five states, inputs, selection, chips, badges, tags, counts, avatars, tile, bubble, code); ItemRow baselines changed only through the new type face and ring.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(340 earlier lines omitted)
+```text
+|  1.64 kB │ gzip:   0.87 kB
+|  storybook-static/assets/Tag.stories-B1x_bZFe.js
+|  2.06 kB │ gzip:   1.05 kB
+|  storybook-static/assets/Text-CNbA_UeF.js
+|  2.23 kB │ gzip:   0.83 kB
+|  storybook-static/assets/ItemRow.stories-B184V4C7.js
+|  2.69 kB │ gzip:   1.25 kB
+|  storybook-static/assets/Avatar.stories-DQJtZ5b6.js
+|  2.71 kB │ gzip:   1.19 kB
+|  storybook-static/assets/Checkbox-C7gTAMtw.js
+|  2.76 kB │ gzip:   1.27 kB
+|  storybook-static/assets/Switch.stories-DFA9yjCx.js
+|  2.89 kB │ gzip:   1.28 kB
+|  storybook-static/assets/Chip.stories-CfJDmbKN.js
+|  3.97 kB │ gzip:   1.72 kB
+|  storybook-static/assets/Button.stories-AKIIix4L.js
+|  3.99 kB │ gzip:   1.18 kB
+|  storybook-static/assets/TextField.stories-CWbRLUmw.js
+|  4.59 kB │ gzip:   1.82 kB
+|  storybook-static/assets/Button-BO2at4Ws.js
+|  5.26 kB │ gzip:   1.88 kB
+|  storybook-static/assets/Mascots.stories-euDJv_9D.js
+|  10.60 kB │ gzip:   2.70 kB
+|  storybook-static/assets/Kitchen.stories-Dje0rhzn.js
+|  13.91 kB │ gzip:   3.32 kB
+|  storybook-static/assets/icons-SguvmkZ1.js
+|  15.61 kB │ gzip:   2.56 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-nlsVQ_gS.js
+|  35.58 kB │ gzip:  10.07 kB
+|  storybook-static/assets/react-18-CZ3BrPqf.js
+|  211.29 kB │ gzip:  66.05 kB
+|  storybook-static/assets/iframe-CsjgQsBL.js
+|  1,355.85 kB │ gzip: 391.28 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 3.71s
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-abd150c2115dfbeb8/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-abd150c2115dfbeb8/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 135 story views checked (axe, 44 x 44, 135 images compared)
+```
+
+## Review (philosophy:reviewer)
+Not closed: AC #6 unmet for lack of device evidence. ACs 1-5 ticked.
+- Re-ran record-check --tier full (check, typecheck, test 628 pass, test:emulator, check:release, build-storybook, visual 135 views axe/44x44/baselines): exit 0, no files rewritten.
+- Baselines vs DS-Atoms.png (read from main's tree): buttons, inputs, check (incl. ticking sparks), switch, meter, chips, badges, tags, count, avatar, tile, bubble, invite code match in shape, colour, type and spacing. Listed differences have sound reasons (web-drawn lip/ring, fill-width meters, one checkbox shape, still ticking frame).
+- Behaviour tests drive by role and name and cover every callback and state prop on Button, Checkbox (Space on and while disabled), Switch, Chip, TextField (onChangeText, onSubmit, onAction, disabled, invalid).
+- ItemRow baseline deltas: inspected focus; differences are the Nunito face and the new double focus ring; no layout change seen.
+- platform/font-face.ts: weights 600/700/800 all mapped; every face it names is imported and registered in _layout.tsx, guarded by layout-fonts.test.ts. Minor: an unmapped weight falls back to the web family name on native silently.
+- AC #6: evidence shows names match and the layout waits for useFonts; it does not show the fonts render on a phone (no device here), and on failure the app draws in the system face silently. Filed DRAFT-3 (size-1) to confirm on iOS and Android dev builds and make the fallback loud. Once DRAFT-3's screenshots exist, tick #6 and close.
 <!-- SECTION:NOTES:END -->
