@@ -1,0 +1,14 @@
+{
+  "name": "@grocs/providers-memory",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "In-memory providers: auth and sync store for the demo build (decision-12)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@grocs/core": "workspace:*",
+    "@grocs/ports": "workspace:*"
+  }
+}
