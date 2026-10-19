@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder'
 created_date: '2026-10-19 14:28'
-updated_date: '2026-10-19 19:03'
+updated_date: '2026-10-19 19:06'
 labels:
   - size-3
   - ci
@@ -124,4 +124,6 @@ Variant variables: ci.yml sets neither; demo-apk.yml sets them only on the prebu
 Signing: uninstall-before-update is in the Release notes text, where a friend sees it, and in the header.
 Weakening: a real false positive. The pre-commit check judges each commit against its parent, so iterating a workflow that is new on its branch trips it. Filed as DRAFT-9.
 UX: the demo's Google button is prominent but does nothing, while Try the demo is a small text link. Filed as DRAFT-7.
+
+Merged to main before its close (orchestrator, Oct 19, 2026): the release half of criterion 1 can only run from a demo-v* tag on main, and the sandbox's git proxy refuses tag pushes, so Bruk pushes the tag from his machine. The task stays In Progress until that run's release job passes; then the reviewer ticks #1 and closes.
 <!-- SECTION:NOTES:END -->
