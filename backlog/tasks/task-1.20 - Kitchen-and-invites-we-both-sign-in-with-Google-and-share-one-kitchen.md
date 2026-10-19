@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 23:12'
+updated_date: '2026-10-19 23:26'
 labels:
   - size-5
   - slice
@@ -77,4 +77,8 @@ Also waits on the layer agents (TASK-1.18) and declared checks (TASK-1.33), sinc
 Backend built and verified end to end (commits 1a71352, 2df5fa2, 6ad64b8), independent of decision-7 (not yet accepted) since kitchen creation/joining is online-only, through Cloud Functions, never touching the offline activity/sync log. 52 emulator tests pass, including a real Cloud Functions round trip and a genuine security-rules bug found and fixed (a bare recursive wildcard in firestore.rules also matched the kitchen document itself, letting a member bypass 'creating and joining go through the functions' and write their kitchen directly).
 
 What's left for AC1-3 to actually close: wiring onto a real screen (apps/mobile), which needs a KitchenGateway composition-root choice (Firebase vs memory, matching how AuthPort/SyncStore are already chosen) and connecting it to the already-built KitchenSetupTemplate/InviteRetryTemplate (built by the other session's TASK-1.37.x work). Deliberately left to whoever is doing app/UI wiring, per this session's explicit UI boundary. AC4 (security rules) is done.
+
+Review by philosophy:reviewer (commits dfba127, 3a52db6) found and all fixed: an internal-error-message leak in apps/functions/src/index.ts (fixed, relying on onCall's own safe default instead of a broad catch); a real invite-code collision/guessability gap (3,400-code space with silent overwrite on collision - widened to ~340,000 codes with create()+retry instead of set()); two of five JoinRejectedReason values untested through the port's own contract suite (added a genuine 'already-member' case: the owner re-entering their own pending invite); and, found empirically while fixing the above, a live test-isolation bug where firestore.rules.test.ts's clearFirestore() wiped data out from under concurrently-running emulator test files (fixed: fileParallelism: false on the emulator vitest project, confirmed stable over two consecutive clean runs). Also added: a joinKitchen-unauthenticated test, MemoryKitchenGateway now takes an injected Clock/IdGenerator (matching FakeKitchenGateway) with a test proving it drives expiry, and allow/deny tests for inviteCodes/{code}.
+
+Open design question the review raised, for whoever does the app/UI wiring (not resolved here - needs a human call, not mine to make): should KitchenGateway be called through packages/application's command dispatcher (R28 says 'only the application layer calls them'), or wired directly on the composition root the way GoogleSignIn already is (no domain event to dispatch)? Both are defensible; this is a real architecture decision, not a defect.
 <!-- SECTION:NOTES:END -->
