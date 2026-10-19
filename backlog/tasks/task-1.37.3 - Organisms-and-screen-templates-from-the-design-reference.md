@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.3
 title: Organisms and screen templates from the design reference
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 03:19'
+updated_date: '2026-10-19 06:49'
 labels:
   - size-5
   - layer-ui
@@ -38,4 +39,6 @@ Every organism on design/reference/DS-Organisms.dc.html, including the panning k
 
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+
+Checks changed: .claude/checks.json's full tier gained the browser pass (pnpm --filter @grocs/ui visual -- --no-build) in TASK-1.37.6 (commit 5a3cecc), merged into main after this task was accepted. Noted up front by the orchestrator so the close isn't refused for a change this task didn't make.
 <!-- SECTION:NOTES:END -->

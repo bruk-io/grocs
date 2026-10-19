@@ -4,7 +4,7 @@ title: Welcome screen
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 05:28'
+updated_date: '2026-10-19 06:49'
 labels:
   - size-3
   - layer-app
@@ -39,4 +39,6 @@ The signed-out screen in the app, rendering the Welcome template. No sign-in log
 Finish moved on 2026-10-18 before work started: added decision-11's route tests, after Bruk asked for the right level of testing in the UI build.
 
 From the TASK-1.30 review: MotionProvider takes 'reduced' as a prop on the phones (packages/ui/src/platform/motion.tsx), and nothing in apps/mobile passes the OS setting yet. This task's reduce-motion criterion (R41) needs apps/mobile to pass AccessibilityInfo.isReduceMotionEnabled() and its reduceMotionChanged events into MotionProvider.
+
+Checks changed: .claude/checks.json's full tier gained the browser pass (pnpm --filter @grocs/ui visual -- --no-build) in TASK-1.37.6 (commit 5a3cecc), merged into main after this task was accepted. Noted up front by the orchestrator so the close isn't refused for a change this task didn't make.
 <!-- SECTION:NOTES:END -->
