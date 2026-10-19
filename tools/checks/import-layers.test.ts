@@ -61,6 +61,11 @@ describe('import layers (R26, R27, R60)', () => {
     expect(rulesOf(findings)).toEqual(['import-layers/no-io-packages', 'import-layers/no-io-packages', 'import-layers/no-io-packages']);
   });
 
+  it('lets the ui layer animate with Reanimated (decision-5), and still refuses it in the domain', () => {
+    expect(run({ 'packages/ui/src/molecules/M.tsx': "import Animated from 'react-native-reanimated'; export { Animated };" })).toEqual([]);
+    expect(rulesOf(run({ 'packages/core/src/a.ts': "import Animated from 'react-native-reanimated'; export { Animated };" }))).toEqual(['import-layers/no-io-packages']);
+  });
+
   it('lets test files in the domain use test tooling', () => {
     expect(run({ 'packages/core/src/a.test.ts': "import { it } from 'vitest'; import fc from 'fast-check'; it('x', () => fc);" })).toEqual([]);
   });
