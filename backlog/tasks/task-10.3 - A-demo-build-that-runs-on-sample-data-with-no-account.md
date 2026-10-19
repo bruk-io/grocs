@@ -1,9 +1,11 @@
 ---
 id: TASK-10.3
 title: A demo build that runs on sample data with no account
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-19 14:28'
+updated_date: '2026-10-19 15:43'
 labels:
   - size-3
   - layer-app
