@@ -1,12 +1,13 @@
 ---
-id: DRAFT-2
+id: TASK-1.40
 title: >-
   Confirm visual baselines on the first CI run, and decide where baselines are
   generated
-status: Draft
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-19 04:32'
-updated_date: '2026-10-19 04:39'
+updated_date: '2026-10-19 10:58'
 labels:
   - size-2
   - testing
@@ -23,7 +24,7 @@ Filed from the review of TASK-1.37.6. The baselines in packages/ui/visual-baseli
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The bundles job's browser pass has passed on CI against the committed baselines, or the baselines were regenerated in the CI environment and committed with the manifest through visual:update
+- [x] #1 The bundles job's browser pass has passed on CI against the committed baselines, or the baselines were regenerated in the CI environment and committed with the manifest through visual:update
 - [ ] #2 The repo documents one environment where baselines are generated (a CI job, a pinned container, or the sandbox) and how to regenerate them there
 <!-- AC:END -->
 
@@ -31,4 +32,6 @@ Filed from the review of TASK-1.37.6. The baselines in packages/ui/visual-baseli
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-10-19: criterion 1 is met. CI run 39200078012's bundles job compared all 39 story images against the committed baselines and passed (visual: 39 story views checked, 39 images compared). Criterion 2 (document where baselines are generated) remains.
+
+Criterion 1 met before acceptance: every CI run since 39200540301 has run the browser pass against the committed baselines and passed (latest 39231108029 on 2f40096). Accepted Oct 19, 2026 (Bruk: wrap up the UI portions).
 <!-- SECTION:NOTES:END -->
