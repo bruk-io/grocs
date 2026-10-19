@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { fontFace } from '../platform/font-face.ts';
 import { tokens } from '../tokens/tokens.ts';
 
-/** avatar.l, avatar.l--online (a tomato ring) and avatar.s; an avatar is only ever read, so each state is a look. */
+/** avatar.l, avatar.l--online (a soft tomato halo) and avatar.s; an avatar is only ever read, so each state is a look. */
 export const AVATAR_STATES = ['large', 'online', 'small', 'xl', 'xlOnline'] as const;
 
 export interface AvatarProps {
@@ -11,7 +11,7 @@ export interface AvatarProps {
   size?: 'xl' | 'l' | 's';
   /** Which of the two household colours the avatar wears. A small avatar is tinted unless it is chartreuse (on a toast). */
   tone?: 'forest' | 'chartreuse';
-  /** Rings a large avatar in tomato: this person is here now. */
+  /** Haloes a large avatar in soft tomato: this person is here now. */
   online?: boolean;
 }
 
@@ -63,8 +63,10 @@ const styles = StyleSheet.create({
     right: -tokens.space[4],
     bottom: -tokens.space[4],
     borderRadius: tokens.radius.pill,
-    borderWidth: tokens.size.lineW,
+    borderWidth: tokens.size.lineWStrong,
     borderColor: tokens.color.tomato,
+    opacity: tokens.opacity.tucked,
+    boxShadow: [{ offsetX: 0, offsetY: 0, blurRadius: tokens.space[6], color: tokens.color.tomato }],
   },
   initial: { ...fontFace('display', tokens.font.weight.medium) },
   initialLarge: { fontSize: tokens.font.size.body, lineHeight: tokens.font.lineHeight.body },

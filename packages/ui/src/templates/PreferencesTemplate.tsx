@@ -60,7 +60,7 @@ export function PreferencesTemplate({ name, email, kitchen, partnerName, notific
             Copies the app version and sync status. Nothing from your lists or plans.
           </Text>
         </View>
-        <Button variant="secondary" size="s" stretch label="Copy diagnostics" {...(onCopyDiagnostics ? { onPress: onCopyDiagnostics } : {})} />
+        <Button variant="secondary" size="s" stretch label="Copy diagnostics" leadingIcon="copy" {...(onCopyDiagnostics ? { onPress: onCopyDiagnostics } : {})} />
       </Card>
       <Card>
         <View style={styles.account}>

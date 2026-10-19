@@ -25,11 +25,13 @@ export interface TextFieldProps {
   actionKind?: 'icon' | 'soft' | 'primary';
   /** The hint shown when the field is empty, when it is not the label. */
   placeholder?: string;
+  /** Sets the typed value in the display font, as for an invite code. */
+  display?: boolean;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, forceState }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
   const lit = focused || forceState === 'focus';
@@ -60,7 +62,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           returnKeyType="done"
-          style={[styles.input, actionLabel !== undefined && styles.inputInline, disabled && styles.inputDisabled]}
+          style={[styles.input, actionLabel !== undefined && styles.inputInline, display && styles.inputDisplay, disabled && styles.inputDisabled]}
         />
         {actionLabel !== undefined ? <Button variant={actionKind === 'soft' ? 'soft' : actionKind === 'primary' ? 'primary' : 'icon'} {...(actionKind === 'primary' ? { size: 's' as const } : {})} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
       </View>
@@ -101,6 +103,7 @@ const styles = StyleSheet.create({
     fontSize: tokens.font.size.label,
   },
   inputInline: { ...fontFace('body', tokens.font.weight.medium), height: tokens.size.target },
+  inputDisplay: { ...fontFace('display', tokens.font.weight.bold) },
   inputDisabled: { color: tokens.color.disabledInk },
   pressed: { backgroundColor: tokens.color.surfaceTint },
   focused: { borderColor: tokens.color.forest },

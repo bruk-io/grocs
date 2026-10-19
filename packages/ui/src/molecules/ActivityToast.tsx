@@ -1,6 +1,6 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../atoms/Avatar.tsx';
-import { Text } from '../atoms/Text.tsx';
+import { fontFace } from '../platform/font-face.ts';
 import { tokens } from '../tokens/tokens.ts';
 
 /** A toast is only ever read: one state. The way it lands from above and leaves after about 4 seconds is the screen's. */
@@ -18,7 +18,7 @@ export function ActivityToast({ name, message }: ActivityToastProps) {
   return (
     <View aria-live="polite" style={styles.pill}>
       <Avatar name={name} size="s" tone="chartreuse" />
-      <Text variant="small" tone="onBrand">
+      <Text style={styles.message}>
         {message}
       </Text>
     </View>
@@ -26,6 +26,7 @@ export function ActivityToast({ name, message }: ActivityToastProps) {
 }
 
 const styles = StyleSheet.create({
+  message: { color: tokens.color.onBrand, ...fontFace('body', tokens.font.weight.heavy), fontSize: tokens.font.size.small, lineHeight: tokens.font.lineHeight.small },
   pill: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
