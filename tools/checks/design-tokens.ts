@@ -31,30 +31,54 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
 
 const STYLE_PROPS = new Set([
   'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'padding', 'paddingHorizontal', 'paddingVertical',
-  'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 'margin', 'marginHorizontal', 'marginVertical', 'marginTop',
-  'marginBottom', 'marginLeft', 'marginRight', 'gap', 'rowGap', 'columnGap', 'borderRadius', 'borderWidth', 'fontSize',
-  'lineHeight', 'letterSpacing', 'opacity', 'top', 'left', 'right', 'bottom',
+  'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 'paddingStart', 'paddingEnd', 'margin', 'marginHorizontal',
+  'marginVertical', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'marginStart', 'marginEnd', 'gap', 'rowGap',
+  'columnGap', 'borderRadius', 'borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius',
+  'borderWidth', 'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth', 'fontSize', 'lineHeight',
+  'letterSpacing', 'opacity', 'top', 'left', 'right', 'bottom', 'flexBasis', 'elevation', 'shadowRadius', 'shadowOpacity',
+  // Motion: a duration or delay is a token (motion.duration), never a number written in a component.
+  'duration', 'delay', 'animationDuration', 'animationDelay', 'transitionDuration',
+  // JSX size props (<Svg width={24}>, <Icon size={20}>).
+  'size', 'strokeWidth',
 ]);
+// Type: a family or weight is a token (font.family, font.weight), not a string written in a component.
+const STRING_PROPS = new Set(['fontFamily', 'fontWeight', 'animationTimingFunction', 'transitionTimingFunction']);
+const NAMED_COLOUR = /^(white|black|red|green|blue|gray|grey|yellow|orange|purple|pink|brown|silver|gold)$/i;
+/** Generated art (icons, mascots, scenes) is SVG geometry in its own coordinates; only its colours are design values. */
+export const isArtFile = (file: string): boolean => /(^|\/)(generated|art)\//.test(file);
 const COLOUR = /^\s*(#[0-9a-fA-F]{3,8}|(rgb|hsl)a?\()/;
 
 export function findRawValues(file: string, source: string): { line: number; text: string }[] {
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const art = isArtFile(file);
   const hits: { line: number; text: string }[] = [];
   const add = (node: ts.Node, text: string): void => {
     hits.push({ line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1, text });
   };
-  const visit = (node: ts.Node): void => {
-    if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && COLOUR.test(node.text)) add(node, `colour ${node.text}`);
-    if (ts.isPropertyAssignment(node) && (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name))) {
-      const name = node.name.text;
-      const init = node.initializer;
-      if (STYLE_PROPS.has(name) && ts.isNumericLiteral(init) && Number(init.text) !== 0 && Number(init.text) !== 1) add(node, `${name}: ${init.text}`);
-      if (STYLE_PROPS.has(name) && ts.isPrefixUnaryExpression(init) && ts.isNumericLiteral(init.operand)) add(node, `${name}: -${init.operand.text}`);
+  // A value written straight into a style or a prop: a number other than 0 and 1, or a type string.
+  const checkValue = (node: ts.Node, name: string, init: ts.Expression): void => {
+    if (ts.isJsxExpression(init) && init.expression) init = init.expression;
+    if (STYLE_PROPS.has(name) && !art) {
+      if (ts.isNumericLiteral(init) && Number(init.text) !== 0 && Number(init.text) !== 1) add(node, `${name}: ${init.text}`);
+      if (ts.isPrefixUnaryExpression(init) && ts.isNumericLiteral(init.operand)) add(node, `${name}: -${init.operand.text}`);
     }
+    if (STRING_PROPS.has(name) && !art && (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init))) add(node, `${name}: '${init.text}'`);
+  };
+  const visit = (node: ts.Node): void => {
+    if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && (COLOUR.test(node.text) || (NAMED_COLOUR.test(node.text) && isColourContext(node)))) add(node, `colour ${node.text}`);
+    if (ts.isPropertyAssignment(node) && (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name))) checkValue(node, node.name.text, node.initializer);
+    if (ts.isJsxAttribute(node) && node.initializer && ts.isIdentifier(node.name)) checkValue(node, node.name.text, node.initializer as ts.Expression);
     ts.forEachChild(node, visit);
   };
   visit(sf);
   return hits;
+}
+
+/** A named colour only counts as a raw colour where it is the value of a colour property or prop. */
+function isColourContext(node: ts.Node): boolean {
+  const parent = node.parent;
+  const name = ts.isPropertyAssignment(parent) ? parent.name.getText() : ts.isJsxAttribute(parent) ? parent.name.getText() : ts.isJsxExpression(parent) && ts.isJsxAttribute(parent.parent) ? parent.parent.name.getText() : '';
+  return /(^|[a-z])(color|Color|fill|stroke)$/.test(name) || name === 'fill' || name === 'stroke';
 }
 
 function luminance(hex: string): number {

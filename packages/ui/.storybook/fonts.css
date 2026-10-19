@@ -1,0 +1,8 @@
+/* The two typefaces of the design (tokens.font.family), bundled so the browser Storybook looks the same
+   offline. The phones load them through the app instead (a later task). */
+@import '@fontsource/fredoka/500.css';
+@import '@fontsource/fredoka/600.css';
+@import '@fontsource/fredoka/700.css';
+@import '@fontsource/nunito/600.css';
+@import '@fontsource/nunito/700.css';
+@import '@fontsource/nunito/800.css';

@@ -2,7 +2,10 @@
 // checks them against. The plugin's own route table lives outside this repo (a local
 // plugin-cache path CI cannot read), so the values are mirrored here once, each with
 // where it was read, and the agent-definitions check compares committed definitions
-// against this mirror rather than shelling out to the plugin at check time.
+// against this mirror. Since TASK-6, that check also re-reads the installed plugin's
+// board.py directly (tools/checks/agent-definitions.ts: checkRouteMirrorFreshness) and
+// fails if this mirror has drifted from it; where the plugin isn't on disk, as in CI,
+// it reports that plainly instead of silently treating "unreadable" as "unchanged".
 export type Role = 'builder' | 'builder-small' | 'reviewer';
 
 export const ROLES: readonly Role[] = ['builder', 'builder-small', 'reviewer'];
@@ -28,8 +31,9 @@ export interface RoleSpec {
  *   ORCHESTRATE = Route("opus", "high", ...)
  *   LEAF        = Route("sonnet", "medium", ...)
  *   SMALL_LEAF  = Route("haiku", None, ...)   -- None means "the default effort", not "unset is required"
- * If the plugin's route table changes, this mirror must be updated by hand: a repo-local
- * check cannot see a path under ~/.claude/plugins/cache, which does not exist in CI.
+ * If the plugin's route table changes, this mirror must be updated by hand: the
+ * agent-definitions check compares it against the installed plugin's board.py where
+ * that path is readable on disk (not in CI, where it reports that rather than passing).
  */
 export const ROUTE_TABLE_MIRROR = {
   LEAF: { model: 'sonnet', effort: 'medium' as const },

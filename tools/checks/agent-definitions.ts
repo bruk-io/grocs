@@ -1,11 +1,18 @@
 // Layer-agent definitions (decision-3): the 18 committed files under .claude/agents/
 // must match what the generator produces from the template and the six configs, and
 // their pinned model and effort must agree with the route table (board.py's route(),
-// mirrored in tools/agents/roles.ts since that plugin path does not exist in CI).
+// mirrored in tools/agents/roles.ts as ROUTE_TABLE_MIRROR). This check also re-reads
+// the installed plugin's board.py directly where that path is readable on disk (not
+// in CI) to catch the mirror going stale (checkRouteMirrorFreshness, TASK-6); where
+// it isn't readable, it reports that via Check.notes rather than failing or passing
+// silently.
 //
 // .claude is in lib.ts's SKIP_DIRS, so ctx.files/ctx.allFiles never list these paths.
 // This check reads each expected path directly with ctx.readSource instead of
 // enumerating, since SKIP_DIRS only governs listFiles, not a read by known path.
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { buildDefinitions, loadConfigs, loadTemplate } from '../agents/generate.ts';
 import { DECISION_3_TABLE, ROLE_SPECS, ROUTE_TABLE_MIRROR, ROLES, type Role, type RoleSpec } from '../agents/roles.ts';
 import type { Check, CheckContext, Finding, RuleInfo } from './lib.ts';
@@ -20,8 +27,14 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
   'agent-definitions/route-mismatch': {
     req: 'R55',
     summary: "A role's pinned model and effort agree with decision-3 and, where it has one, the plugin's route table",
-    why: "decision-3 pins each role's model and effort in line with the plugin's route table (board.py's route(), mirrored in tools/agents/roles.ts since that plugin path does not exist in CI). tools/agents/roles.ts is the one place both are transcribed; if it is edited to disagree with either, every generated definition for that role routes to the wrong model.",
+    why: "decision-3 pins each role's model and effort in line with the plugin's route table (board.py's route(), mirrored in tools/agents/roles.ts as ROUTE_TABLE_MIRROR; see agent-definitions/route-mirror-stale for whether that mirror itself still agrees with the plugin). tools/agents/roles.ts is the one place both are transcribed; if it is edited to disagree with either, every generated definition for that role routes to the wrong model.",
     fix: 'Fix tools/agents/roles.ts (ROLE_SPECS) to agree with DECISION_3_TABLE and, where it applies, ROUTE_TABLE_MIRROR, then run: pnpm agents:generate',
+  },
+  'agent-definitions/route-mirror-stale': {
+    req: 'R55, R58',
+    summary: "ROUTE_TABLE_MIRROR in tools/agents/roles.ts still matches the installed philosophy plugin's board.py",
+    why: 'The mirror is a hand transcription (decision-3 Enforcement). Before this rule, nothing detected it going stale: a plugin upgrade that changed a route would have silently left every generated definition pinned to the old model while every other check stayed green.',
+    fix: "Update ROUTE_TABLE_MIRROR in tools/agents/roles.ts to match the installed plugin's board.py (its own comment names the exact lines), then run: pnpm agents:generate",
   },
 };
 
@@ -39,7 +52,100 @@ export function run(ctx: CheckContext): Finding[] {
     }
   }
   out.push(...checkRouteAgreement(ROLE_SPECS));
+  out.push(...checkRouteMirrorFreshness(readPluginBoardPySource()).findings);
   return out;
+}
+
+/**
+ * The installed philosophy plugin's board.py, read fresh each call so a plugin upgrade
+ * is picked up without restarting anything. Returns null, never throws, when it cannot
+ * be found or read (wrong machine, CI, a version with no scripts/board.py) — callers
+ * decide what "could not verify" means, this just reports the fact.
+ * GROCS_PLUGIN_BOARD_PY overrides the lookup entirely, for tests.
+ */
+export function readPluginBoardPySource(): string | null {
+  try {
+    const override = process.env['GROCS_PLUGIN_BOARD_PY'];
+    if (override) return readFileSync(override, 'utf8');
+    const base = join(homedir(), '.claude/plugins/cache/knowhere/philosophy');
+    if (!existsSync(base)) return null;
+    const versions = readdirSync(base).filter((v) => existsSync(join(base, v, 'scripts/board.py')));
+    versions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    const latest = versions.at(-1);
+    return latest ? readFileSync(join(base, latest, 'scripts/board.py'), 'utf8') : null;
+  } catch {
+    return null;
+  }
+}
+
+type RouteKey = 'ORCHESTRATE' | 'LEAF' | 'SMALL_LEAF';
+interface ParsedRoute {
+  readonly model: string;
+  readonly effort: string | null;
+}
+/** Matches a line like `LEAF = Route("sonnet", "medium", ...)` or `SMALL_LEAF = Route("haiku", None, ...)`. */
+const ROUTE_LINE = /^(ORCHESTRATE|LEAF|SMALL_LEAF)\s*=\s*Route\(\s*"([^"]+)"\s*,\s*(None|"([^"]+)")/gm;
+
+function parsePluginRoutes(source: string): Partial<Record<RouteKey, ParsedRoute>> {
+  const out: Partial<Record<RouteKey, ParsedRoute>> = {};
+  for (const m of source.matchAll(ROUTE_LINE)) {
+    const name = m[1] as RouteKey;
+    const model = m[2]!;
+    const effort = m[3] === 'None' ? null : (m[4] ?? null);
+    out[name] = { model, effort };
+  }
+  return out;
+}
+
+export interface RouteMirrorResult {
+  readonly findings: Finding[];
+  /** Set only when the plugin's board.py could not be read, so nothing below was checked this run. */
+  readonly note: string | null;
+}
+
+/**
+ * Compares ROUTE_TABLE_MIRROR against the installed plugin's board.py, in three states:
+ * unreadable (boardPySource is null, e.g. in CI) reports a note and no findings, since
+ * an absent plugin cache is not itself a defect; readable but a route no longer parses
+ * is a finding, since a file that exists but can't be verified is not a pass; readable,
+ * parsed and disagreeing with the mirror is a finding. A pure function of its input so
+ * every state is testable without touching the filesystem.
+ */
+export function checkRouteMirrorFreshness(boardPySource: string | null): RouteMirrorResult {
+  const file = 'tools/agents/roles.ts';
+  if (boardPySource === null) {
+    return {
+      findings: [],
+      note: "could not read the installed philosophy plugin's board.py (not found on disk, e.g. in CI) — ROUTE_TABLE_MIRROR in tools/agents/roles.ts was not checked against it this run.",
+    };
+  }
+  const parsed = parsePluginRoutes(boardPySource);
+  const findings: Finding[] = [];
+  const mirrored: readonly [RouteKey, { model: string; effort?: 'medium' | 'high' | undefined }][] = [
+    ['ORCHESTRATE', ROUTE_TABLE_MIRROR.ORCHESTRATE],
+    ['LEAF', ROUTE_TABLE_MIRROR.LEAF],
+    ['SMALL_LEAF', ROUTE_TABLE_MIRROR.SMALL_LEAF],
+  ];
+  for (const [key, expected] of mirrored) {
+    const found = parsed[key];
+    if (!found) {
+      findings.push({
+        rule: 'agent-definitions/route-mirror-stale',
+        file,
+        detail: `board.py no longer has a parseable "${key} = Route(...)" line; ROUTE_TABLE_MIRROR.${key} could not be checked against it`,
+      });
+      continue;
+    }
+    const expectedEffort = expected.effort ?? null;
+    if (found.model !== expected.model || found.effort !== expectedEffort) {
+      findings.push({
+        rule: 'agent-definitions/route-mirror-stale',
+        file,
+        detail: `ROUTE_TABLE_MIRROR.${key} is ${expected.model}/${expectedEffort ?? '(none)'}, the installed plugin's board.py now has ${key} = ${found.model}/${found.effort ?? '(none)'}`,
+      });
+    }
+  }
+  return { findings, note: null };
 }
 
 /**
@@ -82,4 +188,9 @@ export function checkRouteAgreement(specs: Readonly<Record<Role, RoleSpec>>): Fi
   return out;
 }
 
-export const check: Check = { id: 'agent-definitions', rules, run };
+function notes(): readonly string[] {
+  const { note } = checkRouteMirrorFreshness(readPluginBoardPySource());
+  return note ? [note] : [];
+}
+
+export const check: Check = { id: 'agent-definitions', rules, run, notes };

@@ -34,6 +34,15 @@ export interface Check {
   readonly id: string;
   readonly rules: Readonly<Record<string, RuleInfo>>;
   run(ctx: CheckContext): Finding[];
+  /**
+   * Visible, non-failing status lines: something this check could not fully verify this
+   * run (for example, a reference it reads from outside the repo that CI cannot see) but
+   * that is not itself a defect. Printed by run.ts alongside the pass/fail report; never
+   * counted toward the finding total or the exit code, so a check cannot silently pass
+   * over a gap in its own coverage without saying so, and cannot fail a run it has no
+   * business failing either.
+   */
+  notes?(ctx: CheckContext): readonly string[];
 }
 
 const SKIP_DIRS = new Set([

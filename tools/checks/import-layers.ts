@@ -49,15 +49,21 @@ const TEST_TOOLING: readonly RegExp[] = [
 /** Layers that must stay free of I/O and platform packages, node built-ins included. */
 const NO_NODE_BUILTINS: readonly Layer[] = ['core', 'ports', 'application', 'ui'];
 
-const DESIGN_LEVELS = ['tokens', 'atoms', 'molecules', 'organisms', 'templates'] as const;
+const DESIGN_LEVELS = ['tokens', 'platform', 'icons', 'mascots', 'atoms', 'molecules', 'organisms', 'templates'] as const;
 type Level = (typeof DESIGN_LEVELS)[number];
-/** Which design levels each level may import (R60). icons and mascots are shared assets any level may use. */
+/**
+ * The folder table of packages/ui/src (R60, decision-6): which folders each folder may import. tokens,
+ * platform, icons and mascots are foundations any level may use; the foundations reach only tokens.
+ */
 const ALLOWED_LEVELS: Readonly<Record<Level, readonly string[]>> = {
   tokens: [],
-  atoms: ['tokens', 'icons', 'mascots'],
-  molecules: ['atoms', 'tokens', 'icons', 'mascots'],
-  organisms: ['molecules', 'atoms', 'tokens', 'icons', 'mascots'],
-  templates: ['organisms', 'molecules', 'atoms', 'tokens', 'icons', 'mascots'],
+  platform: ['tokens'],
+  icons: ['tokens'],
+  mascots: ['tokens'],
+  atoms: ['tokens', 'platform', 'icons', 'mascots'],
+  molecules: ['atoms', 'tokens', 'platform', 'icons', 'mascots'],
+  organisms: ['molecules', 'atoms', 'tokens', 'platform', 'icons', 'mascots'],
+  templates: ['organisms', 'molecules', 'atoms', 'tokens', 'platform', 'icons', 'mascots'],
 };
 
 export const rules: Readonly<Record<string, RuleInfo>> = {
@@ -102,6 +108,18 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     summary: 'No import cycles',
     why: 'Cycles make load order matter, hide which module owns what, and break the layering the table describes.',
     fix: 'Move the shared piece into a module both sides import, or invert one direction with a parameter.',
+  },
+  'import-layers/unknown-ui-folder': {
+    req: 'R60',
+    summary: 'Every folder under packages/ui/src is in the design-level table',
+    why: 'A folder the table does not know is checked neither as importer nor as target, so an atom could climb to an organism through it. Adding a folder has to be a decision about where it sits.',
+    fix: 'Put the code in one of tokens, platform, icons, mascots, atoms, molecules, organisms or templates, or add the folder to the table in tools/checks/import-layers.ts with its allowed imports (a protected edit).',
+  },
+  'import-layers/no-self-barrel': {
+    req: 'R60, R27',
+    summary: 'A file in a package does not import that package\'s own index',
+    why: 'The index is for other packages. Going through it hides which design level a file reaches, so an upward import looks like a sideways one and is reported as a cycle instead of as the broken level rule.',
+    fix: 'Import the file that holds the thing, by its relative path.',
   },
   'import-layers/design-levels': {
     req: 'R60',
@@ -187,6 +205,9 @@ export function run(ctx: CheckContext): Finding[] {
         }
         if (target) {
           edges.push(target);
+          if (unit && target === `packages/${unit.name}/src/index.ts` && file !== target) {
+            add('import-layers/no-self-barrel', `"${spec}" imports the package's own index`);
+          }
           const from = levelOf(file);
           const to = levelOf(target);
           if (from && to && from in ALLOWED_LEVELS && to !== from && !ALLOWED_LEVELS[from as Level].includes(to) && DESIGN_LEVELS.includes(to as Level)) {
@@ -210,6 +231,9 @@ export function run(ctx: CheckContext): Finding[] {
           add('import-layers/package-entry-only', `"${spec}" is a deep import; use "@grocs/${pkg}"`);
         }
         if (targetUnit && !isTestingEntry) edges.push(`packages/${pkg}/src/index.ts`);
+        if (unit && targetUnit && targetUnit.name === unit.name && !isTestingEntry) {
+          add('import-layers/no-self-barrel', `"${spec}" imports the package's own index`);
+        }
         if (!unit || !targetUnit || targetUnit.name === unit.name) continue;
         if (!ALLOWED_PROJECT[unit.layer].includes(targetUnit.layer)) {
           const rule =
@@ -239,6 +263,15 @@ export function run(ctx: CheckContext): Finding[] {
       if (!ok) {
         add('import-layers/no-io-packages', `${unit.name} (${unit.layer} layer) imports "${spec}", which is not on its allow-list`);
       }
+    }
+  }
+
+  const reported = new Set<string>();
+  for (const file of ctx.files) {
+    const folder = levelOf(file);
+    if (folder && !(DESIGN_LEVELS as readonly string[]).includes(folder) && !reported.has(folder)) {
+      reported.add(folder);
+      findings.push({ rule: 'import-layers/unknown-ui-folder', file, detail: `packages/ui/src/${folder}/ is not in the design-level table (${DESIGN_LEVELS.join(', ')})` });
     }
   }
 

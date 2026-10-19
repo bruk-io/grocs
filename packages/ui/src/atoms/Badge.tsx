@@ -16,16 +16,17 @@ export function Badge({ label }: { label: string }) {
 
 const styles = StyleSheet.create({
   pill: {
-    backgroundColor: tokens.color.badge,
-    borderRadius: tokens.radius.round,
-    paddingHorizontal: tokens.space[2],
-    paddingVertical: tokens.space[1],
+    backgroundColor: tokens.color.mealAmber,
+    borderRadius: tokens.radius.pill,
+    paddingHorizontal: tokens.space[10],
+    paddingVertical: tokens.space[4],
     maxWidth: '100%',
   },
   text: {
-    color: tokens.color.textOnBadge,
-    fontSize: tokens.font.size.caption,
-    lineHeight: tokens.font.lineHeight.caption,
-    fontWeight: tokens.font.weight.bold,
+    color: tokens.color.mealAmberInk,
+    fontFamily: tokens.font.family.body,
+    fontSize: tokens.font.size.micro,
+    lineHeight: tokens.font.lineHeight.micro,
+    fontWeight: tokens.font.weight.heavy,
   },
 });
