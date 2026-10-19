@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.12
 title: WelcomeScreen puts the development test sign-in in SignInTemplate's footer
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app-small'
 created_date: '2026-10-19 10:57'
-updated_date: '2026-10-19 10:58'
+updated_date: '2026-10-19 13:41'
 labels:
   - size-1
   - layer-app
