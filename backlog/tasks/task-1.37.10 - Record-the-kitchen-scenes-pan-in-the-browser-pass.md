@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.10
 title: Record the kitchen scene's pan in the browser pass
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-19 08:30'
-updated_date: '2026-10-19 10:57'
+updated_date: '2026-10-19 11:37'
 labels:
   - size-2
   - testing

@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.11
 title: SignInTemplate takes a slot below the sign-in actions
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui-small'
 created_date: '2026-10-19 09:01'
-updated_date: '2026-10-19 10:57'
+updated_date: '2026-10-19 11:37'
 labels:
   - size-1
   - layer-ui
