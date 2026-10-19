@@ -90,3 +90,18 @@ describe('kitchens/{kitchenId}/{document=**} (R4)', () => {
     await assertFails(setDoc(doc(carl.firestore(), 'kitchens/no-such-kitchen/weeks/2026-W43'), { note: 'test' }));
   });
 });
+
+describe('inviteCodes/{code} (R2, R3)', () => {
+  it('no one can read an invite code directly - only the join function resolves one (default-deny, no match block)', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' });
+    });
+    const bruk = testEnv.authenticatedContext('bruk');
+    await assertFails(getDoc(doc(bruk.firestore(), 'inviteCodes/MOREL-0024')));
+  });
+
+  it('no one can write an invite code directly', async () => {
+    const bruk = testEnv.authenticatedContext('bruk');
+    await assertFails(setDoc(doc(bruk.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' }));
+  });
+});

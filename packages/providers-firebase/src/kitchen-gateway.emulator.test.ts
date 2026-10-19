@@ -43,4 +43,15 @@ describe('FirebaseKitchenGateway: unauthenticated calls', () => {
       await client.dispose();
     }
   });
+
+  it('rejects joinKitchen with no one signed in', async () => {
+    const client = createEmulatorClient('fkg-anon-join');
+    try {
+      const fns = asSdk<FunctionsFns>(client.functionsFns);
+      const gateway = new FirebaseKitchenGateway(fns, client.functions);
+      await expect(gateway.joinKitchen('MOREL-0024')).rejects.toThrow();
+    } finally {
+      await client.dispose();
+    }
+  });
 });

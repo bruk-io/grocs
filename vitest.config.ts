@@ -103,6 +103,10 @@ export default defineConfig({
           include: ['packages/*/src/**/*.emulator.test.ts', 'apps/*/src/**/*.emulator.test.ts', 'firebase/**/*.test.ts'],
           testTimeout: 20_000,
           hookTimeout: 20_000,
+          // Every file in this project shares one Firestore/Auth/Functions emulator and one
+          // project id. A file that calls clearFirestore() (firestore.rules.test.ts) can wipe
+          // data a concurrently-running file is mid-test with - run one file at a time.
+          fileParallelism: false,
         },
       },
     ],

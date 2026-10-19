@@ -34,22 +34,33 @@ export class KitchenStore {
     this.#now = now;
   }
 
-  /** Makes a kitchen and its one invite in a single batch - a reader never sees one without the other. */
+  /**
+   * Makes a kitchen and its one invite in a single batch - a reader never sees one without the
+   * other. `create()`, not `set()`, on the invite document: inviteCodeFromId's ~340,000-code space
+   * makes a collision with another kitchen's still-pending invite unlikely but not impossible, and
+   * `set()` would silently repoint someone else's live invite at this kitchen instead. `create()`
+   * fails the batch on an existing document, so a collision is retried with a fresh id instead.
+   */
   async createKitchen(name: string, timeZone: string, ownerUid: string): Promise<CreatedKitchen> {
     const id = this.#ids();
     const made = createKitchen({ id, name, timeZone, ownerUid, createdAt: this.#now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
 
-    const inviteId = this.#ids();
-    const code = inviteCodeFromId(inviteId);
-    const invite: InviteDoc = { kitchenId: id, createdAt: this.#now(), status: 'pending' };
-
-    const batch = this.#db.batch();
-    batch.set(this.#db.doc(`kitchens/${id}`), made.value);
-    batch.set(this.#db.doc(`inviteCodes/${code}`), invite);
-    await batch.commit();
-
-    return { kitchenId: id, inviteCode: code };
+    const attempts = 5;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      const code = inviteCodeFromId(this.#ids());
+      const invite: InviteDoc = { kitchenId: id, createdAt: this.#now(), status: 'pending' };
+      const batch = this.#db.batch();
+      batch.create(this.#db.doc(`kitchens/${id}`), made.value);
+      batch.create(this.#db.doc(`inviteCodes/${code}`), invite);
+      try {
+        await batch.commit();
+        return { kitchenId: id, inviteCode: code };
+      } catch (error) {
+        if (attempt === attempts) throw error;
+      }
+    }
+    throw new Error('could not find a free invite code');
   }
 
   /**

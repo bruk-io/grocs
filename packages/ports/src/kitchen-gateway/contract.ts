@@ -33,7 +33,7 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
       withGateways(async ({ owner }) => {
         const created = await owner.createKitchen('Our kitchen', 'America/New_York');
         t.expect(created.kitchenId.length).toBeGreaterThan(0);
-        t.expect(created.inviteCode).toMatch(/^[A-Z]+-\d{2}$/);
+        t.expect(created.inviteCode).toMatch(/^[A-Z]+-\d{4}$/);
       }),
     );
 
@@ -78,8 +78,20 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
     t.it(
       'rejects a code that was never issued',
       withGateways(async ({ stranger }) => {
-        const outcome = await stranger.joinKitchen('NOTREAL-00');
+        const outcome = await stranger.joinKitchen('NOTREAL-0000');
         t.expect(outcome).toEqual({ kind: 'rejected', reason: 'not-found' });
+      }),
+    );
+
+    t.it(
+      'rejects the owner re-entering their own still-pending invite code',
+      withGateways(async ({ owner }) => {
+        // The one case where 'already-member' is actually reachable: nobody has joined yet (the
+        // invite is still pending, so checkInvite does not short-circuit on 'used'), but the
+        // caller is already in the kitchen's one member - the owner themselves.
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const outcome = await owner.joinKitchen(created.inviteCode);
+        t.expect(outcome).toEqual({ kind: 'rejected', reason: 'already-member' });
       }),
     );
 
