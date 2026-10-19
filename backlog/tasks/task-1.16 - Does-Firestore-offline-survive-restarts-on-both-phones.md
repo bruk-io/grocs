@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 12:46'
+updated_date: '2026-10-19 12:50'
 labels:
   - size-2
   - architecture
@@ -36,6 +36,18 @@ Feeds D4 (R16, R20). Needs devices. Delivers an answer: whether queued writes an
 - [ ] #7 Measured: each phone's clock offset from request.time, from a test write carrying serverTimestamp() beside stamp.at, with automatic time on, and what happens when it is off
 - [ ] #8 Confirmed: every modular function the provider needs exists in the native module with the same call shape (writeBatch, doc, collection, query, where, orderBy, limit, onSnapshot with includeMetadataChanges, serverTimestamp)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Emulator probe (orchestrator, 2026-10-19), points 1 and 3 only - NOT a substitute for the device checks, which the emulator genuinely cannot show (killed-process persistence, real network timing, clock drift against request.time). Disposable script (firebase/scratch-probe.emulator.test.ts, not committed), web SDK against the Firestore emulator, authenticated as seed members.
+
+Point 1 (batch committed offline shows in onSnapshot at once, with hasPendingWrites): confirmed. writeBatch().commit() must NOT be awaited while offline - decision-7's own cited SDK-typings evidence holds: awaiting it hung the test for the full 20s timeout with the network disabled. Once left unawaited, the local onSnapshot listener fired immediately (commitElapsedMs=0) with the document present and metadata.hasPendingWrites=true. This directly validates decision-7's append() design (fire-and-forget commit, no await).
+
+Point 3 (on reconnection the batch reaches the server and a second client sees it): confirmed on the mechanism. A second, independently-authenticated client did NOT see the change while the writer stayed offline (sawBeforeReconnect=false). After calling enableNetwork() on the writer, the change reached the server and the second client's listener fired 335ms later - well under the 3s budget (R15). This is localhost-emulator latency, not real network latency, so it does not stand in for the spike's own 'within 3 s' check on real devices over real networks - it only confirms the propagation mechanism itself works end-to-end with the unawaited-commit pattern.
+
+Not addressed by this probe, still needs the physical devices: process-kill persistence (#2), denied-write cleanup after a restart (#4), token-expiry recovery (#5), fromCache timing (#6), clock drift vs request.time (#7), and native-module call-shape parity (#8).
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 
