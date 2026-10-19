@@ -6,7 +6,7 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './SignInTemplate.stories.tsx';
 
-const { Rest } = composeStories(stories);
+const { Rest, WithFooter } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 beforeEach(() => {
   vi.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
@@ -39,6 +39,12 @@ describe('SignInTemplate', () => {
   it('shows the button busy while Google is open', () => {
     render(<Rest signingIn />);
     expect(screen.getByRole('button', { name: 'Signing in' }).getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('shows the development test sign-in in the footer, next to Continue with Google', () => {
+    render(<WithFooter />);
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sign in as Bruk (test)' })).toBeTruthy();
   });
 
   it('reports a tap on a host', async () => {

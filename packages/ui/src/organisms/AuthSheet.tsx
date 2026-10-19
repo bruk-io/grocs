@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button } from '../atoms/Button.tsx';
 import { Text } from '../atoms/Text.tsx';
@@ -14,10 +15,12 @@ export interface AuthSheetProps {
   /** Google's sheet is open: the button shows it is busy. */
   signingIn?: boolean;
   disabled?: boolean;
+  /** Below the invite row, in the sheet's own layout. Development builds put the test sign-in here (R53). */
+  footer?: ReactNode;
 }
 
 /** The sheet at the foot of Welcome: the one way in, and the way in for an invite (button.secondary, text.small, button.text). */
-export function AuthSheet({ onContinue, onOpenInvite, signingIn = false, disabled = false }: AuthSheetProps) {
+export function AuthSheet({ onContinue, onOpenInvite, signingIn = false, disabled = false, footer }: AuthSheetProps) {
   return (
     <View style={styles.sheet}>
       <Button
@@ -35,6 +38,7 @@ export function AuthSheet({ onContinue, onOpenInvite, signingIn = false, disable
         </Text>
         <Button variant="text" size="s" label="Open it to join" disabled={disabled} {...(onOpenInvite ? { onPress: onOpenInvite } : {})} />
       </View>
+      {footer ?? null}
     </View>
   );
 }

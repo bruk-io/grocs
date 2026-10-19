@@ -304,6 +304,9 @@
     "templates-preferences--rest.png": "8218898f88b2a877983b59e4f4ec89bb2adc899b968d38a65833e07bd07ad8b5",
     "templates-sign-in--rest--fold-inner.png": "751c1189298d3779cc1a50e81d0fbe0fd2c4995f5ea8c8e3d90247957d716890",
     "templates-sign-in--rest--fold-outer.png": "673a6d7b5f5e17fbfd7a3609f2bcf658f56e58b579d1b3cb166de39b47e4e0fc",
-    "templates-sign-in--rest.png": "11d9a9a0d6db8769dfb6b3aa310d56ae515aeeb5fadfeacaca9576694666cf1f"
+    "templates-sign-in--rest.png": "11d9a9a0d6db8769dfb6b3aa310d56ae515aeeb5fadfeacaca9576694666cf1f",
+    "templates-sign-in--with-footer--fold-inner.png": "779bcc42c76daba1ebfeb7e46c7b2861e15353c3d2c0de15bc18226fcb123d4d",
+    "templates-sign-in--with-footer--fold-outer.png": "2e688c74557dab54ccf64d2957ad893a9e5e76927f6b5dd8680d9319a0edb774",
+    "templates-sign-in--with-footer.png": "2bfc1055f96f793a682e29f65e53eb6dfda0a3f6c91a1730a901dd7f877e0f3c"
   }
 }
