@@ -15,7 +15,7 @@ import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
 import type { NativeApp } from '../src/composition/native.ts';
 
-export async function appOnFakes({ signedIn }: { signedIn: boolean }): Promise<NativeApp> {
+export async function appOnFakes({ signedIn, dev = false }: { signedIn: boolean; dev?: boolean }): Promise<NativeApp> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   const app = composeApp({
@@ -23,7 +23,17 @@ export async function appOnFakes({ signedIn }: { signedIn: boolean }): Promise<N
     logger: new MemoryLogger(),
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
   });
-  return { app, dev: null, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  // A development build has the seeded test accounts; a release build has none.
+  const devAccess = dev
+    ? {
+        kitchenId: 'k1',
+        accounts: [{ label: 'U1', email: 'u1@grocs.test', password: 'pw' }],
+        signIn: async (email: string, password: string) => {
+          await auth.signInWithTestAccount(email, password);
+        },
+      }
+    : null;
+  return { app, dev: devAccess, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
 }
 
 /**

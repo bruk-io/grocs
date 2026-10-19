@@ -75,16 +75,6 @@
       "radius": 40,
       "page": "app"
     },
-    "Welcome.dc.html": {
-      "x": 0,
-      "y": 1224,
-      "w": 390,
-      "h": 844,
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app",
-      "title": "Welcome"
-    },
     "Household.dc.html": {
       "x": 470,
       "y": 1224,
@@ -220,7 +210,6 @@
     "AddMeal.dc.html",
     "QuickAdd.dc.html",
     "RecipeImport.dc.html",
-    "Welcome.dc.html",
     "Household.dc.html",
     "JoinInvite.dc.html",
     "JoinInviteInvalid.dc.html",
