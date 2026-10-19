@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 00:32'
-updated_date: '2026-10-19 04:06'
+updated_date: '2026-10-19 04:13'
 labels:
   - size-2
 dependencies: []
@@ -77,4 +77,6 @@ Verification:
 - pnpm test: 283 passed (35 files), including 16 new/existing tests in tools/checks/agent-definitions.test.ts covering all three states of checkRouteMirrorFreshness (matching real board.py text, unreadable, model mismatch, effort mismatch, unparseable route) plus readPluginBoardPySource's real disk I/O via a temp file and a nonexistent-path case.
 - No Firebase/emulator-backed code touched, so pnpm test:emulator was not run.
 - Scope held to .claude/settings.json, tools/checks/lib.ts, tools/checks/run.ts, tools/checks/agent-definitions.ts, tools/checks/agent-definitions.test.ts -- no packages/ui or apps/mobile screens touched.
+
+Follow-up commit c3e822b: a review pass caught that tools/agents/roles.ts and tools/checks/agent-definitions.ts still carried doc comments from before this task claiming the mirror 'cannot be checked' against the plugin in CI and that the check 'compares committed definitions against this mirror rather than shelling out to the plugin' -- true before, false after adding checkRouteMirrorFreshness. Fixed the comments to describe the three-state check that now exists. pnpm check/typecheck/test re-run clean after the fix (9 checks passed, tsc clean, 283 tests passed).
 <!-- SECTION:NOTES:END -->
