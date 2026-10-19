@@ -11,7 +11,7 @@ import { dirname, resolve } from 'node:path';
 import type { Check, CheckContext, Finding } from './lib.ts';
 import { formatFinding, makeContext } from './lib.ts';
 import { checks } from './registry.ts';
-import { check as weakeningCheck, reviewChange } from './weakening.ts';
+import { check as weakeningCheck, loadOverrides, reviewChange } from './weakening.ts';
 
 export interface Report {
   readonly check: Check;
@@ -55,13 +55,14 @@ export function reviewGitChange(root: string, base: string): Report[] {
   const names = staged
     ? git(root, ['diff', '--cached', '--name-status', '--no-renames'])
     : git(root, ['diff', '--name-status', '--no-renames', `${base}...HEAD`]);
+  const overrides = loadOverrides(root);
   const reports: Report[] = [];
   for (const line of names.split('\n').filter(Boolean)) {
     const [status, file] = line.split('\t');
     if (!status || !file) continue;
     const before = gitShow(root, staged ? `HEAD:${file}` : `${base}:${file}`);
     const after = status === 'D' ? null : gitShow(root, staged ? `:${file}` : `HEAD:${file}`);
-    for (const w of reviewChange(file, before, after)) reports.push({ check: weakeningCheck, finding: w });
+    for (const w of reviewChange(file, before, after, overrides)) reports.push({ check: weakeningCheck, finding: w });
   }
   return reports;
 }

@@ -7,13 +7,13 @@
 //   a layer agent writing or running Bash outside its layer -> denied, with the reason
 //   the orchestrator writing layer code -> denied, with the reason
 import { formatFinding } from '../checks/lib.ts';
-import { check as weakening, isProtected, reviewChange } from '../checks/weakening.ts';
+import { check as weakening, isProtected, loadOverrides, reviewChange } from '../checks/weakening.ts';
 import { isTestFile } from '../checks/lib.ts';
 import { loadConfigs } from '../agents/generate.ts';
 import { LAYERS } from '../agents/layers.ts';
 import { check as writeGuard, parseAgentType, reviewLayerBash, reviewLayerEdit, reviewOrchestratorEdit } from '../agents/write-guard.ts';
 import type { HookPayload } from './lib.ts';
-import { readPayload, repoRelative, resultOfEdit } from './lib.ts';
+import { readPayload, repoRelative, repoRoot, resultOfEdit } from './lib.ts';
 
 const CONFIGS = loadConfigs();
 
@@ -68,7 +68,7 @@ export function decide(payload: HookPayload): Decision {
   }
 
   if (!isTestFile(edit.file) && !isProtected(edit.file)) return ALLOW;
-  const found = reviewChange(edit.file, edit.before, edit.after);
+  const found = reviewChange(edit.file, edit.before, edit.after, loadOverrides(repoRoot));
   if (found.length === 0) return ALLOW;
   const text = found.map((f) => formatFinding(weakening, f)).join('\n\n');
   return { decision: found.some((f) => f.severity === 'deny') ? 'deny' : 'ask', reason: text };

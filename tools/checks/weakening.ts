@@ -2,6 +2,9 @@
 // loosening a check's configuration. The same review function is used before an
 // agent edit (tools/hooks/pre-edit.ts), at pre-commit (staged diff) and in CI (diff
 // against the base branch), so all three agree.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Check, Finding, RuleInfo } from './lib.ts';
 import { isStoryFile, isTestFile } from './lib.ts';
 
@@ -28,7 +31,7 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     req: 'R57',
     summary: 'Do not loosen a check, hook, runner or CI configuration',
     why: 'A check that can be edited by the thing it checks proves nothing. Removing a rule, excluding a path or turning a failure into a warning makes the change under review pass without making it correct.',
-    fix: 'Change the code so the check passes. If the check itself is wrong, ask the person who owns the spec; a human makes that change.',
+    fix: "Change the code so the check passes. If the check itself is wrong, ask the person who owns the spec; a human makes that change. A sanctioned exception for one specific diff (not a standing bypass) is recorded in tools/checks/weakening-overrides.json, keyed to that diff's exact before/after content - never only in a commit message. A version-only bump of a pinned action or tool (e.g. actions/checkout@v4 -> @v7) does not need one; a bump pinned by commit SHA rather than a bare tag does, since the line shapes differ.",
   },
 };
 
@@ -78,11 +81,78 @@ function lineDiff(a: string, b: string): { added: string[]; removed: string[] } 
 
 const trivial = (l: string): boolean => l.trim() === '' || /^\s*(\/\/|#|\*|\/\*)/.test(l);
 
+const normalizeDigits = (l: string): string => l.replace(/\d+/g, '#');
+
+/**
+ * True when `removedLine` and `addedLine` are the same line except for a pinned
+ * version number (a `uses: owner/repo@vN` tag, a `*-version:` field): same shape once
+ * every run of digits is collapsed, actually different, and on a line that looks like
+ * a version pin rather than some other numeric setting (a threshold, a count). A
+ * version pinned by commit SHA, or a bump that also changes the digit-count shape
+ * (`@v4` -> `@v7.1.0`), does not match, so it still goes through the ordinary review.
+ */
+export function isVersionBumpPair(removedLine: string, addedLine: string): boolean {
+  if (removedLine === addedLine) return false;
+  if (!/@|version/i.test(removedLine)) return false;
+  if (LOOSENING_WORDS.test(removedLine) || LOOSENING_WORDS.test(addedLine)) return false;
+  return normalizeDigits(removedLine) === normalizeDigits(addedLine);
+}
+
+/** `removed`/`added` with every matched version-bump pair taken out of both sides. */
+function excludeVersionBumps(removed: readonly string[], added: readonly string[]): { removed: string[]; added: string[] } {
+  const remainingAdded = [...added];
+  const remainingRemoved: string[] = [];
+  for (const r of removed) {
+    const idx = remainingAdded.findIndex((a) => isVersionBumpPair(r, a));
+    if (idx >= 0) remainingAdded.splice(idx, 1);
+    else remainingRemoved.push(r);
+  }
+  return { removed: remainingRemoved, added: remainingAdded };
+}
+
+/** A human-recorded, single-diff exception to weakening/loosen-check-config (R57 fix). */
+export interface WeakeningOverride {
+  readonly file: string;
+  /** sha256 of the file's content before the change (hash of "" when the file is new). */
+  readonly beforeHash: string;
+  /** sha256 of the file's content after the change. */
+  readonly afterHash: string;
+  readonly approvedBy: string;
+  readonly reason: string;
+  readonly date: string;
+}
+
+export const hashContent = (s: string | null): string => createHash('sha256').update(s ?? '').digest('hex');
+
+/**
+ * True when `overrides` records a human approval for exactly this file's exact
+ * before/after content. Tied to the content, not the file path alone, so it is a
+ * one-time exception: it stops applying the moment the file changes again, and it
+ * cannot be reused to wave through a different, later loosening of the same file.
+ */
+export function isOverridden(file: string, before: string | null, after: string | null, overrides: readonly WeakeningOverride[]): boolean {
+  const beforeHash = hashContent(before);
+  const afterHash = hashContent(after);
+  return overrides.some((o) => o.file === file && o.beforeHash === beforeHash && o.afterHash === afterHash);
+}
+
+/** Reads tools/checks/weakening-overrides.json under `root`; a missing or invalid file means no overrides. */
+export function loadOverrides(root: string): readonly WeakeningOverride[] {
+  try {
+    const raw = JSON.parse(readFileSync(join(root, 'tools/checks/weakening-overrides.json'), 'utf8'));
+    return Array.isArray(raw) ? (raw as WeakeningOverride[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Review one file's change. `before` or `after` is null when the file did not exist or was deleted.
- * Returns the weakenings it finds; an empty list means the change may go ahead.
+ * `overrides` is a human-recorded exception list (loadOverrides); it is checked only against
+ * weakening/loosen-check-config, never against the test-weakening rules. Returns the weakenings
+ * found; an empty list means the change may go ahead.
  */
-export function reviewChange(file: string, before: string | null, after: string | null): Weakening[] {
+export function reviewChange(file: string, before: string | null, after: string | null, overrides: readonly WeakeningOverride[] = []): Weakening[] {
   const out: Weakening[] = [];
   const add = (rule: string, severity: Severity, detail: string, line?: number): void => {
     out.push({ rule, severity, file, detail, ...(line ? { line } : {}) });
@@ -110,17 +180,23 @@ export function reviewChange(file: string, before: string | null, after: string 
 
   if (isProtected(file) && before !== null) {
     if (after === null) {
+      // A deletion always surfaces, even for an otherwise-matching override: that override
+      // was recorded for a specific content change, not for the file disappearing, and a
+      // deleted check config is the one case where the cost of asking is lowest and the
+      // stakes highest.
       add('weakening/loosen-check-config', 'ask', `${file} is deleted`);
       return out;
     }
+    if (isOverridden(file, before, after, overrides)) return out;
     const { added, removed } = lineDiff(before, after);
     const removedReal = removed.filter((l) => !trivial(l));
     const addedReal = added.filter((l) => !trivial(l));
     if (isCheckConfig(file)) {
-      if (removedReal.length > 0) {
-        add('weakening/loosen-check-config', 'ask', `removes ${removedReal.length} line(s), for example: ${removedReal[0]!.trim()}`);
+      const { removed: removedNonBump, added: addedNonBump } = excludeVersionBumps(removedReal, addedReal);
+      if (removedNonBump.length > 0) {
+        add('weakening/loosen-check-config', 'ask', `removes ${removedNonBump.length} line(s), for example: ${removedNonBump[0]!.trim()}`);
       }
-      const loosening = addedReal.find((l) => LOOSENING_WORDS.test(l));
+      const loosening = addedNonBump.find((l) => LOOSENING_WORDS.test(l));
       if (loosening) add('weakening/loosen-check-config', 'ask', `adds a line that can loosen a check: ${loosening.trim()}`);
     } else if (removedReal.length > addedReal.length) {
       add('weakening/loosen-check-config', 'ask', `the check code shrinks by ${removedReal.length - addedReal.length} line(s)`);
