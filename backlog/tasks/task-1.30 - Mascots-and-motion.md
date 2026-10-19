@@ -4,7 +4,7 @@ title: Mascots and motion
 status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 03:19'
+updated_date: '2026-10-19 03:53'
 labels:
   - size-5
   - design-system
@@ -32,6 +32,7 @@ Waits on D6 and the canvas move. Cites R40, R41.
 - [ ] #3 All motion follows the reduce-motion setting through one MotionProvider, with a story toolbar switch for it (R41)
 - [ ] #4 Rendered with pnpm --filter @grocs/ui shots, each mushroom matches its look in design/reference/shots/
 - [ ] #5 The choice of keyframes, pose and duration is a pure function with unit tests, the tap and announcement have a behaviour test, and the browser pass is clean with each story's baseline approved and committed (decision-11)
+- [ ] #6 The Welcome scene's mushroom props (spoon, tomato, scrub brush) are extracted from design/reference/Welcome.dc.html into design/svg/mascots/ and drawn by the Mascot as poses
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -40,4 +41,6 @@ Waits on D6 and the canvas move. Cites R40, R41.
 Finish moved on 2026-10-18 before work started: this task now builds the Mascot molecule and every mushroom's data under TASK-1.37's UI build; placing a host on each screen moved to the screen tasks (TASK-1.37.4, TASK-1.37.5). Criteria follow decision-5, which Bruk accepted.
 
 Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+
+Finish moved on 2026-10-18 before work started: the TASK-1.19 review found the Welcome props (spoon, tomato, scrub) not extracted; as poses they belong with the Mascot.
 <!-- SECTION:NOTES:END -->
