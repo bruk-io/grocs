@@ -202,11 +202,11 @@ describe('write guard (decision-3): layer agents and the orchestrator', () => {
     expect(r.stderr).toContain('write-guard/orchestrator-scope');
   });
 
-  it('allows the orchestrator writing the board, root config or .claude/', () => {
-    for (const rel of ['backlog/tasks/task-9.md', '.claude/settings.json', 'package.json']) {
-      const r = hook('pre-edit', { agent_type: undefined, tool_name: 'Write', tool_input: { file_path: join(root, rel), content: '{}\n' } });
-      expect(r.status).toBe(0);
-    }
+  // One case per path: each hook run is a node start-up, and three in one test overran the 5 s
+  // timeout when several agents ran checks at once (TASK-1.42).
+  it.each(['backlog/tasks/task-9.md', '.claude/settings.json', 'package.json'])('allows the orchestrator writing %s (the board, root config or .claude/)', (rel) => {
+    const r = hook('pre-edit', { agent_type: undefined, tool_name: 'Write', tool_input: { file_path: join(root, rel), content: '{}\n' } });
+    expect(r.status).toBe(0);
   });
 
   it('does not apply decision-3 layer restrictions to an agent_type that names no generated agent', () => {

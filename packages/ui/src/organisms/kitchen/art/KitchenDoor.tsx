@@ -9,8 +9,8 @@ export function KitchenDoorArt(props: SvgProps) {
   return (
     <Svg viewBox="0 0 83 120" {...props}>
       <Part name="door" as={G}>
-        <Rect x={0} y={0} width={83} height={120} rx={8} fill={tokens.color.scene.hebdcc2} />
-        <Path d="M10 22q30-5 62 1M10 88q30 5 62-2" fill="none" stroke={tokens.color.scene.hdcc8a6} strokeWidth={1.5} strokeLinecap="round" />
+        <Rect x={0} y={0} width={83} height={120} rx={8} fill={tokens.color.scene.cabinet} />
+        <Path d="M10 22q30-5 62 1M10 88q30 5 62-2" fill="none" stroke={tokens.color.scene.cabinetGrain} strokeWidth={1.5} strokeLinecap="round" />
       </Part>
     </Svg>
   );

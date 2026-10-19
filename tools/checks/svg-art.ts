@@ -38,6 +38,12 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     why: 'A hex colour copied into a generated component is a second source of truth. Art colours live in tokens.json under color.mascot and color.scene, once each.',
     fix: 'Add the colour to color.mascot or color.scene in tokens.json, run pnpm tokens, then pnpm svg.',
   },
+  'svg-art/token-name': {
+    req: 'R59, R62',
+    summary: 'An art colour token is named for what it paints, not for its hex',
+    why: 'A token called h5e9952 says nothing about what it colours, so a palette change means renaming every token and every generated reference, and the art cannot be retinted by role (decision-10).',
+    fix: 'Rename the key in color.mascot or color.scene in tokens.json to its role (wall, cabinet, foliageDark), run pnpm tokens, then pnpm svg.',
+  },
   'svg-art/unreadable': {
     req: 'R62',
     summary: 'The art source must convert',
