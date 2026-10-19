@@ -15,11 +15,20 @@ import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
 import type { NativeApp } from '../src/composition/native.ts';
 
-export async function appOnFakes({ signedIn, dev = false }: { signedIn: boolean; dev?: boolean }): Promise<NativeApp> {
+export async function appOnFakes({
+  signedIn,
+  dev = false,
+  syncStore = new InMemorySyncStore(),
+}: {
+  signedIn: boolean;
+  dev?: boolean;
+  /** Pass a store to put items in it before the app opens. */
+  syncStore?: InMemorySyncStore;
+}): Promise<NativeApp> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   const app = composeApp({
-    ports: { syncStore: new InMemorySyncStore(), auth, clock: new FakeClock(), ids: new SequentialIds('t') },
+    ports: { syncStore, auth, clock: new FakeClock(), ids: new SequentialIds('t') },
     logger: new MemoryLogger(),
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
   });

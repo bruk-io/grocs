@@ -1,8 +1,12 @@
 // Level 4 of decision-11: the index route renders with its sample data and no errors.
+import { createExtraItem, weekIdFor } from '@grocs/core';
+import { FakeClock, InMemorySyncStore } from '@grocs/ports/testing';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Home from '../../app/index.tsx';
+import Plan from '../../app/plan.tsx';
+import Settings from '../../app/settings.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 
 afterEach(() => {
@@ -40,9 +44,29 @@ describe('index route', () => {
     expect(screen.getByText(String(announce.mock.calls[0]?.[0]))).toBeTruthy();
   });
 
-  it('shows the list for a signed-in person', async () => {
-    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true }) });
-    await waitFor(() => expect(screen.getByText('Nothing on the list yet')).toBeTruthy());
-    expect(screen.getByLabelText('Add an item')).toBeTruthy();
+  it('shows Groceries from the live list for a signed-in person, with tabs to Plan and Settings', async () => {
+    renderRoute({ index: Home, plan: Plan, settings: Settings }, { app: await appOnFakes({ signedIn: true }) });
+    await screen.findByText('Nothing on the list yet');
+    expect(screen.getByRole('textbox', { name: 'Add an item' })).toBeTruthy();
+    fireEvent.click(screen.getByText('Meal plan'));
+    expect(await screen.findByText('This week')).toBeTruthy();
+    fireEvent.click(screen.getByText('Groceries'));
+    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(await screen.findByText('Notifications')).toBeTruthy();
+  });
+
+  it('shows the all-done state when every item is in the cart', async () => {
+    // The skeleton has no command that puts an item in the cart yet, so the store starts with one that is.
+    const syncStore = new InMemorySyncStore();
+    const stamp = { at: 1, by: 'u2' };
+    const made = createExtraItem({ id: 'c1', weekId: weekIdFor(new FakeClock().now()), name: 'Bananas' }, stamp);
+    if (!made.ok) throw new Error('bad fixture');
+    await syncStore.mergeItem('', { ...made.value, state: { value: 'in-cart', stamp } });
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore }) });
+    expect(await screen.findByRole('checkbox', { name: 'Bananas' })).toBeTruthy();
+    expect(screen.queryByText('Nothing on the list yet')).toBeNull();
+    expect(screen.queryByText('This week')).toBeNull();
+    expect((screen.getAllByRole('button', { name: /enoki siblings, tap to hear a line/i })).length).toBeGreaterThan(0);
   });
 });
