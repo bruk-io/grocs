@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder'
 created_date: '2026-10-19 14:28'
-updated_date: '2026-10-19 18:49'
+updated_date: '2026-10-19 19:03'
 labels:
   - size-3
   - ci
@@ -24,8 +24,8 @@ For TASK-10: a workflow on GitHub's runners (Android SDK preinstalled) builds th
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 A workflow builds the demo APK on a pinned Ubuntu runner and attaches it to a GitHub Release, run by hand or on a version tag
-- [ ] #2 The APK installs on Android (evidence: a run of the workflow, the artifact, and an install and launch on an Android emulator or device)
-- [ ] #3 No Firebase config, keystore or secret is committed, and the repo says how to cut a new demo release
+- [x] #2 The APK installs on Android (evidence: a run of the workflow, the artifact, and an install and launch on an Android emulator or device)
+- [x] #3 No Firebase config, keystore or secret is committed, and the repo says how to cut a new demo release
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -46,4 +46,82 @@ Passing run: 39301929518 on apk/demo at commit 0e82f89: build 21 min (34 min on 
 Signing: Expo's prebuild template signs release with the debug keystore, generated fresh on every CI run, so no keystore or secret is committed or needed. A friend with an older demo installed must uninstall it before installing a newer one (Android refuses an update signed by another key); the workflow header and the Release notes say so. A stable key, so updates install over each other, would need a keystore stored as a repository secret, which only Bruk can add (and the build would need a signing config added to the prebuilt project, a small config plugin). Nothing else needs a secret or setting: the release job uses the workflow's own token with contents: write.
 
 Other: the real build sets neither variable (ci.yml unchanged; check:demo sets them only in its child process; the workflow sets them only on the prebuild and Gradle steps). Branch apk/demo is left on origin (cannot delete it from here). I squashed my iterations into one commit because the weakening check (loosen-check-config) flags removing a line from a workflow even when the file is new on the branch.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(520 earlier lines omitted)
+```text
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-CG-L9128.js
+|  5.75 kB │ gzip:   1.97 kB
+|  storybook-static/assets/Button-HlTd63fv.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-CVO2Zfzk.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-D4zA4yxG.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-_dK9hVdg.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-d75twOs6.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-wrpbBZ8J.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-7rNFOYcX.js
+|  1,359.38 kB │ gzip: 391.72 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 5.45s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 3.3s of this 5.4s
+|  build (61%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin vite:css transform (29%, 1.6s, 2 calls)
+|  - plugin storybook:react-docgen-plugin transform (22%, 1.2s, 822
+|  calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a51d043119a2c7e72/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-a51d043119a2c7e72/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 311 story views checked (axe, 44 x 44, 311 images compared)
+```
+
+Review by philosophy:reviewer (Oct 19, 2026): not closed. AC1 unmet only on its release half; AC2 and AC3 ticked. Full-tier check exited 0, no files rewritten.
+AC1: the build half is evidenced (run 39301929518 on ubuntu-24.04, workflow_dispatch and demo-v* tag triggers). The release half has never run: tag pushes are refused from the sandbox. From the code it looks right: release needs [build, smoke], runs only on refs/tags/demo-v*, contents: write on that job only, gh release create --verify-tag --repo with the APK renamed per tag and notes covering install and uninstall-before-update. Unproven until a run exists. To complete: after merge Bruk pushes demo-v0.1.0 from main; the run's release job passes and the Release page shows grocs-demo-demo-v0.1.0.apk with those notes; then tick AC1 and close.
+AC2: smoke-output from 39301929518: welcome.png shows Welcome with Try the demo; logcat has no FATAL EXCEPTION or AndroidRuntime error, only the FirebaseApp 'no default options' warning and FirebaseInitProvider 'initialization unsuccessful'.
+AC3: no google-services.json, keystore or secret in git ls-files; the workflow header says how to cut a release.
+Firebase autolinking left in: sound, since the app launches and the smoke test would catch a crash after a @react-native-firebase upgrade. The fallback (variant-aware react-native.config.js) is written only in these notes, not in the repo. Low: worth a line in the workflow header.
+check:demo: the unit tests cover firebase-in-demo, blind and not-the-demo, and the CI log shows it passing on 2 bundles. It is wired into demo-apk.yml only, not ci.yml (DRAFT-8).
+release-bundle.ts: export keywords plus extraEnv, default {} and spread last. check:release passes no extraEnv, so its behaviour is unchanged; it passed in the full check.
+Variant variables: ci.yml sets neither; demo-apk.yml sets them only on the prebuild and Gradle steps.
+Signing: uninstall-before-update is in the Release notes text, where a friend sees it, and in the header.
+Weakening: a real false positive. The pre-commit check judges each commit against its parent, so iterating a workflow that is new on its branch trips it. Filed as DRAFT-9.
+UX: the demo's Google button is prominent but does nothing, while Try the demo is a small text link. Filed as DRAFT-7.
 <!-- SECTION:NOTES:END -->
