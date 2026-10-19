@@ -113,14 +113,6 @@
       "title": "1 Tokens",
       "page": "ds"
     },
-    "DS-Atoms.dc.html": {
-      "x": 1280,
-      "y": 0,
-      "w": 1200,
-      "h": 3326,
-      "title": "2 Atoms",
-      "page": "ds"
-    },
     "DS-Molecules.dc.html": {
       "x": 2560,
       "y": 0,
@@ -260,7 +252,6 @@
     "Offline.dc.html",
     "Toast.dc.html",
     "DS-Tokens.dc.html",
-    "DS-Atoms.dc.html",
     "DS-Molecules.dc.html",
     "DS-Organisms.dc.html",
     "DS-Templates.dc.html",

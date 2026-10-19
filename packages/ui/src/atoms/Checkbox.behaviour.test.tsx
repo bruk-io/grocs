@@ -38,6 +38,23 @@ describe('Checkbox', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith(true);
   });
 
+  it('can be toggled with the Space key, which is how a checkbox is operated (WAI-ARIA)', async () => {
+    const onChange = vi.fn();
+    render(<Checked onChange={onChange} />);
+    await user.tab();
+    expect(screen.getByRole('checkbox', { name: 'Oat milk' })).toBe(document.activeElement);
+    await user.keyboard(' ');
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it('does not react to Space while disabled', async () => {
+    const onChange = vi.fn();
+    render(<Disabled onChange={onChange} />);
+    screen.getByRole('checkbox', { name: 'Oat milk' }).focus();
+    await user.keyboard(' ');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('reports disabled and does not call onChange', async () => {
     const onChange = vi.fn();
     render(<Disabled onChange={onChange} />);

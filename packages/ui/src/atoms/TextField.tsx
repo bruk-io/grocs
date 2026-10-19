@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
+import { icons } from '../icons/index.ts';
+import { fontFace } from '../platform/font-face.ts';
 import { tokens } from '../tokens/tokens.ts';
+import { Button } from './Button.tsx';
 import { Text } from './Text.tsx';
 
 /** The states of TextField; each has a story (R61, R63). */
@@ -15,60 +18,89 @@ export interface TextFieldProps {
   disabled?: boolean;
   /** Shown under the field, and makes the field read as invalid. */
   errorMessage?: string;
+  /** Names the round button inside the field (input.text--inline). The button shows only when this is set. */
+  actionLabel?: string;
+  onAction?: () => void;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, forceState }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, forceState }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
+  const lit = focused || forceState === 'focus';
+  const Alert = icons.alert;
   return (
     <View style={styles.wrap}>
-      <TextInput
-        aria-label={label}
-        aria-invalid={invalid}
-        placeholder={label}
-        placeholderTextColor={tokens.color.inkHint}
-        value={value}
-        editable={!disabled}
-        onChangeText={onChangeText}
-        onSubmitEditing={onSubmit}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        returnKeyType="done"
+      <View
         style={[
-          styles.input,
+          styles.box,
+          actionLabel !== undefined && styles.boxInline,
           forceState === 'pressed' && styles.pressed,
-          (focused || forceState === 'focus') && styles.focused,
+          lit && styles.focused,
+          lit && { boxShadow: tokens.shadow.focus },
           invalid && styles.invalid,
+          invalid && lit && { boxShadow: tokens.shadow.focusError },
           disabled && styles.disabled,
         ]}
-      />
+      >
+        <TextInput
+          aria-label={label}
+          aria-invalid={invalid}
+          placeholder={label}
+          placeholderTextColor={tokens.color.inkHint}
+          value={value}
+          editable={!disabled}
+          onChangeText={onChangeText}
+          onSubmitEditing={onSubmit}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          returnKeyType="done"
+          style={[styles.input, actionLabel !== undefined && styles.inputInline, disabled && styles.inputDisabled]}
+        />
+        {actionLabel !== undefined ? <Button variant="icon" label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
+      </View>
       {invalid ? (
-        <Text variant="caption" role="alert">
-          {errorMessage}
-        </Text>
+        <View style={styles.error} role="alert">
+          <Alert color={tokens.color.error} size={tokens.size.iconChip} />
+          <Text variant="caption" tone="error">
+            {errorMessage}
+          </Text>
+        </View>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: tokens.space[4] },
-  input: {
+  wrap: { gap: tokens.space[6] },
+  box: {
     minHeight: tokens.size.control,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.space[8],
     borderWidth: tokens.size.lineW,
     borderColor: tokens.color.line,
     borderRadius: tokens.radius[20],
-    paddingHorizontal: tokens.space[16],
+    paddingHorizontal: tokens.space[18],
     backgroundColor: tokens.color.surfaceCard,
-    color: tokens.color.ink,
-    fontFamily: tokens.font.family.body,
-    fontSize: tokens.font.size.label,
-    fontWeight: tokens.font.weight.heavy,
   },
+  boxInline: { paddingHorizontal: tokens.space[4], paddingLeft: tokens.space[18] },
+  input: {
+    flex: 1,
+    minWidth: 0,
+    alignSelf: 'stretch',
+    minHeight: tokens.size.target,
+    outlineWidth: 0,
+    color: tokens.color.ink,
+    ...fontFace('body', tokens.font.weight.bold),
+    fontSize: tokens.font.size.label,
+  },
+  inputInline: { ...fontFace('body', tokens.font.weight.medium), height: tokens.size.target },
+  inputDisabled: { color: tokens.color.disabledInk },
   pressed: { backgroundColor: tokens.color.surfaceTint },
   focused: { borderColor: tokens.color.forest },
   invalid: { borderColor: tokens.color.error },
-  disabled: { backgroundColor: tokens.color.disabled, color: tokens.color.disabledInk },
+  disabled: { backgroundColor: tokens.color.disabled, borderColor: tokens.color.lineSoft },
+  error: { flexDirection: 'row', alignItems: 'center', gap: tokens.space[6] },
 });

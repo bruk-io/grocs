@@ -10,8 +10,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Rest: Story = {};
-export const Filled: Story = { args: { value: 'Oat milk' } };
+export const Filled: Story = { args: { value: 'Fried rice' } };
 export const Pressed: Story = { args: { forceState: 'pressed' } };
-export const Focus: Story = { args: { forceState: 'focus' } };
-export const Disabled: Story = { args: { disabled: true } };
-export const Invalid: Story = { args: { value: ' ', errorMessage: 'Give the item a name' } };
+export const Focus: Story = { args: { value: 'Fried rice', forceState: 'focus' } };
+export const Disabled: Story = { args: { disabled: true, label: 'Can not edit' } };
+export const Invalid: Story = { args: { value: 'Fried rice', errorMessage: 'Enter a name' } };
+export const InvalidFocus: Story = { args: { value: 'Fried rice', errorMessage: 'Enter a name', forceState: 'focus' } };
+/** input.text--inline: the add bar, with its round button inside the field. */
+export const InlineRest: Story = { args: { label: 'Add an item…', actionLabel: 'Add item' } };
+export const InlineFocus: Story = { args: { value: 'egg', actionLabel: 'Add item', forceState: 'focus' } };
+export const InlineDisabled: Story = { args: { label: 'Add an item…', actionLabel: 'Add item', disabled: true } };

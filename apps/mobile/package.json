@@ -10,6 +10,8 @@
     "export:release": "NODE_ENV=production expo export --platform android --platform ios --output-dir dist --no-minify"
   },
   "dependencies": {
+    "@expo-google-fonts/fredoka": "^0.4.1",
+    "@expo-google-fonts/nunito": "^0.4.2",
     "@grocs/application": "workspace:*",
     "@grocs/core": "workspace:*",
     "@grocs/ports": "workspace:*",
@@ -22,6 +24,7 @@
     "expo": "~58.0.14",
     "expo-build-properties": "~58.0.11",
     "expo-constants": "^58.0.12",
+    "expo-font": "~58.0.8",
     "expo-linking": "^58.0.13",
     "expo-router": "^58.0.23",
     "expo-status-bar": "^58.0.3",

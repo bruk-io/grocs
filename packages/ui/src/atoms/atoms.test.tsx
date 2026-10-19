@@ -13,17 +13,17 @@ describe('Button', () => {
   it('calls onPress when pressed', () => {
     const onPress = vi.fn();
     render(<Rest onPress={onPress} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add to list' }));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('ignores presses when disabled or loading', () => {
     const onPress = vi.fn();
     render(<Disabled onPress={onPress} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add to list' }));
     cleanup();
     render(<Loading onPress={onPress} />);
-    const busy = screen.getByRole('button', { name: 'Add' });
+    const busy = screen.getByRole('button', { name: 'Adding' });
     expect(busy.getAttribute('aria-busy')).toBe('true');
     fireEvent.click(busy);
     expect(onPress).not.toHaveBeenCalled();
@@ -57,7 +57,7 @@ describe('TextField', () => {
 
   it('announces its error message and marks the field invalid', () => {
     render(<Invalid />);
-    expect(screen.getByRole('alert').textContent).toBe('Give the item a name');
+    expect(screen.getByRole('alert').textContent).toBe('Enter a name');
     expect(screen.getByRole('textbox', { name: 'Add an item' }).getAttribute('aria-invalid')).toBe('true');
   });
 });
