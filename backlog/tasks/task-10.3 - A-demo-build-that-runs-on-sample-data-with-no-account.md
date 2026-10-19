@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@builder-app'
 created_date: '2026-10-19 14:28'
-updated_date: '2026-10-19 17:18'
+updated_date: '2026-10-19 17:24'
 labels:
   - size-3
   - layer-app
@@ -118,4 +118,6 @@ visual: 311 story views checked (axe, 44 x 44, 311 images compared)
 ```
 
 Review by philosophy:reviewer (Oct 19, 2026): closed. Full-tier check exited 0 with no files rewritten. AC1: expo config with APP_VARIANT=demo resolves to 'Grocs Demo', io.bruk.grocs.demo on both platforms, only the expo-router plugin, no googleServicesFile; the real config is unchanged (io.bruk.grocs.dev, all Firebase plugins). The demo route test opens on Welcome with Try the demo. AC2: check:release is clean on the real build, and with EXPO_PUBLIC_APP_VARIANT=demo it fails with release-bundle/demo-in-release, naming src/demo and providers-memory, so create-app.ts's gate is what keeps the demo out. AC3: demo.route.test.tsx covers sample Groceries, Plan, Settings and adding an item. Imports: @grocs/ports/testing appears only in demo.route.test.tsx; the demo composition uses @grocs/providers-memory; demo-only files are all under apps/mobile/src/demo/ (shared files carry only the DemoAccess type, the null field, the gate and the inert TryDemo footer). Real app: demo is null in createNativeApp and appOnFakes, and the existing route tests plus the new 'not the demo' case pass. Lockfile: pnpm install --frozen-lockfile reports up to date and changes nothing. Demo export (APP_VARIANT=demo EXPO_PUBLIC_APP_VARIANT=demo, release flags, to a scratch dir outside the repo): android and ios bundles each hold the 5 demo and in-memory modules, no Firebase source and no composition/native.ts. Moved finish line: sound. Ticking needs an application command that TASK-1.23 owns, and the demo inherits it through the real commands; it is recorded with the finish-moved label, a note and its own commit. Finding (low, not filed): that note says 'criterion 2' but the move also put that criterion third, so it now reads as #3. No drafts filed.
+
+Correction to the finish-moved note: the criterion that dropped ticking is now #3 (it was #2 before the move reordered the list).
 <!-- SECTION:NOTES:END -->

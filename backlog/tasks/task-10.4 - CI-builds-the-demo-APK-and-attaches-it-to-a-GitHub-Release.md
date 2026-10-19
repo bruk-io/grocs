@@ -1,9 +1,11 @@
 ---
 id: TASK-10.4
 title: CI builds the demo APK and attaches it to a GitHub Release
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder'
 created_date: '2026-10-19 14:28'
+updated_date: '2026-10-19 17:24'
 labels:
   - size-3
   - ci
