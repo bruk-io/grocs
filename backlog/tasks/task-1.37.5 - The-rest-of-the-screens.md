@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.5
 title: The rest of the screens
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 06:49'
+updated_date: '2026-10-19 09:01'
 labels:
   - size-5
   - layer-app
@@ -40,4 +41,6 @@ Every other reference screen as a route that renders its template with sample da
 Finish moved on 2026-10-18 before work started: added decision-11's route tests, after Bruk asked for the right level of testing in the UI build.
 
 Checks changed: .claude/checks.json's full tier gained the browser pass (pnpm --filter @grocs/ui visual -- --no-build) in TASK-1.37.6 (commit 5a3cecc), merged into main after this task was accepted. Noted up front by the orchestrator so the close isn't refused for a change this task didn't make.
+
+From the TASK-1.37.4 review (optional, size-1): a route test that sets the phone's reduce motion and checks the kitchen holds still through _layout's MotionProvider wiring, which is covered only by reading the code today.
 <!-- SECTION:NOTES:END -->
