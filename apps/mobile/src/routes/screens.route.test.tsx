@@ -4,7 +4,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import Home from '../../app/index.tsx';
 import AddMeal from '../../app/add-meal.tsx';
-import Groceries from '../../app/groceries.tsx';
+import GroceriesSamples from '../../app/groceries-samples.tsx';
 import Household from '../../app/household.tsx';
 import Join from '../../app/join.tsx';
 import JoinInvalid from '../../app/join-invalid.tsx';
@@ -20,7 +20,7 @@ const ROUTES = {
   'join-invalid': JoinInvalid,
   plan: Plan,
   'add-meal': AddMeal,
-  groceries: Groceries,
+  'groceries-samples': GroceriesSamples,
   'quick-add': QuickAdd,
   settings: Settings,
 };
@@ -73,11 +73,11 @@ describe('JoinInviteInvalid', () => {
 
 describe('Plan', () => {
   it('shows the week, and the tab, settings and Plan a meal lead where the design shows', async () => {
-    await open('/plan');
+    await open('/plan', true);
     expect(await screen.findByText('This week')).toBeTruthy();
     expect(screen.getByText('Chana masala')).toBeTruthy();
     go('Groceries');
-    expect(await screen.findByText('Produce')).toBeTruthy();
+    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 
   it('opens Settings from the header', async () => {
@@ -108,46 +108,82 @@ describe('AddMeal', () => {
   });
 });
 
-describe('Groceries', () => {
-  it('shows the list with the partner toast, and the Meal plan tab leads to Meal plan', async () => {
-    await open('/groceries');
-    expect(await screen.findByText('Yellow onions')).toBeTruthy();
-    expect(screen.getByText('Shazya added Oat milk · just now')).toBeTruthy();
+describe('Groceries (live, at /)', () => {
+  it('opens Plan from the tab, and Settings from the header', async () => {
+    await open('/', true);
+    await screen.findByText('Nothing on the list yet');
     go('Meal plan');
     expect(await screen.findByText('This week')).toBeTruthy();
+    go('Groceries');
+    await screen.findByText('Nothing on the list yet');
+    press('Settings');
+    expect(await screen.findByText('Notifications')).toBeTruthy();
+  });
+
+  it('opens Add an item from the empty list', async () => {
+    await open('/', true);
+    await screen.findByText('Nothing on the list yet');
+    press('Add an item');
+    expect(await screen.findByText('Eggplant')).toBeTruthy();
+  });
+});
+
+describe('Groceries samples (dev-only route)', () => {
+  async function openSample(location: string) {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, dev: true }), location });
+  }
+
+  it('shows the list with the partner toast', async () => {
+    await openSample('/groceries-samples');
+    expect(await screen.findByText('Yellow onions')).toBeTruthy();
+    expect(screen.getByText('Shazya added Oat milk · just now')).toBeTruthy();
   });
 
   it('shows the offline state with its waiting changes', async () => {
-    await open('/groceries?state=offline');
+    await openSample('/groceries-samples?state=offline');
     expect(await screen.findByText('Offline. 2 changes waiting.')).toBeTruthy();
   });
 
   it('shows the toast state', async () => {
-    await open('/groceries?state=toast');
+    await openSample('/groceries-samples?state=toast');
     expect(await screen.findByText('Shazya added Oat milk · just now')).toBeTruthy();
     expect(screen.queryByText('Offline. 2 changes waiting.')).toBeNull();
   });
 
-  it('shows the empty list and its add button leads to Add an item', async () => {
-    await open('/groceries?state=empty');
+  it('shows the empty and all-done states', async () => {
+    await openSample('/groceries-samples?state=empty');
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
-    press('Add an item');
-    expect(await screen.findByText('Eggplant')).toBeTruthy();
+    cleanup();
+    await openSample('/groceries-samples?state=allDone');
+    expect(await screen.findByText('Greek yogurt')).toBeTruthy();
   });
 
-  it('opens Settings from the header', async () => {
-    await open('/groceries');
-    press('Settings');
-    expect(await screen.findByText('Notifications')).toBeTruthy();
+  it('shows nothing in a release build', async () => {
+    await open('/groceries-samples', true);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.queryByText('Yellow onions')).toBeNull();
+  });
+});
+
+describe('the mushroom host (R40)', () => {
+  const SCREENS = ['/', '/plan', '/add-meal', '/quick-add', '/settings', '/household', '/join', '/join-invalid'];
+  it.each(SCREENS)('is on %s', async (location) => {
+    await open(location, true);
+    expect((await screen.findAllByRole('button', { name: /tap to hear a line/ })).length).toBeGreaterThan(0);
+  });
+
+  it('is on Welcome', async () => {
+    await open('/');
+    expect((await screen.findAllByRole('button', { name: /tap to hear a line/ })).length).toBeGreaterThan(0);
   });
 });
 
 describe('QuickAdd', () => {
   it('shows suggestions and Back leads to Groceries', async () => {
-    await open('/quick-add');
+    await open('/quick-add', true);
     expect(await screen.findByText('Eggplant')).toBeTruthy();
     press(/Groceries/);
-    expect(await screen.findByText('Yellow onions')).toBeTruthy();
+    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 });
 
@@ -160,8 +196,8 @@ describe('Settings', () => {
   });
 
   it('goes back to Groceries', async () => {
-    await open('/settings');
+    await open('/settings', true);
     press(/Groceries/);
-    expect(await screen.findByText('Yellow onions')).toBeTruthy();
+    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 });

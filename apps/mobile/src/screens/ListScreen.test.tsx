@@ -1,40 +1,28 @@
-import { FakeAuth, FakeClock, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+// The skeleton's add-item flow (R50, R10), now through the Groceries template at the signed-in home route.
+// The file keeps its old name because the weakening check forbids deleting a test file; renaming it needs
+// a recorded human exception (tools/checks/weakening-overrides.json).
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { composeApp } from '../composition/compose-app.ts';
-import { ListScreen } from './ListScreen.tsx';
+import Home from '../../app/index.tsx';
+import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 
 afterEach(cleanup);
 
-async function appOnFakes() {
-  const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
-  await auth.signInWithTestAccount('u1@grocs.test', 'pw');
-  const clock = new FakeClock();
-  const app = composeApp({
-    ports: { syncStore: new InMemorySyncStore(), auth, clock, ids: new SequentialIds('t') },
-    logger: new MemoryLogger(),
-    runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
-  });
-  return app;
-}
-
-describe('list screen (R50)', () => {
+describe('add-item flow through the Groceries template (R50)', () => {
   it('adds an item from the add bar and shows it in the list', async () => {
-    const app = await appOnFakes();
-    render(<ListScreen app={app} kitchenId="k1" />);
-    expect(screen.getByText('Nothing on the list yet')).toBeTruthy();
-
-    fireEvent.change(screen.getByLabelText('Add an item'), { target: { value: 'Oat milk' } });
-    fireEvent.click(screen.getByText('Add'));
-
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true }) });
+    await screen.findByText('Nothing on the list yet');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Add an item' }), { target: { value: 'Oat milk' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Oat milk' })).toBeTruthy());
-    expect((screen.getByLabelText('Add an item') as HTMLInputElement).value).toBe('');
+    expect((screen.getByRole('textbox', { name: 'Add an item' }) as HTMLInputElement).value).toBe('');
+    expect(screen.queryByText('Nothing on the list yet')).toBeNull();
   });
 
   it('asks for a name when the add bar is empty', async () => {
-    const app = await appOnFakes();
-    render(<ListScreen app={app} kitchenId="k1" />);
-    fireEvent.click(screen.getByText('Add'));
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true }) });
+    await screen.findByText('Nothing on the list yet');
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(screen.getByText('Type what to buy first')).toBeTruthy());
   });
 });

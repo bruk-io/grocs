@@ -1,67 +1,89 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { AddItem } from '@grocs/application';
+import { visibleItems, weekIdFor } from '@grocs/core';
+import type { Item } from '@grocs/core';
 import { GroceryListTemplate } from '@grocs/ui';
-import type { GroceryListTemplateProps } from '@grocs/ui';
-import { cart, household, meat, offlineDairy, offlineProduce, produce, toastDairy, toastProduce } from '../sample/sample-data.ts';
+import type { ListItem } from '@grocs/ui';
+import type { App } from '../composition/compose-app.ts';
 import { useGo } from './navigate.ts';
 
-/** Which of the reference's Groceries screens to show: the list (Main), Offline, Toast, nothing on the list, everything in the cart. */
-export type GroceriesState = 'groceries' | 'offline' | 'toast' | 'empty' | 'allDone';
+export interface GroceriesScreenProps {
+  app: App;
+  kitchenId: string;
+}
 
-type Shown = Pick<GroceryListTemplateProps, 'mascot' | 'toGo' | 'inCart' | 'sections' | 'cartItems' | 'toast' | 'banner'>;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAY_MS = 86_400_000;
 
-const SHOWN: Record<GroceriesState, Shown> = {
-  groceries: {
-    mascot: 'cremi',
-    toGo: 14,
-    inCart: 3,
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
-    sections: [
-      { id: 'produce', icon: 'produce', title: 'Produce', items: produce },
-      { id: 'meat', icon: 'meat', title: 'Meat', items: meat },
-    ],
-    cartItems: [],
-  },
-  offline: {
-    mascot: 'ollie',
-    toGo: 14,
-    inCart: 3,
-    banner: { kind: 'offline', message: 'Offline. 2 changes waiting.', actionLabel: 'Try again' },
-    sections: [
-      { id: 'produce', icon: 'produce', title: 'Produce', items: offlineProduce },
-      { id: 'dairy', icon: 'dairy', title: 'Dairy & eggs', items: offlineDairy },
-    ],
-    cartItems: [],
-  },
-  toast: {
-    mascot: 'cremi',
-    toGo: 14,
-    inCart: 3,
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
-    sections: [
-      { id: 'dairy', icon: 'dairy', title: 'Dairy & eggs', items: toastDairy },
-      { id: 'produce', icon: 'produce', title: 'Produce', items: toastProduce },
-    ],
-    cartItems: [],
-  },
-  empty: { mascot: 'cremi', toGo: 0, inCart: 0, sections: [], cartItems: [] },
-  allDone: { mascot: 'enoki', toGo: 0, inCart: 3, sections: [], cartItems: cart },
-};
+/** "Week of Oct 19": the Monday (UTC, as the week id counts) of the week that holds `at`. */
+function weekLabelFor(at: number): string {
+  const days = Math.floor(at / DAY_MS);
+  const monday = new Date((days - ((((days + 3) % 7) + 7) % 7)) * DAY_MS);
+  return `Week of ${MONTHS[monday.getUTCMonth()]} ${monday.getUTCDate()}`;
+}
 
-/** Groceries with sample data (the live list stays on the home route for now). Plan, settings and add lead where the design shows. */
-export function GroceriesScreen({ state = 'groceries' }: { state?: GroceriesState }) {
+const toListItem = (item: Item): ListItem => ({
+  id: item.id,
+  name: item.name.value,
+  amount: item.amount.value,
+  inCart: item.state.value === 'in-cart',
+});
+
+/**
+ * Groceries from the live list (R10, R50): GroceryListTemplate fed by the app facade. The Item model holds
+ * no sections, meal badges or who-added yet, so the things to buy sit in one section and carry none of those.
+ */
+export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   const go = useGo();
-  const [addValue, setAddValue] = useState('');
+  const weekId = useMemo(() => weekIdFor(app.now()), [app]);
+  const [items, setItems] = useState<readonly Item[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [problem, setProblem] = useState<string | undefined>(undefined);
+
+  useEffect(
+    () =>
+      app.watchWeekItems(
+        kitchenId,
+        weekId,
+        (next) => setItems(next),
+        (error) => setLoadError(error.message),
+      ),
+    [app, kitchenId, weekId],
+  );
+
+  const add = async () => {
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name };
+    const result = await app.dispatch(command);
+    setProblem(undefined);
+    if (result.ok) {
+      setName('');
+      return;
+    }
+    setProblem(result.error.code === 'empty-name' ? 'Type what to buy first' : 'Could not add that item');
+  };
+
+  const banner = problem ?? (loadError ? `Could not load the list: ${loadError}` : undefined);
+  const rows = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) }).map(toListItem);
+  const toBuy = rows.filter((r) => !r.inCart);
+  const cartItems = rows.filter((r) => r.inCart);
+
   return (
     <GroceryListTemplate
-      weekLabel="Week of Oct 19"
-      members={household}
-      addValue={addValue}
-      onAddValueChange={setAddValue}
-      onAdd={go.quickAdd}
+      weekLabel={weekLabelFor(app.now())}
+      members={[]}
+      mascot={toBuy.length === 0 && cartItems.length > 0 ? 'enoki' : 'cremi'}
+      toGo={toBuy.length}
+      inCart={cartItems.length}
+      addValue={name}
+      onAddValueChange={setName}
+      onAdd={() => void add()}
       onAddItem={go.quickAdd}
       onSettings={go.settings}
       onOpenPlan={go.plan}
-      {...SHOWN[state]}
+      {...(banner ? { banner: { kind: 'offline' as const, message: banner } } : {})}
+      sections={toBuy.length > 0 ? [{ id: 'to-buy', icon: 'cart', title: 'This week', items: toBuy }] : []}
+      cartItems={cartItems}
     />
   );
 }

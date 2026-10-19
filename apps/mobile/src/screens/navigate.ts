@@ -8,7 +8,7 @@ export function useGo() {
     join: () => router.navigate('/join'),
     plan: () => router.navigate('/plan'),
     addMeal: () => router.navigate('/add-meal'),
-    groceries: () => router.navigate('/groceries'),
+    groceries: () => router.navigate('/'),
     quickAdd: () => router.navigate('/quick-add'),
     settings: () => router.navigate('/settings'),
   };
