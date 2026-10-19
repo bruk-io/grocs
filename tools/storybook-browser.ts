@@ -118,11 +118,20 @@ export async function launch() {
 }
 
 /**
- * A fresh page for one story view, in its own browser context (axe-core needs one) with a fixed pixel ratio
- * and light colours, and with prefers-reduced-motion on. Close the page's context when done.
+ * Whether a story view holds still. Every view is `reduced` (the default) except the few motion checks in
+ * visual.ts, which look at one story with motion `allowed` on a page of their own, never one that is
+ * screenshotted, so no baseline depends on motion.
  */
-export async function newStoryPage(browser: Browser, viewport: Viewport): Promise<Page> {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: 'reduce', colorScheme: 'light', locale: 'en-CA', timezoneId: 'UTC' });
+export type MotionMode = 'reduced' | 'allowed';
+
+/**
+ * A fresh page for one story view, in its own browser context (axe-core needs one) with a fixed pixel ratio
+ * and light colours, and with prefers-reduced-motion on unless `motion` is `allowed`. Close the page's
+ * context when done.
+ */
+export async function newStoryPage(browser: Browser, viewport: Viewport, motion: MotionMode = 'reduced'): Promise<Page> {
+  const reducedMotion = motion === 'allowed' ? 'no-preference' : 'reduce';
+  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion, colorScheme: 'light', locale: 'en-CA', timezoneId: 'UTC' });
   return context.newPage();
 }
 
@@ -148,16 +157,17 @@ async function entrancesFinished(page: Page): Promise<boolean> {
 }
 
 /**
- * Opens one story in `page` at `viewport`, with motion reduced and fonts loaded, and waits until it has
- * drawn and its entrances have finished. The page must be a fresh one per viewport (the init script
- * runs on every navigation).
+ * Opens one story in `page` at `viewport`, with motion reduced (unless `motion` is `allowed`, and then the
+ * page must come from `newStoryPage` with the same mode) and fonts loaded, and waits until it has drawn and
+ * its entrances have finished. The page must be a fresh one per viewport (the init script runs on every
+ * navigation).
  */
-export async function openStory(page: Page, baseUrl: string, id: string, viewport: Viewport): Promise<OpenedStory> {
+export async function openStory(page: Page, baseUrl: string, id: string, viewport: Viewport, motion: MotionMode = 'reduced'): Promise<OpenedStory> {
   const errors: string[] = [];
   const onError = (e: Error): void => void errors.push(e.message);
   page.on('pageerror', onError);
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
-  await page.addInitScript(`window.${REDUCE_MOTION_GLOBAL} = true;`);
+  if (motion === 'reduced') await page.addInitScript(`window.${REDUCE_MOTION_GLOBAL} = true;`);
   await page.goto(`${baseUrl}/iframe.html?id=${encodeURIComponent(id)}&viewMode=story`, { waitUntil: 'load' });
   await page.waitForSelector('body.sb-show-main, body.sb-show-errordisplay', { timeout: 20_000 });
   await page.evaluate(() => document.fonts.ready);
@@ -167,4 +177,80 @@ export async function openStory(page: Page, baseUrl: string, id: string, viewpor
   page.off('pageerror', onError);
   if (await page.evaluate(() => document.body.classList.contains('sb-show-errordisplay'))) errors.push('Storybook shows an error');
   return { errors };
+}
+
+/** What a story's motion should be, with motion allowed: the scene pans, or nothing in it moves. */
+export type MotionExpectation = 'pans' | 'still';
+
+/** What `readMotion` saw in a story opened with motion allowed. */
+export interface MotionReading {
+  /** Elements whose transform was different 300 ms of real time later. Anything moving counts, a bob included. */
+  readonly drifting: number;
+  /** Running animations that carry their element sideways over a cycle (the pan, and anything else that slides; a bob or a rotation does not). */
+  readonly sidewaysAnimations: number;
+  /** The furthest any of them takes its element between two points of a cycle, in pixels. */
+  readonly travel: number;
+}
+
+/** A pan carries the scene hundreds of pixels; a few pixels of sideways wobble is not one. */
+export const MIN_PAN_TRAVEL_PX = 50;
+/** Real time between the two looks at every element, long enough for any running loop to have moved. */
+const DRIFT_WAIT_MS = 300;
+/** Where in one cycle of an animation its element is read. */
+const CYCLE_POINTS = [0, 0.25, 0.5, 0.75] as const;
+
+/**
+ * Reads what moves in the story on `page`, which must have been opened with motion `allowed`. Finds the pan by
+ * what it does (moves its element sideways) rather than by name, because the animations' names are generated.
+ * Pauses and seeks the animations, so use a page that is not screenshotted afterwards.
+ */
+export async function readMotion(page: Page): Promise<MotionReading> {
+  return page.evaluate(
+    async ({ waitMs, points }) => {
+      const root = document.querySelector('#storybook-root');
+      const elements = Array.from(root?.querySelectorAll('*') ?? []);
+      const looks = () => elements.map((el) => getComputedStyle(el).transform);
+      const before = looks();
+      const clocks = new Map(document.getAnimations().map((a) => [a, Number(a.currentTime)]));
+      await new Promise((done) => setTimeout(done, waitMs));
+      const after = looks();
+      const drifting = elements.filter((_, i) => before[i] !== after[i]).length;
+
+      // x translation of an element's computed transform (the matrix's e term).
+      const sideways = (el: Element): number => {
+        const t = getComputedStyle(el).transform;
+        return t === 'none' ? 0 : new DOMMatrixReadOnly(t).m41;
+      };
+      let sidewaysAnimations = 0;
+      let travel = 0;
+      for (const a of document.getAnimations()) {
+        const target = a.effect instanceof KeyframeEffect ? a.effect.target : null;
+        const timing = a.effect?.getComputedTiming();
+        if (!target || !timing || !root?.contains(target)) continue;
+        if (!(Number(a.currentTime) > (clocks.get(a) ?? Infinity))) continue; // its clock did not advance: not running
+        a.pause();
+        const xs = points.map((p) => {
+          a.currentTime = Number(timing.delay ?? 0) + p * Number(timing.duration);
+          return sideways(target);
+        });
+        const spread = Math.max(...xs) - Math.min(...xs);
+        if (spread >= 1) sidewaysAnimations++;
+        travel = Math.max(travel, spread);
+      }
+      return { drifting, sidewaysAnimations, travel };
+    },
+    { waitMs: DRIFT_WAIT_MS, points: CYCLE_POINTS },
+  );
+}
+
+/** What is wrong with a story's motion, as sentences that name the rule; empty when it is as expected. */
+export function judgeMotion(reading: MotionReading, expected: MotionExpectation): string[] {
+  if (expected === 'pans') {
+    return reading.sidewaysAnimations > 0 && reading.travel >= MIN_PAN_TRAVEL_PX
+      ? []
+      : [`with motion on, nothing carries the scene sideways over a cycle (furthest ${Math.round(reading.travel)} px, wanted at least ${MIN_PAN_TRAVEL_PX}); the kitchen must pan unless motion is reduced (R41, R60), and the pass shows it still, so only this check proves it moves`];
+  }
+  return reading.sidewaysAnimations === 0 && reading.drifting === 0
+    ? []
+    : [`with reduce motion set by the app and the browser allowing motion, ${reading.drifting} elements still changed their transform and ${reading.sidewaysAnimations} animations still carried the scene sideways; reduce motion means nothing moves (R41, R60)`];
 }
