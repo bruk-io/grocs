@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { Platform } from 'react-native';
 import { MotionProvider, PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
-import { createNativeApp } from '../src/composition/native.ts';
+import { createApp } from '../src/composition/create-app.ts';
 import { useSystemReduceMotion } from '../src/platform/useSystemReduceMotion.ts';
 
 // The faces the text atoms ask for, registered under the names @grocs/ui's NATIVE_FACES gives them
@@ -14,7 +14,7 @@ import { useSystemReduceMotion } from '../src/platform/useSystemReduceMotion.ts'
 const FONTS = { Fredoka_600SemiBold, Fredoka_700Bold, Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold };
 
 export default function RootLayout() {
-  const native = useMemo(() => createNativeApp(), []);
+  const native = useMemo(() => createApp(), []);
   const [loaded, failed] = useFonts(FONTS);
   const reduced = useSystemReduceMotion();
   // Wait for the fonts so the first frame is not drawn in the system face; if they cannot load, draw in it anyway.

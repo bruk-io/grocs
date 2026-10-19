@@ -42,7 +42,7 @@ export async function appOnFakes({
         },
       }
     : null;
-  return { app, dev: devAccess, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  return { app, dev: devAccess, demo: null, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
 }
 
 /**
