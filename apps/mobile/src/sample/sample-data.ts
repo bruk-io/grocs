@@ -1,8 +1,8 @@
 // Sample content for the screens until their slices bring real data: what each reference screen shows (R40, R66).
 import type { ListItem, PlanDay, StackMember } from '@grocs/ui';
 
-/** Bruk and Shazya; Shazya is in the app now. */
-export const household: readonly StackMember[] = [{ name: 'Bruk' }, { name: 'Shazya', tone: 'chartreuse', online: true }];
+/** Bruk and Sam; Sam is in the app now. */
+export const household: readonly StackMember[] = [{ name: 'Bruk' }, { name: 'Sam', tone: 'chartreuse', online: true }];
 
 export const week: readonly PlanDay[] = [
   { id: '2026-10-19', weekday: 'Mon', day: 19, meals: [{ id: 'm1', name: 'Chana masala', tone: 'amber', link: 'example.com' }] },
@@ -44,13 +44,13 @@ export const offlineProduce: readonly ListItem[] = [
   { id: 'o3', name: 'Limes', amount: '4', addedBy: 'Bruk', inCart: false, waiting: true },
 ];
 export const offlineDairy: readonly ListItem[] = [
-  { id: 'o4', name: 'Oat milk', amount: '1 carton', addedBy: 'Shazya', inCart: false },
+  { id: 'o4', name: 'Oat milk', amount: '1 carton', addedBy: 'Sam', inCart: false },
   { id: 'o5', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Bruk', inCart: false },
 ];
 
-/** The Toast screen: Shazya just added Oat milk. */
+/** The Toast screen: Sam just added Oat milk. */
 export const toastDairy: readonly ListItem[] = [
-  { id: 't1', name: 'Oat milk', amount: '1 carton', addedBy: 'Shazya', inCart: false, isNew: true },
+  { id: 't1', name: 'Oat milk', amount: '1 carton', addedBy: 'Sam', inCart: false, isNew: true },
   { id: 't2', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Bruk', inCart: false },
 ];
 export const toastProduce: readonly ListItem[] = [

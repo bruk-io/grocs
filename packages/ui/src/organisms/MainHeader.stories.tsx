@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { MainHeader } from './MainHeader.tsx';
 
-const members = [{ name: 'Bruk' }, { name: 'Shazya', tone: 'chartreuse', online: true }] as const;
+const members = [{ name: 'Bruk' }, { name: 'Sam', tone: 'chartreuse', online: true }] as const;
 
 const meta = {
   title: 'Organisms/MainHeader',

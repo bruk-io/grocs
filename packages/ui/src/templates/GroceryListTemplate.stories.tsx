@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 /** Main: the list by section, with the partner's toast on top. */
 export const Groceries: Story = {
   args: {
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
+    toast: { name: 'Sam', message: 'Sam added Oat milk · just now' },
     sections: [
       { id: 'produce', icon: 'produce', title: 'Produce', items: produce },
       { id: 'meat', icon: 'meat', title: 'Meat', items: meat },
@@ -44,7 +44,7 @@ export const Offline: Story = {
 /** Toast: the other person just added Oat milk. */
 export const Toast: Story = {
   args: {
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
+    toast: { name: 'Sam', message: 'Sam added Oat milk · just now' },
     sections: [
       { id: 'dairy', icon: 'dairy', title: 'Dairy & eggs', items: toastDairy },
       { id: 'produce', icon: 'produce', title: 'Produce', items: toastProduce },

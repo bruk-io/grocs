@@ -4,7 +4,7 @@ import { stamped } from '../merge/lww.ts';
 import { addExtraItem, emptyList, mergeIntoList, visibleItems } from './list.ts';
 
 const bruk = { at: 1000, by: 'bruk' };
-const shazya = { at: 2000, by: 'shazya' };
+const sam = { at: 2000, by: 'sam' };
 
 describe('addExtraItem (R10)', () => {
   it('adds an extra to the week without changing the old list', () => {
@@ -31,7 +31,7 @@ describe('mergeIntoList and visibleItems', () => {
   it('merges a copy from the other phone into the list', () => {
     const added = addExtraItem(emptyList('w'), { id: 'i1', name: 'Eggs' }, bruk);
     if (!added.ok) throw new Error('setup');
-    const ticked = { ...added.value.item, state: stamped('in-cart' as const, shazya) };
+    const ticked = { ...added.value.item, state: stamped('in-cart' as const, sam) };
     const merged = mergeIntoList(added.value.list, ticked);
     expect(merged.ok && merged.value.items['i1']?.state.value).toBe('in-cart');
   });
@@ -45,10 +45,10 @@ describe('mergeIntoList and visibleItems', () => {
   it('hides deleted items but keeps the tombstone', () => {
     const added = addExtraItem(emptyList('w'), { id: 'i1', name: 'Eggs' }, bruk);
     if (!added.ok) throw new Error('setup');
-    const gone = mergeItem(added.value.item, { ...added.value.item, deleted: shazya });
+    const gone = mergeItem(added.value.item, { ...added.value.item, deleted: sam });
     const merged = mergeIntoList(added.value.list, gone);
     expect(merged.ok && visibleItems(merged.value)).toEqual([]);
-    expect(merged.ok && merged.value.items['i1']?.deleted).toEqual(shazya);
+    expect(merged.ok && merged.value.items['i1']?.deleted).toEqual(sam);
   });
 
   it('lists items in the order they were added', () => {

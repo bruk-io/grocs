@@ -11,7 +11,7 @@ export function SettingsScreen() {
       name="Bruk"
       email="you@example.com"
       kitchen="Our kitchen"
-      partnerName="Shazya"
+      partnerName="Sam"
       notificationsOn={on}
       onNotificationsChange={setOn}
       onBack={go.groceries}

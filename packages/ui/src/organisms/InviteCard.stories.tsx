@@ -10,6 +10,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Waiting: Story = { args: { status: { message: 'Link sent. Waiting for them to join…' } } };
-export const Joined: Story = { args: { status: { kind: 'joined', name: 'Shazya', message: 'Shazya joined your kitchen!' } } };
+export const Joined: Story = { args: { status: { kind: 'joined', name: 'Sam', message: 'Sam joined your kitchen!' } } };
 /** Before the link is shared there is no status line yet. */
 export const Unsent: Story = {};

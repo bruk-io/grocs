@@ -58,7 +58,7 @@ export function syncStoreContract(t: TestApi, make: () => Promise<SyncStoreSubje
     t.it('keeps both changes when two members change different fields (R18)', withStore(async ({ store, kitchenId }) => {
       const base = item('i1', 'Milk', 100, 'bruk');
       const renamed: Item = { ...base, name: stamped('Oat milk', { at: 200, by: 'bruk' }) };
-      const ticked: Item = { ...base, state: stamped('in-cart' as const, { at: 300, by: 'shazya' }) };
+      const ticked: Item = { ...base, state: stamped('in-cart' as const, { at: 300, by: 'sam' }) };
       await store.mergeItem(kitchenId, ticked);
       await store.mergeItem(kitchenId, renamed);
       const [stored] = await store.getItems(kitchenId, WEEK);
@@ -69,7 +69,7 @@ export function syncStoreContract(t: TestApi, make: () => Promise<SyncStoreSubje
     t.it('the later of a tick and an untick wins, whichever arrives first (R17, R18)', withStore(async ({ store, kitchenId }) => {
       const base = item('i1', 'Milk', 100, 'bruk');
       const tick: Item = { ...base, state: stamped('in-cart' as const, { at: 200, by: 'bruk' }) };
-      const untick: Item = { ...base, state: stamped('to-buy' as const, { at: 300, by: 'shazya' }) };
+      const untick: Item = { ...base, state: stamped('to-buy' as const, { at: 300, by: 'sam' }) };
       await store.mergeItem(kitchenId, untick);
       await store.mergeItem(kitchenId, tick);
       const [stored] = await store.getItems(kitchenId, WEEK);
@@ -79,7 +79,7 @@ export function syncStoreContract(t: TestApi, make: () => Promise<SyncStoreSubje
 
     t.it('a delete is not undone by a late change made before it (R20)', withStore(async ({ store, kitchenId }) => {
       const base = item('i1', 'Milk', 100, 'bruk');
-      await store.mergeItem(kitchenId, { ...base, deleted: { at: 500, by: 'shazya' } });
+      await store.mergeItem(kitchenId, { ...base, deleted: { at: 500, by: 'sam' } });
       await store.mergeItem(kitchenId, { ...base, name: stamped('Oat milk', { at: 200, by: 'bruk' }) });
       const [stored] = await store.getItems(kitchenId, WEEK);
       t.expect(stored !== undefined && isDeleted(stored)).toBe(true);
@@ -106,9 +106,9 @@ export function syncStoreContract(t: TestApi, make: () => Promise<SyncStoreSubje
       const stop = store.watchItems(kitchenId, WEEK, (items) => seen.push(byId(items)));
       try {
         await eventually(() => t.expect(seen[seen.length - 1]?.map((i) => i.id)).toEqual(['i1']));
-        await store.mergeItem(kitchenId, item('i2', 'Eggs', 200, 'shazya'));
+        await store.mergeItem(kitchenId, item('i2', 'Eggs', 200, 'sam'));
         await eventually(() => t.expect(seen[seen.length - 1]?.map((i) => i.id)).toEqual(['i1', 'i2']));
-        const ticked: Item = { ...item('i1', 'Milk', 100, 'bruk'), state: stamped('in-cart' as const, { at: 300, by: 'shazya' }) };
+        const ticked: Item = { ...item('i1', 'Milk', 100, 'bruk'), state: stamped('in-cart' as const, { at: 300, by: 'sam' }) };
         await store.mergeItem(kitchenId, ticked);
         await eventually(() => t.expect(seen[seen.length - 1]?.find((i) => i.id === 'i1')?.state.value).toBe('in-cart'));
       } finally {

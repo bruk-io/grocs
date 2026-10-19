@@ -30,10 +30,10 @@ describe('GroceryListTemplate', () => {
 
   it('shows the partner toast when there is one, and not otherwise', () => {
     render(<Groceries />);
-    expect(screen.getByText('Shazya added Oat milk · just now')).toBeTruthy();
+    expect(screen.getByText('Sam added Oat milk · just now')).toBeTruthy();
     cleanup();
     render(<Offline />);
-    expect(screen.queryByText('Shazya added Oat milk · just now')).toBeNull();
+    expect(screen.queryByText('Sam added Oat milk · just now')).toBeNull();
   });
 
   it('marks the item that is new', () => {

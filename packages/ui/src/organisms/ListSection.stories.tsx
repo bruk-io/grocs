@@ -8,7 +8,7 @@ const meta = {
     icon: 'pantry',
     title: 'Pantry',
     items: [
-      { id: 'a', name: 'Chickpeas', amount: '2 cans', mealBadges: [{ label: 'Chana masala', tone: 'amber' }], addedBy: 'Shazya', inCart: false },
+      { id: 'a', name: 'Chickpeas', amount: '2 cans', mealBadges: [{ label: 'Chana masala', tone: 'amber' }], addedBy: 'Sam', inCart: false },
       { id: 'b', name: 'Basmati rice', amount: '2 kg', inCart: false },
     ],
   },

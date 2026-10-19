@@ -14,7 +14,7 @@ const SHOWN: Record<SampleGroceriesState, Shown> = {
     mascot: 'cremi',
     toGo: 14,
     inCart: 3,
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
+    toast: { name: 'Sam', message: 'Sam added Oat milk · just now' },
     sections: [
       { id: 'produce', icon: 'produce', title: 'Produce', items: produce },
       { id: 'meat', icon: 'meat', title: 'Meat', items: meat },
@@ -36,7 +36,7 @@ const SHOWN: Record<SampleGroceriesState, Shown> = {
     mascot: 'cremi',
     toGo: 14,
     inCart: 3,
-    toast: { name: 'Shazya', message: 'Shazya added Oat milk · just now' },
+    toast: { name: 'Sam', message: 'Sam added Oat milk · just now' },
     sections: [
       { id: 'dairy', icon: 'dairy', title: 'Dairy & eggs', items: toastDairy },
       { id: 'produce', icon: 'produce', title: 'Produce', items: toastProduce },

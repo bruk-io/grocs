@@ -23,11 +23,11 @@ describe('AddItem scenarios (R47)', () => {
   });
 
   it('stamps the item with the clock and the signed-in member', async () => {
-    const client = await createTestClient({ uid: 'shazya' });
+    const client = await createTestClient({ uid: 'sam' });
     client.clock.set(1_790_000_000_000);
     await client.dispatcher.dispatch(add('Eggs'));
     const [item] = await client.store.getItems(KITCHEN, WEEK);
-    expect(item?.name.stamp).toEqual({ at: 1_790_000_000_000, by: 'shazya' });
+    expect(item?.name.stamp).toEqual({ at: 1_790_000_000_000, by: 'sam' });
   });
 
   it('rejects an empty name and stores nothing', async () => {
@@ -66,8 +66,8 @@ describe('AddItem scenarios (R47)', () => {
     it('both adding at once keeps both items and never merges them silently (R19)', async () => {
       const store = new InMemorySyncStore();
       const bruk = await createTestClient({ uid: 'bruk', store });
-      const shazya = await createTestClient({ uid: 'shazya', store });
-      await Promise.all([bruk.dispatcher.dispatch(add('Oat milk')), shazya.dispatcher.dispatch(add('oat  MILK'))]);
+      const sam = await createTestClient({ uid: 'sam', store });
+      await Promise.all([bruk.dispatcher.dispatch(add('Oat milk')), sam.dispatcher.dispatch(add('oat  MILK'))]);
       const items = await store.getItems(KITCHEN, WEEK);
       expect(items).toHaveLength(2);
       expect(new Set(items.map((i) => i.id)).size).toBe(2);
@@ -87,16 +87,16 @@ describe('AddItem scenarios (R47)', () => {
         watchItems: (k, w, cb, onError) => shared.watchItems(k, w, cb, onError),
       };
       const bruk = await createTestClient({ uid: 'bruk', store: offlineStore });
-      const shazya = await createTestClient({ uid: 'shazya', store: shared });
+      const sam = await createTestClient({ uid: 'sam', store: shared });
 
       await bruk.dispatcher.dispatch(add('Eggs'));
-      await shazya.dispatcher.dispatch(add('Eggs'));
+      await sam.dispatcher.dispatch(add('Eggs'));
       expect(await shared.getItems(KITCHEN, WEEK)).toHaveLength(1);
 
       online = true;
       for (const item of queue) await shared.mergeItem(KITCHEN, item);
       const after = await shared.getItems(KITCHEN, WEEK);
-      expect(after.map((i) => i.addedBy).sort()).toEqual(['bruk', 'shazya']);
+      expect(after.map((i) => i.addedBy).sort()).toEqual(['bruk', 'sam']);
     });
 
     it('a second client sees the first client\'s item through a watcher', async () => {

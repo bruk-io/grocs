@@ -4,7 +4,7 @@ export const DEMO_PROJECT = 'demo-grocs';
 
 export const seedUsers = [
   { uid: 'seed-bruk', email: 'bruk@grocs.test', password: 'local-only-password', displayName: 'Bruk' },
-  { uid: 'seed-shazya', email: 'shazya@grocs.test', password: 'local-only-password', displayName: 'Shazya' },
+  { uid: 'seed-sam', email: 'sam@grocs.test', password: 'local-only-password', displayName: 'Sam' },
 ] as const;
 
 export const seedKitchen = {

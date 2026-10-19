@@ -57,7 +57,7 @@ export async function ensureSeeded(): Promise<void> {
 
 export const seedAccount = {
   bruk: { ...seedUsers[0] },
-  shazya: { ...seedUsers[1] },
+  sam: { ...seedUsers[1] },
 };
 
 function adminDb() {
