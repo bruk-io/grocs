@@ -3,7 +3,7 @@ id: TASK-1.37.6
 title: >-
   UI test harness: behaviour tests, browser pass with accessibility scan and
   visual baselines
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:19'
@@ -175,4 +175,6 @@ visual: 39 story views checked (axe, 44 x 44, 39 images compared)
 Review (philosophy:reviewer): every criterion met by evidence and ticked, but not closed. close-task refused: .claude/checks.json changed since acceptance (e4a3e2f) and there is no 'Checks changed:' note. The change only adds build-storybook and visual to the full tier, which criterion 6 asks for, so the orchestrator or builder should add a 'Checks changed:' note saying so, then re-run close-task. Evidence: full tier via record-check exit 0; visual pass run twice more, 39 views and 39 images compared, same result both times, tree clean; after-edit hook 1.4-1.6 s (R56 5 s); baselines inspected. Findings: (medium) CI baselines may differ through runner fonts or freetype even though the browser build matches (headless shell 1248), with no CI regeneration path: DRAFT-2 (size-2). (low) Checkbox toggles on Enter, not Space: noted on TASK-1.37.1. (low) Route-test shims in apps/mobile/testing/route-setup.ts are fragile on Expo upgrades; documented, not filed. vitest.config.ts and ci.yml diffs only add.
 
 Checks changed: .claude/checks.json, full tier only. Added '&& pnpm --filter @grocs/ui visual -- --no-build' after the existing build-storybook step, so the browser pass (axe scan, 44 x 44 targets, screenshot baselines) runs in the full tier, as acceptance criterion 6 asks. The fast tier is unchanged and no existing command was removed or loosened.
+
+Review (philosophy:reviewer): closed. All six criteria met by evidence (full tier exit 0; visual pass twice, identical; after-edit hook 1.4-1.6 s). Checks changed note present. Findings: DRAFT-2 (CI baselines, size-2); Checkbox Space key noted on TASK-1.37.1; route-test shims fragile on Expo upgrades, documented.
 <!-- SECTION:NOTES:END -->
