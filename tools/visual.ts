@@ -67,7 +67,7 @@ async function main(): Promise<number> {
   const comparing = process.platform === 'linux';
 
   if (update && !comparing) {
-    console.error(`visual: baselines are made on Linux only (this is ${process.platform}), because font rendering differs by system. Run \`${UPDATE_COMMAND}\` on a Linux machine or let CI show the images.`);
+    console.error(`visual: baselines are made on Linux only (this is ${process.platform}), because font rendering differs by system. Generate them with the "visual baselines" workflow on your pushed branch; the commands are at the top of .github/workflows/visual-baselines.yml.`);
     return 2;
   }
   if (!comparing) {

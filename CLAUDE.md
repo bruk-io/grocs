@@ -29,6 +29,7 @@ One pnpm TypeScript workspace; the layout and the reasons are in spec doc-1 (`ba
 
 - `pnpm check`: every check script over the repo. The same script runs from agent hooks (`.claude/settings.json`), `lefthook.yml` (pre-commit; install with `pnpm hooks:install`) and `.github/workflows/ci.yml`. Each failure names the rule and why it exists.
 - `pnpm test`: unit tests. `pnpm test:emulator`: provider contract suites and the two-client test against the Firebase emulators (needs Java, no Docker). `pnpm emulators`: start the emulators with seed data. `pnpm typecheck`.
+- Visual baselines (`packages/ui/visual-baselines/`) are compared on Linux only and generated in one place: the `visual baselines` workflow (`.github/workflows/visual-baselines.yml`), run on a pushed branch. It uploads them for review and never commits; the commands are at the top of that file. A Linux sandbox on the same Chromium matches it, but the workflow is the reference.
 - Checks live in `tools/checks`, hook entry points in `tools/hooks`. Fix the code, not the check; hooks block edits that skip, focus or delete tests or loosen a check.
 
 ## Working with agents

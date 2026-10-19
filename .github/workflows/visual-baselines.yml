@@ -1,0 +1,40 @@
+name: visual baselines
+
+# The one environment where visual baselines are generated (TASK-1.40, decision-11). Baselines are
+# compared on Linux only because font rendering differs by system, and this job runs on the same
+# runner image and Chromium as the browser pass in ci.yml, so what it writes is what CI compares.
+#
+# It never commits: a baseline change is reviewed as images before it lands. To regenerate:
+#   gh workflow run visual-baselines.yml --ref <your pushed branch>
+#   gh run watch "$(gh run list --workflow visual-baselines.yml --branch <branch> --limit 1 --json databaseId --jq '.[0].databaseId')"
+#   rm -r packages/ui/visual-baselines && gh run download <run id> -n visual-baselines -D packages/ui/visual-baselines
+# then review the changed images in git and commit them with the manifest.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baselines:
+    name: Write every baseline through visual:update
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @grocs/ui build-storybook
+      - name: Chromium for the browser pass
+        run: pnpm exec playwright-core install --with-deps chromium
+      - name: Write the baselines and their manifest (the only way they change)
+        run: pnpm --filter @grocs/ui visual:update -- --no-build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines
+          path: packages/ui/visual-baselines
+          if-no-files-found: error
