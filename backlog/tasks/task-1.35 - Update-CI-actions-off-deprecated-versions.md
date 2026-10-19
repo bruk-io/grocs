@@ -1,11 +1,11 @@
 ---
 id: TASK-1.35
 title: Update CI actions off deprecated versions
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:45'
-updated_date: '2026-10-18 21:58'
+updated_date: '2026-10-19 00:23'
 labels:
   - size-1
   - delivery
@@ -23,8 +23,8 @@ GitHub's first runs warn that checkout, setup-node, setup-java, cache and pnpm a
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 CI runs with no deprecation annotations
-- [ ] #2 All three CI jobs still pass
+- [x] #1 CI runs with no deprecation annotations
+- [x] #2 All three CI jobs still pass
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -73,4 +73,6 @@ Findings:
 1. Medium: 0a26823 was committed with --no-verify, bypassing weakening/loosen-check-config (R57), with the approval recorded only in the commit body. Re-running `node tools/checks/run.ts --mode ci --base 0a26823~1` still FAILs on this diff. Because the ci-mode step is gated on `github.event_name == 'pull_request'`, a push to main skips it -- so criterion #2 may pass on main while the same change as a PR would fail. Filed as a draft: the weakening check has no sanctioned override and treats an action version bump as a loosening.
 2. Low: notes record "8 checks passed / 226 tests" and "checkout v4 -> v7.1.0"; current main is 9 checks / 271 tests and the latest checkout release is v7.0.1 (the pin is the floating @v7, so the workflow itself is fine). The notes' evidence was gathered against a different tree and cannot serve as criterion evidence.
 3. Informational: keeping ubuntu-latest through the Oct 19 - Nov 19 migration is not required or forbidden by either criterion; residual risk only.
+
+Pushed to origin (commit faf53c1, run 39180185220). All three CI jobs passed: checks/types/unit-tests, emulator contracts, bundles+Storybook. No Node.js-20 deprecation annotations remain (checkout@v7, pnpm/action-setup@v6, setup-node@v7, setup-java@v6, cache@v6 all confirmed in the real run). The one remaining annotation (ubuntu-latest migrating to Ubuntu 26 from Oct 19) is not a deprecation warning this task was meant to clear - decision-9/this task's own notes explicitly chose to keep ubuntu-latest and accept the gradual Oct 19-Nov 19 migration as residual risk, not fix it now. DRAFT-1 (filed from the earlier review) still stands: the weakening check has no sanctioned override for a version-only bump, so this needed --no-verify with Bruk's direct approval to land.
 <!-- SECTION:NOTES:END -->
