@@ -3,11 +3,11 @@ id: TASK-6
 title: >-
   Close decision-3's remaining enforcement gaps: spawn depth and route-mirror
   staleness
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 00:32'
-updated_date: '2026-10-19 04:13'
+updated_date: '2026-10-19 04:32'
 labels:
   - size-2
 dependencies: []
@@ -79,4 +79,76 @@ Verification:
 - Scope held to .claude/settings.json, tools/checks/lib.ts, tools/checks/run.ts, tools/checks/agent-definitions.ts, tools/checks/agent-definitions.test.ts -- no packages/ui or apps/mobile screens touched.
 
 Follow-up commit c3e822b: a review pass caught that tools/agents/roles.ts and tools/checks/agent-definitions.ts still carried doc comments from before this task claiming the mirror 'cannot be checked' against the plugin in CI and that the check 'compares committed definitions against this mirror rather than shelling out to the plugin' -- true before, false after adding checkRouteMirrorFreshness. Fixed the comments to describe the three-state check that now exists. pnpm check/typecheck/test re-run clean after the fix (9 checks passed, tsc clean, 283 tests passed).
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook` exited 0
+
+(251 earlier lines omitted)
+```text
+│  0.04 kB │ gzip:   0.06 kB
+│  storybook-static/assets/Badge.stories-CNW1IWeJ.js
+│  0.28 kB │ gzip:   0.23 kB
+│  storybook-static/assets/Checkbox.stories-By6hHF6f.js
+│  0.50 kB │ gzip:   0.32 kB
+│  storybook-static/assets/Text.stories-B-rbQeR-.js
+│  0.57 kB │ gzip:   0.34 kB
+│  storybook-static/assets/part-Bb3WXiws.js
+│  0.75 kB │ gzip:   0.48 kB
+│  storybook-static/assets/Badge-Bh5THtk9.js
+│  0.85 kB │ gzip:   0.53 kB
+│  storybook-static/assets/Text-B1L0kBdg.js
+│  1.08 kB │ gzip:   0.55 kB
+│  storybook-static/assets/rolldown-runtime-BCiCTKAo.js
+│  1.30 kB │ gzip:   0.71 kB
+│  storybook-static/assets/preload-helper-DQzUoscV.js
+│  1.64 kB │ gzip:   0.87 kB
+│  storybook-static/assets/Checkbox-Cjf3GWta.js
+│  2.42 kB │ gzip:   1.10 kB
+│  storybook-static/assets/Button.stories-BrJ3AXsj.js
+│  2.48 kB │ gzip:   1.13 kB
+│  storybook-static/assets/ItemRow.stories-C2fY4TJ9.js
+│  2.69 kB │ gzip:   1.25 kB
+│  storybook-static/assets/TextField.stories-VereLGRK.js
+│  2.94 kB │ gzip:   1.34 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/Mascots.stories-lG7h1n29.js
+│  10.60 kB │ gzip:   2.71 kB
+│  storybook-static/assets/Kitchen.stories-hrshF_97.js
+│  13.91 kB │ gzip:   3.32 kB
+│  storybook-static/assets/Icons.stories-ULtwe2nQ.js
+│  16.40 kB │ gzip:   2.96 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-DGubCEc7.js
+│  35.62 kB │ gzip:  10.08 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-CrKkLiWv.js
+│  1,218.80 kB │ gzip: 351.35 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 738ms
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+```
+
+No repro: both acceptance criteria are additions of a missing capability (a config line, and a check that did not exist), not a code-level defect with a reproducible failing test against the current tree. AC2's new tests (tools/checks/agent-definitions.test.ts) would fail against the pre-fix code, but record-check --repro requires a command that fails right now, against this merged tree, which it no longer does - the fix is already in. Capturing that by reverting the fix to force a fail-then-record would misrepresent the task's own history. AC1 (a one-line .claude/settings.json addition) has no code path to fail against at all.
+
+AC1's depth semantics, independently verified by a separate claude-code-guide agent (not just the implementing worker's binary-strings inference): CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH's default is 3 layers below the main/orchestrator session; setting it to 1 disables subagents spawning further subagents while leaving the main session free to spawn its own first layer - confirmed via web search against real Claude Code release-note sources (mer.vin, startdebugging.net), not inferred from the installed binary alone. This matches decision-3's 'only the orchestrator delegates' and is corroborated empirically: this review session itself is a first-layer delegation that succeeded under the cap.
+
+Confirmed closed by the orchestrator after philosophy:reviewer's independent review. AC1: .claude/settings.json sets CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1, matching decision-3 line 42 verbatim. AC2: checkRouteMirrorFreshness/readPluginBoardPySource verified against the real installed plugin and all three states (unreadable, unparseable, mismatched), reviewer drove all three through the real check with GROCS_PLUGIN_BOARD_PY, not just the unit tests. Full tier green on main. No repro recorded (see implementation notes): both ACs are additions, not code-level failures reproducible against the merged tree.
 <!-- SECTION:NOTES:END -->
