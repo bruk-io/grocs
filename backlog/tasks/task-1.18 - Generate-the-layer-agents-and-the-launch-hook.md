@@ -1,11 +1,11 @@
 ---
 id: TASK-1.18
 title: Generate the layer agents and the launch hook
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 21:40'
+updated_date: '2026-10-19 00:33'
 labels:
   - size-5
   - agents
@@ -67,10 +67,10 @@ From decision-3. Waits on the walking skeleton (TASK-1.4), whose files are the e
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 18 agent definitions are generated from one template and six configs, with pinned models and efforts
-- [ ] #2 A check fails when a committed definition differs from the generated one or disagrees with the route table
-- [ ] #3 The launch hook blocks a mismatched layer, model or size, and a size-1 task without numbered steps, with the reason
-- [ ] #4 The write guard blocks an edit outside the calling agent's layer, with the reason
+- [x] #1 18 agent definitions are generated from one template and six configs, with pinned models and efforts
+- [x] #2 A check fails when a committed definition differs from the generated one or disagrees with the route table
+- [x] #3 The launch hook blocks a mismatched layer, model or size, and a size-1 task without numbered steps, with the reason
+- [x] #4 The write guard blocks an edit outside the calling agent's layer, with the reason
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -176,4 +176,89 @@ Manually verified against the real repo: a `builder-core` Write targeting `packa
 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` (decision-3's Enforcement bullet "so only the orchestrator delegates") was not set: it is a settings.json environment variable orthogonal to the four acceptance criteria above, and every generated agent already carries `disallowedTools: Agent` as defense in depth. Flagging it as still open rather than silently doing it or silently skipping it.
 
 Live confirmation of the agent_type scoping (AC4): every edit this task itself made to package.json, CLAUDE.md, .claude/settings.json and the tools/ tree went through the live pre-edit hook under this session's own (unrecognised) agent_type and succeeded, while the weakening check fired twice on this same session (once on a test-file edit, once on a long Bash heredoc) for unrelated reasons. That is a live, not just documented, demonstration that the agent_type-keyed branch passes through an agent that is neither the orchestrator nor one of the 18 layer agents. Also: reviewOrchestratorEdit's root-config rule is literally 'any file at the repo root' (regex /^[^/]+$/), not an allowlist of specific config files; a reviewer should judge that rule, not a narrower one.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook` exited 0
+
+(155 earlier lines omitted)
+```text
+│  option. You can remove the plugin and set resolve.tsconfigPaths: true
+│  in your Vite config instead.
+│  Vite vite v8.3.4 building client environment for production...
+transforming...
+✓ 302 modules transformed.
+rendering chunks...
+computing gzip size...
+│  Vite storybook-static/iframe.html                              18.66
+│  kB │ gzip:   5.27 kB
+│  storybook-static/assets/iframe-Dz6ySFS4.js                 0.04 kB │
+│  gzip:   0.06 kB
+│  storybook-static/assets/Badge.stories-Bw1bWDLG.js          0.28 kB │
+│  gzip:   0.23 kB
+│  storybook-static/assets/Checkbox.stories-CWKP0SXZ.js       0.50 kB │
+│  gzip:   0.32 kB
+│  storybook-static/assets/Text.stories-JiK2ywtu.js           0.57 kB │
+│  gzip:   0.34 kB
+│  storybook-static/assets/Badge-DAi34iyw.js                  0.85 kB │
+│  gzip:   0.53 kB
+│  storybook-static/assets/Text-BnbgowVj.js                   1.05 kB │
+│  gzip:   0.53 kB
+│  storybook-static/assets/rolldown-runtime-BCiCTKAo.js       1.30 kB │
+│  gzip:   0.71 kB
+│  storybook-static/assets/preload-helper-DQzUoscV.js         1.64 kB │
+│  gzip:   0.87 kB
+│  storybook-static/assets/Button.stories-CesRtrie.js         2.43 kB │
+│  gzip:   1.12 kB
+│  storybook-static/assets/Checkbox-CqMRbPVr.js               2.45 kB │
+│  gzip:   1.13 kB
+│  storybook-static/assets/ItemRow.stories-DFwaSh4d.js        2.70 kB │
+│  gzip:   1.25 kB
+│  storybook-static/assets/Text-D2guw9ro.js                   3.62 kB │
+│  gzip:   1.55 kB
+│  storybook-static/assets/react-BWPDF9mI.js                  7.87 kB │
+│  gzip:   3.00 kB
+│  storybook-static/assets/TextField.stories-C4QECVHX.js      8.35 kB │
+│  gzip:   3.44 kB
+│  storybook-static/assets/Pressable-DfI3QPHN.js             12.06 kB │
+│  gzip:   4.36 kB
+│  storybook-static/vite-inject-mocker-entry.js              27.81 kB │
+│  gzip:   9.67 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js             211.29 kB │
+│  gzip:  66.04 kB
+│  storybook-static/assets/iframe-D0mY_p35.js             1,192.99 kB │
+│  gzip: 342.28 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│  Vite ✓ built in 485ms
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+```
+
+## Review verdict: closed
+
+Reviewed by philosophy:reviewer, which did not do the work. All four acceptance criteria met against the current state of main. `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook` exited 0 (recorded above, full tier); the check reformatted or fixed nothing (`git status` clean apart from this task file and a pre-existing untracked mise.toml).
+
+- AC1 met. 18 files under `.claude/agents/` (6 layers x builder/builder-small/reviewer), every one carrying the frontmatter decision-3's table pins: sonnet/medium, haiku/high, opus/high. Every example and rules path referenced across all 18 definitions exists on disk (checked each one).
+- AC2 met. `agent-definitions/drift` regenerates in memory and byte-compares, reading by known path via `ctx.readSource` because `.claude` is in `SKIP_DIRS`, with a test pinning the count at 18 so the enumeration cannot regress to passing vacuously. `agent-definitions/route-mismatch` compares `ROLE_SPECS` against two independent tables. Independently verified `ROUTE_TABLE_MIRROR` against philosophy 0.4.6 `scripts/board.py:58-60`: it matches exactly.
+- AC3 met. `tools/hooks/launch-guard.ts` denies, each with its reason: no TASK id in the brief, an unreadable task, a layer-label mismatch, a model disagreeing with `board-check route` (which subsumes size, since route() derives the model from size), and a size-1 task with no numbered steps. It fails closed throughout. The notes' live evidence only reached the layer-mismatch branch, short-circuiting before `LIVE_DEPS` ever ran, so I verified both subprocess shapes by hand: `backlog task TASK-1.18 --json` returns `task.labels` and `task.implementationPlan`, and `board-check route TASK-1.18 --json --root <repo>` returns `{"model": "sonnet", "effort": "medium"}`. Both invocations are correct, so the gated branches are reachable and not permanently stuck on `unreadable-task`/`unreadable-route`.
+- AC4 met. `tools/agents/write-guard.ts` denies a layer agent writing outside its layer, a reviewer writing anything at all, a Bash command that is not that layer's configured test or type-check command, and the orchestrator writing layer code. Logic is pure and injectable; `tools/hooks/pre-edit.ts` is the only fs/payload reader. Per this review's brief, the hook's deliberate de-registration from `.claude/settings.json` (CLAUDE.md, 2026-10-18) is a later decision about live wiring and not judged against AC3/AC4, which are about what was built and tested.
+
+## Findings
+
+Low, answered here, no task. The worker asked a reviewer to judge `reviewOrchestratorEdit`'s root rule: `/^[^/]+$/` is literally 'any file at the repo root', broader than decision-3's 'root config, the lock file'. Verdict: acceptable as written. The repo root holds only config today, and the rule's failure mode is permitting an orchestrator write, not permitting a layer-boundary crossing. Tighten it to an allowlist only if root-level source ever appears.
+
+Low, answered here, no task. The notes overstate two test counts (`agent-definitions.test.ts` has 9, not 13; `hooks.test.ts` has 35 total rather than 20 added). The tests themselves cover what the notes describe; only the arithmetic is off.
+
+Low, filed as DRAFT-5. Two declared controls from decision-3's Enforcement that TASK-1.18's criteria do not cover and that its worker flagged openly: `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` is unset, and nothing detects `ROUTE_TABLE_MIRROR` going stale against the plugin's board.py. Neither blocks this task.
+
+Low, for whoever next edits CLAUDE.md, no task. With `pre-edit.ts` de-registered, CLAUDE.md's Workspace section still asserts 'hooks block edits that skip, focus or delete tests or loosen a check'. The weakening guard shared that hook entry point, so it went away with the layer guard; only the 'Working with agents' paragraph records the de-registration. Not a TASK-1.18 defect: the text was true when written.
 <!-- SECTION:NOTES:END -->
