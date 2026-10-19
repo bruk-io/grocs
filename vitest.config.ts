@@ -12,6 +12,7 @@ export default defineConfig({
     allowOnly: false,
     projects: [
       {
+        extends: true,
         test: {
           name: 'unit',
           environment: 'node',
@@ -20,6 +21,7 @@ export default defineConfig({
         },
       },
       {
+        extends: true,
         resolve: { alias: { 'react-native': 'react-native-web' } },
         test: {
           name: 'ui',
@@ -28,6 +30,7 @@ export default defineConfig({
         },
       },
       {
+        extends: true,
         resolve: { alias: { 'react-native': 'react-native-web' } },
         test: {
           name: 'app',
@@ -36,6 +39,7 @@ export default defineConfig({
         },
       },
       {
+        extends: true,
         test: {
           name: 'tools',
           environment: 'node',
@@ -44,6 +48,7 @@ export default defineConfig({
         },
       },
       {
+        extends: true,
         test: {
           name: 'emulator',
           environment: 'node',

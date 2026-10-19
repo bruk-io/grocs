@@ -1,5 +1,11 @@
 // Tests for the checks that read the shape of the repository: tokens, stories, purity, tests, contracts.
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import vitestConfig from '../../vitest.config.ts';
 import { renderTokensTs } from '../build-tokens.ts';
 import { check as coreRules } from './core-purity.ts';
 import { check as designTokens, contrastRatio, findRawValues } from './design-tokens.ts';
@@ -7,6 +13,8 @@ import { fixture, message, rulesOf } from './fixture.ts';
 import { check as portContracts } from './port-contracts.ts';
 import { check as storyCoverage } from './story-coverage.ts';
 import { check as testPresence } from './test-presence.ts';
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const tokensJson = { color: { text: '#000000', surface: '#FFFFFF', pale: '#EEEEEE' }, space: { 1: 4 }, contrastPairs: [['text', 'surface']] };
 const goodTokens = {
@@ -135,4 +143,72 @@ describe('port contracts (R28, R29, R48)', () => {
     expect(rulesOf(f)).toEqual(['port-contracts/provider-runs-contract']);
     expect(portContracts.run(fixture({ ...base, ...provider, 'packages/providers-device/src/system-clock.test.ts': 'clockContract(t, make);' }))).toEqual([]);
   });
+});
+
+// decision-9 (D8) reproduced, against the repo's own vitest 4.1.12, that an inline project
+// does not inherit root options such as allowOnly: false unless it sets extends: true:
+// a stray it.only modifier then silently skips the rest of its file in pre-commit and CI.
+describe('vitest config: allowOnly inheritance (D8, decision-9, TASK-5)', () => {
+  const projects = vitestConfig.test?.projects ?? [];
+
+  it('declares five projects, so the assertion below is not vacuous if the shape changes', () => {
+    expect(projects).toHaveLength(5);
+  });
+
+  it('sets extends: true on every project, and the root allowOnly stays false', () => {
+    expect(vitestConfig.test?.allowOnly).toBe(false);
+    for (const project of projects) {
+      expect(project).toMatchObject({ extends: true });
+    }
+  });
+});
+
+describe('vitest config: a stray it.only still fails the real run (D8, decision-9, TASK-5)', () => {
+  const vitestBin = join(repoRoot, 'node_modules', 'vitest', 'vitest.mjs');
+  const realConfigText = readFileSync(join(repoRoot, 'vitest.config.ts'), 'utf8');
+  const focusedFixture = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'focused-test.fixture.txt'), 'utf8');
+
+  // Runs the repo's own installed vitest against a copy of `configText`, in a fresh temp
+  // directory outside the repo tree (so the spawned run cannot recurse into this very
+  // suite). `node_modules` is symlinked in rather than reinstalled, so `vitest/config`
+  // resolves exactly as it does for the committed file.
+  function runInTempCopy(configText: string): { status: number | null; output: string } {
+    const dir = mkdtempSync(join(tmpdir(), 'grocs-vitest-allowonly-'));
+    try {
+      symlinkSync(join(repoRoot, 'node_modules'), join(dir, 'node_modules'));
+      writeFileSync(join(dir, 'vitest.config.ts'), configText);
+      mkdirSync(join(dir, 'tools'), { recursive: true });
+      // the `tools` project's include glob is `tools/**/*.test.ts`
+      writeFileSync(join(dir, 'tools', 'focused.test.ts'), focusedFixture);
+      const r = spawnSync('node', [vitestBin, 'run', '--project', 'tools', '--config', join(dir, 'vitest.config.ts'), '--root', dir], { encoding: 'utf8' });
+      return { status: r.status, output: `${r.stdout}\n${r.stderr}` };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it(
+    'exits 1 and reports the allowOnly error, against the real, committed config',
+    () => {
+      const r = runInTempCopy(realConfigText);
+      expect(r.status).toBe(1);
+      expect(r.output).toContain('Unexpected .only modifier');
+    },
+    60_000,
+  );
+
+  it(
+    "is the control decision-9's own repro used: the same config with the tools project's extends: true stripped exits 0, skipping the rest of the file",
+    () => {
+      const withoutExtends = realConfigText.replace("extends: true,\n        test: {\n          name: 'tools',", "test: {\n          name: 'tools',");
+      // proves the string replace actually matched something in the current file, so this
+      // is not silently comparing the real config against itself
+      expect(withoutExtends).not.toBe(realConfigText);
+
+      const r = runInTempCopy(withoutExtends);
+      expect(r.status).toBe(0);
+      expect(r.output).toContain('1 skipped');
+    },
+    60_000,
+  );
 });
