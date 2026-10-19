@@ -1,7 +1,11 @@
 // Layer-agent definitions (decision-3): the 18 committed files under .claude/agents/
 // must match what the generator produces from the template and the six configs, and
 // their pinned model and effort must agree with the route table (board.py's route(),
-// mirrored in tools/agents/roles.ts since that plugin path does not exist in CI).
+// mirrored in tools/agents/roles.ts as ROUTE_TABLE_MIRROR). This check also re-reads
+// the installed plugin's board.py directly where that path is readable on disk (not
+// in CI) to catch the mirror going stale (checkRouteMirrorFreshness, TASK-6); where
+// it isn't readable, it reports that via Check.notes rather than failing or passing
+// silently.
 //
 // .claude is in lib.ts's SKIP_DIRS, so ctx.files/ctx.allFiles never list these paths.
 // This check reads each expected path directly with ctx.readSource instead of
@@ -23,13 +27,13 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
   'agent-definitions/route-mismatch': {
     req: 'R55',
     summary: "A role's pinned model and effort agree with decision-3 and, where it has one, the plugin's route table",
-    why: "decision-3 pins each role's model and effort in line with the plugin's route table (board.py's route(), mirrored in tools/agents/roles.ts since that plugin path does not exist in CI). tools/agents/roles.ts is the one place both are transcribed; if it is edited to disagree with either, every generated definition for that role routes to the wrong model.",
+    why: "decision-3 pins each role's model and effort in line with the plugin's route table (board.py's route(), mirrored in tools/agents/roles.ts as ROUTE_TABLE_MIRROR; see agent-definitions/route-mirror-stale for whether that mirror itself still agrees with the plugin). tools/agents/roles.ts is the one place both are transcribed; if it is edited to disagree with either, every generated definition for that role routes to the wrong model.",
     fix: 'Fix tools/agents/roles.ts (ROLE_SPECS) to agree with DECISION_3_TABLE and, where it applies, ROUTE_TABLE_MIRROR, then run: pnpm agents:generate',
   },
   'agent-definitions/route-mirror-stale': {
     req: 'R55, R58',
     summary: "ROUTE_TABLE_MIRROR in tools/agents/roles.ts still matches the installed philosophy plugin's board.py",
-    why: 'The mirror is a hand transcription (decision-3 Enforcement) with nothing else detecting drift: a plugin upgrade that changes a route silently leaves every generated definition pinned to the old model while every other check stays green.',
+    why: 'The mirror is a hand transcription (decision-3 Enforcement). Before this rule, nothing detected it going stale: a plugin upgrade that changed a route would have silently left every generated definition pinned to the old model while every other check stayed green.',
     fix: "Update ROUTE_TABLE_MIRROR in tools/agents/roles.ts to match the installed plugin's board.py (its own comment names the exact lines), then run: pnpm agents:generate",
   },
 };
