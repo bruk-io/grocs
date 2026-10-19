@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.2
 title: Molecules from the design reference
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 03:19'
+updated_date: '2026-10-19 05:29'
 labels:
   - size-5
   - layer-ui
@@ -37,4 +38,6 @@ Every molecule on design/reference/DS-Molecules.dc.html as a ui component built 
 
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+
+Started 2026-10-19 01:2x while TASK-1.37.1 (a dependency) is not yet formally closed: its review ticked every criterion and the work is merged, but the reviewer's close-task run was blocked by the workspace's permission check, so the close waits on Bruk.
 <!-- SECTION:NOTES:END -->

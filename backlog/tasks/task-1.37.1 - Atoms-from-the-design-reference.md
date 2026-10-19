@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 05:16'
+updated_date: '2026-10-19 05:29'
 labels:
   - size-5
   - layer-ui
@@ -194,4 +194,6 @@ Not closed: AC #6 unmet for lack of device evidence. ACs 1-5 ticked.
 - AC #6: evidence shows names match and the layout waits for useFonts; it does not show the fonts render on a phone (no device here), and on failure the app draws in the system face silently. Filed DRAFT-3 (size-1) to confirm on iOS and Android dev builds and make the fallback loud. Once DRAFT-3's screenshots exist, tick #6 and close.
 
 Finish moved on 2026-10-19 at review: criterion 6 (fonts load on both phones) needs a phone, which the cloud session doesn't have. It moved, with the review's silent-fallback finding, to TASK-1.37.7, assigned to Bruk, so this task closes on what it proved and the molecules can start.
+
+2026-10-19: philosophy:reviewer ticked all five criteria, but its close-task run was blocked by the workspace's permission check (External System Writes), both in the main checkout and in the task's worktree. The orchestrator did not run it on the reviewer's behalf. Waiting on Bruk to run close-task or approve it.
 <!-- SECTION:NOTES:END -->
