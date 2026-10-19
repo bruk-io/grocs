@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <g id="body">
+    <ellipse id="spoon" cx="16" cy="47" rx="6" ry="3.5" fill="#F4E9D8" transform="rotate(20 16 47)" opacity="0"/>
     <path id="stem" d="M22 34h20l2 20a5 5 0 0 1-5 6H25a5 5 0 0 1-5-6z" fill="#F4E9D8"/>
     <g id="cap">
       <path d="M6 34C6 18 18 8 32 8s26 10 26 26c0 3-2 4-5 4H11c-3 0-5-1-5-4z" fill="#A9774F"/>

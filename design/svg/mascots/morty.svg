@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <g id="body">
+    <ellipse id="scrub" cx="18" cy="46" rx="5" ry="3.2" fill="#F1E6D2" transform="rotate(-20 18 46)" opacity="0"/>
+    <g id="tomato" opacity="0">
+      <circle cx="12" cy="42" r="5.5" fill="#E2583A"/>
+      <path d="M12 37l1-2" stroke="#6FA35C" stroke-width="2" stroke-linecap="round"/>
+    </g>
     <path id="stem" d="M24 36h16l1 18a5 5 0 0 1-5 5h-8a5 5 0 0 1-5-5z" fill="#F1E6D2"/>
     <g id="cap">
       <path d="M32 3c10 0 16 12 16 26 0 6-3 9-8 9H24c-5 0-8-3-8-9C16 15 22 3 32 3z" fill="#8C6A4A"/>

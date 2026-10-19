@@ -307,7 +307,8 @@ export const tokens = {
   },
   "opacity": {
     "disabled": 0.5,
-    "pressed": 0.85
+    "pressed": 0.85,
+    "tucked": 0.5
   },
   "motion": {
     "duration": {
@@ -324,14 +325,31 @@ export const tokens = {
       "stagger": 40,
       "tick": 520,
       "react": 1300,
-      "talk": 2800
+      "talk": 2800,
+      "mascotBlink": 4500,
+      "mascotBounce": 1800,
+      "mascotCycle": 3000,
+      "mascotStir": 1400,
+      "mascotHop": 800,
+      "mascotFloat": 4000,
+      "mascotSnooze": 3600,
+      "mascotStartle": 700,
+      "mascotTwirl": 1000,
+      "mascotLean": 5000,
+      "mascotPeek": 9000,
+      "mascotPonder": 4500,
+      "mascotQuick": 900,
+      "mascotSway": 1600,
+      "mascotGiggle": 500
     },
     "easing": {
       "pop": "cubic-bezier(.3, 1.6, .5, 1)",
       "rise": "cubic-bezier(.2, 1.2, .4, 1)",
       "land": "cubic-bezier(.2, 1.4, .4, 1)",
       "hop": "cubic-bezier(.3, 1.4, .5, 1)",
-      "twirl": "cubic-bezier(.4, 1.4, .5, 1)"
+      "twirl": "cubic-bezier(.4, 1.4, .5, 1)",
+      "soft": "ease-in-out",
+      "out": "ease-out"
     }
   },
   "stroke": {
