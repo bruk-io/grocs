@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 05:14'
+updated_date: '2026-10-19 05:16'
 labels:
   - size-5
   - layer-ui
@@ -31,7 +31,6 @@ Every atom on design/reference/DS-Atoms.dc.html as a ui component (R38, R39, R60
 - [x] #3 Rendered with pnpm --filter @grocs/ui shots, the atom stories match DS-Atoms.png in shape, colour, type and spacing; any difference is listed in the notes with its reason
 - [x] #4 DS-Atoms.dc.html and its shot are deleted (R66)
 - [x] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
-- [ ] #6 The bundled Fredoka and Nunito fonts load on the device in the app, not only in Storybook, so text atoms render in them on both phones
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -193,4 +192,6 @@ Not closed: AC #6 unmet for lack of device evidence. ACs 1-5 ticked.
 - ItemRow baseline deltas: inspected focus; differences are the Nunito face and the new double focus ring; no layout change seen.
 - platform/font-face.ts: weights 600/700/800 all mapped; every face it names is imported and registered in _layout.tsx, guarded by layout-fonts.test.ts. Minor: an unmapped weight falls back to the web family name on native silently.
 - AC #6: evidence shows names match and the layout waits for useFonts; it does not show the fonts render on a phone (no device here), and on failure the app draws in the system face silently. Filed DRAFT-3 (size-1) to confirm on iOS and Android dev builds and make the fallback loud. Once DRAFT-3's screenshots exist, tick #6 and close.
+
+Finish moved on 2026-10-19 at review: criterion 6 (fonts load on both phones) needs a phone, which the cloud session doesn't have. It moved, with the review's silent-fallback finding, to TASK-1.37.7, assigned to Bruk, so this task closes on what it proved and the molecules can start.
 <!-- SECTION:NOTES:END -->
