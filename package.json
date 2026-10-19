@@ -15,6 +15,7 @@
     "check": "node tools/checks/run.ts --mode all",
     "check:edit": "node tools/checks/run.ts --mode files",
     "check:release": "node tools/release-bundle.ts",
+    "check:demo": "node tools/demo-bundle.ts",
     "tokens": "node tools/build-tokens.ts",
     "svg": "node tools/build-svg.ts",
     "agents:generate": "node tools/agents/generate.ts",

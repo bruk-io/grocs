@@ -1,0 +1,165 @@
+name: demo apk
+
+# Builds the Grocs demo as an Android APK, smoke-tests it on an emulator, and attaches it to a GitHub
+# Release. Friends download the APK from the repository's Releases page and install it; it opens on the
+# Welcome screen, and "Try the demo" runs the app on sample data with no account (decision-12).
+#
+# TO CUT A DEMO RELEASE
+#
+#   git tag demo-v0.1.0 && git push origin demo-v0.1.0
+#
+# Name the tag demo-vX.Y.Z. The workflow builds the APK, installs it on an emulator, checks that it
+# launches and shows "Try the demo", then creates a Release named after the tag with the APK attached.
+# A tag whose smoke test fails gets no Release. To rebuild without releasing, run the workflow by hand
+# (gh workflow run demo-apk.yml --ref main) and download the artifact from the run. Pushes to a branch
+# named apk/** also build and test, so the build can be iterated before it is merged.
+#
+# THE DEMO VARIANT
+#
+# Both variables must be set for prebuild and for Gradle, and only here: APP_VARIANT=demo picks the app
+# config (name "Grocs Demo", id io.bruk.grocs.demo, no Firebase config plugins, no google-services.json)
+# and EXPO_PUBLIC_APP_VARIANT=demo picks the composition (in-memory provider, no Firebase code in the
+# bundle). The real build sets neither. `pnpm check:demo` proves the demo JavaScript bundle holds no
+# Firebase code; `pnpm check:release` proves the real bundles hold no demo code.
+#
+# SIGNING
+#
+# Expo's prebuild template signs the release build with the debug keystore. That is fine for sideloading
+# and means no keystore or secret lives in the repository or in this workflow. The catch: prebuild
+# generates a fresh debug keystore on every run, so each demo APK has a different signing key, and Android
+# refuses to install an APK over an app signed with another key. A friend with an older demo installed
+# must uninstall it before installing a newer one (the Release notes say so). A stable key, so that
+# updates install over each other, would need a keystore stored as a repository secret, which only the
+# repository owner can add.
+#
+# ARCHITECTURES
+#
+# The APK holds arm64-v8a (nearly every phone sold since 2017) and x86_64 (the emulator below). It
+# leaves out the 32-bit ABIs to halve the build time and the download.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['apk/**']
+    tags: ['demo-v*']
+
+concurrency:
+  group: demo-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build the demo APK
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: pnpm install --frozen-lockfile
+      - name: The demo JavaScript bundle holds no Firebase code (check:release does not look at it)
+        run: pnpm check:demo
+      - name: Cache Gradle downloads
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-demo-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: gradle-demo-
+      - name: Generate the Android project (prebuild) for the demo variant
+        working-directory: apps/mobile
+        env:
+          APP_VARIANT: demo
+          EXPO_PUBLIC_APP_VARIANT: demo
+          EXPO_NO_TELEMETRY: '1'
+          CI: '1'
+        run: pnpm exec expo prebuild --platform android --no-install --clean
+      - name: Assemble the release APK (signed with the debug keystore, see the header)
+        working-directory: apps/mobile/android
+        env:
+          APP_VARIANT: demo
+          EXPO_PUBLIC_APP_VARIANT: demo
+          EXPO_NO_TELEMETRY: '1'
+          CI: '1'
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,x86_64 --no-daemon --stacktrace
+      - name: Name the APK
+        run: |
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk grocs-demo.apk
+          ls -l grocs-demo.apk
+      - uses: actions/upload-artifact@v7
+        with:
+          name: grocs-demo-apk
+          path: grocs-demo.apk
+          if-no-files-found: error
+
+  smoke:
+    name: Install and launch it on an emulator
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: grocs-demo-apk
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install, launch, wait; fail on a crash or a missing Welcome screen
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          disable-animations: true
+          script: bash tools/demo-smoke.sh grocs-demo.apk smoke-output
+      - name: Screenshot, UI dump and logcat
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-output
+          path: smoke-output
+          if-no-files-found: warn
+
+  release:
+    name: Attach it to a GitHub Release
+    needs: [build, smoke]
+    if: startsWith(github.ref, 'refs/tags/demo-v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: grocs-demo-apk
+      - name: Create the Release with the APK attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cp grocs-demo.apk "grocs-demo-${TAG}.apk"
+          cat > notes.md <<EOF
+          The Grocs demo for Android, ${TAG}. Download \`grocs-demo-${TAG}.apk\` below, open it on your phone and install it (Android asks to allow installs from your browser or files app the first time). It opens on the Welcome screen: tap "Try the demo". It runs on sample data and keeps everything on the phone; there is no account and nothing is sent anywhere.
+
+          Installing a newer demo over an older one fails with "App not installed", because each build is signed with a fresh debug key. Uninstall "Grocs Demo" first, then install the new one.
+          EOF
+          gh release create "${TAG}" "grocs-demo-${TAG}.apk" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "Grocs demo ${TAG}" \
+            --notes-file notes.md

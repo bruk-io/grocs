@@ -183,12 +183,12 @@ export function sourcesOf(map: SourceMap): string[] {
   return [...(map.sources ?? [])];
 }
 
-interface Bundle {
+export interface Bundle {
   readonly platform: string;
   readonly sources: readonly string[];
 }
 
-function bundlesIn(dir: string): Bundle[] {
+export function bundlesIn(dir: string): Bundle[] {
   const out: Bundle[] = [];
   for (const platform of ['android', 'ios']) {
     const folder = join(dir, '_expo', 'static', 'js', platform);
@@ -203,7 +203,13 @@ function bundlesIn(dir: string): Bundle[] {
   return out;
 }
 
-function exportBundles(appDir: string, outDir: string, release: boolean): void {
+/** `extraEnv` selects a variant: the demo build sets APP_VARIANT and EXPO_PUBLIC_APP_VARIANT (tools/demo-bundle.ts). */
+export function exportBundles(
+  appDir: string,
+  outDir: string,
+  release: boolean,
+  extraEnv: Readonly<Record<string, string>> = {},
+): void {
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(outDir, { recursive: true });
   const args = [
@@ -223,7 +229,7 @@ function exportBundles(appDir: string, outDir: string, release: boolean): void {
   execFileSync('pnpm', ['exec', ...args], {
     cwd: appDir,
     stdio: 'inherit',
-    env: { ...process.env, CI: '1', EXPO_NO_TELEMETRY: '1', NODE_ENV: release ? 'production' : 'development' },
+    env: { ...process.env, CI: '1', EXPO_NO_TELEMETRY: '1', NODE_ENV: release ? 'production' : 'development', ...extraEnv },
   });
 }
 
