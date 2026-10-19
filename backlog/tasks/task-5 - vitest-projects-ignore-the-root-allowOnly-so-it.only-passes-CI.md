@@ -1,10 +1,12 @@
 ---
-id: DRAFT-4
+id: TASK-5
 title: 'vitest projects ignore the root allowOnly, so it.only passes CI'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 23:31'
-labels: []
+updated_date: '2026-10-19 03:28'
+labels:
+  - size-2
 dependencies: []
 type: bug
 ---

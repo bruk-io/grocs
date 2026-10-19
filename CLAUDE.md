@@ -40,6 +40,7 @@ A layer task (a slice split into per-layer work) carries a `layer-<name>` label 
 - The board is the source. The orchestrator keeps statuses current on `main` and pushes whenever work changes hands.
 - A worker gets a task ID, the model and effort `board-check route <id>` gives, and its own worktree. It writes its plan (`philosophy:plan-change`) before editing, and reports in the task's notes.
 - Agent worktrees live in `.claude/worktrees/` (gitignored). The orchestrator never `cd`s into one; a worker's uncommitted edits are not the orchestrator's to commit.
+- A long-running `isolation:'worktree'` agent (the Workflow tool) can hold a stale, pre-fix snapshot of `main` for as long as it runs: a worktree branched before a fix merges doesn't get that fix just because `main` moved. Before such an agent commits, it (or the orchestrator, if the agent can't resolve its own merge) refreshes the worktree against current `main` first. This is TASK-1.36's corruption bug recurring under a different trigger (TASK-4), not a new class of bug.
 - Run commands from the repo root. Chaining `cd … &&` in front triggers permission prompts.
 - On the web, open only URLs a search returned; fetching a recalled or hand-built URL asks the person for approval.
 - `philosophy:reviewer` closes tasks. It can't commit a follow-up draft it files, so the orchestrator reads it and files it on `main`.

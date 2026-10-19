@@ -1,12 +1,14 @@
 ---
-id: DRAFT-2
+id: TASK-3
 title: >-
   Apply decision-6: move pnpm settings out of .npmrc, Node 24, Metro and
   import-layer rules
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-18 22:09'
-labels: []
+updated_date: '2026-10-19 03:28'
+labels:
+  - size-5
 dependencies: []
 type: task
 ---

@@ -1,13 +1,14 @@
 ---
-id: DRAFT-3
+id: TASK-4
 title: >-
   Something in the close path sets core.bare=true in the repo's .git/config,
   blocking every close
-status: Draft
+status: Done
 assignee: []
 created_date: '2026-10-18 22:10'
-updated_date: '2026-10-18 22:19'
-labels: []
+updated_date: '2026-10-19 03:50'
+labels:
+  - size-1
 dependencies: []
 type: bug
 ---
@@ -26,6 +27,14 @@ Updated acceptance criteria reflect this.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No currently-running agent or worktree holds a pre-TASK-1.36 copy of tools/hooks/hooks.test.ts or tools/checks/run.ts
-- [ ] #2 CLAUDE.md's agent-delegation guidance (or decision-3) says a long-running isolation:'worktree' agent must be refreshed against main before it commits, so a fix merged mid-run doesn't miss a worktree branched before it
+- [x] #1 No currently-running agent or worktree holds a pre-TASK-1.36 copy of tools/hooks/hooks.test.ts or tools/checks/run.ts
+- [x] #2 CLAUDE.md's agent-delegation guidance (or decision-3) says a long-running isolation:'worktree' agent must be refreshed against main before it commits, so a fix merged mid-run doesn't miss a worktree branched before it
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+No repro: this was an operational/environmental corruption (a stale pre-fix worktree's test run leaking into the shared .git/config), not a deterministic code-level failure with a test to point at. The underlying bug has its own repro and fix recorded on TASK-1.36 (closed). This task's two ACs are a verification check (AC1) and a documentation note (AC2), not a code change with a failing test.
+
+Confirmed closed by the orchestrator (not the implementer) after review. AC1: verified via grep that all live worktrees (main, task-1.38) have tools/hooks/hooks.test.ts and tools/checks/run.ts with the TASK-1.36 ISOLATE_ENV fix. AC2: CLAUDE.md's agent-delegation section now states a long-running isolation:'worktree' agent must refresh against main before committing. No repro recorded: operational corruption, not a code-level failure; see task notes and TASK-1.36 for the underlying fix and its own repro.
+<!-- SECTION:NOTES:END -->
