@@ -15,10 +15,6 @@
       "name": "App"
     },
     {
-      "id": "ds",
-      "name": "Design system"
-    },
-    {
       "id": "options",
       "name": "Design options",
       "title": "Design options"
@@ -34,14 +30,6 @@
       "is_interactive": true,
       "radius": 40,
       "page": "app"
-    },
-    "DS-Tokens.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1200,
-      "h": 3062,
-      "title": "1 Tokens",
-      "page": "ds"
     },
     "D1-OptionA.dc.html": {
       "x": 0,
@@ -106,7 +94,6 @@
   },
   "order": [
     "RecipeImport.dc.html",
-    "DS-Tokens.dc.html",
     "D1-OptionA.dc.html",
     "D1-OptionB.dc.html",
     "D1-OptionC.dc.html",
@@ -132,15 +119,6 @@
       "kind": "title1",
       "maxW": 1800,
       "page": "app"
-    },
-    "dsTitle": {
-      "x": 0,
-      "y": -260,
-      "w": 240,
-      "text": "Grocs design system - atomic",
-      "kind": "title1",
-      "maxW": 6320,
-      "page": "ds"
     },
     "states": {
       "x": 0,
