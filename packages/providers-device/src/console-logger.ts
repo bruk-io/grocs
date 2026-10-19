@@ -13,10 +13,14 @@ export interface ConsoleSink {
  * directly (R37); everything else logs through the Logger port.
  */
 export class ConsoleLogger implements Logger {
-  constructor(private readonly sink: ConsoleSink = console) {}
+  readonly #sink: ConsoleSink;
+
+  constructor(sink: ConsoleSink = console) {
+    this.#sink = sink;
+  }
 
   log(record: LogRecord): void {
-    this.sink[record.severity](serialise(safeRecord(record)));
+    this.#sink[record.severity](serialise(safeRecord(record)));
   }
 }
 

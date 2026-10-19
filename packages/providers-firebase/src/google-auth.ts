@@ -10,16 +10,20 @@ const toUser = (u: AuthUserLike): User => ({ uid: u.uid, email: u.email, display
  * (TASK-1.15 wires a real implementation; this one may stay a stub until then).
  */
 export class GoogleAuth implements GoogleSignIn {
-  constructor(
-    private readonly fns: AuthFns,
-    private readonly auth: unknown,
-    private readonly getGoogleIdToken: () => Promise<string>,
-  ) {}
+  readonly #fns: AuthFns;
+  readonly #auth: unknown;
+  readonly #getGoogleIdToken: () => Promise<string>;
+
+  constructor(fns: AuthFns, auth: unknown, getGoogleIdToken: () => Promise<string>) {
+    this.#fns = fns;
+    this.#auth = auth;
+    this.#getGoogleIdToken = getGoogleIdToken;
+  }
 
   async signInWithGoogle(): Promise<User> {
-    const idToken = await this.getGoogleIdToken();
-    const credential = this.fns.GoogleAuthProvider.credential(idToken);
-    const { user } = await this.fns.signInWithCredential(this.auth, credential);
+    const idToken = await this.#getGoogleIdToken();
+    const credential = this.#fns.GoogleAuthProvider.credential(idToken);
+    const { user } = await this.#fns.signInWithCredential(this.#auth, credential);
     return toUser(user);
   }
 }

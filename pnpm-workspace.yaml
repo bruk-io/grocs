@@ -1,3 +1,14 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Moved out of .npmrc (decision-6, D3/TASK-1.8): pnpm 11 no longer reads non-auth
+# settings from .npmrc, so keeping them there would let a later major upgrade drop
+# them silently and turn the install isolated with no warning.
+nodeLinker: hoisted
+# kept until a dev client builds under isolated installs; Expo SDK 54+ supports
+# isolated, but our native modules are unproven (@react-native-firebase/*,
+# Reanimated, react-native-svg)
+autoInstallPeers: true
+minimumReleaseAge: 1440
+engineStrict: true

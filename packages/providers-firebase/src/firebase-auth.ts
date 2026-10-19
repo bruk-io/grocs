@@ -10,12 +10,13 @@ const toUser = (u: AuthUserLike): User => ({ uid: u.uid, email: u.email, display
  */
 export class FirebaseAuth implements AuthPort {
   #current: User | null = null;
+  readonly #fns: AuthFns;
+  readonly #auth: unknown;
 
-  constructor(
-    private readonly fns: AuthFns,
-    private readonly auth: unknown,
-  ) {
-    this.fns.onAuthStateChanged(this.auth, (u) => {
+  constructor(fns: AuthFns, auth: unknown) {
+    this.#fns = fns;
+    this.#auth = auth;
+    this.#fns.onAuthStateChanged(this.#auth, (u) => {
       this.#current = u ? toUser(u) : null;
     });
   }
@@ -25,11 +26,11 @@ export class FirebaseAuth implements AuthPort {
   }
 
   onAuthStateChanged(listener: (user: User | null) => void): Unsubscribe {
-    return this.fns.onAuthStateChanged(this.auth, (u) => listener(u ? toUser(u) : null));
+    return this.#fns.onAuthStateChanged(this.#auth, (u) => listener(u ? toUser(u) : null));
   }
 
   async signOut(): Promise<void> {
-    await this.fns.signOut(this.auth);
+    await this.#fns.signOut(this.#auth);
     this.#current = null;
   }
 }

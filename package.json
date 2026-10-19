@@ -3,21 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.34.7",
   "engines": {
-    "node": ">=22.18"
+    "node": ">=24.12"
   },
   "scripts": {
     "test": "vitest run --project unit --project ui --project app --project tools",
     "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-grocs 'vitest run --project emulator'",
-    "emulators": "node --disable-warning=ExperimentalWarning tools/emulators.ts",
+    "emulators": "node tools/emulators.ts",
     "typecheck": "tsc --noEmit",
     "check": "node tools/checks/run.ts --mode all",
     "check:edit": "node tools/checks/run.ts --mode files",
-    "check:release": "node --disable-warning=ExperimentalWarning tools/release-bundle.ts",
-    "tokens": "node --disable-warning=ExperimentalWarning tools/build-tokens.ts",
-    "svg": "node --disable-warning=ExperimentalWarning tools/build-svg.ts",
-    "agents:generate": "node --disable-warning=ExperimentalWarning tools/agents/generate.ts",
+    "check:release": "node tools/release-bundle.ts",
+    "tokens": "node tools/build-tokens.ts",
+    "svg": "node tools/build-svg.ts",
+    "agents:generate": "node tools/agents/generate.ts",
     "hooks:install": "lefthook install"
   },
   "devDependencies": {

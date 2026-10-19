@@ -13,14 +13,17 @@ import type { FirestoreFns, QuerySnapshotLike } from './sdk.ts';
  * offline fails instead of queueing; making R16 work is part of design question D4.
  */
 export class FirestoreSyncStore implements SyncStore {
-  constructor(
-    private readonly fs: FirestoreFns,
-    private readonly db: unknown,
-  ) {}
+  readonly #fs: FirestoreFns;
+  readonly #db: unknown;
+
+  constructor(fs: FirestoreFns, db: unknown) {
+    this.#fs = fs;
+    this.#db = db;
+  }
 
   async mergeItem(kitchenId: string, item: Item): Promise<void> {
-    const ref = this.fs.doc(this.db, 'kitchens', kitchenId, 'items', item.id);
-    await this.fs.runTransaction(this.db, async (tx) => {
+    const ref = this.#fs.doc(this.#db, 'kitchens', kitchenId, 'items', item.id);
+    await this.#fs.runTransaction(this.#db, async (tx) => {
       const snapshot = await tx.get(ref);
       let merged = item;
       if (snapshot.exists()) {
@@ -33,7 +36,7 @@ export class FirestoreSyncStore implements SyncStore {
   }
 
   async getItems(kitchenId: string, weekId: string): Promise<readonly Item[]> {
-    const snapshot = await this.fs.getDocs(this.#weekQuery(kitchenId, weekId));
+    const snapshot = await this.#fs.getDocs(this.#weekQuery(kitchenId, weekId));
     const { items, problems } = decodeAll(snapshot);
     if (problems.length > 0) throw new Error(problems.join('; '));
     return items;
@@ -45,7 +48,7 @@ export class FirestoreSyncStore implements SyncStore {
     onItems: (items: readonly Item[]) => void,
     onError?: (error: Error) => void,
   ): Unsubscribe {
-    return this.fs.onSnapshot(this.#weekQuery(kitchenId, weekId), {
+    return this.#fs.onSnapshot(this.#weekQuery(kitchenId, weekId), {
       next: (snapshot) => {
         const { items, problems } = decodeAll(snapshot);
         for (const problem of problems) onError?.(new Error(problem));
@@ -56,7 +59,7 @@ export class FirestoreSyncStore implements SyncStore {
   }
 
   #weekQuery(kitchenId: string, weekId: string): unknown {
-    return this.fs.query(this.fs.collection(this.db, 'kitchens', kitchenId, 'items'), this.fs.where('weekId', '==', weekId));
+    return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'items'), this.#fs.where('weekId', '==', weekId));
   }
 }
 

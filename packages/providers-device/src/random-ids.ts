@@ -17,11 +17,15 @@ const defaultRandomBytes: RandomBytes = (bytes) => {
 
 /** 20 random letters and digits: safe in a Firestore document path and a URL, and unique in practice. */
 export class RandomIds implements IdGenerator {
-  constructor(private readonly randomBytes: RandomBytes = defaultRandomBytes) {}
+  readonly #randomBytes: RandomBytes;
+
+  constructor(randomBytes: RandomBytes = defaultRandomBytes) {
+    this.#randomBytes = randomBytes;
+  }
 
   newId(): string {
     const bytes = new Uint8Array(LENGTH);
-    this.randomBytes(bytes);
+    this.#randomBytes(bytes);
     let id = '';
     for (const b of bytes) id += ALPHABET[b % ALPHABET.length];
     return id;

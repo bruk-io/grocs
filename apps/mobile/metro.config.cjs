@@ -1,13 +1,10 @@
-// Metro for a pnpm workspace with hoisted node_modules. The workspace packages export TypeScript
-// source, so Metro must watch the repository root and resolve from the root node_modules.
+// Metro for a pnpm workspace with hoisted node_modules. Expo's monorepo support in
+// expo/metro-config configures watchFolders and nodeModulesPaths itself from SDK 52
+// (decision-6, D3/TASK-1.8), so nothing is set by hand here.
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('node:path');
 
 const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
-config.watchFolders = [workspaceRoot];
-config.resolver.nodeModulesPaths = [path.resolve(projectRoot, 'node_modules'), path.resolve(workspaceRoot, 'node_modules')];
 
 module.exports = config;

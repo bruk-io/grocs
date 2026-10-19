@@ -29,7 +29,7 @@ function hook(name: string, payload: Record<string, unknown>): { status: number 
   const isLayerCode = typeof filePath === 'string' && /\/(packages|apps)\//.test(filePath);
   const withDefault = name === 'pre-edit' && isLayerCode && !('agent_type' in payload) ? { agent_type: 'builder-core', ...payload } : payload;
   const t0 = performance.now();
-  const r = spawnSync('node', ['--disable-warning=ExperimentalWarning', join(here, `${name}.ts`)], {
+  const r = spawnSync('node', [join(here, `${name}.ts`)], {
     input: JSON.stringify(withDefault),
     env: { ...process.env, GROCS_ROOT: root },
     encoding: 'utf8',

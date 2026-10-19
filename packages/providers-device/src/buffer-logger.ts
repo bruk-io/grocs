@@ -7,12 +7,15 @@ import { safeRecord } from '@grocs/ports';
  */
 export class BufferLogger implements Logger {
   readonly #records: LogRecord[] = [];
+  readonly #capacity: number;
 
-  constructor(private readonly capacity = 500) {}
+  constructor(capacity = 500) {
+    this.#capacity = capacity;
+  }
 
   log(record: LogRecord): void {
     this.#records.push(safeRecord(record));
-    if (this.#records.length > this.capacity) this.#records.splice(0, this.#records.length - this.capacity);
+    if (this.#records.length > this.#capacity) this.#records.splice(0, this.#records.length - this.#capacity);
   }
 
   records(): readonly LogRecord[] {
