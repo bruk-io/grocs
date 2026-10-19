@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 83 120">
+  <g id="door">
+    <rect x="0" y="0" width="83" height="120" rx="8" fill="#EBDCC2"/>
+    <path d="M10 22q30-5 62 1M10 88q30 5 62-2" fill="none" stroke="#DCC8A6" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

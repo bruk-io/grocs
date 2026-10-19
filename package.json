@@ -16,11 +16,15 @@
     "check:edit": "node tools/checks/run.ts --mode files",
     "check:release": "node --disable-warning=ExperimentalWarning tools/release-bundle.ts",
     "tokens": "node --disable-warning=ExperimentalWarning tools/build-tokens.ts",
+    "svg": "node --disable-warning=ExperimentalWarning tools/build-svg.ts",
     "agents:generate": "node --disable-warning=ExperimentalWarning tools/agents/generate.ts",
     "hooks:install": "lefthook install"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
+    "@svgr/core": "8.1.0",
+    "@svgr/plugin-jsx": "8.1.0",
+    "@svgr/plugin-svgo": "8.1.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^22.0.0",
@@ -30,6 +34,7 @@
     "firebase-tools": "^15.0.0",
     "jsdom": "^26.1.0",
     "lefthook": "^2.0.0",
+    "playwright-core": "^1.64.1",
     "typescript": "~5.9.0",
     "vitest": "^4.0.0"
   }

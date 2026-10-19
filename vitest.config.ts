@@ -6,6 +6,22 @@ import { defineConfig } from 'vitest/config';
 //   tools     the check scripts, hooks and the app's composition root, tested against fakes
 //   emulator  provider contract suites and the two-client sync test; need the Firebase emulators
 //             (pnpm test:emulator starts them, runs this project and stops them)
+// react-native-svg's package entry is its native build (Flow, CommonJS). Its web build is aliased in, as the
+// browser Storybook's Vite resolves it, and the plugin makes its own imports pick the .web.js sibling.
+const nativeSvg = {
+  'react-native-svg': 'react-native-svg/lib/module/ReactNativeSVG.web.js',
+  // The web build loads asset URLs through this; RN's own file needs the native react-native.
+  '@react-native/assets-registry/registry': 'react-native-web/dist/modules/AssetRegistry/index.js',
+};
+const webFirst = {
+  name: 'web-modules-first',
+  enforce: 'pre' as const,
+  async resolveId(this: { resolve: (id: string, importer?: string) => Promise<unknown> }, source: string, importer?: string) {
+    if (!importer || !importer.includes('/react-native-svg/') || !source.startsWith('.') || source.endsWith('.js')) return null;
+    return (await this.resolve(`${source}.web.js`, importer)) ?? null;
+  },
+};
+
 export default defineConfig({
   test: {
     // Focused tests are always an error, not only when CI is set (R57).
@@ -21,18 +37,24 @@ export default defineConfig({
       },
       {
         resolve: { alias: { 'react-native': 'react-native-web' } },
+        plugins: [webFirst],
         test: {
           name: 'ui',
           environment: 'jsdom',
           include: ['packages/ui/src/**/*.test.tsx'],
+          alias: nativeSvg,
+          server: { deps: { inline: [/react-native-svg/] } },
         },
       },
       {
         resolve: { alias: { 'react-native': 'react-native-web' } },
+        plugins: [webFirst],
         test: {
           name: 'app',
           environment: 'jsdom',
           include: ['apps/*/src/**/*.test.tsx'],
+          alias: nativeSvg,
+          server: { deps: { inline: [/react-native-svg/] } },
         },
       },
       {

@@ -15,26 +15,28 @@ export function Text({ variant = 'body', ...rest }: TextProps) {
 }
 
 const base = {
-  color: tokens.color.text,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.family.body,
   fontSize: tokens.font.size.body,
   lineHeight: tokens.font.lineHeight.body,
-  fontWeight: tokens.font.weight.regular,
+  fontWeight: tokens.font.weight.medium,
 } as const;
 
 const styles = StyleSheet.create({
   body: base,
   title: {
     ...base,
-    fontSize: tokens.font.size.title,
-    lineHeight: tokens.font.lineHeight.title,
+    fontFamily: tokens.font.family.display,
+    fontSize: tokens.font.size.heading,
+    lineHeight: tokens.font.lineHeight.heading,
     fontWeight: tokens.font.weight.bold,
   },
-  caption: { ...base, fontSize: tokens.font.size.caption, lineHeight: tokens.font.lineHeight.caption },
+  caption: { ...base, fontSize: tokens.font.size.small, lineHeight: tokens.font.lineHeight.small },
   muted: {
     ...base,
-    color: tokens.color.textMuted,
-    fontSize: tokens.font.size.caption,
-    lineHeight: tokens.font.lineHeight.caption,
+    color: tokens.color.inkMuted,
+    fontSize: tokens.font.size.small,
+    lineHeight: tokens.font.lineHeight.small,
   },
-  struck: { ...base, color: tokens.color.textMuted, textDecorationLine: 'line-through' },
+  struck: { ...base, color: tokens.color.doneInk, textDecorationLine: 'line-through' },
 });

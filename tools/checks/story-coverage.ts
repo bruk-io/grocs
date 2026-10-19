@@ -15,6 +15,12 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     why: 'Stories are the one place each state is written, then viewed in Storybook and rendered by the component tests (R65).',
     fix: 'Add <Component>.stories.tsx beside the component with one story per declared state.',
   },
+  'story-coverage/interactive-states': {
+    req: 'R61',
+    summary: 'An interactive component declares rest, pressed, focus and disabled, plus loading and error where it can be in them',
+    why: 'A control that has no pressed, focus or disabled look is one a person cannot tell is working, reachable by keyboard or unavailable. The list is what the stories and the design review check, so a missing state is a state nobody looked at.',
+    fix: 'Add the missing states to the <NAME>_STATES list, draw each (forceState draws pressed and focus), and add a story for each.',
+  },
   'story-coverage/missing-story': {
     req: 'R63',
     summary: 'Every declared state has a story',
@@ -26,7 +32,20 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
 const LEVEL_DIR = /^packages\/ui\/src\/(atoms|molecules|organisms|templates)\/[^/]+\.tsx$/;
 const STATES = /export const \w+_STATES\s*=\s*\[([^\]]*)\]/;
 
-const pascal = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
+const INTERACTIVE = /<Pressable\b|<TextInput\b|\brole=/;
+const CAN_LOAD = /\bloading\??\s*:/;
+const CAN_ERROR = /\b(error|errorMessage|invalid)\??\s*:/;
+
+/** The states R61 asks for that a component's source implies but its list leaves out. */
+export function missingInteractiveStates(source: string, states: readonly string[]): string[] {
+  if (!INTERACTIVE.test(source)) return [];
+  const missing = ['rest', 'pressed', 'focus', 'disabled'].filter((s) => !states.includes(s));
+  if (CAN_LOAD.test(source) && !states.includes('loading')) missing.push('loading');
+  if (CAN_ERROR.test(source) && !states.includes('error') && !states.includes('invalid')) missing.push('error');
+  return missing;
+}
+
+const pascal =(s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function run(ctx: CheckContext): Finding[] {
   const out: Finding[] = [];
@@ -39,6 +58,10 @@ export function run(ctx: CheckContext): Finding[] {
       continue;
     }
     const states = [...(match[1] ?? '').matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]!);
+    const source = ctx.readSource(file);
+    for (const missing of missingInteractiveStates(source, states)) {
+      out.push({ rule: 'story-coverage/interactive-states', file, detail: `${file} is interactive but its states do not include "${missing}"` });
+    }
     const storiesFile = file.replace(/\.tsx$/, '.stories.tsx');
     if (!files.has(storiesFile)) {
       out.push({ rule: 'story-coverage/missing-story-file', file, detail: `${storiesFile} does not exist` });
