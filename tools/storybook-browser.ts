@@ -131,9 +131,26 @@ export interface OpenedStory {
   readonly errors: readonly string[];
 }
 
+const ENTRANCE_CAP_MS = 5_000;
+
+/**
+ * Waits for every animation with an end (a mascot's bubble pops in, or fades in when motion is
+ * reduced) to finish; endless ones such as an idle bob are left running. axe reads contrast through
+ * opacity, so scanning mid-fade fails at random (TASK-1.41). False when one is still running at the cap.
+ */
+async function entrancesFinished(page: Page): Promise<boolean> {
+  return page.evaluate(async (capMs) => {
+    const finite = document.getAnimations().filter((a) => Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
+    const all = Promise.all(finite.map((a) => a.finished.catch(() => undefined))).then(() => true);
+    const cap = new Promise<boolean>((done) => setTimeout(() => done(false), capMs));
+    return Promise.race([all, cap]);
+  }, ENTRANCE_CAP_MS);
+}
+
 /**
  * Opens one story in `page` at `viewport`, with motion reduced and fonts loaded, and waits until it has
- * drawn. The page must be a fresh one per viewport (the init script runs on every navigation).
+ * drawn and its entrances have finished. The page must be a fresh one per viewport (the init script
+ * runs on every navigation).
  */
 export async function openStory(page: Page, baseUrl: string, id: string, viewport: Viewport): Promise<OpenedStory> {
   const errors: string[] = [];
@@ -146,6 +163,7 @@ export async function openStory(page: Page, baseUrl: string, id: string, viewpor
   await page.evaluate(() => document.fonts.ready);
   // Two animation frames so layout that follows the font swap has settled.
   await page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
+  if (!(await entrancesFinished(page))) errors.push(`an entrance animation was still running after ${ENTRANCE_CAP_MS} ms`);
   page.off('pageerror', onError);
   if (await page.evaluate(() => document.body.classList.contains('sb-show-errordisplay'))) errors.push('Storybook shows an error');
   return { errors };
