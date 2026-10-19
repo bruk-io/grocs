@@ -1,11 +1,11 @@
 ---
 id: TASK-1.37.2
 title: Molecules from the design reference
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:13'
-updated_date: '2026-10-19 06:28'
+updated_date: '2026-10-19 06:42'
 labels:
   - size-5
   - layer-ui
@@ -31,7 +31,7 @@ Every molecule on design/reference/DS-Molecules.dc.html as a ui component built 
 - [x] #2 Each molecule has a story for every state it declares (R61, R63)
 - [x] #3 Rendered with pnpm --filter @grocs/ui shots, the molecule stories match DS-Molecules.png; any difference is listed in the notes with its reason
 - [x] #4 DS-Molecules.dc.html and its shot are deleted once the Mascot (TASK-1.30) is also built (R66)
-- [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
+- [x] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -176,4 +176,72 @@ Review (philosophy:reviewer, 2026-10-19): NOT CLOSED. Full-tier record-check exi
 Checks changed: .claude/checks.json's full tier gained the browser pass (pnpm --filter @grocs/ui visual -- --no-build) in TASK-1.37.6 (commit 5a3cecc), merged into main after this task was accepted; this task did not change checks.json.
 
 Review follow-ups: StatusRow and AvatarStack behaviour tests added (role and name); an xl Avatar with online now draws its tomato ring (story XlOnline, state xlOnline).
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(410 earlier lines omitted)
+```text
+|  5.29 kB │ gzip:   1.89 kB
+|  storybook-static/assets/ItemRow.stories-Bt2LgsOx.js
+|  5.51 kB │ gzip:   2.18 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/art-_gaw2cym.js
+|  9.90 kB │ gzip:   2.31 kB
+|  storybook-static/assets/Mascot-Cbssq0zw.js
+|  11.40 kB │ gzip:   4.22 kB
+|  storybook-static/assets/Kitchen.stories-Bi51Z-mb.js
+|  13.91 kB │ gzip:   3.31 kB
+|  storybook-static/assets/icons-DLkqbOLj.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-C6o6Gzyz.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/part-1KRr1eK1.js
+|  157.12 kB │ gzip:  47.61 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-DBbAzBff.js
+|  1,353.31 kB │ gzip: 390.59 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.84s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 3.0s of this 4.8s
+|  build (63%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin vite:css transform (31%, 1.5s, 2 calls)
+|  - plugin storybook:react-docgen-plugin transform (23%, 1.1s, 771
+|  calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-af0f123a85161ade2/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-af0f123a85161ade2/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 235 story views checked (axe, 44 x 44, 235 images compared)
+```
+
+Re-review (philosophy:reviewer) of 5489428: CLOSED. Full-tier check exit 0, visual 235 views clean (new atoms-avatar--xl-online). AC5 now met: StatusRow and AvatarStack behaviour tests drive kind and online by role and name. xl online ring fixed. checks.json change explained (from TASK-1.37.6, 5a3cecc). No drafts filed.
 <!-- SECTION:NOTES:END -->
