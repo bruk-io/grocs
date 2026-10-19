@@ -13,6 +13,8 @@ export interface LayerConfig {
   readonly paths: readonly string[];
   readonly testCommand: string;
   readonly typecheckCommand: string;
+  /** Further commands this layer's agents may run, such as a renderer for visual checks. */
+  readonly extraCommands?: readonly string[];
   readonly rulesFiles: readonly string[];
   readonly exampleFiles: readonly string[];
 }
@@ -43,6 +45,7 @@ export function renderDefinition(template: string, role: Role, config: LayerConf
     PATHS: config.paths.map((p) => `- \`${p}\``).join('\n'),
     TEST_COMMAND: config.testCommand,
     TYPECHECK_COMMAND: config.typecheckCommand,
+    EXTRA_COMMANDS: (config.extraCommands ?? []).map((c) => `\n- \`${c}\``).join(''),
     RULES_SECTION: rulesSection(config),
     EXAMPLES: config.exampleFiles.map((f) => `- \`${f}\``).join('\n'),
     ROLE_BODY: spec.bodyFragment,

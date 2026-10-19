@@ -24,7 +24,7 @@ You may write only within:
 Your Bash is narrowed to this layer's own checks, enforced by the write guard
 (`tools/hooks/pre-edit.ts`) rather than by this tool list:
 - `{{TEST_COMMAND}}`
-- `{{TYPECHECK_COMMAND}}`
+- `{{TYPECHECK_COMMAND}}`{{EXTRA_COMMANDS}}
 
 {{RULES_SECTION}}
 ## Examples from the walking skeleton (TASK-1.4)
