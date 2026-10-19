@@ -184,7 +184,7 @@ describe('vitest config: a stray it.only still fails the real run (D8, decision-
       // provider's variables (GITHUB_ACTIONS and others), which would make the control fail
       // on CI for a reason other than the config. A minimal environment carries none of
       // them, so both runs show what the config alone does.
-      const env: Record<string, string | undefined> = {};
+      const env: NodeJS.ProcessEnv = { NODE_ENV: process.env['NODE_ENV'] ?? 'test' };
       for (const key of ['PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP']) {
         if (process.env[key] !== undefined) env[key] = process.env[key];
       }
