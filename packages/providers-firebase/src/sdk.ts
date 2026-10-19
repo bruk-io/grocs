@@ -43,6 +43,9 @@ export interface AuthFns {
   onAuthStateChanged(auth: unknown, next: (user: AuthUserLike | null) => void): () => void;
   signInWithEmailAndPassword(auth: unknown, email: string, password: string): Promise<{ readonly user: AuthUserLike }>;
   signOut(auth: unknown): Promise<void>;
+  signInWithCredential(auth: unknown, credential: unknown): Promise<{ readonly user: AuthUserLike }>;
+  /** Both SDKs export this as a class with this static method (same shape), not a bare function. */
+  readonly GoogleAuthProvider: { credential(idToken: string | null, accessToken?: string | null): unknown };
 }
 
 /**

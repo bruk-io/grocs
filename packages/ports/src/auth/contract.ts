@@ -1,6 +1,6 @@
 import { eventually, rejection, sleep } from '../testing.ts';
 import type { TestApi } from '../testing.ts';
-import type { AuthPort, TestSignIn, User } from './port.ts';
+import type { AuthPort, GoogleSignIn, TestSignIn, User } from './port.ts';
 
 export interface AuthSubject {
   readonly auth: AuthPort;
@@ -90,6 +90,64 @@ export function testSignInContract(t: TestApi, make: () => Promise<TestSignInSub
         t.expect(error === null).toBe(false);
         await sleep(100);
         t.expect(auth.currentUser()).toBeNull();
+      } finally {
+        await dispose?.();
+      }
+    });
+  });
+}
+
+export interface GoogleSignInSubject {
+  readonly googleSignIn: GoogleSignIn;
+  /** The provider that observes the session the Google sign-in creates. */
+  readonly auth: AuthPort;
+  /**
+   * A second, independent `GoogleSignIn`/`AuthPort` pair set up so the pick fails (a cancelled or
+   * rejected picker), to check the session it watches stays signed out. The real uid a provider
+   * assigns on success is not known ahead of the call (it comes from the signed-in identity), so
+   * this contract never asserts one - only that a successful call's user and the session agree,
+   * and that signing in twice is stable.
+   */
+  readonly failing: { readonly googleSignIn: GoogleSignIn; readonly auth: AuthPort };
+  dispose?(): Promise<void>;
+}
+
+/**
+ * Every GoogleSignIn implementation passes this suite (R1). It covers the credential-exchange half
+ * only - what can be driven without a device. The native Google picker itself cannot be driven from
+ * a test (same emulator boundary `FirebaseTestSignIn`'s own comment already names), so a full,
+ * on-device verification of the picker is TASK-1.15's job, not this suite's.
+ */
+export function googleSignInContract(t: TestApi, make: () => Promise<GoogleSignInSubject>): void {
+  t.describe('GoogleSignIn contract', () => {
+    t.it('signs in and the session shows the same user', async () => {
+      const { googleSignIn, auth, dispose } = await make();
+      try {
+        const user = await googleSignIn.signInWithGoogle();
+        await eventually(() => t.expect(auth.currentUser()?.uid).toBe(user.uid));
+      } finally {
+        await dispose?.();
+      }
+    });
+
+    t.it('signing in again with the same account is stable', async () => {
+      const { googleSignIn, dispose } = await make();
+      try {
+        const first = await googleSignIn.signInWithGoogle();
+        const second = await googleSignIn.signInWithGoogle();
+        t.expect(second.uid).toBe(first.uid);
+      } finally {
+        await dispose?.();
+      }
+    });
+
+    t.it('a failed or cancelled pick leaves the session signed out', async () => {
+      const { failing, dispose } = await make();
+      try {
+        const error = await rejection(failing.googleSignIn.signInWithGoogle());
+        t.expect(error === null).toBe(false);
+        await sleep(100);
+        t.expect(failing.auth.currentUser()).toBeNull();
       } finally {
         await dispose?.();
       }

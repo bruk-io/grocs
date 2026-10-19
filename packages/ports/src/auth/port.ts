@@ -24,3 +24,12 @@ export interface AuthPort {
 export interface TestSignIn {
   signInWithTestAccount(email: string, password: string): Promise<User>;
 }
+
+/**
+ * Sign in with a Google account. A separate interface from AuthPort for the same reason as
+ * TestSignIn: it needs its own native dependency (the Google sign-in picker), not every provider
+ * or build needs it. The device picker itself is out of this task's scope (TASK-1.15).
+ */
+export interface GoogleSignIn {
+  signInWithGoogle(): Promise<User>;
+}

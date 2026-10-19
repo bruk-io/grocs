@@ -1,19 +1,26 @@
 import type { Unsubscribe } from '../unsubscribe.ts';
-import type { AuthPort, TestSignIn, User } from './port.ts';
+import type { AuthPort, GoogleSignIn, TestSignIn, User } from './port.ts';
 
 interface Account extends User {
   readonly password: string;
 }
 
 /** In-memory accounts. Sign-in is checked against the accounts it was given. */
-export class FakeAuth implements AuthPort, TestSignIn {
+export class FakeAuth implements AuthPort, TestSignIn, GoogleSignIn {
   #current: User | null = null;
   readonly #listeners = new Set<(user: User | null) => void>();
   readonly #awaitingFirst = new Set<(user: User | null) => void>();
   readonly #accounts: readonly Account[];
+  readonly #googleAccount: User | null;
 
-  constructor(accounts: readonly Account[] = []) {
+  /**
+   * `googleAccount` stands in for a successful Google picker: when set, `signInWithGoogle` signs
+   * that account in. When null (the default), it stands in for a cancelled or failed pick -
+   * `signInWithGoogle` rejects and the session stays signed out, same as a real cancelled picker.
+   */
+  constructor(accounts: readonly Account[] = [], googleAccount: User | null = null) {
     this.#accounts = accounts;
+    this.#googleAccount = googleAccount;
   }
 
   currentUser(): User | null {
@@ -39,6 +46,12 @@ export class FakeAuth implements AuthPort, TestSignIn {
     const user: User = { uid: account.uid, email: account.email, displayName: account.displayName };
     this.#set(user);
     return user;
+  }
+
+  async signInWithGoogle(): Promise<User> {
+    if (!this.#googleAccount) throw new Error('auth/google-sign-in-cancelled');
+    this.#set(this.#googleAccount);
+    return this.#googleAccount;
   }
 
   async signOut(): Promise<void> {
