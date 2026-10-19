@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 04:32'
-updated_date: '2026-10-19 10:58'
+updated_date: '2026-10-19 11:33'
 labels:
   - size-2
   - testing
@@ -34,4 +34,6 @@ Filed from the review of TASK-1.37.6. The baselines in packages/ui/visual-baseli
 2026-10-19: criterion 1 is met. CI run 39200078012's bundles job compared all 39 story images against the committed baselines and passed (visual: 39 story views checked, 39 images compared). Criterion 2 (document where baselines are generated) remains.
 
 Criterion 1 met before acceptance: every CI run since 39200540301 has run the browser pass against the committed baselines and passed (latest 39231108029 on 2f40096). Accepted Oct 19, 2026 (Bruk: wrap up the UI portions).
+
+Built by the orchestrator (Oct 19, 2026), commit 75237b0. Chosen environment: a manual workflow, .github/workflows/visual-baselines.yml, on the runner image and Chromium the browser pass uses. It runs visual:update and uploads the baselines as an artifact; it never commits, so a change is still reviewed as images (decision-11). The regenerate commands are at the top of the workflow; CLAUDE.md's Workspace section and visual:update's refusal on macOS point to it. Proof: run 39244676209 on be13e0e wrote 305 files (304 images and the manifest) byte-identical to the committed packages/ui/visual-baselines (diff -rq clean). The first run (39241970034) failed axe at random on mascot bubbles mid-fade; filed and fixed as TASK-1.41.
 <!-- SECTION:NOTES:END -->
