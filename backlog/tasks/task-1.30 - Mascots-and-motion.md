@@ -1,10 +1,11 @@
 ---
 id: TASK-1.30
 title: Mascots and motion
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 03:53'
+updated_date: '2026-10-19 04:33'
 labels:
   - size-5
   - design-system

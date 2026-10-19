@@ -1,10 +1,11 @@
 ---
 id: TASK-1.37.1
 title: Atoms from the design reference
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 04:28'
+updated_date: '2026-10-19 04:33'
 labels:
   - size-5
   - layer-ui
