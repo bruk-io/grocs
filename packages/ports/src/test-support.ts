@@ -16,8 +16,8 @@ export { loggerContract } from './logging/contract.ts';
 export type { LoggerSubject } from './logging/contract.ts';
 
 export { FakeAuth } from './auth/fake.ts';
-export { authContract, testSignInContract } from './auth/contract.ts';
-export type { AuthSubject, TestSignInSubject } from './auth/contract.ts';
+export { authContract, googleSignInContract, testSignInContract } from './auth/contract.ts';
+export type { AuthSubject, GoogleSignInSubject, TestSignInSubject } from './auth/contract.ts';
 
 export { InMemorySyncStore } from './sync-store/fake.ts';
 export { syncStoreContract } from './sync-store/contract.ts';

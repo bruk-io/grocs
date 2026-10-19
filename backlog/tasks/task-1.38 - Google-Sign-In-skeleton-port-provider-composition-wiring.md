@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:21'
-updated_date: '2026-10-19 03:25'
+updated_date: '2026-10-19 03:37'
 labels:
   - size-3
   - architecture
@@ -77,3 +77,53 @@ Out of scope, deliberately: the actual 'Sign in with Google' button and its bran
 - pnpm test:emulator for the new google-auth.emulator.test.ts specifically - real evidence of what the emulator actually does with a synthetic credential, not an assumption
 - import-layers passes with no new raw SDK references outside packages/providers-firebase (the composition-root stub in native.ts imports nothing new)
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented per the recorded plan, with three deviations from its literal wording (details below). Commit 7e5f042 on branch task-1.38-google-signin-skeleton (worktree merged origin/main first, fast-forward, no conflicts).
+
+## Acceptance criteria, with evidence
+
+**#1 - GoogleSignIn in port.ts has no Firebase/Google SDK types in its signature.**
+`packages/ports/src/auth/port.ts`: `interface GoogleSignIn { signInWithGoogle(): Promise<User> }`. `User` is the port's own type. No SDK import.
+
+**#2 - FakeGoogleSignIn passes the same contract suite real providers will, usable from scenario tests.**
+The plan's own Order of Work (step 2) says extend `FakeAuth`, not add a separate `FakeGoogleSignIn` class - the AC text and the plan disagree here; I followed the plan. `FakeAuth` now also implements `GoogleSignIn` (constructor takes an optional `googleAccount: User | null`). It passes `googleSignInContract` - see `packages/ports/src/auth/fake.test.ts`. Exported from `@grocs/ports/testing` as before (`FakeAuth`), plus the new `googleSignInContract` and `GoogleSignInSubject` type.
+
+**#3 - Contract suite covers the credential-exchange half against the emulator; its own comment names the native-picker gap and points at TASK-1.15.**
+`googleSignInContract` in `packages/ports/src/auth/contract.ts` (3 cases: successful sign-in and session agreement, stability across two sign-ins with the same identity, and a failed/cancelled pick leaving the session signed out). Run against the real Auth emulator in `packages/providers-firebase/src/google-auth.emulator.test.ts`, whose own comment names the native-picker boundary and TASK-1.15, same as `FirebaseTestSignIn`'s comment does for TestSignIn.
+Real evidence, not assumed: I verified empirically against the running emulator (`pnpm emulators`, Java 21 present) what credential format it accepts, with a disposable probe script (not committed). Confirmed:
+- `GoogleAuthProvider.credential(idToken)` + `signInWithCredential` accepts a **JSON string** payload (`{sub, email, email_verified}`), not a signed JWT - the Auth emulator's documented fake-IdP behavior.
+- The uid it assigns is deterministic per `sub` (verified by signing in twice with the same synthetic token and comparing uids).
+- A plain garbage string is rejected with `auth/invalid-credential` - used as the failing-path fixture in the test.
+`pnpm test:emulator` (targeted): `vitest run --project emulator packages/providers-firebase/src/google-auth.emulator.test.ts` -> 1 file, 3 tests, all passed, against the real emulator (not the fake).
+`pnpm test:emulator` (full suite): 5 files, 27 tests, all passed - no regression to the existing FirebaseAuth/FirestoreSyncStore emulator suites.
+
+**#4 - GoogleAuth in providers-firebase implements GoogleSignIn using @react-native-google-signin/google-signin and GoogleAuthProvider.credential()/signInWithCredential(), with no decision logic (providers-hold-no-rules.md).**
+Partially satisfiable as worded, and I'm not checking this box myself: `GoogleAuth` (`packages/providers-firebase/src/google-auth.ts`) implements `GoogleSignIn` and calls `fns.GoogleAuthProvider.credential()` / `fns.signInWithCredential()` with no decision logic beyond translation - that half is done and proven against the real emulator. It does **not** use `@react-native-google-signin/google-signin`: per the brief and the plan's own step 7 rationale, that library's native ID token comes in through an injected `getGoogleIdToken: () => Promise<string>` instead, so the class stays unit-testable and the real native dependency stays a composition-root concern for TASK-1.15 (the device spike). The AC's first clause is TASK-1.15's to close, not this task's.
+
+**#5 - native.ts wires signInWithGoogle onto NativeApp, not through the command dispatcher.**
+`apps/mobile/src/composition/native.ts`: `NativeApp.signInWithGoogle` constructed via `new GoogleAuth(authFns, authInstance, getGoogleIdToken)`, called directly (`() => googleAuth.signInWithGoogle()`), same shape as `dev`/`diagnostics`. `getGoogleIdToken` is a clearly-commented stub that throws `"not implemented - see TASK-1.15"`. No command-dispatcher involvement (confirmed FirebaseTestSignIn/dev sign-in has none either, matching the plan's stated reasoning).
+
+**#6 - import-layers and the full check suite pass, no new raw SDK references outside providers-firebase.**
+`pnpm check` -> "checks passed (9 checks, all mode)", includes `import-layers` and `firebase-isolation`. `native.ts`'s new code imports only `@grocs/providers-firebase` and `@grocs/ports` types, nothing new from a Firebase/Google package.
+
+## Full proof run (final state, after all files)
+- `pnpm check` -> 9 checks pass.
+- `pnpm typecheck` -> clean.
+- `pnpm test` -> 35 files, 276 tests passed (273 existing + 3 new fake-driven GoogleSignIn contract tests).
+- `pnpm test:emulator` -> 5 files, 27 tests passed, including the 3 new emulator-backed GoogleSignIn contract tests.
+- Pre-commit hook (lefthook: checks, typecheck, unit-tests) passed on the real commit, no `--no-verify`.
+
+## Deviations from the plan's literal text (reasons, not re-derivations of its decisions)
+
+1. **`AuthFns` gets `GoogleAuthProvider: { credential(idToken, accessToken?): unknown }` plus `signInWithCredential`, not a flat `googleCredential(idToken)` as step 4 names it.** Checked both SDKs' real type declarations: `@firebase/auth/dist/auth-public.d.ts:1500` and `@react-native-firebase/auth/dist/typescript/lib/index.d.ts:31` both export `GoogleAuthProvider` as a class with a static `credential()` method, in neither case a bare `googleCredential` function. `signInWithCredential` *is* a bare function in both (line 3256 / line 176) - that half of the plan was exactly right. Had I declared the flat `googleCredential` name, `asSdk<AuthFns>(nativeAuth)` would type-check but be false at runtime (the member wouldn't exist), with only the native.ts stub's throw hiding it - a landmine for TASK-1.15. Proof it works unmodified: the emulator test casts `client.authFns` (the real web SDK) straight through `asSdk<AuthFns>` with no adapter, and it passes.
+2. **`GoogleSignInSubject` is not "the same shape as `testSignInContract`."** `testSignInContract`'s subject can assert a fixed expected `uid` because the seed account's uid is known ahead of time. A Google identity's uid is assigned by the provider from the credential, not knowable before the call. The contract instead asserts: a successful call's returned user and `auth.currentUser()` agree on the same uid, signing in twice with the same identity is stable, and a `failing` subject pair (not a shared one, since there's no password-like parameter to vary) rejects and leaves its session signed out.
+3. **`FakeGoogleSignIn` (named in AC#2) does not exist as a separate class** - the plan's step 2 says extend `FakeAuth`, and that's what satisfies AC#2 here; noted above.
+
+## Scope discipline
+Did not install `@react-native-google-signin/google-signin`, did not touch `app.config.ts`, did not touch `packages/ui` or any mobile screen/button. `git diff --stat` against origin/main matches the plan's `modified_files` list exactly, plus the two new files it already named (`google-auth.ts`, `google-auth.emulator.test.ts`).
+
+Status left as-is (In Progress) per instructions; not changing it myself.
+<!-- SECTION:NOTES:END -->

@@ -5,9 +5,9 @@ import * as nativeFirestore from '@react-native-firebase/firestore';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { BufferLogger, ConsoleLogger } from '@grocs/providers-device';
-import { asSdk } from '@grocs/providers-firebase';
+import { GoogleAuth, asSdk } from '@grocs/providers-firebase';
 import type { AuthFns, FirestoreFns } from '@grocs/providers-firebase';
-import type { Logger } from '@grocs/ports';
+import type { GoogleSignIn, Logger } from '@grocs/ports';
 import type { App } from './compose-app.ts';
 import { composeFirebaseApp } from './compose-firebase.ts';
 import { loadDevTools } from './load-dev.ts';
@@ -24,6 +24,18 @@ export interface NativeApp {
   readonly dev: DevAccess | null;
   /** Release builds keep a bounded buffer of log records for the diagnostics action (R35). */
   readonly diagnostics: (() => string) | null;
+  /** Google sign-in produces no domain event, so it is wired here directly, not through the command dispatcher. */
+  readonly signInWithGoogle: GoogleSignIn['signInWithGoogle'];
+}
+
+/**
+ * The native Google picker (@react-native-google-signin/google-signin) is not wired yet - that
+ * library, its Expo config plugin, and any native build issues are TASK-1.15's job to find. This
+ * stub keeps the port and provider plumbing real and testable now, without getting ahead of that
+ * device spike.
+ */
+async function getGoogleIdToken(): Promise<string> {
+  throw new Error('not implemented - see TASK-1.15');
 }
 
 export function createNativeApp(): NativeApp {
@@ -50,11 +62,14 @@ export function createNativeApp(): NativeApp {
     },
   });
 
+  const googleAuth = new GoogleAuth(authFns, authInstance, getGoogleIdToken);
+
   return {
     app,
     dev: dev
       ? { kitchenId: dev.kitchenId, accounts: dev.accounts, signIn: dev.signInFunction(authFns, authInstance) }
       : null,
     diagnostics: buffer ? () => buffer.dump() : null,
+    signInWithGoogle: () => googleAuth.signInWithGoogle(),
   };
 }
