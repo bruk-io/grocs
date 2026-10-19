@@ -1,11 +1,11 @@
 ---
 id: TASK-1.37.10
 title: Record the kitchen scene's pan in the browser pass
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 08:30'
-updated_date: '2026-10-19 12:18'
+updated_date: '2026-10-19 13:24'
 labels:
   - size-2
   - testing
@@ -27,7 +27,7 @@ Filed from the review of TASK-1.37.3. The KitchenScene Panning story's baseline 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The browser pass asserts, for the Panning story with reduce motion off, that the scene's transform changes over time, and for Reduced that it doesn't
+- [x] #1 The browser pass asserts, for the Panning story with reduce motion off, that the scene's transform changes over time, and for Reduced that it doesn't
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -60,4 +60,72 @@ How: `newStoryPage` and `openStory` take an optional `motion` (`reduced` default
 Mutation checks (reverted): `pan: null` in sceneMotion fails Panning (furthest 2 px); ignoring `reduced` in sceneMotion fails Reduced (1 element still changing, 1 sideways animation).
 
 Evidence: pnpm check passed (13 checks); pnpm typecheck clean; pnpm test 1161 passed, 1 failed on a 5 s timeout in tools/hooks/hooks.test.ts ("allows the orchestrator writing the board...") while the machine was busy with a parallel visual run, and tools/hooks plus tools/storybook-browser pass (49 tests) when rerun alone; pnpm test:emulator skipped as instructed. Note: the worktree had no node_modules, I ran pnpm install --frozen-lockfile --offline.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(521 earlier lines omitted)
+```text
+|  storybook-static/assets/Button-CjTVULS1.js
+|  5.51 kB │ gzip:   1.95 kB
+|  storybook-static/assets/GroceryListTemplate.stories-D2UedSwb.js
+|  5.76 kB │ gzip:   1.98 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-c4jHNhqG.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-BvNtUEyw.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-CKVLZ4Pu.js
+|  17.02 kB │ gzip:   4.60 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-DOWvLKto.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-DxQrdXcZ.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-D8yVd90N.js
+|  1,359.27 kB │ gzip: 391.71 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 5.49s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 3.4s of this 5.4s
+|  build (64%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin vite:css transform (42%, 2.3s, 2 calls)
+|  - plugin storybook:react-docgen-plugin transform (23%, 1.3s, 822
+|  calls)
+|  These rows add up to more than the total. Callbacks can overlap, so
+|  the same time counts for more than one row.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a1d0d315220d7d446/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-a1d0d315220d7d446/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 304 story views checked (axe, 44 x 44, 304 images compared)
+```
+
+Review (philosophy:reviewer, Oct 19, 2026): closed. Full-tier record-check exit 0 (1162 unit tests, 27 emulator tests, browser pass 304 views with the motion check running for organisms-kitchen-scene--panning and --reduced, no failures). Fixes the cause: the pass forced reduce motion everywhere, so the pan was never seen; now Panning and Reduced are each opened again on a separate, never-screenshotted page with reducedMotion no-preference and no __GROCS_REDUCE_MOTION__ global, so Reduced proves the MotionProvider prop path rather than the browser setting. Pans cannot pass by accident: it needs a running animation whose element travels >= 50 px sideways across seeked cycle points; the builder's mutation (pan: null) failed it at 2 px. Reduce motion for other stories: not loosened. motion defaults to 'reduced' in newStoryPage and openStory, the only 'allowed' callers are motionFailures in tools/visual.ts for the two ids in MOTION_EXPECTATIONS, and tools/shots.ts and the screenshot loop use the default; baselines unchanged. A renamed story fails an unfiltered run. Finding (low, filed as DRAFT-1 in this worktree, size-1): the still check passes vacuously if Reduced renders an empty scene without a page error; the orchestrator should file it on main.
 <!-- SECTION:NOTES:END -->
