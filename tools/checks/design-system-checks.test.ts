@@ -12,7 +12,7 @@ import { check as storyCoverage, missingInteractiveStates } from './story-covera
 import { check as svgArt } from './svg-art.ts';
 import { check as uiLibrary } from './ui-library.ts';
 
-const tokens = JSON.stringify({ color: { mascot: { ink: '#17241B', blush: '#FF9E9E' }, scene: { h112233: '#112233' } } });
+const tokens = JSON.stringify({ color: { mascot: { ink: '#17241B', blush: '#FF9E9E' }, scene: { wall: '#112233' } } });
 const TOKENS = 'packages/ui/src/tokens/tokens.json';
 
 const icon = (d: string, root = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"') =>
@@ -24,7 +24,7 @@ const mascot = (extra = '', skip = ''): string =>
   `<path id="mouth" d="M1 1q2 2 4 0z" fill="#17241B"/>${extra}${skip === 'body' ? '' : '</g>'}</svg>`;
 
 const sources = { 'design/svg/icons/cart.svg': icon('M3 4h2'), 'design/svg/mascots/cremi.svg': mascot() };
-const colours = { mascot: { ink: '#17241B', blush: '#FF9E9E' }, scene: { h112233: '#112233' } };
+const colours = { mascot: { ink: '#17241B', blush: '#FF9E9E' }, scene: { wall: '#112233' } };
 
 /** The files the check expects to find, written by the generator. */
 function inSync(src: Record<string, string>): Record<string, string> {
@@ -97,6 +97,14 @@ describe('generated art (R62)', () => {
     const f = svgArt.run(fixture(inSync({ 'design/svg/mascots/cremi.svg': mascot().replace('#17241B', '#123456') })));
     expect(rulesOf(f)).toContain('svg-art/unknown-colour');
     expect(message(svgArt, f.find((x) => x.rule === 'svg-art/unknown-colour')!)).toContain('Why:');
+  });
+
+  it('fails a colour token named for its hex', () => {
+    const named = JSON.stringify({ color: { mascot: { ink: '#17241B', blush: '#FF9E9E' }, scene: { h112233: '#112233', wall: '#445566' } } });
+    const f = svgArt.run(fixture({ ...inSync({}), [TOKENS]: named }));
+    expect(rulesOf(f)).toEqual(['svg-art/token-name']);
+    expect(f[0]?.detail).toContain('color.scene.h112233');
+    expect(message(svgArt, f[0]!)).toContain('Why:');
   });
 });
 
