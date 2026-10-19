@@ -2,7 +2,7 @@
 id: decision-11
 title: 'UI testing: four levels, all driven by the stories'
 date: '2026-10-19 03:19'
-status: proposed
+status: accepted
 ---
 ## Context
 
