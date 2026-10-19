@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui-small'
 created_date: '2026-10-19 09:01'
-updated_date: '2026-10-19 12:15'
+updated_date: '2026-10-19 12:27'
 labels:
   - size-1
   - layer-ui
@@ -46,4 +46,6 @@ Split at acceptance (Oct 19, 2026): the draft crossed two layers. This task is t
 Steps 1-4 done by @builder-ui-small: AuthSheet and SignInTemplate take an optional footer slot below the invite row; SIGNINTEMPLATE_STATES is ['rest', 'withFooter']; WithFooter story added; behaviour test added. Step 5 NOT run: this worktree has no node_modules (pnpm visual:update fails with 'storybook not found'; the main checkout has one). Installing deps or borrowing another checkout's install is outside this layer's allowed commands, so steps 5 and 6 are blocked until the worktree has dependencies installed. Task stays In Progress.
 
 Update (Oct 19, 2026, @builder-ui-small): steps 5 and 6 done after the coordinator installed dependencies in this worktree. Step 5: pnpm --filter @grocs/ui visual:update wrote 3 new WithFooter baselines (templates-sign-in--with-footer.png, --fold-inner.png, --fold-outer.png) and the manifest gained only their entries; the existing templates-sign-in--rest.png hash is unchanged, and no other existing baseline changed. Looked at the images: the test sign-in sits below the invite row inside the sheet. Step 6: pnpm -s typecheck passed; pnpm check passed (13 checks); pnpm test had one failure, tools/hooks/hooks.test.ts 'allows the orchestrator writing the board...' timing out at 5s under load; the same file passes 21/21 when run alone, and all ui tests passed. The earlier 'Step 5 NOT run' note above is superseded.
+
+Commit: 9fc583c on worktree-agent-a93709665c6fb91bf (UI footer slot, WithFooter baselines, behaviour test). Pre-commit hook passed on the retry; its unit-tests step was not clean on the first attempt because of the same hooks.test.ts 5s timeout under load (passes alone). Acceptance criteria are left unchecked for the reviewer.
 <!-- SECTION:NOTES:END -->
