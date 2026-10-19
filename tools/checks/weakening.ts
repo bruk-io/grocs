@@ -119,7 +119,8 @@ const normalizeDigits = (l: string): string => l.replace(/\d+/g, '#');
  */
 export function isVersionBumpPair(removedLine: string, addedLine: string): boolean {
   if (removedLine === addedLine) return false;
-  if (!/@|version/i.test(removedLine)) return false;
+  const isVersionPinShape = /^\s*-?\s*uses:\s|[\w-]+-version:\s*['"]?v?\d/i.test(removedLine);
+  if (!isVersionPinShape) return false;
   if (LOOSENING_WORDS.test(removedLine) || LOOSENING_WORDS.test(addedLine)) return false;
   return normalizeDigits(removedLine) === normalizeDigits(addedLine);
 }

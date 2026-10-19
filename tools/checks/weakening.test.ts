@@ -195,6 +195,10 @@ describe('weakening review (R57)', () => {
     expect(isVersionBumpPair('      threshold: 80', '      threshold: 50')).toBe(false);
   });
 
+  it('does not match shard or other numeric options in scoped package names (TASK-8 regression)', () => {
+    expect(isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1')).toBe(false);
+  });
+
   describe('a recorded human override (AC3)', () => {
     const override = {
       file: '.github/workflows/ci.yml',
