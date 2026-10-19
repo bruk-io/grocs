@@ -28,13 +28,13 @@ function requireString(data: unknown, field: string): string {
 
 export const createKitchen = onCall(async (request) => {
   const ownerUid = requireUid(request);
+  // requireString already rejects a blank name, so createKitchen's own empty-name check never
+  // fires here - nothing left to catch and translate. An unexpected failure (Firestore, say)
+  // reaches the caller as onCall's own safe default: a generic "internal" error, logged server
+  // side with the real message, same as joinKitchen already relies on below.
   const name = requireString(request.data, 'name');
   const timeZone = requireString(request.data, 'timeZone');
-  try {
-    return await store().createKitchen(name, timeZone, ownerUid);
-  } catch (error) {
-    throw new HttpsError('invalid-argument', error instanceof Error ? error.message : 'could not create the kitchen');
-  }
+  return store().createKitchen(name, timeZone, ownerUid);
 });
 
 export const joinKitchen = onCall(async (request) => {
