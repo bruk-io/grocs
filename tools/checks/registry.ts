@@ -13,6 +13,7 @@ import { check as storyCoverage } from './story-coverage.ts';
 import { check as svgArt } from './svg-art.ts';
 import { check as testPresence } from './test-presence.ts';
 import { check as uiLibrary } from './ui-library.ts';
+import { check as visualBaselines } from './visual-baselines.ts';
 
 export const checks: readonly Check[] = [
   importLayers,
@@ -27,4 +28,5 @@ export const checks: readonly Check[] = [
   svgArt,
   referenceBuilt,
   uiLibrary,
+  visualBaselines,
 ];

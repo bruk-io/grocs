@@ -6,5 +6,5 @@
   "typecheckCommand": "pnpm -s typecheck",
   "rulesFiles": [],
   "exampleFiles": ["packages/ui/src/atoms/Button.tsx", "packages/ui/src/molecules/ItemRow.tsx", "packages/ui/src/tokens/tokens.ts"],
-  "extraCommands": ["pnpm --filter @grocs/ui build-storybook", "pnpm --filter @grocs/ui shots"]
+  "extraCommands": ["pnpm --filter @grocs/ui build-storybook", "pnpm --filter @grocs/ui shots", "pnpm --filter @grocs/ui visual", "pnpm --filter @grocs/ui visual:update"]
 }

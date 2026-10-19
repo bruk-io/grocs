@@ -33,6 +33,14 @@ export async function readPayload(): Promise<HookPayload> {
   return parsePayload(Buffer.concat(chunks).toString('utf8'));
 }
 
+/**
+ * Whether a change can alter how a story looks or behaves in a browser, so the stop hook should run the
+ * browser pass (decision-11, level 3): UI code, the pass itself, the Storybook setup, the tokens and art it
+ * is built from, and the dependencies.
+ */
+export const needsBrowserPass = (files: readonly string[]): boolean =>
+  files.some((f) => /^(packages\/ui\/|tools\/(visual|storybook-browser|build-tokens|build-svg)|design\/svg\/|pnpm-lock\.yaml$)/.test(f));
+
 /** Root-relative path with forward slashes, or null when the file is outside the repository. */
 export function repoRelative(file: string): string | null {
   const abs = isAbsolute(file) ? file : resolve(repoRoot, file);

@@ -4,10 +4,11 @@
 // config, the lock file and .claude/.
 //   focus / skip / delete a test      -> denied, with the reason
 //   loosening a check's configuration -> the person is asked, with the reason
+//   editing or deleting a visual baseline, by tool or shell -> denied; only visual:update changes them
 //   a layer agent writing or running Bash outside its layer -> denied, with the reason
 //   the orchestrator writing layer code -> denied, with the reason
 import { formatFinding } from '../checks/lib.ts';
-import { check as weakening, isProtected, reviewChange } from '../checks/weakening.ts';
+import { check as weakening, isProtected, reviewBaselineBash, reviewBaselineEdit, reviewChange } from '../checks/weakening.ts';
 import { isTestFile } from '../checks/lib.ts';
 import { loadConfigs } from '../agents/generate.ts';
 import { LAYERS } from '../agents/layers.ts';
@@ -31,6 +32,8 @@ export function reviewBash(command: string): Decision {
     const finding = { rule: 'weakening/delete-test', file: 'bash', detail: `the command removes or moves a test file: ${command.slice(0, 120)}` };
     return { decision: 'deny', reason: formatFinding(weakening, finding) };
   }
+  const baseline = reviewBaselineBash(command);
+  if (baseline.length > 0) return { decision: 'deny', reason: baseline.map((f) => formatFinding(weakening, f)).join('\n\n') };
   const rewrites = /\b(sed\s+-i|tee|truncate)\b|>\s*\S/.test(command);
   if (rewrites) {
     const protectedPath = command.split(/\s+/).map((t) => t.replace(/^['"]|['"]$/g, '')).find((t) => repoRelative(t) !== null && isProtected(repoRelative(t)!));
@@ -66,6 +69,9 @@ export function decide(payload: HookPayload): Decision {
     const found = reviewOrchestratorEdit(edit.file);
     if (found.length > 0) return { decision: 'deny', reason: found.map((f) => formatFinding(writeGuard, f)).join('\n\n') };
   }
+
+  const baseline = reviewBaselineEdit(edit.file);
+  if (baseline.length > 0) return { decision: 'deny', reason: baseline.map((f) => formatFinding(weakening, f)).join('\n\n') };
 
   if (!isTestFile(edit.file) && !isProtected(edit.file)) return ALLOW;
   const found = reviewChange(edit.file, edit.before, edit.after);
