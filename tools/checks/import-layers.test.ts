@@ -36,6 +36,13 @@ describe('import layers (R26, R27, R60)', () => {
     expect(rulesOf(findings)).toEqual(['import-layers/providers-isolated']);
   });
 
+  it('treats providers-memory as a provider: ports and core only, never another provider or the test fakes (decision-12)', () => {
+    const ports = { 'packages/ports/src/index.ts': 'export {};', 'packages/core/src/index.ts': 'export {};' };
+    expect(run({ ...ports, 'packages/providers-memory/src/index.ts': "import '@grocs/ports'; import '@grocs/core';" })).toEqual([]);
+    expect(rulesOf(run({ 'packages/providers-memory/src/index.ts': "import '@grocs/providers-firebase';", 'packages/providers-firebase/src/index.ts': 'export {};' }))).toEqual(['import-layers/providers-isolated']);
+    expect(rulesOf(run({ ...ports, 'packages/providers-memory/src/auth.ts': "import { FakeAuth } from '@grocs/ports/testing'; export { FakeAuth };" }))).toEqual(['import-layers/testing-entry-test-only']);
+  });
+
   it('rejects ui importing anything from the project', () => {
     const findings = run({
       'packages/ui/src/atoms/A.tsx': "import { dispatch } from '@grocs/application'; export { dispatch };",

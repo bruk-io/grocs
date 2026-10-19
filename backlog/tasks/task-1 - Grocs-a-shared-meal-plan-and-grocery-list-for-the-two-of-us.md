@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 16:53'
-updated_date: '2026-10-18 19:18'
+updated_date: '2026-10-19 15:53'
 labels:
   - size-8
   - product
@@ -81,4 +81,6 @@ Finish moved on 2026-10-18, before any children started: Bruk chose Storybook fo
 Spec approved by @bruk
 
 Finish moved on 2026-10-18: Bruk retired the canvas in favour of Storybook. Spec R59 and R66, its layout and its canvas section changed; the affected systems now name Storybook. TASK-1.19 was rescoped and TASK-1.6 and TASK-1.7 lost their canvas criterion. Bruk also accepted every slice and follow-up draft (now TASK-1.18 to TASK-1.35) and answered that push notifications may name the item.
+
+Spec changed after approval (Oct 19, 2026): doc-1's repository layout gains packages/providers-memory, the in-memory provider for the demo build (decision-12, TASK-10.7). No requirement changed.
 <!-- SECTION:NOTES:END -->

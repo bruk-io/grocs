@@ -23,6 +23,7 @@ You may write only within:
 - `packages/providers-firebase/**`
 - `packages/providers-device/**`
 - `packages/providers-server/**`
+- `packages/providers-memory/**`
 
 Your Bash is narrowed to this layer's own checks, enforced by the write guard
 (`tools/hooks/pre-edit.ts`) rather than by this tool list:

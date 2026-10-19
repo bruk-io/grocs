@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-18 19:17'
+updated_date: '2026-10-19 15:53'
 ---
 Intent: TASK-1
 
@@ -143,6 +143,7 @@ grocs/
 │   ├── providers-firebase/     Firestore sync store, Auth, push registration
 │   ├── providers-device/       key-value storage, clock, ids, console logger, on-phone log buffer (R35)
 │   ├── providers-server/       Admin SDK providers used by apps/functions
+│   ├── providers-memory/       in-memory sign-in and sync for the demo build, never in a real release (decision-12)
 │   └── ui/                     shared component library, presentational only (R26, R38)
 │       ├── .storybook/         browser Storybook config: screen sizes, iOS/Android switch (R64)
 │       └── src/

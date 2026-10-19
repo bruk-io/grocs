@@ -17,6 +17,8 @@ export const PACKAGE_LAYER: Readonly<Record<string, Layer>> = {
   'providers-firebase': 'providers',
   'providers-device': 'providers',
   'providers-server': 'providers',
+  // In-memory sign-in and sync for the demo build (decision-12); a provider, never a test fake.
+  'providers-memory': 'providers',
   ui: 'ui',
 };
 

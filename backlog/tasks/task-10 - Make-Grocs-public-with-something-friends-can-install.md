@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@bruk'
 created_date: '2026-10-19 14:27'
-updated_date: '2026-10-19 14:28'
+updated_date: '2026-10-19 15:52'
 labels:
   - size-8
 dependencies: []
@@ -43,4 +43,6 @@ In Bruk's words (Oct 19, 2026): "I want to make the repo public so I need someth
 
 <!-- SECTION:NOTES:BEGIN -->
 Accepted by @bruk through his answers on Oct 19, 2026 (demo build first, real sign-in after; Storybook in the browser for iPhones; MIT; swap Shazya's name in the app only). Split by the orchestrator into TASK-10.1 to 10.5 and a draft for real sign-in. Order: 10.2 before 10.3 (both touch the sample data), 10.3 before 10.4 (the APK builds the demo variant); 10.1 and 10.5 run alongside.
+
+Oct 19, 2026: decision-12 (Bruk) puts the demo on a real in-memory provider. Added TASK-10.6 (release check sees fakes and demo code), TASK-10.7 (register the package) and TASK-10.8 (the provider). Order: 10.7 then 10.8, alongside 10.6; then 10.3; then 10.4.
 <!-- SECTION:NOTES:END -->
