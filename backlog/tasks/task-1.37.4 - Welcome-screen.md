@@ -4,10 +4,12 @@ title: Welcome screen
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:13'
+updated_date: '2026-10-19 03:19'
 labels:
   - size-3
   - layer-app
   - design-system
+  - finish-moved
 milestone: m-2
 dependencies:
   - TASK-1.37.3
@@ -28,4 +30,11 @@ The signed-out screen in the app, rendering the Welcome template. No sign-in log
 - [ ] #3 Tapping a mushroom plays its reaction and speech bubble, announced to screen readers (R40), and with reduce motion on the kitchen holds still (R41)
 - [ ] #4 Android and iOS bundles build, and pnpm check:release passes
 - [ ] #5 Welcome.dc.html and its shot are deleted (R66)
+- [ ] #6 Each route has a render test with its sample data, and its links lead to the routes the design shows (decision-11 level 4)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Finish moved on 2026-10-18 before work started: added decision-11's route tests, after Bruk asked for the right level of testing in the UI build.
+<!-- SECTION:NOTES:END -->

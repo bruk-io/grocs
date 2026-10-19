@@ -4,10 +4,12 @@ title: The rest of the screens
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:13'
+updated_date: '2026-10-19 03:19'
 labels:
   - size-5
   - layer-app
   - design-system
+  - finish-moved
 milestone: m-2
 dependencies:
   - TASK-1.37.3
@@ -29,4 +31,11 @@ Every other reference screen as a route that renders its template with sample da
 - [ ] #3 The walking skeleton's add-item flow and every existing test still pass
 - [ ] #4 Android and iOS bundles build, and pnpm check:release passes
 - [ ] #5 Each built screen's board and shot are deleted, leaving RecipeImport and the D1 and D2 options (R66)
+- [ ] #6 Each route has a render test with its sample data, and its links lead to the routes the design shows (decision-11 level 4)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Finish moved on 2026-10-18 before work started: added decision-11's route tests, after Bruk asked for the right level of testing in the UI build.
+<!-- SECTION:NOTES:END -->
