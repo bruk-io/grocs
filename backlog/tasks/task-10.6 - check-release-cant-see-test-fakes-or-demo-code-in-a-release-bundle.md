@@ -1,11 +1,11 @@
 ---
 id: TASK-10.6
 title: 'check:release can''t see test fakes or demo code in a release bundle'
-status: In Progress
+status: Done
 assignee:
   - '@builder'
 created_date: '2026-10-19 15:52'
-updated_date: '2026-10-19 16:10'
+updated_date: '2026-10-19 16:42'
 labels:
   - size-2
   - testing
@@ -26,9 +26,9 @@ Found by the TASK-10.3 builder (Oct 19, 2026). tools/release-bundle.ts DEV_ONLY_
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 check:release fails when a test fake, a contract suite, the demo composition or the in-memory provider is in a real release bundle, and each failure names the rule and why
-- [ ] #2 Like the existing dev-code self-check, it proves it can see each pattern, so a pattern that matches nothing fails rather than passing blind
-- [ ] #3 Tests cover each new pattern, and the real release bundles pass today
+- [x] #1 check:release fails when a test fake, a contract suite, the demo composition or the in-memory provider is in a real release bundle, and each failure names the rule and why
+- [x] #2 Like the existing dev-code self-check, it proves it can see each pattern, so a pattern that matches nothing fails rather than passing blind
+- [x] #3 Tests cover each new pattern, and the real release bundles pass today
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -75,4 +75,74 @@ Limit: this proves the patterns match the files' paths on disk; that Metro names
 
 Evidence: pnpm check (13 checks passed), pnpm typecheck, pnpm test (88 files, 1215 tests), pnpm check:release (release bundles clean, 2 bundles, 9 patterns) all pass. release-bundle.test.ts has 30 tests, including it.each over the five real fake paths, the testing entries and contracts (unit test on pattern matching, as asked), node_modules look-alikes passing, and blindSpots cases for today's file list, demo code added with and without a typo in the pattern, partial coverage, and renamed folders.
 Follow-ups for the other tasks: when TASK-10.3 or the providers-memory task add files, check:release now fails if the real build bundles them. The demo variant's own bundle will need a different invocation of this check (or none) since it legitimately holds them; I did not design that.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(508 earlier lines omitted)
+```text
+|  3.25 kB │ gzip:   1.46 kB
+|  storybook-static/assets/SignInTemplate.stories-BJ7sbCBj.js
+|  3.69 kB │ gzip:   1.53 kB
+|  storybook-static/assets/ItemPickerTemplate.stories-84KNSM2C.js
+|  4.34 kB │ gzip:   1.52 kB
+|  storybook-static/assets/Button.stories-oKuUPhPX.js
+|  4.47 kB │ gzip:   1.31 kB
+|  storybook-static/assets/PreferencesTemplate.stories-x1S07O_a.js
+|  4.55 kB │ gzip:   1.74 kB
+|  storybook-static/assets/TextField-BUQ8W6wa.js
+|  4.58 kB │ gzip:   1.76 kB
+|  storybook-static/assets/ItemRow-DlxtsPQG.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-CG-L9128.js
+|  5.75 kB │ gzip:   1.97 kB
+|  storybook-static/assets/Button-HlTd63fv.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-CVO2Zfzk.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-D4zA4yxG.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-_dK9hVdg.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-d75twOs6.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-wrpbBZ8J.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-7rNFOYcX.js
+|  1,359.38 kB │ gzip: 391.72 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.42s
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a85fb2f8bb9c24912/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+
+> @grocs/ui@0.0.0 visual /home/claude/grocs/.claude/worktrees/agent-a85fb2f8bb9c24912/packages/ui
+> node --disable-warning=ExperimentalWarning ../../tools/visual.ts -- --no-build
+
+visual: 311 story views checked (axe, 44 x 44, 311 images compared)
+```
+
+No repro: the bug is a blind spot in the check, not a failing build. No real release bundle holds a fake today, so there is nothing to fail. The new it.each cases over the real fake, testing-entry and contract paths are the demonstration: findDevModules before this change matched none of them.
+
+Review by philosophy:reviewer, Oct 19, 2026: closed. The full check at 8421574 exited 0. No earlier pattern was removed or narrowed; .rnstorybook gained only a home. All three criteria are met, and blindSpots rules 1 and 2 behave as specified. Run over the TASK-10.8 branch's files, blindSpots returns nothing, and every providers-memory file is matched. The broad fake rule is acceptable: it fires only for files in a release bundle, names the file and the fix, and excludes node_modules. Findings, no task: (medium) the DEMO_NAME sweep will fail release-bundle/blind on a demo-variant entry outside apps/mobile/src/demo (for example index.demo.ts), so TASK-10.3 should keep its demo code under that folder or add a pattern. (low) The contract regex is loose (contracts-page.tsx would match), but it fires only in a release bundle.
 <!-- SECTION:NOTES:END -->
