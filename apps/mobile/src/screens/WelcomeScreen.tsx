@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, SignInTemplate, Text, tokens } from '@grocs/ui';
+import { Button, SignInTemplate, Text } from '@grocs/ui';
 import type { DevAccess } from '../composition/native.ts';
 import { useGo } from './navigate.ts';
 
@@ -13,8 +13,12 @@ export function WelcomeScreen({ dev }: { dev: DevAccess | null }) {
   const go = useGo();
   return (
     <View style={styles.screen}>
-      <SignInTemplate title="Grocs" tagline="Plan the week. Shop together." onOpenInvite={go.join} />
-      {dev ? <DevSignIn dev={dev} /> : null}
+      <SignInTemplate
+        title="Grocs"
+        tagline="Plan the week. Shop together."
+        onOpenInvite={go.join}
+        {...(dev ? { footer: <DevSignIn dev={dev} /> } : {})}
+      />
     </View>
   );
 }
@@ -42,5 +46,5 @@ function DevSignIn({ dev }: { dev: DevAccess }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  dev: { position: 'absolute', left: 0, right: 0, bottom: tokens.space[16], alignItems: 'center' },
+  dev: { alignItems: 'center' },
 });
