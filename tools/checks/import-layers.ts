@@ -36,7 +36,8 @@ const ALLOWED_THIRD_PARTY: Readonly<Record<Layer, readonly RegExp[] | null>> = {
   ports: [],
   application: [],
   providers: null,
-  ui: [/^react$/, /^react\/jsx-runtime$/, /^react-native($|\/)/, /^react-native-svg$/],
+  // react-native-reanimated: decision-5 (accepted) animates the Mascot in the ui layer with it.
+  ui: [/^react$/, /^react\/jsx-runtime$/, /^react-native($|\/)/, /^react-native-svg$/, /^react-native-reanimated$/],
   app: null,
 };
 const TEST_TOOLING: readonly RegExp[] = [

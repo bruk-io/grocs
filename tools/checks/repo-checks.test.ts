@@ -180,7 +180,15 @@ describe('vitest config: a stray it.only still fails the real run (D8, decision-
       mkdirSync(join(dir, 'tools'), { recursive: true });
       // the `tools` project's include glob is `tools/**/*.test.ts`
       writeFileSync(join(dir, 'tools', 'focused.test.ts'), focusedFixture);
-      const r = spawnSync('node', [vitestBin, 'run', '--project', 'tools', '--config', join(dir, 'vitest.config.ts'), '--root', dir], { encoding: 'utf8' });
+      // Vitest refuses .only by default whenever it detects CI, from CI or from any CI
+      // provider's variables (GITHUB_ACTIONS and others), which would make the control fail
+      // on CI for a reason other than the config. A minimal environment carries none of
+      // them, so both runs show what the config alone does.
+      const env: NodeJS.ProcessEnv = { NODE_ENV: process.env['NODE_ENV'] ?? 'test' };
+      for (const key of ['PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP']) {
+        if (process.env[key] !== undefined) env[key] = process.env[key];
+      }
+      const r = spawnSync('node', [vitestBin, 'run', '--project', 'tools', '--config', join(dir, 'vitest.config.ts'), '--root', dir], { encoding: 'utf8', env });
       return { status: r.status, output: `${r.stdout}\n${r.stderr}` };
     } finally {
       rmSync(dir, { recursive: true, force: true });

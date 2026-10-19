@@ -16,6 +16,8 @@ export const REQUIRED_PARTS = ['body', 'cap', 'eyeL', 'eyeR', 'mouth'] as const;
 /** Other named parts a mascot may draw; they are <Part>s too, so a pose can move or hide them. */
 export const OPTIONAL_PARTS = [
   'stem', 'blushL', 'blushR', 'brows', 'eyesShut', 'glassesL', 'glassesR', 'sparkle', 'zzA', 'zzB', 'stalkL', 'stalkC', 'stalkR',
+  // The Welcome scene's props, drawn as poses (TASK-1.30, from the TASK-1.19 review).
+  'spoon', 'tomato', 'scrub',
 ] as const;
 const MASCOT_PARTS: ReadonlySet<string> = new Set<string>([...REQUIRED_PARTS, ...OPTIONAL_PARTS]);
 
