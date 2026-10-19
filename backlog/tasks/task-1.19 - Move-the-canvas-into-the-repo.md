@@ -1,14 +1,16 @@
 ---
 id: TASK-1.19
 title: Extract the tokens and art from the retired canvas
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 19:18'
+updated_date: '2026-10-19 03:00'
 labels:
   - size-3
   - design-system
   - finish-moved
+  - layer-ui
 milestone: m-1
 dependencies:
   - TASK-1.14
