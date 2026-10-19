@@ -1,11 +1,11 @@
 ---
 id: TASK-1.19
 title: Extract the tokens and art from the retired canvas
-status: In Progress
+status: To Do
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 03:00'
+updated_date: '2026-10-19 03:14'
 labels:
   - size-3
   - design-system
@@ -37,4 +37,6 @@ Bruk retired the canvas on Oct 18, 2026; Storybook is the design system (R66). T
 
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18, right after acceptance and before work started: Bruk retired the canvas in favour of Storybook. The task changed from moving the canvas into the repo to extracting its tokens and art, and gained the design-system checks for R38, R39, R42, R60 and R61, which no task cited.
+
+Paused before any work started: the first launch attempt was blocked by the launch guard (missing layer-ui label, now added), and before it was retried, Bruk asked to hold off on UI-adjacent work since a separate session is building out buttons and screens. No files touched, no commit exists. Pick back up once that coordination is settled.
 <!-- SECTION:NOTES:END -->
