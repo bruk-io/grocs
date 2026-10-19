@@ -27,3 +27,5 @@ export const Loading: Story = { args: { loading: true } };
 
 /** Not a state: the row as the list screen shows it, with the amount only. */
 export const AmountOnly: Story = { args: { name: 'Oat milk', amount: '2 cartons', mealBadges: [] } };
+export const Waiting: Story = { args: { name: 'Baby spinach', amount: '1 bag', mealBadges: [], addedBy: 'Bruk', waiting: true } };
+export const New: Story = { args: { name: 'Oat milk', amount: '1 carton', mealBadges: [], addedBy: 'Shazya', isNew: true } };

@@ -356,7 +356,9 @@ export const tokens = {
       "mascotPonder": 4500,
       "mascotQuick": 900,
       "mascotSway": 1600,
-      "mascotGiggle": 500
+      "mascotGiggle": 500,
+      "kitchenBob": 3400,
+      "kitchenPan": 44000
     },
     "easing": {
       "pop": "cubic-bezier(.3, 1.6, .5, 1)",

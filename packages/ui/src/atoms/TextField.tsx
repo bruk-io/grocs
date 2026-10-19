@@ -21,8 +21,8 @@ export interface TextFieldProps {
   /** Names the round button inside the field (input.text--inline). The button shows only when this is set. */
   actionLabel?: string;
   onAction?: () => void;
-  /** icon is the round plus (default); soft is a small soft button that shows the action label, such as "Paste". */
-  actionKind?: 'icon' | 'soft';
+  /** icon is the round plus (default); soft is a small soft button that shows the action label, such as "Paste"; primary is a small filled button with the label, such as "Add". */
+  actionKind?: 'icon' | 'soft' | 'primary';
   /** The hint shown when the field is empty, when it is not the label. */
   placeholder?: string;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
@@ -62,7 +62,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           returnKeyType="done"
           style={[styles.input, actionLabel !== undefined && styles.inputInline, disabled && styles.inputDisabled]}
         />
-        {actionLabel !== undefined ? <Button variant={actionKind === 'soft' ? 'soft' : 'icon'} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
+        {actionLabel !== undefined ? <Button variant={actionKind === 'soft' ? 'soft' : actionKind === 'primary' ? 'primary' : 'icon'} {...(actionKind === 'primary' ? { size: 's' as const } : {})} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
       </View>
       {invalid ? (
         <View style={styles.error} role="alert">

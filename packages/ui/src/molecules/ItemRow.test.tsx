@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './ItemRow.stories.tsx';
 
-const { Rest, InCart, Disabled, Swiped, Loading, AmountOnly } = composeStories(stories);
+const { Rest, InCart, Disabled, Swiped, Loading, AmountOnly, Waiting, New } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -79,5 +79,21 @@ describe('ItemRow (R50, R65)', () => {
     render(<Loading />);
     expect(screen.getByLabelText('Loading an item').getAttribute('aria-busy')).toBe('true');
     expect(screen.queryByRole('checkbox')).toBeNull();
+  });
+
+  it('says Waiting to send on an item the other phone has not got yet, and nothing otherwise', () => {
+    render(<Waiting />);
+    expect(screen.getByText('Waiting to send')).toBeTruthy();
+    cleanup();
+    render(<Rest />);
+    expect(screen.queryByText('Waiting to send')).toBeNull();
+  });
+
+  it('says New on an item the other person just added, and nothing otherwise', () => {
+    render(<New />);
+    expect(screen.getByText('New')).toBeTruthy();
+    cleanup();
+    render(<Rest />);
+    expect(screen.queryByText('New')).toBeNull();
   });
 });

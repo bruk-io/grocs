@@ -60,9 +60,16 @@ const preview: Preview = {
     (Story, context) => (
       <PlatformStyleProvider value={(context.globals['platform'] as PlatformStyle | undefined) ?? 'android'}>
         <MotionProvider {...reducedFrom(context.globals['reduceMotion'])}>
-          <View style={{ padding: tokens.space[16], backgroundColor: tokens.color.surfaceCanvas, minHeight: '100%' as never }}>
-            <Story />
-          </View>
+          {context.title.startsWith('Templates/') ? (
+            // A template is a whole screen: it fills the viewport edge to edge and lays itself out.
+            <View style={{ flex: 1, backgroundColor: tokens.color.surfaceCanvas, minHeight: '100vh' as never }}>
+              <Story />
+            </View>
+          ) : (
+            <View style={{ padding: tokens.space[16], backgroundColor: tokens.color.surfaceCanvas, minHeight: '100%' as never }}>
+              <Story />
+            </View>
+          )}
         </MotionProvider>
       </PlatformStyleProvider>
     ),

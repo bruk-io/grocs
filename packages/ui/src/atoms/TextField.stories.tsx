@@ -20,3 +20,5 @@ export const InvalidFocus: Story = { args: { value: 'Fried rice', errorMessage: 
 export const InlineRest: Story = { args: { label: 'Add an item…', actionLabel: 'Add item' } };
 export const InlineFocus: Story = { args: { value: 'egg', actionLabel: 'Add item', forceState: 'focus' } };
 export const InlineDisabled: Story = { args: { label: 'Add an item…', actionLabel: 'Add item', disabled: true } };
+/** The quick-add field's own button: a small filled "Add" with its word on it. */
+export const InlinePrimaryAction: Story = { args: { value: 'egg', label: 'Add an item', actionLabel: 'Add', actionKind: 'primary', forceState: 'focus' } };

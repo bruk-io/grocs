@@ -6,11 +6,12 @@ import { Checkbox } from '../atoms/Checkbox.tsx';
 import { focusRing } from '../atoms/focus.ts';
 import type { MealTone } from '../atoms/meal-tone.ts';
 import { Skeleton } from '../atoms/Skeleton.tsx';
+import { Tag } from '../atoms/Tag.tsx';
 import { Text } from '../atoms/Text.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
 /** The states of ItemRow (item.row rest, pressed, done, swiped, loading, and the focus and disabled the rules ask for); each has a story (R61, R63). */
-export const ITEMROW_STATES = ['rest', 'inCart', 'pressed', 'focus', 'disabled', 'swiped', 'loading'] as const;
+export const ITEMROW_STATES = ['rest', 'inCart', 'pressed', 'focus', 'disabled', 'swiped', 'loading', 'waiting', 'new'] as const;
 
 /** A meal an item is for: its name, or its name and colour. */
 export type MealBadge = string | { label: string; tone?: MealTone };
@@ -23,6 +24,10 @@ export interface ItemRowProps {
   mealBadges?: readonly MealBadge[];
   /** Who added the item; shown as a small avatar at the end of the row. */
   addedBy?: string;
+  /** The change has not reached the other phone yet (offline): shows "Waiting to send". */
+  waiting?: boolean;
+  /** The other person just added it: shows "New". */
+  isNew?: boolean;
   inCart: boolean;
   /** Ticking sends the state it wants, never a toggle (R17). */
   onToggle?: (inCart: boolean) => void;
@@ -37,7 +42,7 @@ export interface ItemRowProps {
 
 const REMOVE_WIDTH = 88;
 
-export function ItemRow({ name, amount, mealBadges = [], addedBy, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, forceState }: ItemRowProps) {
+export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, forceState }: ItemRowProps) {
   const [removeFocused, setRemoveFocused] = useState(false);
   if (loading) {
     return (
@@ -76,16 +81,18 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, inCart, onTogg
       {check}
       <View style={styles.body}>
         <Text variant="label">{name}</Text>
-        {amount || mealBadges.length > 0 ? (
+        {amount || mealBadges.length > 0 || waiting ? (
           <View style={styles.meta}>
             {amount ? <Text variant="muted">{amount}</Text> : null}
             {mealBadges.map((meal) => {
               const badge = typeof meal === 'string' ? { label: meal } : meal;
               return <Badge key={badge.label} label={badge.label} {...(badge.tone ? { tone: badge.tone } : {})} />;
             })}
+            {waiting ? <Tag label="Waiting to send" kind="sync" /> : null}
           </View>
         ) : null}
       </View>
+      {isNew ? <Tag label="New" kind="new" /> : null}
       {addedBy ? <Avatar name={addedBy} size="s" /> : null}
     </View>
   );

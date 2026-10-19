@@ -113,22 +113,6 @@
       "title": "1 Tokens",
       "page": "ds"
     },
-    "DS-Organisms.dc.html": {
-      "x": 3840,
-      "y": 0,
-      "w": 1200,
-      "h": 2892,
-      "title": "4 Organisms",
-      "page": "ds"
-    },
-    "DS-Templates.dc.html": {
-      "x": 5120,
-      "y": 0,
-      "w": 1200,
-      "h": 1870,
-      "title": "5 Templates and pages",
-      "page": "ds"
-    },
     "JoinInviteInvalid.dc.html": {
       "x": 1410,
       "y": 1224,
@@ -244,8 +228,6 @@
     "Offline.dc.html",
     "Toast.dc.html",
     "DS-Tokens.dc.html",
-    "DS-Organisms.dc.html",
-    "DS-Templates.dc.html",
     "D1-OptionA.dc.html",
     "D1-OptionB.dc.html",
     "D1-OptionC.dc.html",
