@@ -1,0 +1,88 @@
+name: storybook pages
+
+# Publishes the browser Storybook (every screen and component, for friends on an iPhone) to GitHub Pages:
+#
+#   https://bruk-io.github.io/grocs/
+#
+# The site goes live when the repository is public and Pages is switched on with source "GitHub Actions"
+# (Settings > Pages > Build and deployment > Source). GitHub Pages on this plan needs a public repository,
+# so until then the first job finds Pages unavailable, says so in the run summary, and the build and deploy
+# jobs do not run. The workflow stays green, and the first push to main after Pages is switched on publishes.
+# To publish without a push: gh workflow run storybook-pages.yml --ref main
+#
+# Storybook builds with relative asset paths, so the same build works from the /grocs/ sub-path
+# (checked in TASK-10.5: manager, story iframe and fonts load with the site served under /grocs/).
+# The quality gate for Storybook stays in ci.yml (the bundles job); this workflow only publishes.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deployment at a time, and a run that has started deploying is never cancelled halfway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Is GitHub Pages available?
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: read
+    outputs:
+      deploy: ${{ steps.pages.outputs.deploy }}
+    steps:
+      - id: pages
+        name: Ask the Pages API (404 while the repository is private or Pages is not on)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if build_type="$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq .build_type 2>"${RUNNER_TEMP}/pages-error.txt")"; then
+            if [ "${build_type}" = "workflow" ]; then
+              echo "deploy=true" >> "${GITHUB_OUTPUT}"
+              echo "GitHub Pages is on with source GitHub Actions: deploying." >> "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+            reason="Pages is on, but its source is '${build_type}', not GitHub Actions. Set Settings > Pages > Source to GitHub Actions."
+          else
+            reason="GitHub Pages is not available for ${GITHUB_REPOSITORY} yet (it needs a public repository, then Settings > Pages > Source: GitHub Actions). The API said: $(tr '\n' ' ' < "${RUNNER_TEMP}/pages-error.txt" | head -c 300)"
+          fi
+          echo "deploy=false" >> "${GITHUB_OUTPUT}"
+          echo "${reason}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "::notice title=Storybook not published::${reason}"
+
+  build:
+    name: Build Storybook
+    needs: gate
+    if: needs.gate.outputs.deploy == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @grocs/ui build-storybook
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: packages/ui/storybook-static
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
