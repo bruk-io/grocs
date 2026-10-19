@@ -1,11 +1,11 @@
 ---
 id: TASK-8
 title: isVersionBumpPair's '@' gate is too wide in a repo of @grocs/* scoped names
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 04:28'
-updated_date: '2026-10-19 12:00'
+updated_date: '2026-10-19 12:45'
 labels:
   - size-1
 dependencies: []
@@ -57,28 +57,18 @@ Likely fix: replace the bare /@|version/i gate with one that matches the line sh
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-## Implementation Complete
+## Review (philosophy:reviewer)
 
-### Changes Made
-1. **tools/checks/weakening.ts (line 122)**: Replaced the overly-broad `/@|version/i` gate with a narrower pattern that matches only actual version-pin line shapes:
-   - Pattern: `/^\s*-?\s*uses:\s|[\w-]+-version:\s*['"]?v?\d/i`
-   - This matches: `uses:` steps (GitHub Actions) OR `*-version:` fields (node-version, java-version, etc.)
-   - This rejects: scoped package names with @ (e.g., @grocs/ui) and other numeric settings
+No repro: the bug is already fixed on main (22e680e), so record-check --repro cannot capture a live failing run. The hermetic equivalent was executed instead, two ways, both green:
 
-2. **tools/checks/weakening.test.ts (line 199-201)**: Added regression test verifying the fix:
-   - Test: `isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1')` returns `false`
-   - This proves the shard argument bug is fixed (previously returned true incorrectly)
+1. The regression test committed with the fix, tools/checks/weakening.test.ts:198-201, asserts isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1') === false. On the pre-fix gate that assertion fails.
+2. Re-evaluating the pre-fix expression against the same pair, in isolation, reproduces the old behaviour directly: removedLine !== addedLine && /@|version/i.test(removedLine) && !LOOSENING_WORDS on either line && normalizeDigits(removedLine) === normalizeDigits(addedLine) returns true for the shard pair, while the shipped isVersionBumpPair returns false. That is the bug and its fix on the same inputs with no checkout.
 
-### Verification Output
-- ✅ All 88 test files pass, 1157 tests pass
-- ✅ TypeScript typecheck passes
-- ✅ All 13 checks pass (staged mode)
-- ✅ Lefthook pre-commit hook passes (checks, typecheck, unit-tests)
-- ✅ All existing weakening.test.ts cases still pass unmodified
+Checks changed: the .claude/checks.json drift since 6717246 is 5a3cecc, which only appends `pnpm --filter @grocs/ui visual -- --no-build` to the `full` tier for decision-11's Storybook visual baselines. The `fast` tier that gates this task, `pnpm check && pnpm typecheck && pnpm test`, is byte-identical to what was agreed in 6717246. The drift is additive, in a different tier, and unrelated to tools/checks/; nothing agreed for TASK-8 was loosened.
 
-### Commit
-Commit SHA: 22e680e15fd44d3488b444fc64ddc2caeb0d8ffe
-Message: TASK-8: narrow isVersionBumpPair gate to match only actual version-pin shapes
+Independent verification: record-check --tier fast green on main (13 checks, tsc clean, 88 files / 1160 tests). isVersionBumpPair probed directly on eight inputs beyond the suite: the --shard pair, --maxfail, --max-workers and timeout-minutes all return false; uses: actions/checkout@v4->v3, uses: actions/setup-node@v4.0.1->v4.0.2, node-version: 22->20 and java-version: "17"->"11" all still return true. Positive coverage against over-narrowing is the unmodified 0a26823 reviewChange case (weakening.test.ts:150), five uses: pins bumped at once, which still passes.
 
-The fix is complete and ready for review.
+Residual, not blocking and within AC1 as written (which names a *-version field as a target shape): node-version: 22 -> 20 still reads as a version bump, so the description's "lesser case" of a runtime downgrade is not closed by this fix. Also note the gate still tests removedLine only, so it is not symmetric. Both are narrower follow-ups, not failures of this task.
+
+Closed by philosophy:reviewer. isVersionBumpPair's bare /@|version/i gate is replaced by a version-pin shape gate (a uses: step or a *-version field), so a scoped @grocs/* package name on a --shard, --maxfail or --max-workers line no longer buys an exclusion from the removed-line count and the LOOSENING_WORDS scan. All three acceptance criteria met and independently verified on main: the committed regression test plus eight direct probes of the function, the unmodified 0a26823 five-pin reviewChange case still passing as the guard against over-narrowing, and record-check --tier fast green (13 checks, tsc clean, 88 files / 1160 tests). Two residuals recorded in the review note rather than fixed here, both inside AC1 as written: a node-version downgrade still reads as a version bump, and the gate inspects removedLine only.
 <!-- SECTION:NOTES:END -->
