@@ -1,7 +1,7 @@
 ---
 id: TASK-1.19
 title: Extract the tokens and art from the retired canvas
-status: In Progress
+status: To Do
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
@@ -43,4 +43,6 @@ Finish moved on 2026-10-18 before work started: added the story renderer, which 
 Re-sized from 3 to 5 before work started: six criteria across tokens, art conversion, four checks and the renderer.
 
 Label layer-ui removed on 2026-10-18: this task writes outside packages/ui (design/svg, the converter, new checks in tools/checks, package scripts), so it runs as a general builder at the routed model and effort rather than as builder-ui, whose definition is limited to packages/ui.
+
+Separately, in another session: a first launch attempt here was blocked by the (now-moot) layer-ui label before any work started, and Bruk asked that session to hold off on UI-adjacent work pending this restructuring. Deferring to the above - this task runs as planned.
 <!-- SECTION:NOTES:END -->
