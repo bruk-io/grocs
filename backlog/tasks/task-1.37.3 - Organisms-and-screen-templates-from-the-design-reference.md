@@ -4,14 +4,17 @@ title: Organisms and screen templates from the design reference
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:13'
+updated_date: '2026-10-19 03:19'
 labels:
   - size-5
   - layer-ui
   - design-system
+  - finish-moved
 milestone: m-2
 dependencies:
   - TASK-1.37.2
   - TASK-1.30
+  - TASK-1.37.6
 parent_task_id: TASK-1.37
 type: task
 ---
@@ -27,6 +30,12 @@ Every organism on design/reference/DS-Organisms.dc.html, including the panning k
 - [ ] #1 Every organism on the DS-Organisms board is a component in packages/ui/src/organisms built from molecules, atoms and tokens only, including the kitchen scene, which pans and holds still under reduce motion (R41, R60)
 - [ ] #2 There is a template in packages/ui/src/templates for every reference screen except RecipeImport, taking all content as props, with a story per screen state shown in design/reference (for example empty, offline, toast, invalid invite)
 - [ ] #3 Rendered with pnpm --filter @grocs/ui shots, each template story matches its screen's reference screenshot; any difference is listed in the notes with its reason
-- [ ] #4 Component tests render the stories and find elements by role and label (R50, R65)
-- [ ] #5 DS-Organisms.dc.html, DS-Templates.dc.html and their shots are deleted (R66)
+- [ ] #4 DS-Organisms.dc.html, DS-Templates.dc.html and their shots are deleted (R66)
+- [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+<!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-1.19
 title: Extract the tokens and art from the retired canvas
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 03:14'
+updated_date: '2026-10-19 03:20'
 labels:
   - design-system
   - finish-moved

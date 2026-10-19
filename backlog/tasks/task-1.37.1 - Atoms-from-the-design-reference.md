@@ -4,13 +4,15 @@ title: Atoms from the design reference
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:12'
+updated_date: '2026-10-19 03:19'
 labels:
   - size-5
   - layer-ui
   - design-system
+  - finish-moved
 milestone: m-2
 dependencies:
-  - TASK-1.19
+  - TASK-1.37.6
 parent_task_id: TASK-1.37
 type: task
 ---
@@ -26,6 +28,12 @@ Every atom on design/reference/DS-Atoms.dc.html as a ui component (R38, R39, R60
 - [ ] #1 Every atom on the DS-Atoms board is a component in packages/ui/src/atoms built only from tokens, and the task notes map each board atom to its component
 - [ ] #2 Each atom has a story for every state it declares, including pressed, focus, disabled, loading and error where they apply (R61, R63)
 - [ ] #3 Rendered with pnpm --filter @grocs/ui shots, the atom stories match DS-Atoms.png in shape, colour, type and spacing; any difference is listed in the notes with its reason
-- [ ] #4 Component tests render the stories and find elements by role and label (R50, R65)
-- [ ] #5 DS-Atoms.dc.html and its shot are deleted (R66)
+- [ ] #4 DS-Atoms.dc.html and its shot are deleted (R66)
+- [ ] #5 Every story renders accessibly, every callback and state prop has a behaviour test that drives it by role and label, and the browser pass is clean, with each story's baseline approved and committed (decision-11 levels 1 to 3; R50, R65)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Finish moved on 2026-10-18 before work started: Bruk asked for the right level of testing in the UI build. The component-test criterion is replaced by decision-11's levels (render and accessibility, behaviour, browser pass with axe and visual baselines), and the task now waits on the harness, TASK-1.37.6.
+<!-- SECTION:NOTES:END -->
