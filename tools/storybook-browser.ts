@@ -100,10 +100,21 @@ export function listStories(filter?: string): StoryEntry[] | null {
 export const viewportsFor = (story: StoryEntry): readonly Viewport[] =>
   story.title.startsWith('Templates/') ? [PHONE, FOLD_OUTER, FOLD_INNER] : [PHONE];
 
+/** Software drawing, one colour profile and unhinted greyscale text, so two runs draw the same pixels. */
+const DETERMINISTIC_FLAGS = [
+  '--font-render-hinting=none',
+  '--disable-lcd-text',
+  '--disable-gpu',
+  '--disable-gpu-rasterization',
+  '--force-color-profile=srgb',
+  '--disable-threaded-animation',
+  '--disable-partial-raster',
+];
+
 /** Chromium with the settings both tools need so two runs draw the same pixels. */
 export async function launch() {
   const executablePath = browserPath();
-  return chromium.launch({ ...(executablePath ? { executablePath } : {}), args: ['--font-render-hinting=none', '--disable-lcd-text'] });
+  return chromium.launch({ ...(executablePath ? { executablePath } : {}), args: DETERMINISTIC_FLAGS });
 }
 
 /**
