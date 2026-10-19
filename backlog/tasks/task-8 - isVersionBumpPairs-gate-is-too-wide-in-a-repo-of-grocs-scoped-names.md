@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 04:28'
-updated_date: '2026-10-19 11:58'
+updated_date: '2026-10-19 12:00'
 labels:
   - size-1
 dependencies: []
@@ -31,9 +31,9 @@ Likely fix: replace the bare /@|version/i gate with one that matches the line sh
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 isVersionBumpPair no longer matches a line pair just because both lines contain an @ sign; it matches only shapes that are actually a pinned version (a uses: line, a *-version field, or similar), with isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1') returning false as a regression test
-- [ ] #2 TASK-2's existing weakening.test.ts suite (the real 0a26823 version-bump case, the continue-on-error/dropped-step/paths-ignore cases, the override tests) all still pass unmodified
-- [ ] #3 pnpm check, pnpm typecheck, pnpm test all pass
+- [x] #1 isVersionBumpPair no longer matches a line pair just because both lines contain an @ sign; it matches only shapes that are actually a pinned version (a uses: line, a *-version field, or similar), with isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1') returning false as a regression test
+- [x] #2 TASK-2's existing weakening.test.ts suite (the real 0a26823 version-bump case, the continue-on-error/dropped-step/paths-ignore cases, the override tests) all still pass unmodified
+- [x] #3 pnpm check, pnpm typecheck, pnpm test all pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -53,3 +53,32 @@ Likely fix: replace the bare /@|version/i gate with one that matches the line sh
 - isVersionBumpPair returns false for the --shard example and true for the existing uses:/*-version: bump cases.
 - pnpm check, pnpm typecheck, pnpm test all green; TASK-2's full existing weakening.test.ts suite passes unmodified.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Complete
+
+### Changes Made
+1. **tools/checks/weakening.ts (line 122)**: Replaced the overly-broad `/@|version/i` gate with a narrower pattern that matches only actual version-pin line shapes:
+   - Pattern: `/^\s*-?\s*uses:\s|[\w-]+-version:\s*['"]?v?\d/i`
+   - This matches: `uses:` steps (GitHub Actions) OR `*-version:` fields (node-version, java-version, etc.)
+   - This rejects: scoped package names with @ (e.g., @grocs/ui) and other numeric settings
+
+2. **tools/checks/weakening.test.ts (line 199-201)**: Added regression test verifying the fix:
+   - Test: `isVersionBumpPair('      - run: pnpm --filter @grocs/ui test --shard 1/4', '      - run: pnpm --filter @grocs/ui test --shard 1/1')` returns `false`
+   - This proves the shard argument bug is fixed (previously returned true incorrectly)
+
+### Verification Output
+- ✅ All 88 test files pass, 1157 tests pass
+- ✅ TypeScript typecheck passes
+- ✅ All 13 checks pass (staged mode)
+- ✅ Lefthook pre-commit hook passes (checks, typecheck, unit-tests)
+- ✅ All existing weakening.test.ts cases still pass unmodified
+
+### Commit
+Commit SHA: 22e680e15fd44d3488b444fc64ddc2caeb0d8ffe
+Message: TASK-8: narrow isVersionBumpPair gate to match only actual version-pin shapes
+
+The fix is complete and ready for review.
+<!-- SECTION:NOTES:END -->
