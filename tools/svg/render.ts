@@ -26,6 +26,7 @@ export type ProblemRule =
   | 'svg-art/part-names'
   | 'svg-art/mouth-structure'
   | 'svg-art/unknown-colour'
+  | 'svg-art/token-name'
   | 'svg-art/unreadable';
 
 export interface Problem {
@@ -313,10 +314,16 @@ function artFile(source: string, component: string, viewBox: string, lines: stri
   ].join('\n');
 }
 
+/** A token key that is just the letter h and six hex digits, such as h5e9952. */
+const HEX_NAMED = /^h[0-9a-f]{6}$/i;
+
 function colourMap(tokens: TokenColours, problems: Problem[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const [group, values] of [['mascot', tokens.mascot], ['scene', tokens.scene]] as const) {
     for (const [key, hex] of Object.entries(values)) {
+      if (HEX_NAMED.test(key)) {
+        problems.push({ rule: 'svg-art/token-name', file: 'packages/ui/src/tokens/tokens.json', detail: `color.${group}.${key} is named for its hex; name it for what it paints (decision-10), for example wall or foliageDark` });
+      }
       const norm = normaliseHex(hex);
       if (!norm) continue;
       const earlier = map.get(norm);
