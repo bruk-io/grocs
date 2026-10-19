@@ -3,13 +3,12 @@ id: TASK-1.19
 title: Extract the tokens and art from the retired canvas
 status: In Progress
 assignee:
-  - '@builder-ui'
+  - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 03:13'
+updated_date: '2026-10-19 03:14'
 labels:
   - design-system
   - finish-moved
-  - layer-ui
   - size-5
 milestone: m-1
 dependencies:
@@ -42,4 +41,6 @@ Finish moved on 2026-10-18, right after acceptance and before work started: Bruk
 Finish moved on 2026-10-18 before work started: added the story renderer, which every later UI task uses to compare its stories with the reference screenshots (now in design/reference/shots/). Bruk asked for the UI components and screens to be built from the design, without logic; that work follows this task (TASK-1.37 and its children).
 
 Re-sized from 3 to 5 before work started: six criteria across tokens, art conversion, four checks and the renderer.
+
+Label layer-ui removed on 2026-10-18: this task writes outside packages/ui (design/svg, the converter, new checks in tools/checks, package scripts), so it runs as a general builder at the routed model and effort rather than as builder-ui, whose definition is limited to packages/ui.
 <!-- SECTION:NOTES:END -->
