@@ -5,6 +5,11 @@ node_modules/
 dist/
 dist-*/
 .expo/
+# expo prebuild output (CNG): regenerated from app.config.ts, never committed.
+# Not in doc-1's repo layout; also carries google-services.json/GoogleService-Info.plist
+# locally, which firebase-isolation forbids anywhere in the tree (R51, R52).
+apps/mobile/android/
+apps/mobile/ios/
 storybook-static/
 *.tsbuildinfo
 .firebase/

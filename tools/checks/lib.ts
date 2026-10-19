@@ -46,6 +46,11 @@ const SKIP_DIRS = new Set([
   '.claude',
   'backlog',
   'coverage',
+  // expo prebuild output (apps/mobile/android, apps/mobile/ios): regenerated from
+  // app.config.ts, gitignored, not in doc-1's repo layout, and always carries a real
+  // Firebase config locally once built - never reaches git or CI (Bruk, 2026-10-19).
+  'android',
+  'ios',
 ]);
 const SOURCE_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 
