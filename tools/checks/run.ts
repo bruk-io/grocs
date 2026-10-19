@@ -102,12 +102,16 @@ function main(argv: string[]): number {
   }
 
   const ms = Math.round(performance.now() - t0);
+  const noteCtx = makeContext(root);
+  const notes = checks.flatMap((c) => c.notes?.(noteCtx) ?? []);
   if (reports.length === 0) {
     console.log(`checks passed (${checks.length} checks, ${mode} mode, ${ms} ms)`);
+    for (const note of notes) console.log(`note: ${note}`);
     return 0;
   }
   console.error(render(reports));
   console.error(`\n${reports.length} finding(s) (${mode} mode, ${ms} ms)`);
+  for (const note of notes) console.error(`note: ${note}`);
   return 1;
 }
 
