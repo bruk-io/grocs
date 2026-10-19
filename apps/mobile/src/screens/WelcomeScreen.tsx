@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, SignInTemplate, Text, tokens } from '@grocs/ui';
 import type { DevAccess } from '../composition/native.ts';
+import { useGo } from './navigate.ts';
 
 /**
  * The signed-out screen: the Welcome template, with no sign-in logic yet (Continue with Google and
@@ -9,9 +10,10 @@ import type { DevAccess } from '../composition/native.ts';
  * Auth emulator from the foot of the sheet (R53).
  */
 export function WelcomeScreen({ dev }: { dev: DevAccess | null }) {
+  const go = useGo();
   return (
     <View style={styles.screen}>
-      <SignInTemplate title="Grocs" tagline="Plan the week. Shop together." />
+      <SignInTemplate title="Grocs" tagline="Plan the week. Shop together." onOpenInvite={go.join} />
       {dev ? <DevSignIn dev={dev} /> : null}
     </View>
   );

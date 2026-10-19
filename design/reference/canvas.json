@@ -25,72 +25,12 @@
     }
   ],
   "boards": {
-    "Plan.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Meal plan",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "AddMeal.dc.html": {
-      "x": 470,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Add a meal",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "Main.dc.html": {
-      "x": 940,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Groceries",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "QuickAdd.dc.html": {
-      "x": 1410,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Add an item",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
     "RecipeImport.dc.html": {
       "x": 1880,
       "y": 0,
       "w": 390,
       "h": 844,
       "title": "Parked: recipe import",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "Household.dc.html": {
-      "x": 470,
-      "y": 1224,
-      "w": 390,
-      "h": 844,
-      "title": "Your kitchen",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "JoinInvite.dc.html": {
-      "x": 940,
-      "y": 1224,
-      "w": 390,
-      "h": 844,
-      "title": "Join from an invite",
       "is_interactive": true,
       "radius": 40,
       "page": "app"
@@ -102,46 +42,6 @@
       "h": 3062,
       "title": "1 Tokens",
       "page": "ds"
-    },
-    "JoinInviteInvalid.dc.html": {
-      "x": 1410,
-      "y": 1224,
-      "w": 390,
-      "h": 844,
-      "title": "Join from an invite: invalid code",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "Settings.dc.html": {
-      "x": 0,
-      "y": 2188,
-      "w": 390,
-      "h": 844,
-      "title": "Settings",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "Offline.dc.html": {
-      "x": 470,
-      "y": 2188,
-      "w": 390,
-      "h": 844,
-      "title": "Offline, waiting to send",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
-    "Toast.dc.html": {
-      "x": 940,
-      "y": 2188,
-      "w": 390,
-      "h": 844,
-      "title": "In-app toast",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
     },
     "D1-OptionA.dc.html": {
       "x": 0,
@@ -205,17 +105,7 @@
     }
   },
   "order": [
-    "Main.dc.html",
-    "Plan.dc.html",
-    "AddMeal.dc.html",
-    "QuickAdd.dc.html",
     "RecipeImport.dc.html",
-    "Household.dc.html",
-    "JoinInvite.dc.html",
-    "JoinInviteInvalid.dc.html",
-    "Settings.dc.html",
-    "Offline.dc.html",
-    "Toast.dc.html",
     "DS-Tokens.dc.html",
     "D1-OptionA.dc.html",
     "D1-OptionB.dc.html",
