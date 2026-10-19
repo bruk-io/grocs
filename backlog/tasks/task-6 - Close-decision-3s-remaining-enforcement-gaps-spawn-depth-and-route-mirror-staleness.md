@@ -3,11 +3,11 @@ id: TASK-6
 title: >-
   Close decision-3's remaining enforcement gaps: spawn depth and route-mirror
   staleness
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 00:32'
-updated_date: '2026-10-19 04:29'
+updated_date: '2026-10-19 04:32'
 labels:
   - size-2
 dependencies: []
@@ -149,4 +149,6 @@ Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm c
 No repro: both acceptance criteria are additions of a missing capability (a config line, and a check that did not exist), not a code-level defect with a reproducible failing test against the current tree. AC2's new tests (tools/checks/agent-definitions.test.ts) would fail against the pre-fix code, but record-check --repro requires a command that fails right now, against this merged tree, which it no longer does - the fix is already in. Capturing that by reverting the fix to force a fail-then-record would misrepresent the task's own history. AC1 (a one-line .claude/settings.json addition) has no code path to fail against at all.
 
 AC1's depth semantics, independently verified by a separate claude-code-guide agent (not just the implementing worker's binary-strings inference): CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH's default is 3 layers below the main/orchestrator session; setting it to 1 disables subagents spawning further subagents while leaving the main session free to spawn its own first layer - confirmed via web search against real Claude Code release-note sources (mer.vin, startdebugging.net), not inferred from the installed binary alone. This matches decision-3's 'only the orchestrator delegates' and is corroborated empirically: this review session itself is a first-layer delegation that succeeded under the cap.
+
+Confirmed closed by the orchestrator after philosophy:reviewer's independent review. AC1: .claude/settings.json sets CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1, matching decision-3 line 42 verbatim. AC2: checkRouteMirrorFreshness/readPluginBoardPySource verified against the real installed plugin and all three states (unreadable, unparseable, mismatched), reviewer drove all three through the real check with GROCS_PLUGIN_BOARD_PY, not just the unit tests. Full tier green on main. No repro recorded (see implementation notes): both ACs are additions, not code-level failures reproducible against the merged tree.
 <!-- SECTION:NOTES:END -->
