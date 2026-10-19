@@ -19,7 +19,9 @@ export function Meter({ fraction, label }: MeterProps) {
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={label}
-      accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(clamped * 100)}
       style={styles.track}
     >
       <View style={[styles.fill, { width: `${clamped * 100}%` }]} />

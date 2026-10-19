@@ -21,11 +21,15 @@ export interface TextFieldProps {
   /** Names the round button inside the field (input.text--inline). The button shows only when this is set. */
   actionLabel?: string;
   onAction?: () => void;
+  /** icon is the round plus (default); soft is a small soft button that shows the action label, such as "Paste". */
+  actionKind?: 'icon' | 'soft';
+  /** The hint shown when the field is empty, when it is not the label. */
+  placeholder?: string;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, forceState }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, forceState }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
   const lit = focused || forceState === 'focus';
@@ -47,7 +51,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
         <TextInput
           aria-label={label}
           aria-invalid={invalid}
-          placeholder={label}
+          placeholder={placeholder ?? label}
           placeholderTextColor={tokens.color.inkHint}
           value={value}
           editable={!disabled}
@@ -58,7 +62,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           returnKeyType="done"
           style={[styles.input, actionLabel !== undefined && styles.inputInline, disabled && styles.inputDisabled]}
         />
-        {actionLabel !== undefined ? <Button variant="icon" label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
+        {actionLabel !== undefined ? <Button variant={actionKind === 'soft' ? 'soft' : 'icon'} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
       </View>
       {invalid ? (
         <View style={styles.error} role="alert">
