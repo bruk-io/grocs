@@ -1,0 +1,2 @@
+export { DEMO_MEMBER, MemoryAuth } from './memory-auth.ts';
+export { MemorySyncStore } from './memory-sync-store.ts';
