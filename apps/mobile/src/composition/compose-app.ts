@@ -10,6 +10,8 @@ export interface AppOptions {
   readonly ports: Deps;
   readonly logger: Logger;
   readonly runtime: RuntimeInfo;
+  /** Puts text on the device clipboard. An app seam, not a port: the phones pass expo-clipboard, tests a fake. */
+  readonly copyText: (text: string) => Promise<void>;
 }
 
 /** What the screens use. Screens never see a port or a provider (R26, R28). */
@@ -22,9 +24,11 @@ export interface App {
   findMyKitchen(): Promise<string | null>;
   /** Now, as the app's clock reads it, for choosing the current week. */
   now(): number;
+  /** Copies text to the device clipboard. */
+  copyText(text: string): Promise<void>;
 }
 
-export function composeApp({ ports, logger, runtime }: AppOptions): App {
+export function composeApp({ ports, logger, runtime, copyText }: AppOptions): App {
   // Every provider is wrapped here, and nowhere else: each command gets its own correlation id,
   // and its ports log with that id attached (R31, R32).
   const depsFor = (correlation: Parameters<typeof instrumentDeps>[3]): Deps => instrumentDeps(ports, logger, ports.clock, correlation);
@@ -47,5 +51,6 @@ export function composeApp({ ports, logger, runtime }: AppOptions): App {
     signOut: () => signOut(session),
     findMyKitchen: () => findMyKitchen(session),
     now: () => ports.clock.now(),
+    copyText,
   };
 }

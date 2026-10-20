@@ -7,6 +7,7 @@ import Home from '../../app/index.tsx';
 import Plan from '../../app/plan.tsx';
 import Settings from '../../app/settings.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
+import { FakeClipboard } from '../../testing/fake-clipboard.ts';
 import { composeDemoApp } from './compose-demo.ts';
 
 afterEach(cleanup);
@@ -16,6 +17,7 @@ const ROUTES = { index: Home, plan: Plan, settings: Settings };
 function demoApp() {
   return composeDemoApp({
     logger: new MemoryLogger(),
+    copyText: new FakeClipboard().copyText,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     clock: new FakeClock(),
     ids: new SequentialIds('d'),

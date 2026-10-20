@@ -25,6 +25,7 @@
     "@react-native-firebase/functions": "^26.4.0",
     "expo": "~58.0.14",
     "expo-build-properties": "~58.0.11",
+    "expo-clipboard": "~58.0.3",
     "expo-constants": "^58.0.12",
     "expo-font": "~58.0.8",
     "expo-linking": "^58.0.13",

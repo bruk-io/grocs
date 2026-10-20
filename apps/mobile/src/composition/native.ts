@@ -3,6 +3,7 @@
 import * as nativeAuth from '@react-native-firebase/auth';
 import * as nativeFirestore from '@react-native-firebase/firestore';
 import * as nativeFunctions from '@react-native-firebase/functions';
+import { setStringAsync } from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { BufferLogger, ConsoleLogger } from '@grocs/providers-device';
@@ -65,6 +66,9 @@ export function createNativeApp(): NativeApp {
       functions: { fns: asSdk<FunctionsFns>(nativeFunctions), instance: nativeFunctions.getFunctions() },
     },
     logger,
+    copyText: async (text) => {
+      await setStringAsync(text);
+    },
     runtime: {
       appVersion: Constants.expoConfig?.version ?? '0.0.0',
       platform: Platform.OS,

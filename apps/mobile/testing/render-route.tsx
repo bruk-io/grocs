@@ -14,6 +14,7 @@ import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
 import type { NativeApp } from '../src/composition/native.ts';
+import { FakeClipboard } from './fake-clipboard.ts';
 
 export async function appOnFakes({
   signedIn,
@@ -33,14 +34,16 @@ export async function appOnFakes({
   kitchens?: FakeKitchenGateway;
   /** The clock the gateway and the app share, to move time past an invite's expiry. */
   clock?: FakeClock;
-}): Promise<NativeApp> {
+}): Promise<NativeApp & { readonly clipboard: FakeClipboard }> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
+  const clipboard = new FakeClipboard();
   const app = composeApp({
     ports: { syncStore, auth, clock, ids: new SequentialIds('t'), kitchens },
     logger: new MemoryLogger(),
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
+    copyText: clipboard.copyText,
   });
   // A development build has the seeded test accounts; a release build has none.
   const devAccess = dev
@@ -52,7 +55,7 @@ export async function appOnFakes({
         },
       }
     : null;
-  return { app, dev: devAccess, demo: null, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  return { clipboard, app, dev: devAccess, demo: null, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
 }
 
 /**

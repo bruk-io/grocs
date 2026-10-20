@@ -24,11 +24,12 @@ export interface FirebaseAppOptions {
   readonly firebase: FirebaseModules;
   readonly logger: Logger;
   readonly runtime: RuntimeInfo;
+  readonly copyText: (text: string) => Promise<void>;
   readonly clock?: Clock;
   readonly ids?: IdGenerator;
 }
 
-export function composeFirebaseApp({ firebase, logger, runtime, clock, ids }: FirebaseAppOptions): App {
+export function composeFirebaseApp({ firebase, logger, runtime, copyText, clock, ids }: FirebaseAppOptions): App {
   return composeApp({
     ports: {
       syncStore: new FirestoreSyncStore(firebase.firestore, firebase.db),
@@ -39,5 +40,6 @@ export function composeFirebaseApp({ firebase, logger, runtime, clock, ids }: Fi
     },
     logger,
     runtime,
+    copyText,
   });
 }

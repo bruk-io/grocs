@@ -14,6 +14,7 @@ import { createEmulatorClient, createKitchen, ensureSeeded, seedAccount } from '
 import type { EmulatorClient } from '../../../../firebase/emulator-client.ts';
 import { FirebaseTestSignIn } from '../dev/test-sign-in.ts';
 import type { App } from './compose-app.ts';
+import { FakeClipboard } from '../../testing/fake-clipboard.ts';
 import { composeFirebaseApp } from './compose-firebase.ts';
 
 const SYNC_BUDGET_MS = 3000;
@@ -41,6 +42,7 @@ async function signedInClient(who: 'bruk' | 'sam'): Promise<{ app: App; logger: 
     firebase: { firestore: client.firestoreFns, auth: client.authFns, db: client.db, authInstance: client.auth },
     logger,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
+    copyText: new FakeClipboard().copyText,
   });
   return { app, logger };
 }
