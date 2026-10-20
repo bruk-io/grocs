@@ -1,10 +1,11 @@
 ---
 id: TASK-1.28
 title: Settings and diagnostics
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 19:18'
+updated_date: '2026-10-20 17:17'
 labels:
   - size-2
   - slice
