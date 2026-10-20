@@ -39,6 +39,14 @@ for ((i = 0; i < wait_seconds; i += 3)); do
     shown=1
     break
   fi
+  # A system "isn't responding" dialog (seen from the launcher, and before that from Play
+  # services) can cover the app and leave the dump holding only android/systemui nodes, with
+  # no sign of our package - not a sign the app crashed (FATAL EXCEPTION and pidof above already
+  # catch that), just something else's dialog in the way. Dismiss it so the next dump can see
+  # past it, instead of spending the rest of the budget looking at someone else's dialog.
+  if grep -qi "isn.t responding" "$out/ui.xml" 2>/dev/null; then
+    adb shell input keyevent KEYCODE_BACK >/dev/null 2>&1
+  fi
 done
 # The app has drawn once; give it a moment more to crash late (a native module failing after first render).
 sleep 5
