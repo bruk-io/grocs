@@ -5,14 +5,17 @@ const meta = {
   title: 'Templates/Invite retry',
   component: InviteRetryTemplate,
   args: {
-    inviter: 'Bruk',
     code: 'MOREL-42',
     onCodeChange: () => undefined,
-    errorMessage: 'That code is not a match. Check it with Bruk, or ask for a fresh link.',
   },
 } satisfies Meta<typeof InviteRetryTemplate>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** JoinInviteInvalid. */
-export const Invalid: Story = {};
+export const Invalid: Story = {
+  args: { inviter: 'Bruk', errorMessage: 'That code is not a match. Check it with Bruk, or ask for a fresh link.' },
+};
+
+/** The typed code entry before any code was tried: neutral title and label, empty field showing the code's shape, no error, no way back, no footer. */
+export const FirstAttempt: Story = { args: { attempt: 'first', code: '' } };

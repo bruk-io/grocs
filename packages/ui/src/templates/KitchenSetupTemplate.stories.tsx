@@ -8,11 +8,12 @@ const meta = {
     email: 'you@example.com',
     kitchenName: 'Our kitchen',
     onKitchenNameChange: () => undefined,
-    inviteCode: 'MOREL-24',
   },
 } satisfies Meta<typeof KitchenSetupTemplate>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Household. */
-export const Rest: Story = {};
+export const Rest: Story = { args: { inviteCode: 'MOREL-24', onShare: () => undefined, onCopy: () => undefined } };
+/** Before Start planning there is no code: the card shows a hint and no Share link or Copy code. */
+export const NoInviteYet: Story = { args: { inviteCode: null } };
