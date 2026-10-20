@@ -1,9 +1,11 @@
 ---
 id: TASK-14
 title: A returning member finds their kitchen on any phone
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-10-20 03:20'
+updated_date: '2026-10-20 03:32'
 labels:
   - size-3
 dependencies: []
@@ -11,6 +13,16 @@ references:
   - >-
     backlog/decisions/decision-13 -
     Kitchen-create-and-join-go-through-application-commands.md
+modified_files:
+  - packages/ports/src/kitchen-gateway/port.ts
+  - packages/ports/src/kitchen-gateway/fake.ts
+  - packages/ports/src/kitchen-gateway/contract.ts
+  - packages/providers-server/src/kitchen-store.ts
+  - apps/functions/src/index.ts
+  - packages/providers-firebase/src/kitchen-gateway.ts
+  - packages/providers-memory/src/memory-kitchen-gateway.ts
+  - firebase/firestore.rules
+  - firebase/firestore.rules.test.ts
 type: task
 ---
 
@@ -25,3 +37,25 @@ From decision-13. KitchenGateway only creates and joins, so a member who signs i
 - [ ] #1 After signing in, the app learns the member's kitchen through a port, on any phone, with contract tests for every provider
 - [ ] #2 Security rules let a member read only their own membership, with allow and deny tests
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Order of work
+1. Port: add findMyKitchen(): Promise<string | null> to the existing KitchenGateway port (packages/ports/src/kitchen-gateway/port.ts) - reuses the port rather than adding a new one, matching decision-13's 'a port or gateway method' framing and the same phone-calls-the-server shape as createKitchen/joinKitchen.
+2. Data shape: a memberships/{uid} document, {kitchenId}, one per person (this app's whole model is one kitchen per person - R2/R3 never describe more than one). Written atomically alongside the existing kitchen/invite writes: createKitchen's batch gains a memberships/{ownerUid} write; joinKitchen's transaction gains a memberships/{callerUid} write. A reader must never see a kitchen or a join without its membership record, same reasoning as the existing kitchen+invite atomicity.
+3. providers-server: extend KitchenStore with findKitchenForUid(uid): Promise<string | null>, a plain doc read; extend createKitchen/joinKitchen to also write the membership doc inside their existing batch/transaction.
+4. apps/functions: a third callable, findMyKitchen, auth-checked the same way as the other two, calling KitchenStore.findKitchenForUid(request.auth.uid).
+5. providers-firebase: extend FirebaseKitchenGateway.findMyKitchen() over httpsCallable, same pattern as createKitchen/joinKitchen.
+6. providers-memory: extend MemoryKitchenGateway.findMyKitchen() reading its own shared in-memory state.
+7. Port contract + fake: extend kitchenGatewayContract with findMyKitchen cases (finds the kitchen after creating, after joining, null for someone with no kitchen); extend FakeKitchenGateway to match.
+8. firestore.rules: match /memberships/{uid} { allow read: if signedIn() && request.auth.uid == uid; allow write: if false; } with allow/deny tests (a member reads their own, not someone else's; no one writes directly).
+
+### Risks
+- Keep this backend-only: no apps/mobile screen/composition wiring (TASK-1.20.2 and the application-layer command for this are someone else's, the same split decision-13 already set for create/join) - just the port, providers and rules, verified end to end against the real Cloud Functions emulator the way TASK-1.20's create/join already are.
+- Do not touch packages/ui or apps/mobile's screens.
+
+### Proof
+- Emulator tests: the full port contract (fake, Firebase-via-real-Cloud-Functions, in-memory) plus the new findMyKitchen cases, and firestore.rules allow/deny tests for memberships/{uid}.
+- pnpm check, pnpm typecheck, pnpm test, pnpm test:emulator, pnpm check:demo, pnpm check:release all green.
+<!-- SECTION:PLAN:END -->
