@@ -5,12 +5,12 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 03:20'
-updated_date: '2026-10-20 05:06'
+updated_date: '2026-10-20 05:11'
 labels:
   - size-3
   - layer-app
 dependencies:
-  - TASK-1.20.1
+  - TASK-1.20.3
 references:
   - >-
     backlog/decisions/decision-13 -
