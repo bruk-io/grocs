@@ -1,11 +1,11 @@
 ---
 id: TASK-1.28.1
 title: 'Port error records withhold SDK messages, so Copy diagnostics carries none'
-status: In Progress
+status: Done
 assignee:
   - '@builder-application-small'
 created_date: '2026-10-20 20:31'
-updated_date: '2026-10-20 20:45'
+updated_date: '2026-10-20 20:59'
 labels:
   - size-1
   - layer-application
@@ -22,8 +22,8 @@ Found reviewing TASK-1.28. packages/application/src/instrumentation/instrument.t
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 describeError keeps name and code and withholds every message, Error or not, until GrocsError exists, per decision-8
-- [ ] #2 A test fails a port call with an Error whose message holds an item name and a person's name, and neither appears in the logged record
+- [x] #1 describeError keeps name and code and withholds every message, Error or not, until GrocsError exists, per decision-8
+- [x] #2 A test fails a port call with an Error whose message holds an item name and a person's name, and neither appears in the logged record
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -73,4 +73,72 @@ Received: "[{"timestamp":1792411200000,"severity":"error","message":"shop.readIt
    Start at  16:45:53
    Duration  377ms (transform 155ms, setup 0ms, import 199ms, tests 12ms, environment 0ms)
 ```
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(680 earlier lines omitted)
+```text
+|  4.58 kB │ gzip:   1.76 kB
+|  storybook-static/assets/PreferencesTemplate.stories-DMm4jNL7.js
+|  4.58 kB │ gzip:   1.76 kB
+|  storybook-static/assets/ItemRow-BgzP7XFR.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-Bu-n0q9_.js
+|  5.75 kB │ gzip:   1.97 kB
+|  storybook-static/assets/Button-CxILU1aQ.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-D4jB9WQY.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-BPDuhWkL.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-PNLDbSaq.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-CGfbGzBZ.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-vq108xyw.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-DmUd5E6i.js
+|  1,359.38 kB │ gzip: 391.72 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.02s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 2.9s of this 4.0s
+|  build (73%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin storybook:react-docgen-plugin transform (35%, 1.4s, 822
+|  calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a94518d944c62f37d/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: 326 story views checked (axe, 44 x 44, 326 images compared)
+```
+
+Review (philosophy:reviewer): closed. The diff in 4725107 is exactly the four steps. Step 1: describeError keeps name and code and withholds every message ('[sdk message withheld]' for an Error, '[value withheld]' for a non-Error), with the decision-8 comment. Step 2: the new test rejects with 'permission denied reading Zucchini for Sam' and asserts neither word is in the JSON of the records. Step 3: the two expectations that changed from 'sync boom'/'async boom' to the marker are a legitimate update, not a weakening. The test still asserts severity error, outcome error, name Error, and that both calls rethrow with the original text, so the thrown error keeps its message and only the log record loses it. Step 4: covered by the full tier. Repro: 27d6078 changes only this task file, and its recorded run shows the new test failing on the old describeError output (the message copied into the record). Full tier (record-check above) exit 0: checks 13/13, typecheck, unit 1350/1350, emulator 70/70, release bundles clean, storybook, visual 326 views; it changed no source files. AC1 and AC2 met. Other places that copy messages: none feed the logger. logging-middleware logs errorCode only. The dispatcher's internal-error message goes into the CommandResult, not a record. The firestore-sync-store messages get thrown and then withheld by describeError. The screen messages (WelcomeScreen, GroceriesScreen) go into UI state. The global observer on TASK-1.28's branch (apps/mobile/src/composition/observe.ts) already withholds as '[message withheld]'. No draft filed. Low: there are three different withheld markers ('[sdk message withheld]', '[value withheld]', '[message withheld]'). Worth aligning when GrocsError lands, but not filed.
 <!-- SECTION:NOTES:END -->
