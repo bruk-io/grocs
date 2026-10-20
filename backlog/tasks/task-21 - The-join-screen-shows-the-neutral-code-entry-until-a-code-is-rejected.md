@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app-small'
 created_date: '2026-10-20 17:39'
-updated_date: '2026-10-20 19:16'
+updated_date: '2026-10-20 19:38'
 labels:
   - size-1
   - layer-app
@@ -39,4 +39,6 @@ TASK-18 delivered InviteRetryTemplate attempt='first' (no inviter, errorMessage 
 Accepted by the orchestrator (Oct 20, 2026): the app half promised when DRAFT-12 was split, which TASK-18's review found had never been filed. Rule chosen: the neutral first-attempt state shows only when the screen was not opened from an invite link and no code has been rejected yet; a link-opened entry keeps the retry shape and its Back to my invite, unchanged.
 
 Builder report (builder-app-small, Oct 20, 2026): Step 1 done. JoinInviteScreen renders InviteRetryTemplate attempt='first' (code, onCodeChange, checking, onCheck) when linked === null and no error has been set; after a rejection, or for a link-opened entry, the existing retry element is rendered unchanged in the same slot, so the field and focus are kept. Step 2 done: route test 'opens /join with a neutral code entry, and says the code did not work only after a rejection' added after the typed-code join test; no other test changed. Note: the test asserts the title switch only; the acceptance text also says the typed code is kept, which this test does not assert. Step 3 results: pnpm test 100 files / 1347 tests pass; pnpm typecheck exit 0; pnpm check (13 checks) passed; pnpm check:release and pnpm check:demo passed.
+
+Added at the orchestrator's request (Oct 20, 2026): the test 'opens /join with a neutral code entry...' now also asserts the textbox still holds 'NOPE-0000' after the rejection, covering acceptance #1's typed-code promise. Kitchen route tests 18 pass; pnpm test 1348 pass.
 <!-- SECTION:NOTES:END -->

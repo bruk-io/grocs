@@ -115,6 +115,7 @@ describe('joining a kitchen', () => {
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'NOPE-0000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
     expect(await screen.findByText("Code didn't work")).toBeTruthy();
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('NOPE-0000');
   });
 
   async function enterCode(mine: FakeKitchenGateway, clock: FakeClock, code: string) {
