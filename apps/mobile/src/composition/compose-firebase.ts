@@ -34,7 +34,7 @@ export function composeFirebaseApp({ firebase, logger, runtime, copyText, clock,
     ports: {
       syncStore: new FirestoreSyncStore(firebase.firestore, firebase.db),
       auth: new FirebaseAuth(firebase.auth, firebase.authInstance),
-      kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance),
+      kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance, firebase.firestore, firebase.db),
       clock: clock ?? new SystemClock(),
       ids: ids ?? new RandomIds(),
     },

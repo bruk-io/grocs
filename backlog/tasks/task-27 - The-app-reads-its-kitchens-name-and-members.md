@@ -4,7 +4,7 @@ title: The app reads its kitchen's name and members
 status: To Do
 assignee: []
 created_date: '2026-10-20 21:36'
-updated_date: '2026-10-20 22:25'
+updated_date: '2026-10-20 22:45'
 labels:
   - size-3
 dependencies:
@@ -38,9 +38,9 @@ From the UI session's handoff (DRAFT-14): Settings and the Household screen stil
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 createKitchen and joinKitchen in apps/functions/src/index.ts read request.auth.token.name (fall back to '' if absent) and pass it to the store calls, so a real kitchen document actually gets a populated memberNames
-- [ ] #2 apps/mobile/src/composition/compose-firebase.ts and apps/mobile/src/demo/compose-demo.ts pass their already-available Firestore/display-name values into the updated FirebaseKitchenGateway/MemoryKitchenGateway constructors
-- [ ] #3 firebase/firestore.rules.test.ts proves a member can read their kitchen's memberNames field through the existing rule, and a non-member or signed-out request still cannot
+- [x] #1 createKitchen and joinKitchen in apps/functions/src/index.ts read request.auth.token.name (fall back to '' if absent) and pass it to the store calls, so a real kitchen document actually gets a populated memberNames
+- [x] #2 apps/mobile/src/composition/compose-firebase.ts and apps/mobile/src/demo/compose-demo.ts pass their already-available Firestore/display-name values into the updated FirebaseKitchenGateway/MemoryKitchenGateway constructors
+- [x] #3 firebase/firestore.rules.test.ts proves a member can read their kitchen's memberNames field through the existing rule, and a non-member or signed-out request still cannot
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -69,3 +69,9 @@ Design settled before planning (not in the draft, worth recording): the kitchens
 ### Proof
 pnpm check (expect a new check count unaffected since this task adds no new check), typecheck, test, test:emulator all green; the shared kitchenGatewayContract's new getKitchen cases pass for the fake, in-memory, server-adapter and real Firebase (through the emulator) subjects alike; firestore.rules.test.ts proves a member reads memberNames and a non-member or signed-out request does not.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+All four subtasks and this task's own remaining scope landed together as one commit (see TASK-27.1's notes for why the chain could not be split: lefthook's pre-commit hook always runs whole-repo typecheck/test, and core's signature change ripples through every consumer at once). apps/functions/src/index.ts: createKitchen/joinKitchen read request.auth.token['name'] (DecodedIdToken's index signature, typed via a guard rather than asserted) and pass it through, falling back to '' when absent - true for an anonymous caller, not for Google sign-in or the dev email/password seed accounts (seed.ts's createUser already sets displayName, confirmed before implementing). compose-firebase.ts and compose-demo.ts pass their already-available Firestore/display-name values into the updated constructors. firebase/firestore.rules.test.ts proves a member reads memberNames through the existing kitchens/{kitchenId} rule (no new rule) and a non-member still cannot. Full verification: pnpm check (14 checks), typecheck, test (104 files, 1381 tests), test:emulator (8 files, 80 tests, run twice clean), check:demo, check:release all green.
+<!-- SECTION:NOTES:END -->

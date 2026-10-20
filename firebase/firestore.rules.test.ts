@@ -33,9 +33,9 @@ afterAll(async () => {
 });
 
 /** A kitchen with two members, written the rules-bypassing way (as createKitchen's transaction would). */
-async function seedKitchen(kitchenId: string, members: readonly string[]): Promise<void> {
+async function seedKitchen(kitchenId: string, members: readonly string[], memberNames: Record<string, string> = {}): Promise<void> {
   await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), `kitchens/${kitchenId}`), { schemaVersion: 1, name: 'Our kitchen', members, timeZone: 'America/New_York', createdAt: 1 });
+    await setDoc(doc(ctx.firestore(), `kitchens/${kitchenId}`), { schemaVersion: 1, name: 'Our kitchen', members, memberNames, timeZone: 'America/New_York', createdAt: 1 });
   });
 }
 
@@ -67,6 +67,19 @@ describe('kitchens/{kitchenId} (R4)', () => {
   it('no one can create a kitchen document directly', async () => {
     const bruk = testEnv.authenticatedContext('bruk');
     await assertFails(setDoc(doc(bruk.firestore(), 'kitchens/k2'), { schemaVersion: 1, name: 'New', members: ['bruk'], timeZone: 'UTC', createdAt: 1 }));
+  });
+
+  it('a member can read memberNames through the same rule - no new rule needed for TASK-27', async () => {
+    await seedKitchen('k1', ['bruk', 'sam'], { bruk: 'Bruk', sam: 'Sam' });
+    const bruk = testEnv.authenticatedContext('bruk');
+    const snap = await assertSucceeds(getDoc(doc(bruk.firestore(), 'kitchens/k1')));
+    expect(snap.data()?.['memberNames']).toEqual({ bruk: 'Bruk', sam: 'Sam' });
+  });
+
+  it('a non-member cannot read memberNames either - the same read that is already denied', async () => {
+    await seedKitchen('k1', ['bruk', 'sam'], { bruk: 'Bruk', sam: 'Sam' });
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1')));
   });
 });
 

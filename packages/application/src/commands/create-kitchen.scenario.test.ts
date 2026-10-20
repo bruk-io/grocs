@@ -32,6 +32,7 @@ describe('CreateKitchen scenarios (R2)', () => {
       createKitchen: () => Promise.reject(new Error('functions are down')),
       joinKitchen: () => Promise.reject(new Error('functions are down')),
       findMyKitchen: () => Promise.reject(new Error('functions are down')),
+      getKitchen: () => Promise.reject(new Error('functions are down')),
     };
     const client = await createTestClient({ uid: 'bruk', kitchens: broken });
     const result = await client.dispatcher.dispatch(create());
@@ -54,6 +55,7 @@ describe('CreateKitchen scenarios (R2)', () => {
       },
       joinKitchen: () => Promise.reject(new Error('unused')),
       findMyKitchen: () => Promise.reject(new Error('unused')),
+      getKitchen: () => Promise.reject(new Error('unused')),
     };
     const client = await createTestClient({ uid: 'bruk', kitchens: stub });
     const timeZone = 'Pacific/Auckland';

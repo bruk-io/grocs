@@ -1,6 +1,6 @@
 import { addMember, checkInvite, createKitchen, inviteCodeFromId } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
-import type { Clock, CreatedKitchen, IdGenerator, JoinOutcome, KitchenGateway } from '@grocs/ports';
+import type { Clock, CreatedKitchen, IdGenerator, JoinOutcome, KitchenDetails, KitchenGateway } from '@grocs/ports';
 
 interface Invite {
   readonly code: string;
@@ -32,22 +32,30 @@ export class MemoryKitchenGateway implements KitchenGateway {
   readonly #callerUid: string;
   readonly #clock: Clock;
   readonly #ids: IdGenerator;
+  readonly #displayName: string;
 
-  constructor(callerUid: string, shared: SharedState = { kitchens: new Map(), invites: new Map() }, clock: Clock = systemClock, ids: IdGenerator = systemIds) {
+  constructor(
+    callerUid: string,
+    shared: SharedState = { kitchens: new Map(), invites: new Map() },
+    clock: Clock = systemClock,
+    ids: IdGenerator = systemIds,
+    displayName: string = callerUid,
+  ) {
     this.#callerUid = callerUid;
     this.#state = shared;
     this.#clock = clock;
     this.#ids = ids;
+    this.#displayName = displayName;
   }
 
   /** A gateway for a different caller, sharing this one's in-memory kitchens and invites. */
-  asCaller(uid: string): MemoryKitchenGateway {
-    return new MemoryKitchenGateway(uid, this.#state, this.#clock, this.#ids);
+  asCaller(uid: string, displayName: string = uid): MemoryKitchenGateway {
+    return new MemoryKitchenGateway(uid, this.#state, this.#clock, this.#ids, displayName);
   }
 
   async createKitchen(name: string, timeZone: string): Promise<CreatedKitchen> {
     const id = this.#ids.newId();
-    const made = createKitchen({ id, name, timeZone, ownerUid: this.#callerUid, createdAt: this.#clock.now() });
+    const made = createKitchen({ id, name, timeZone, ownerUid: this.#callerUid, ownerName: this.#displayName, createdAt: this.#clock.now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
     this.#state.kitchens.set(made.value.id, made.value);
     const code = inviteCodeFromId(this.#ids.newId());
@@ -63,7 +71,7 @@ export class MemoryKitchenGateway implements KitchenGateway {
 
     const kitchen = this.#state.kitchens.get(invite.kitchenId);
     if (!kitchen) return { kind: 'rejected', reason: 'not-found' };
-    const joined = addMember(kitchen, this.#callerUid);
+    const joined = addMember(kitchen, this.#callerUid, this.#displayName);
     if (!joined.ok) return { kind: 'rejected', reason: joined.error };
 
     this.#state.kitchens.set(kitchen.id, joined.value);
@@ -76,5 +84,11 @@ export class MemoryKitchenGateway implements KitchenGateway {
       if (kitchen.members.includes(this.#callerUid)) return kitchen.id;
     }
     return null;
+  }
+
+  async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
+    const kitchen = this.#state.kitchens.get(kitchenId);
+    if (!kitchen) return null;
+    return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames[uid] ?? uid })) };
   }
 }

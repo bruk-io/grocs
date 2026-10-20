@@ -92,6 +92,7 @@ describe('JoinKitchen scenarios (R3)', () => {
         createKitchen: () => Promise.reject(new Error('unused')),
         joinKitchen: () => Promise.resolve({ kind: 'rejected', reason }),
         findMyKitchen: () => Promise.resolve(null),
+        getKitchen: () => Promise.reject(new Error('unused')),
       };
       const client = await createTestClient({ uid: 'sam', kitchens: stub });
       const result = await client.dispatcher.dispatch(join('ANY-0000'));

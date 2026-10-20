@@ -4,7 +4,7 @@ import { FakeClock } from '../clock/fake.ts';
 import type { Clock } from '../clock/port.ts';
 import { SequentialIds } from '../ids/fake.ts';
 import type { IdGenerator } from '../ids/port.ts';
-import type { CreatedKitchen, JoinOutcome, KitchenGateway } from './port.ts';
+import type { CreatedKitchen, JoinOutcome, KitchenDetails, KitchenGateway } from './port.ts';
 
 interface Invite {
   readonly code: string;
@@ -24,28 +24,31 @@ export class FakeKitchenGateway implements KitchenGateway {
   readonly #clock: Clock;
   readonly #ids: IdGenerator;
   readonly #callerUid: string;
+  readonly #displayName: string;
 
   constructor(
     callerUid: string,
     shared?: { kitchens: Map<string, Kitchen>; invites: Map<string, Invite> },
     clock: Clock = new FakeClock(),
     ids: IdGenerator = new SequentialIds('kitchen'),
+    displayName: string = callerUid,
   ) {
     this.#callerUid = callerUid;
     this.#kitchens = shared?.kitchens ?? new Map();
     this.#invites = shared?.invites ?? new Map();
     this.#clock = clock;
     this.#ids = ids;
+    this.#displayName = displayName;
   }
 
   /** A second gateway, for the kitchen's other member, sharing this one's server-side state. */
-  asMember(uid: string): FakeKitchenGateway {
-    return new FakeKitchenGateway(uid, { kitchens: this.#kitchens, invites: this.#invites }, this.#clock, this.#ids);
+  asMember(uid: string, displayName: string = uid): FakeKitchenGateway {
+    return new FakeKitchenGateway(uid, { kitchens: this.#kitchens, invites: this.#invites }, this.#clock, this.#ids, displayName);
   }
 
   async createKitchen(name: string, timeZone: string): Promise<CreatedKitchen> {
     const id = this.#ids.newId();
-    const made = createKitchen({ id, name, timeZone, ownerUid: this.#callerUid, createdAt: this.#clock.now() });
+    const made = createKitchen({ id, name, timeZone, ownerUid: this.#callerUid, ownerName: this.#displayName, createdAt: this.#clock.now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
     this.#kitchens.set(made.value.id, made.value);
     const inviteId = this.#ids.newId();
@@ -62,7 +65,7 @@ export class FakeKitchenGateway implements KitchenGateway {
 
     const kitchen = this.#kitchens.get(invite.kitchenId);
     if (!kitchen) return { kind: 'rejected', reason: 'not-found' };
-    const joined = addMember(kitchen, this.#callerUid);
+    const joined = addMember(kitchen, this.#callerUid, this.#displayName);
     if (!joined.ok) return { kind: 'rejected', reason: joined.error };
 
     this.#kitchens.set(kitchen.id, joined.value);
@@ -75,5 +78,11 @@ export class FakeKitchenGateway implements KitchenGateway {
       if (kitchen.members.includes(this.#callerUid)) return kitchen.id;
     }
     return null;
+  }
+
+  async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
+    const kitchen = this.#kitchens.get(kitchenId);
+    if (!kitchen) return null;
+    return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames[uid] ?? uid })) };
   }
 }

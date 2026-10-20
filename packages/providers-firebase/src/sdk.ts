@@ -25,6 +25,7 @@ export interface FirestoreFns {
   doc(parent: unknown, path: string, ...pathSegments: string[]): unknown;
   query(source: unknown, ...constraints: unknown[]): unknown;
   where(field: string, op: '==', value: unknown): unknown;
+  getDoc(ref: unknown): Promise<DocumentSnapshotLike>;
   getDocs(query: unknown): Promise<QuerySnapshotLike>;
   onSnapshot(
     query: unknown,

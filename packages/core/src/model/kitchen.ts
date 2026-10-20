@@ -10,6 +10,7 @@ export interface Kitchen {
   readonly schemaVersion: typeof KITCHEN_SCHEMA_VERSION;
   readonly name: string;
   readonly members: readonly string[];
+  readonly memberNames: Readonly<Record<string, string>>;
   readonly timeZone: string;
   readonly createdAt: number;
 }
@@ -19,6 +20,7 @@ export interface NewKitchenInput {
   readonly name: string;
   readonly timeZone: string;
   readonly ownerUid: string;
+  readonly ownerName: string;
   readonly createdAt: number;
 }
 
@@ -33,6 +35,7 @@ export function createKitchen(input: NewKitchenInput): Result<Kitchen, NewKitche
     schemaVersion: KITCHEN_SCHEMA_VERSION,
     name,
     members: [input.ownerUid],
+    memberNames: { [input.ownerUid]: input.ownerName },
     timeZone: input.timeZone,
     createdAt: input.createdAt,
   });
@@ -49,8 +52,8 @@ export type JoinKitchenError = 'full' | 'already-member';
  * re-reads the kitchen inside the same transaction that calls this, so `kitchen` here is never a
  * stale read: Firestore's transaction retries on conflict, not this function.
  */
-export function addMember(kitchen: Kitchen, uid: string): Result<Kitchen, JoinKitchenError> {
+export function addMember(kitchen: Kitchen, uid: string, name: string): Result<Kitchen, JoinKitchenError> {
   if (kitchen.members.includes(uid)) return err('already-member');
   if (isKitchenFull(kitchen)) return err('full');
-  return ok({ ...kitchen, members: [...kitchen.members, uid] });
+  return ok({ ...kitchen, members: [...kitchen.members, uid], memberNames: { ...kitchen.memberNames, [uid]: name } });
 }

@@ -7,6 +7,11 @@ export interface CreatedKitchen {
   readonly inviteCode: string;
 }
 
+export interface KitchenDetails {
+  readonly name: string;
+  readonly members: readonly { readonly uid: string; readonly name: string }[];
+}
+
 export type JoinKitchenResult =
   | { readonly kind: 'joined'; readonly kitchenId: string }
   | { readonly kind: 'rejected'; readonly reason: InviteCheckError | JoinKitchenError };
@@ -45,9 +50,9 @@ export class KitchenStore {
    * `set()` would silently repoint someone else's live invite at this kitchen instead. `create()`
    * fails the batch on an existing document, so a collision is retried with a fresh id instead.
    */
-  async createKitchen(name: string, timeZone: string, ownerUid: string): Promise<CreatedKitchen> {
+  async createKitchen(name: string, timeZone: string, ownerUid: string, ownerName: string): Promise<CreatedKitchen> {
     const id = this.#ids();
-    const made = createKitchen({ id, name, timeZone, ownerUid, createdAt: this.#now() });
+    const made = createKitchen({ id, name, timeZone, ownerUid, ownerName, createdAt: this.#now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
 
     const attempts = 5;
@@ -73,7 +78,7 @@ export class KitchenStore {
    * request for the same code, arriving while the first is still in flight, re-reads inside its
    * own transaction attempt and finds the invite already used rather than racing it (R19).
    */
-  async joinKitchen(code: string, callerUid: string): Promise<JoinKitchenResult> {
+  async joinKitchen(code: string, callerUid: string, callerName: string): Promise<JoinKitchenResult> {
     return this.#db.runTransaction(async (tx) => {
       const inviteRef = this.#db.doc(`inviteCodes/${code}`);
       const inviteSnap = await tx.get(inviteRef);
@@ -87,7 +92,7 @@ export class KitchenStore {
       if (!kitchenSnap.exists) return { kind: 'rejected', reason: 'not-found' };
       const kitchen = kitchenSnap.data() as Kitchen;
 
-      const joined = addMember(kitchen, callerUid);
+      const joined = addMember(kitchen, callerUid, callerName);
       if (!joined.ok) return { kind: 'rejected', reason: joined.error };
 
       tx.set(kitchenRef, joined.value);
@@ -102,5 +107,13 @@ export class KitchenStore {
     const snap = await this.#db.doc(`memberships/${uid}`).get();
     if (!snap.exists) return null;
     return (snap.data() as MembershipDoc).kitchenId;
+  }
+
+  /** A kitchen's name and members - or null for an id nobody created. */
+  async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
+    const snap = await this.#db.doc(`kitchens/${kitchenId}`).get();
+    if (!snap.exists) return null;
+    const kitchen = snap.data() as Kitchen;
+    return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames?.[uid] ?? uid })) };
   }
 }

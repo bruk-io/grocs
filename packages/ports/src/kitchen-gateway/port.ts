@@ -10,11 +10,23 @@ export interface KitchenGateway {
   joinKitchen(code: string): Promise<JoinOutcome>;
   /** The caller's kitchen, found on any phone after signing in - or null if they have none yet. */
   findMyKitchen(): Promise<string | null>;
+  /** A kitchen's name and members, for a kitchen the caller belongs to - or null for an id nobody has. */
+  getKitchen(kitchenId: string): Promise<KitchenDetails | null>;
 }
 
 export interface CreatedKitchen {
   readonly kitchenId: string;
   readonly inviteCode: string;
+}
+
+export interface KitchenMemberDetails {
+  readonly uid: string;
+  readonly name: string;
+}
+
+export interface KitchenDetails {
+  readonly name: string;
+  readonly members: readonly KitchenMemberDetails[];
 }
 
 export type JoinOutcome =

@@ -128,5 +128,41 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
         t.expect(await stranger.findMyKitchen()).toBeNull();
       }),
     );
+
+    // Structural only: a provider's real display name (an ID token claim, a constructor default,
+    // whatever it is) differs by subject, so the shared contract checks shape - a defined name per
+    // member - and leaves exact content to each provider's own test.
+    t.it(
+      'getKitchen returns the name and one member after a solo create',
+      withGateways(async ({ owner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const details = await owner.getKitchen(created.kitchenId);
+        t.expect(details?.name).toBe('Our kitchen');
+        t.expect(details?.members.length).toBe(1);
+        t.expect(details?.members[0]?.uid.length).toBeGreaterThan(0);
+        t.expect(typeof details?.members[0]?.name).toBe('string');
+      }),
+    );
+
+    t.it(
+      'getKitchen returns both members once a second person joins',
+      withGateways(async ({ owner, partner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        await partner.joinKitchen(created.inviteCode);
+        const details = await owner.getKitchen(created.kitchenId);
+        t.expect(details?.members.length).toBe(2);
+        for (const member of details?.members ?? []) {
+          t.expect(member.uid.length).toBeGreaterThan(0);
+          t.expect(typeof member.name).toBe('string');
+        }
+      }),
+    );
+
+    t.it(
+      'getKitchen returns null for an id nobody created',
+      withGateways(async ({ stranger }) => {
+        t.expect(await stranger.getKitchen('no-such-kitchen')).toBeNull();
+      }),
+    );
   });
 }

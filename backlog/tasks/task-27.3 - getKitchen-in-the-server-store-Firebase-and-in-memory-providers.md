@@ -4,7 +4,7 @@ title: 'getKitchen in the server store, Firebase and in-memory providers'
 status: To Do
 assignee: []
 created_date: '2026-10-20 22:24'
-updated_date: '2026-10-20 22:25'
+updated_date: '2026-10-20 22:45'
 labels:
   - layer-providers
   - size-3
@@ -28,7 +28,13 @@ packages/providers-memory/src/memory-kitchen-gateway.ts: constructor takes an op
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 KitchenStore (providers-server) gains ownerName/callerName parameters on createKitchen/joinKitchen, written into memberNames, and a getKitchen(kitchenId) method; its own emulator test's contract-adapter wires it into the shared getKitchen contract cases
-- [ ] #2 FirebaseKitchenGateway.getKitchen reads kitchens/{kitchenId} directly over FirestoreFns, maps memberNames defensively, and returns null (not a thrown permission-denied) for an id nobody created; passes the shared contract through the real Cloud Functions-backed emulator client, plus a Firebase-specific test (using the seeded bruk/sam accounts, which do carry a real displayName/ID-token name) proving an actual display name round-trips end to end
-- [ ] #3 MemoryKitchenGateway takes an optional display name in its constructor (default: the caller uid) and implements getKitchen from its shared in-memory state, passing the shared contract
+- [x] #1 KitchenStore (providers-server) gains ownerName/callerName parameters on createKitchen/joinKitchen, written into memberNames, and a getKitchen(kitchenId) method; its own emulator test's contract-adapter wires it into the shared getKitchen contract cases
+- [x] #2 FirebaseKitchenGateway.getKitchen reads kitchens/{kitchenId} directly over FirestoreFns, maps memberNames defensively, and returns null (not a thrown permission-denied) for an id nobody created; passes the shared contract through the real Cloud Functions-backed emulator client, plus a Firebase-specific test (using the seeded bruk/sam accounts, which do carry a real displayName/ID-token name) proving an actual display name round-trips end to end
+- [x] #3 MemoryKitchenGateway takes an optional display name in its constructor (default: the caller uid) and implements getKitchen from its shared in-memory state, passing the shared contract
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented directly by the orchestrator together with the rest of the TASK-27 chain (see TASK-27.1's notes). KitchenStore.createKitchen/joinKitchen gain ownerName/callerName parameters, written into memberNames in the same batch/transaction as the existing writes; KitchenStore.getKitchen is a plain Admin SDK doc read, wired into its emulator test's gatewayFor adapter, which now also passes a display name per uid. FirebaseKitchenGateway's constructor also takes (fs: FirestoreFns, db: unknown); getKitchen reads kitchens/{kitchenId} directly (FirestoreFns.getDoc, newly added to the shared SDK slice - both the web and native modular APIs already export it) and catches permission-denied specifically, returning null to match every other provider's answer for an id nobody created (isMember() errors indexing .data.members on a document that does not exist, which Firestore surfaces as permission-denied rather than revealing non-existence). apps/mobile/src/composition/compose-firebase.ts and the emulator test file pass the already-available firestore/db through. A Firebase-specific test using the seeded bruk/sam accounts (whose ID tokens carry real name claims) proves actual display names round-trip end to end, beyond the shared contract's structural-only cases; another documents that getKitchen answers null rather than throwing for a signed-out caller, unlike the callable-backed methods, since it is a direct Firestore read where the rule denies a signed-out read the same way it denies a non-member one. MemoryKitchenGateway takes an optional display name (default: the uid) and implements getKitchen from its shared state; apps/mobile/src/demo/compose-demo.ts passes DEMO_MEMBER.displayName through to both the direct core.createKitchen seeding call and the gateway constructor. pnpm test:emulator: 80 tests (up from 70), run twice clean.
+<!-- SECTION:NOTES:END -->

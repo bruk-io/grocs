@@ -4,7 +4,7 @@ title: 'getKitchenInfo: the application query beside findMyKitchen'
 status: To Do
 assignee: []
 created_date: '2026-10-20 22:24'
-updated_date: '2026-10-20 22:25'
+updated_date: '2026-10-20 22:45'
 labels:
   - layer-application
   - size-1
@@ -22,5 +22,11 @@ For TASK-27, depends on TASK-27.2 (the frozen port/contract) - does not need TAS
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A new query, packages/application/src/queries/get-kitchen-info.ts, returns {name, members: {uid, name, isCaller}[]} for a given kitchenId, or null if the gateway has none for that id, with tests using FakeKitchenGateway covering the caller flag, a partner's row, and the null case
+- [x] #1 A new query, packages/application/src/queries/get-kitchen-info.ts, returns {name, members: {uid, name, isCaller}[]} for a given kitchenId, or null if the gateway has none for that id, with tests using FakeKitchenGateway covering the caller flag, a partner's row, and the null case
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented directly by the orchestrator together with the rest of the TASK-27 chain (see TASK-27.1's notes). packages/application/src/queries/get-kitchen-info.ts: getKitchenInfo(deps, kitchenId) calls deps.kitchens.getKitchen and marks isCaller from deps.auth.currentUser()?.uid, keeping the gateway's KitchenDetails data-only. Exported from the package's index.ts alongside findMyKitchen. Tests cover the caller flag, a partner's row, and the null case, using FakeKitchenGateway's new asMember(uid, displayName) and constructor display-name parameter.
+<!-- SECTION:NOTES:END -->

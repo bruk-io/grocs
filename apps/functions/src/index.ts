@@ -20,6 +20,12 @@ function requireUid(request: CallableRequest): string {
   return request.auth.uid;
 }
 
+/** The caller's display name from their ID token, when the identity provider or account supplies one. */
+function callerName(request: CallableRequest): string {
+  const name = request.auth?.token['name'];
+  return typeof name === 'string' ? name : '';
+}
+
 function requireString(data: unknown, field: string): string {
   const value = (data as Record<string, unknown> | null)?.[field];
   if (typeof value !== 'string' || value.trim() === '') throw new HttpsError('invalid-argument', `${field} is required`);
@@ -34,13 +40,13 @@ export const createKitchen = onCall(async (request) => {
   // side with the real message, same as joinKitchen already relies on below.
   const name = requireString(request.data, 'name');
   const timeZone = requireString(request.data, 'timeZone');
-  return store().createKitchen(name, timeZone, ownerUid);
+  return store().createKitchen(name, timeZone, ownerUid, callerName(request));
 });
 
 export const joinKitchen = onCall(async (request) => {
   const uid = requireUid(request);
   const code = requireString(request.data, 'code');
-  return store().joinKitchen(code, uid);
+  return store().joinKitchen(code, uid, callerName(request));
 });
 
 export const findMyKitchen = onCall(async (request) => {

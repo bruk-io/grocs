@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-core'
 created_date: '2026-10-20 22:24'
-updated_date: '2026-10-20 22:26'
+updated_date: '2026-10-20 22:44'
 labels:
   - layer-core
   - size-1
@@ -25,8 +25,8 @@ For TASK-27 (the app reads its kitchen's name and members). Kitchen needs to car
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Kitchen gains memberNames: Readonly<Record<string, string>> (uid -> display name)
-- [ ] #2 createKitchen (NewKitchenInput gains ownerName) seeds memberNames with the owner, and addMember gains a name parameter and adds it to memberNames; both have tests for the new behaviour with no shrink in existing test counts
+- [x] #1 Kitchen gains memberNames: Readonly<Record<string, string>> (uid -> display name)
+- [x] #2 createKitchen (NewKitchenInput gains ownerName) seeds memberNames with the owner, and addMember gains a name parameter and adds it to memberNames; both have tests for the new behaviour with no shrink in existing test counts
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -47,3 +47,9 @@ This task alone leaves packages/ports, packages/providers-server and packages/pr
 ### Proof
 vitest run --project unit packages/core passes, and Kitchen/NewKitchenInput/addMember's signatures match this plan exactly (grep for memberNames and ownerName in kitchen.ts).
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented directly by the orchestrator, not the dispatched builder-core-small agent: that agent's TASK-27.1 work was correct (verified independently - 10 test files, 64 tests) but could not commit, since lefthook's pre-commit hook always runs whole-repo typecheck/test with no scoping, and every downstream caller of createKitchen/addMember breaks the instant the signature changes. Per decision-3's own fallback for small slices ('cheaper for one builder working through the layers in order'), the whole TASK-27 chain (27.1-27.4 plus apps/functions and the two composition roots) was implemented in one pass and lands as one commit. This task's own piece: Kitchen gains memberNames, NewKitchenInput gains ownerName, addMember gains a name parameter. kitchen.test.ts: 8 -> 10 tests (2 added, none removed).
+<!-- SECTION:NOTES:END -->
