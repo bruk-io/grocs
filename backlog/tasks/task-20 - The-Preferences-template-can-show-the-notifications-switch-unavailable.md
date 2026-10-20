@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 17:34'
-updated_date: '2026-10-20 17:59'
+updated_date: '2026-10-20 19:00'
 labels:
   - size-2
   - layer-ui
@@ -35,4 +35,6 @@ Make PreferencesTemplate's notifications switch a two-shape union (live: notific
 
 <!-- SECTION:NOTES:BEGIN -->
 Built. PreferencesTemplate props are now NotificationsSwitch (live: notificationsOn + required onNotificationsChange | unavailable: notificationsUnavailable: string, switch drawn off and disabled, reason shown under the label) & the rest. Story Unavailable, test added, states list has 'unavailable'. Existing baselines unchanged; added templates-preferences--unavailable{,--fold-inner,--fold-outer}.png + manifest.json. pnpm check, typecheck, test (1335 passed), visual (318 compared) all pass.
+
+Baselines approved by @bruk on Oct 20, 2026 ('Approve'), after seeing templates-preferences--unavailable.png. The visual baselines workflow (run 39472613507, on 8e1aa5a pushed as task-20-ui) wrote 319 files byte-identical to this branch's packages/ui/visual-baselines.
 <!-- SECTION:NOTES:END -->
