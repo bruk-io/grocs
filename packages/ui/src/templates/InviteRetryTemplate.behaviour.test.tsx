@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './InviteRetryTemplate.stories.tsx';
 import { InviteRetryTemplate } from './InviteRetryTemplate.tsx';
 
-const { Invalid } = composeStories(stories);
+const { Invalid, FirstAttempt } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -56,5 +56,19 @@ describe('InviteRetryTemplate', () => {
   it('shows no error when none is given', () => {
     render(<InviteRetryTemplate inviter="Bruk" code="MOREL-42" onCodeChange={() => undefined} />);
     expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('on a first attempt is neutral: no error title, no error, no way back', async () => {
+    const onCheck = vi.fn();
+    render(<FirstAttempt onCheck={onCheck} />);
+    expect(screen.getByRole('heading', { name: 'Enter your invite code' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: "Code didn't work" })).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Back to my invite' })).toBeNull();
+    const field = screen.getByRole('textbox', { name: 'Invite code from Bruk' });
+    expect((field as HTMLInputElement).value).toBe('');
+    expect(field.getAttribute('aria-invalid')).not.toBe('true');
+    await user.type(field, '{Enter}');
+    expect(onCheck).toHaveBeenCalledOnce();
   });
 });

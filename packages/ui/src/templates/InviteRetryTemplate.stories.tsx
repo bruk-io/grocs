@@ -16,3 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 /** JoinInviteInvalid. */
 export const Invalid: Story = {};
+
+/** The typed code entry before any code was tried: neutral title, empty field, no error, no way back. */
+export const FirstAttempt: Story = { args: { attempt: 'first', code: '', errorMessage: '' } };
