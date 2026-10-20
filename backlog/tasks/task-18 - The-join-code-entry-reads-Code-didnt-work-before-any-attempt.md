@@ -1,11 +1,13 @@
 ---
-id: DRAFT-12
-title: The join code entry reads 'Code didn't work' before any attempt
-status: Draft
-assignee: []
+id: TASK-18
+title: The ui offers a neutral code-entry state for a first join attempt
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 11:35'
+updated_date: '2026-10-20 12:07'
 labels:
-  - size-1
+  - size-2
   - layer-ui
 dependencies: []
 type: bug
@@ -20,5 +22,10 @@ TASK-1.20.2 review. JoinInviteScreen reuses InviteRetryTemplate for typed code e
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 The ui offers a code-entry state with a neutral title for a first attempt, with its story and approved baseline
-- [ ] #2 The /join screen with no code shows that state, and the retry wording only after a rejection, shown by a route test
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Accepted by @bruk (Oct 20, 2026: 'go further'). Split at acceptance: criterion 2 (the /join screen uses the new state, retry wording only after a rejection) is app-layer work, filed as its own size-1 task once this state exists. Sized 2: a new state needs its baselines approved by Bruk.
+<!-- SECTION:NOTES:END -->

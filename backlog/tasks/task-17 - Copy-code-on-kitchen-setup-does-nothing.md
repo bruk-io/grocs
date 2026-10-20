@@ -1,11 +1,13 @@
 ---
-id: DRAFT-11
+id: TASK-17
 title: Copy code on kitchen setup does nothing
-status: Draft
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-20 11:35'
+updated_date: '2026-10-20 12:07'
 labels:
-  - size-1
+  - size-2
   - layer-app
 dependencies: []
 type: bug
@@ -22,3 +24,9 @@ TASK-1.20.2 review. KitchenSetupScreen passes onShare but no onCopy, so InviteCa
 - [ ] #1 Copy code puts the invite code on the clipboard, shown by a route test on a fake clipboard
 - [ ] #2 Before a kitchen exists, Share link and Copy code are either hidden or disabled, not dead
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Accepted by @bruk (Oct 20, 2026: 'go further'). Resized to 2 at acceptance: it adds expo-clipboard, a native module, and a clipboard seam on the app composition that route tests can fake. decision-8 already names expo-clipboard for the diagnostics copy (TASK-1.28), so this lays the shared piece.
+<!-- SECTION:NOTES:END -->
