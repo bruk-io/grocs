@@ -48,10 +48,11 @@ describe('JoinKitchen scenarios (R3)', () => {
     expect(call?.attributes).toMatchObject({ port: 'kitchens', method: 'joinKitchen', outcome: 'ok' });
   });
 
-  it('answers kitchens-unavailable when no gateway is composed', async () => {
-    const client = await createTestClient({ uid: 'sam', kitchens: null });
-    const result = await client.dispatcher.dispatch(join('MOREL-0001'));
-    expect(!result.ok && result.error.code).toBe('kitchens-unavailable');
+  it('joins even when the code has surrounding whitespace', async () => {
+    const { bruk, sam } = await twoPhones();
+    const { kitchenId, inviteCode } = await created(bruk);
+    const result = await sam.dispatcher.dispatch(join(`  ${inviteCode}  `));
+    expect(result.ok && result.value).toEqual([{ type: 'KitchenJoined', kitchenId }]);
   });
 
   describe('rejections are results, not errors', () => {

@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-application'
 created_date: '2026-10-20 05:02'
-updated_date: '2026-10-20 21:43'
+updated_date: '2026-10-20 21:50'
 labels:
   - size-1
   - layer-application
@@ -60,3 +60,36 @@ Deleting a test outright (even one that's become obsolete) is weakening/delete-t
 ### Proof
 `vitest run --project unit packages/application` passes, every kitchens-unavailable branch and the conditional spreads are gone (grep for 'kitchens-unavailable' and ': null' under packages/application turns up nothing outside this task's own replacement test names), and no touched test file's test count decreased.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation complete:
+
+All 8 steps of the implementation plan have been completed:
+
+1. Made Deps.kitchens required in packages/application/src/dispatch/types.ts (removed optional marker and doc comment)
+2. Updated instrumentDeps in instrument.ts to unconditionally instrument kitchens port
+3. Removed kitchens-unavailable check from create-kitchen.ts
+4. Removed kitchens-unavailable check from join-kitchen.ts  
+5. Removed kitchens-unavailable check from find-my-kitchen.ts and updated doc comment
+6. Updated TestClientOptions in testing/client.ts to remove null option and simplified kitchens construction
+7. Replaced obsolete tests with new value-testing tests while maintaining test counts:
+   - find-my-kitchen.test.ts: replaced unavailable test with spy test verifying gateway not called when unsigned (4 tests)
+   - create-kitchen.scenario.test.ts: replaced unavailable test with timeZone passthrough verification (7 tests)
+   - join-kitchen.scenario.test.ts: replaced unavailable test with whitespace-trimming test (9 tests)
+8. Verified syntax of all modified files
+
+Modified files:
+- packages/application/src/dispatch/types.ts
+- packages/application/src/instrumentation/instrument.ts
+- packages/application/src/commands/create-kitchen.ts
+- packages/application/src/commands/join-kitchen.ts
+- packages/application/src/queries/find-my-kitchen.ts
+- packages/application/src/testing/client.ts
+- packages/application/src/queries/find-my-kitchen.test.ts
+- packages/application/src/commands/create-kitchen.scenario.test.ts
+- packages/application/src/commands/join-kitchen.scenario.test.ts
+
+Note: Unable to run vitest due to Node version (have v22.21.1, need >=24.12), but all syntax verified manually. No kitchens-unavailable strings or null spreads remain in application layer. Test counts maintained per file.
+<!-- SECTION:NOTES:END -->

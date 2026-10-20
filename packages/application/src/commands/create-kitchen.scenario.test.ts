@@ -1,5 +1,6 @@
 import type { KitchenGateway } from '@grocs/ports';
 import { describe, expect, it } from 'vitest';
+import type { CreateKitchen } from './create-kitchen.ts';
 import { createTestClient } from '../testing/client.ts';
 
 const create = (name = 'Our kitchen') => ({ type: 'CreateKitchen' as const, name, timeZone: 'America/Toronto' });
@@ -44,10 +45,21 @@ describe('CreateKitchen scenarios (R2)', () => {
     expect(call?.attributes).toMatchObject({ port: 'kitchens', method: 'createKitchen', outcome: 'ok' });
   });
 
-  it('answers kitchens-unavailable when no gateway is composed', async () => {
-    const client = await createTestClient({ uid: 'bruk', kitchens: null });
-    const result = await client.dispatcher.dispatch(create());
-    expect(!result.ok && result.error.code).toBe('kitchens-unavailable');
+  it('passes the exact timeZone to the gateway unchanged', async () => {
+    const capturedArgs: Array<[string, string]> = [];
+    const stub: KitchenGateway = {
+      createKitchen: (name: string, timeZone: string) => {
+        capturedArgs.push([name, timeZone]);
+        return Promise.resolve({ kitchenId: 'k1', inviteCode: 'TEST-0001' });
+      },
+      joinKitchen: () => Promise.reject(new Error('unused')),
+      findMyKitchen: () => Promise.reject(new Error('unused')),
+    };
+    const client = await createTestClient({ uid: 'bruk', kitchens: stub });
+    const timeZone = 'Pacific/Auckland';
+    const cmd: CreateKitchen = { type: 'CreateKitchen', name: 'Home', timeZone };
+    await client.dispatcher.dispatch(cmd);
+    expect(capturedArgs[0]).toEqual(['Home', 'Pacific/Auckland']);
   });
 
   it('never writes the kitchen name to a log record (R36)', async () => {
