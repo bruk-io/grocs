@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 19:03'
-updated_date: '2026-10-20 05:44'
+updated_date: '2026-10-20 11:07'
 labels:
   - size-2
   - layer-ui
@@ -115,4 +115,6 @@ Review (philosophy:reviewer, Oct 20 2026), commit 49d302e. Verdict: not closed. 
 Oct 20, 2026 (orchestrator): the review's findings are folded back into this task rather than a draft, since it is not closed and the app half (TASK-10.9) builds on the API. To do: make primary mode a choice at the type level (primaryLabel needs onPrimary; say what happens to signingIn in that mode); test that the footer still renders in primary mode; remove the tall empty band above the single button; then regenerate the new baselines through visual:update. The orchestrator then runs the visual baselines workflow on the pushed branch and asks Bruk to approve the four images.
 
 Review round (Oct 20, builder-ui): primary mode is now a type-level choice. AuthSheetProps and SignInTemplateProps are unions. Sign-in shape: onContinue?, onOpenInvite?, signingIn? (primaryLabel/onPrimary: never). Primary shape: primaryLabel: string and onPrimary: () => void both required (onContinue, onOpenInvite, signingIn: never). signingIn is not accepted in primary mode: no Google sheet exists to be busy with. disabled and footer are shared; footer renders in both. Final API for TASK-10.9: <SignInTemplate title=... tagline=... primaryLabel="Try the demo" onPrimary={...} />. Layout: in primary mode the sheet content starts at the top (justifyContent flex-start) instead of centring, so the button sits where the rest sheet's first row sits, with no band above; rest sheet is unchanged. Tests: new AuthSheet behaviour test that the footer still renders under the primary action, and that it is the only button; the old test no longer passes onContinue (the type forbids it). Baselines: visual:update wrote all 315; only 3 files changed: templates-sign-in--primary-action.png, --fold-inner.png, --fold-outer.png (plus their 3 manifest hashes). organisms-authsheet--primary-action.png and every existing state are byte-identical. I looked at the new image: one full-width Try the demo button at the top of the sheet. Checks: pnpm check, typecheck, test (1310 passed), visual (315 views, 315 images compared) pass. Still open: the orchestrator runs the visual baselines workflow on the pushed branch and Bruk approves the images (AC2).
+
+Baselines approved by @bruk on Oct 20, 2026, after seeing templates-sign-in--primary-action.png beside the rest state and the Fold inner view ('Approve as is'). The visual baselines workflow (run 39378464933, on 9a3e34d pushed as task-12-primary) wrote 316 files byte-identical to this branch's packages/ui/visual-baselines (diff -rq clean).
 <!-- SECTION:NOTES:END -->
