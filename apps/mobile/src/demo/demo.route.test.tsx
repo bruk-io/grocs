@@ -33,12 +33,15 @@ describe('demo composition', () => {
     renderRoute(ROUTES, { app: demoApp() });
     expect(await screen.findByText('Plan the week. Shop together.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Try the demo' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).toBeNull();
+    expect(screen.queryByText('Got an invite?')).toBeNull();
   });
 
   it('has no way in but the real ones in a build that is not the demo', async () => {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false }) });
     await screen.findByText('Plan the week. Shop together.');
     expect(screen.queryByRole('button', { name: 'Try the demo' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
   });
 
   it('shows the sample list on Groceries after Try the demo', async () => {
