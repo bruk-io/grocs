@@ -1,11 +1,11 @@
 ---
 id: TASK-21
 title: The /join screen shows the neutral code entry until a code is rejected
-status: In Progress
+status: Done
 assignee:
   - '@builder-app-small'
 created_date: '2026-10-20 17:39'
-updated_date: '2026-10-20 20:27'
+updated_date: '2026-10-20 20:37'
 labels:
   - size-1
   - layer-app
@@ -23,7 +23,7 @@ TASK-18 delivered InviteRetryTemplate attempt='first' (no inviter, errorMessage 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 JoinInviteScreen renders attempt='first' before any code is checked and switches to the retry state only after a rejection, keeping the typed code, shown by a route test
+- [x] #1 JoinInviteScreen renders attempt='first' before any code is checked and switches to the retry state only after a rejection, keeping the typed code, shown by a route test
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -178,4 +178,6 @@ Repro at 5aa5b8df1bb4, test files: apps/mobile/src/routes/kitchen.route.test.tsx
 ```
 
 Finish line moved by the orchestrator (Oct 20, 2026): 'and focus' dropped from criterion 1. The TASK-21 review found nothing tests focus, and focus is likely lost anyway: InviteRetryTemplate disables the field while checking, which blurs it. Giving focus back needs a ui-layer change (the template has no way to refocus its field), so it is filed as its own draft, not built here. The repro was recorded by the orchestrator, because the reviewer's guard refuses restoring files: the new test fails against d5a37e6^'s JoinInviteScreen and passes now, with git diff -- apps empty afterwards.
+
+Review (philosophy:reviewer, Oct 20, 2026): closed. bbb00aa changes only the task file; apps code unchanged since the last full-tier record. Repro recorded at 5aa5b8d: the route test fails at 'Enter your invite code' against the pre-change screen, and the kitchen route suite passes now (18/18, rerun). Criterion 1 met: the test asserts the neutral entry, the switch after rejection, and the kept code. Moving 'and focus' out is sound and recorded (finish-moved label, note, DRAFT-13 on main for the ui-layer refocus). No new findings.
 <!-- SECTION:NOTES:END -->
