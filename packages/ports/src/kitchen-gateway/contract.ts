@@ -104,5 +104,29 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
         t.expect(outcome).toEqual({ kind: 'rejected', reason: 'used' });
       }),
     );
+
+    t.it(
+      'finds the kitchen a person created',
+      withGateways(async ({ owner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        t.expect(await owner.findMyKitchen()).toBe(created.kitchenId);
+      }),
+    );
+
+    t.it(
+      'finds the kitchen a person joined',
+      withGateways(async ({ owner, partner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        await partner.joinKitchen(created.inviteCode);
+        t.expect(await partner.findMyKitchen()).toBe(created.kitchenId);
+      }),
+    );
+
+    t.it(
+      'finds nothing for someone with no kitchen yet',
+      withGateways(async ({ stranger }) => {
+        t.expect(await stranger.findMyKitchen()).toBeNull();
+      }),
+    );
   });
 }

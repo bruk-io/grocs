@@ -69,4 +69,11 @@ export class FakeKitchenGateway implements KitchenGateway {
     invite.status = 'used';
     return { kind: 'joined', kitchenId: kitchen.id };
   }
+
+  async findMyKitchen(): Promise<string | null> {
+    for (const kitchen of this.#kitchens.values()) {
+      if (kitchen.members.includes(this.#callerUid)) return kitchen.id;
+    }
+    return null;
+  }
 }

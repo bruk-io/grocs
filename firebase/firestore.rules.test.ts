@@ -105,3 +105,34 @@ describe('inviteCodes/{code} (R2, R3)', () => {
     await assertFails(setDoc(doc(bruk.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' }));
   });
 });
+
+describe('memberships/{uid} (TASK-14)', () => {
+  async function seedMembership(uid: string, kitchenId: string): Promise<void> {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `memberships/${uid}`), { kitchenId });
+    });
+  }
+
+  it('a member can read their own membership', async () => {
+    await seedMembership('bruk', 'k1');
+    const bruk = testEnv.authenticatedContext('bruk');
+    await assertSucceeds(getDoc(doc(bruk.firestore(), 'memberships/bruk')));
+  });
+
+  it('a member cannot read someone else\'s membership', async () => {
+    await seedMembership('bruk', 'k1');
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'memberships/bruk')));
+  });
+
+  it('a signed-out request cannot read a membership', async () => {
+    await seedMembership('bruk', 'k1');
+    const anon = testEnv.unauthenticatedContext();
+    await assertFails(getDoc(doc(anon.firestore(), 'memberships/bruk')));
+  });
+
+  it('no one can write a membership directly - only the server functions do', async () => {
+    const bruk = testEnv.authenticatedContext('bruk');
+    await assertFails(setDoc(doc(bruk.firestore(), 'memberships/bruk'), { kitchenId: 'k1' }));
+  });
+});

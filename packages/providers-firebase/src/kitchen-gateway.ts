@@ -31,4 +31,10 @@ export class FirebaseKitchenGateway implements KitchenGateway {
     const { data } = await call({ code });
     return data;
   }
+
+  async findMyKitchen(): Promise<string | null> {
+    const call = this.#fns.httpsCallable<Record<string, never>, string | null>(this.#functionsInstance, 'findMyKitchen');
+    const { data } = await call({});
+    return data;
+  }
 }

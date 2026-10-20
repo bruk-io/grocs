@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-20 03:20'
-updated_date: '2026-10-20 03:32'
+updated_date: '2026-10-20 03:36'
 labels:
   - size-3
 dependencies: []
@@ -34,8 +34,8 @@ From decision-13. KitchenGateway only creates and joins, so a member who signs i
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 After signing in, the app learns the member's kitchen through a port, on any phone, with contract tests for every provider
-- [ ] #2 Security rules let a member read only their own membership, with allow and deny tests
+- [x] #1 After signing in, the app learns the member's kitchen through a port, on any phone, with contract tests for every provider
+- [x] #2 Security rules let a member read only their own membership, with allow and deny tests
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -59,3 +59,13 @@ From decision-13. KitchenGateway only creates and joins, so a member who signs i
 - Emulator tests: the full port contract (fake, Firebase-via-real-Cloud-Functions, in-memory) plus the new findMyKitchen cases, and firestore.rules allow/deny tests for memberships/{uid}.
 - pnpm check, pnpm typecheck, pnpm test, pnpm test:emulator, pnpm check:demo, pnpm check:release all green.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented per the plan. KitchenGateway gained findMyKitchen(): Promise<string | null>. Data shape: memberships/{uid} = {kitchenId}, written atomically alongside the existing kitchen/invite writes in KitchenStore.createKitchen's batch and joinKitchen's transaction (a reader never sees a kitchen or a join without its membership record, same reasoning as the existing kitchen+invite atomicity). A new findMyKitchen Cloud Function wraps KitchenStore.findKitchenForUid. FirebaseKitchenGateway and MemoryKitchenGateway both implement it; the fake finds the kitchen by scanning its in-memory members (simpler than simulating the membership doc, since the fake already holds full kitchen state). firestore.rules: memberships/{uid} readable only by its own uid, writable by no one (server functions only, same pattern as kitchens/{kitchenId}).
+
+Verification: pnpm check (13 checks), pnpm typecheck (clean), pnpm test (96 files, 1283 tests), pnpm test:emulator (8 files, 70 tests, including a real findMyKitchen round trip through the Cloud Functions emulator and two new direct KitchenStore tests proving the membership doc is written atomically with create and with join), pnpm check:demo and pnpm check:release all green. Ran test:emulator twice to confirm no flake.
+
+Scope held: no apps/mobile screen or composition wiring, no packages/ui - that split (decision-13) is TASK-1.20.1/1.20.2's, already claimed by @builder-application.
+<!-- SECTION:NOTES:END -->

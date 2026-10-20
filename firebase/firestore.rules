@@ -28,5 +28,12 @@ service cloud.firestore {
         allow read, write: if isMember(kitchenId);
       }
     }
+
+    // A returning member's own kitchen, found on any phone after signing in (TASK-14). Written
+    // only by the server functions, same as kitchens/{kitchenId} and for the same reason.
+    match /memberships/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
   }
 }
