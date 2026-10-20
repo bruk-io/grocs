@@ -1,11 +1,11 @@
 import { err, ok } from '@grocs/core';
-import { FakeAuth, FakeClock, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { createDispatcher } from './dispatcher.ts';
 import type { Deps, Handler, Middleware } from './types.ts';
 
 const runtime = { appVersion: 't', platform: 't', kitchenRole: 't' };
-const deps = (): Deps => ({ syncStore: new InMemorySyncStore(), auth: new FakeAuth(), clock: new FakeClock(), ids: new SequentialIds() });
+const deps = (): Deps => ({ syncStore: new InMemorySyncStore(), auth: new FakeAuth(), clock: new FakeClock(), ids: new SequentialIds(), kitchens: new FakeKitchenGateway('test-user') });
 
 describe('dispatcher (R32)', () => {
   it('gives each command a fresh correlation id and passes it to the handler', async () => {

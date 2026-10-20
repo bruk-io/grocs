@@ -23,11 +23,7 @@ export interface Deps {
   readonly auth: AuthPort;
   readonly clock: Clock;
   readonly ids: IdGenerator;
-  /**
-   * Optional only until the composition roots supply it (TASK-1.20.2), which makes it required.
-   * The kitchen commands answer `kitchens-unavailable` while it is missing.
-   */
-  readonly kitchens?: KitchenGateway;
+  readonly kitchens: KitchenGateway;
 }
 
 /** Facts attached to every log record written while a command runs (R32). */

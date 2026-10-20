@@ -21,7 +21,6 @@ export interface KitchenJoinRejected extends DomainEvent {
 export async function joinKitchen(command: JoinKitchen, ctx: CommandContext): Promise<CommandResult> {
   const { auth, kitchens } = ctx.deps;
   if (!auth.currentUser()) return err({ code: 'not-signed-in', message: 'joining a kitchen needs a signed-in member' });
-  if (!kitchens) return err({ code: 'kitchens-unavailable', message: 'no kitchen gateway is composed' });
 
   const outcome = await kitchens.joinKitchen(command.code.trim());
   const event: KitchenJoined | KitchenJoinRejected =

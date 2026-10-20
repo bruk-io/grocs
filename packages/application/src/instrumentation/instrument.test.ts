@@ -1,4 +1,4 @@
-import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
+import { FakeClock, MemoryLogger, SequentialIds, FakeKitchenGateway } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { instrumentDeps, instrumentPort } from './instrument.ts';
 import { InMemorySyncStore, FakeAuth } from '@grocs/ports/testing';
@@ -77,7 +77,7 @@ describe('instrumentPort (R31)', () => {
   it('wraps every provider a command uses', async () => {
     const logger = new MemoryLogger();
     const deps = instrumentDeps(
-      { syncStore: new InMemorySyncStore(), auth: new FakeAuth(), clock: new FakeClock(), ids: new SequentialIds() },
+      { syncStore: new InMemorySyncStore(), auth: new FakeAuth(), clock: new FakeClock(), ids: new SequentialIds(), kitchens: new FakeKitchenGateway('test-user') },
       logger,
       new FakeClock(),
       correlation,

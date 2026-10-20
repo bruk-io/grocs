@@ -1,14 +1,14 @@
 import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
 import { findMyKitchen } from './find-my-kitchen.ts';
 
-const make = (kitchens?: FakeKitchenGateway): Deps => ({
+const make = (kitchens = new FakeKitchenGateway('u1')): Deps => ({
   syncStore: new InMemorySyncStore(),
   auth: new FakeAuth([{ uid: 'u1', email: 'a@grocs.test', displayName: 'A', password: 'pw' }]),
   clock: new FakeClock(),
   ids: new SequentialIds(),
-  ...(kitchens ? { kitchens } : {}),
+  kitchens,
 });
 
 describe('findMyKitchen', () => {
@@ -34,9 +34,12 @@ describe('findMyKitchen', () => {
     expect(await findMyKitchen(deps)).toBeNull();
   });
 
-  it('rejects with kitchens-unavailable when the composition supplies no gateway', async () => {
-    const deps = make();
-    await (deps.auth as FakeAuth).signInWithTestAccount('a@grocs.test', 'pw');
-    await expect(findMyKitchen(deps)).rejects.toThrow('kitchens-unavailable');
+  it('does not call the gateway when nobody is signed in', async () => {
+    const kitchens = new FakeKitchenGateway('u1');
+    const deps = make(kitchens);
+    const spy = vi.spyOn(kitchens, 'findMyKitchen');
+    const result = await findMyKitchen(deps);
+    expect(spy).not.toHaveBeenCalled();
+    expect(result).toBeNull();
   });
 });
