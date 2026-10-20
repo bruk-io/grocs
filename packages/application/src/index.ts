@@ -24,3 +24,4 @@ export type { JoinKitchen, KitchenJoined, KitchenJoinRejected } from './commands
 export { commandHandlers } from './commands/index.ts';
 export { watchWeekItems } from './queries/watch-week.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';
+export { findMyKitchen } from './queries/find-my-kitchen.ts';
