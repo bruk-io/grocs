@@ -1,10 +1,11 @@
 ---
 id: TASK-1.23.2
 title: 'Application: a SetItemState command ticks an item into the cart and back'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-application'
 created_date: '2026-10-20 22:51'
-updated_date: '2026-10-20 22:51'
+updated_date: '2026-10-20 23:35'
 labels:
   - size-2
   - layer-application
