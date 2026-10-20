@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 17:34'
-updated_date: '2026-10-20 17:34'
+updated_date: '2026-10-20 17:59'
 labels:
   - size-2
   - layer-ui
@@ -24,3 +24,15 @@ Found by the TASK-1.28 builder. PreferencesTemplate has no way to draw its notif
 - [ ] #1 PreferencesTemplate can show the notifications switch unavailable (disabled, with a short reason), as a state with its story and behaviour test, and its switch is never live without a handler
 - [ ] #2 Every existing baseline is unchanged and the new baselines are approved
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Make PreferencesTemplate's notifications switch a two-shape union (live: notificationsOn + required onNotificationsChange; unavailable: notificationsUnavailable reason string, disabled, off). Add 'unavailable' to PREFERENCESTEMPLATE_STATES, an Unavailable story, a behaviour test. Rest drawn unchanged. Approve new baselines via visual:update.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Built. PreferencesTemplate props are now NotificationsSwitch (live: notificationsOn + required onNotificationsChange | unavailable: notificationsUnavailable: string, switch drawn off and disabled, reason shown under the label) & the rest. Story Unavailable, test added, states list has 'unavailable'. Existing baselines unchanged; added templates-preferences--unavailable{,--fold-inner,--fold-outer}.png + manifest.json. pnpm check, typecheck, test (1335 passed), visual (318 compared) all pass.
+<!-- SECTION:NOTES:END -->
