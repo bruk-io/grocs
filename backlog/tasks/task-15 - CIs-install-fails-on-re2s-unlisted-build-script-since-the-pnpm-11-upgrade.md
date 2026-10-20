@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-20 05:51'
-updated_date: '2026-10-20 05:51'
+updated_date: '2026-10-20 07:43'
 labels:
   - size-1
   - ci
@@ -21,8 +21,8 @@ Since TASK-7 moved the repo to pnpm 11.28.6, every CI run on main has failed at 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 pnpm-workspace.yaml declines re2's build explicitly, with the reason, and a frozen install succeeds with the lockfile unchanged
-- [ ] #2 CI on main is green again on all three jobs
+- [x] #1 pnpm-workspace.yaml declines re2's build explicitly, with the reason, and a frozen install succeeds with the lockfile unchanged
+- [x] #2 CI on main is green again on all three jobs
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -35,4 +35,6 @@ Add "re2": false to allowBuilds in pnpm-workspace.yaml with a comment giving the
 
 <!-- SECTION:NOTES:BEGIN -->
 Built by the orchestrator (Oct 20, 2026). Local CI=true pnpm install --frozen-lockfile: 'Lockfile is up to date', exit 0, no ERR_PNPM_IGNORED_BUILDS; only pnpm-workspace.yaml changed.
+
+Fixed in 026fa26: re2 (an optional native build for superstatic, under firebase-tools) declined explicitly in pnpm-workspace.yaml's allowBuilds with the reason (it's a speed-up only - superstatic falls back to RegExp without it). Verified: pnpm install --frozen-lockfile is clean with no ignored-build warnings, lockfile unchanged. CI run 39378425783 on main (the most recent push) is green on all three jobs: Checks/types/unit-tests, Provider contracts and two-client sync on the emulators, and Android/iOS bundles + Storybook build. The board wasn't updated after the fix landed in code - finishing that now and closing.
 <!-- SECTION:NOTES:END -->
