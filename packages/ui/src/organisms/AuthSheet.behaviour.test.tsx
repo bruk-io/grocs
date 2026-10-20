@@ -3,9 +3,10 @@ import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Text } from '../atoms/Text.tsx';
 import * as stories from './AuthSheet.stories.tsx';
 
-const { Rest, SigningIn, Disabled } = composeStories(stories);
+const { Rest, SigningIn, Disabled, PrimaryAction } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -48,5 +49,21 @@ describe('AuthSheet', () => {
     }
     expect(onContinue).not.toHaveBeenCalled();
     expect(onOpenInvite).not.toHaveBeenCalled();
+  });
+
+  it('can lead with one primary action in place of Google and the invite row', async () => {
+    const onPrimary = vi.fn();
+    render(<PrimaryAction onPrimary={onPrimary} />);
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).toBeNull();
+    expect(screen.queryByText('Got an invite?')).toBeNull();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Try the demo' }));
+    expect(onPrimary).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('still shows the footer under the primary action', () => {
+    render(<PrimaryAction footer={<Text>Sign in as Bruk (test)</Text>} />);
+    expect(screen.getByRole('button', { name: 'Try the demo' })).toBeTruthy();
+    expect(screen.getByText('Sign in as Bruk (test)')).toBeTruthy();
   });
 });
