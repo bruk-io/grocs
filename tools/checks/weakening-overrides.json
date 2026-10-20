@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "file": ".claude/settings.json",
+    "beforeHash": "59eba7cf91ca7d23ab2a783dc291f87e92e338d1fb67a6035e5d29501ad65fc5",
+    "afterHash": "4471da292e2b4e20acb1d5edf999df6dd52969d6eb8577f05a1aa31937ea4b25",
+    "approvedBy": "Bruk Habtu, in chat, 2026-10-19",
+    "reason": "Removes the --disable-warning=ExperimentalWarning flag from the two hook commands, per decision-6 AC #2 ('no --disable-warning=ExperimentalWarning left in scripts, hooks or .claude/settings.json'). No-op removal: the flag only suppressed a Node warning, and the Node 24 move this task makes elsewhere means the warning no longer fires anyway.",
+    "date": "2026-10-19"
+  },
+  {
+    "file": "lefthook.yml",
+    "beforeHash": "269e2728e8a3da915e2a6f1e65661d1ee0ea59b72f1aff6754e024f6e916e14d",
+    "afterHash": "04a2fb619284884338508489b0f523f73facc043c3508fa95f8547024c63e63c",
+    "approvedBy": "Bruk Habtu, in chat, 2026-10-19",
+    "reason": "Same flag removal as the .claude/settings.json override, in the pre-commit staged-check step. No-op: changes no check behaviour.",
+    "date": "2026-10-19"
+  }
+]

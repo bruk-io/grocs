@@ -4,7 +4,7 @@ pre-commit:
   commands:
     checks:
       # Every check over the repo, plus the review of the staged diff for weakened checks (R57).
-      run: node --disable-warning=ExperimentalWarning tools/checks/run.ts --mode staged
+      run: node tools/checks/run.ts --mode staged
     typecheck:
       run: pnpm -s typecheck
     unit-tests:

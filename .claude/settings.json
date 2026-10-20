@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node --disable-warning=ExperimentalWarning \"$CLAUDE_PROJECT_DIR/tools/hooks/post-edit.ts\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/post-edit.ts\"",
             "timeout": 5
           }
         ]
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node --disable-warning=ExperimentalWarning \"$CLAUDE_PROJECT_DIR/tools/hooks/stop.ts\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/stop.ts\"",
             "timeout": 300
           }
         ]

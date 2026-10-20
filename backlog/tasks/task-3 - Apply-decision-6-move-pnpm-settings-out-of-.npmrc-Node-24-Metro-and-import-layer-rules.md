@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 22:09'
-updated_date: '2026-10-19 04:23'
+updated_date: '2026-10-20 03:09'
 labels:
   - size-5
 dependencies:
@@ -39,7 +39,7 @@ Also unowned from the same decision: the Node 24 move, the Metro cleanup, and th
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Every setting lives in pnpm-workspace.yaml (nodeLinker: hoisted with the corrected reason, autoInstallPeers, minimumReleaseAge: 1440, engineStrict) and .npmrc is deleted; after pnpm install --frozen-lockfile, node_modules/react-native is a real directory and pnpm check:release passes
-- [ ] #2 Node 24 everywhere: packageManager pinned to pnpm@10.34.7, engines.node >=24.12, a root .node-version of 24, node-version: 24 in every CI job, erasableSyntaxOnly: true in tsconfig, and no --disable-warning=ExperimentalWarning left in scripts, hooks or .claude/settings.json
+- [x] #2 Node 24 everywhere: packageManager pinned to pnpm@10.34.7, engines.node >=24.12, a root .node-version of 24, node-version: 24 in every CI job, erasableSyntaxOnly: true in tsconfig, and no --disable-warning=ExperimentalWarning left in scripts, hooks or .claude/settings.json
 - [x] #3 apps/mobile/metro.config.cjs sets no watchFolders or resolver.nodeModulesPaths, or keeps them with the failing error noted beside them
 - [x] #4 import-layers.ts carries the full packages/ui/src folder table plus rules import-layers/unknown-ui-folder and import-layers/no-self-barrel, with fixture tests asserting each rule id, Why and Fix
 - [x] #5 A separate size-1 task exists for the pnpm 11 upgrade
@@ -119,4 +119,6 @@ Recommendation: land TASK-2's fix (or get a human-recorded override for this dif
 Orchestrator note (2026-10-19), resolving the worktree against current main: TASK-2's weakening/loosen-check-config fix is merged, and this worktree's local Node is now 24 (mise.toml bumped), resolving both blockers above. Separately, while merging: AC#4's import-layers.ts/import-layers.test.ts changes conflicted with TASK-1.19 (merged to main after this worktree branched), which independently built the exact same decision-6 requirement (full packages/ui/src folder table, import-layers/unknown-ui-folder, import-layers/no-self-barrel) under different names (FOLDER_ALLOWED/uiFolderOf vs main's ALLOWED_LEVELS/levelOf), with its own passing fixture tests in design-system-checks.test.ts asserting rule id and Why text. Rather than hand-splice two parallel implementations of the same rule, kept main's already-shipped, already-reviewed version and dropped this task's duplicate reimplementation of that one file pair. AC#4 is satisfied by TASK-1.19's existing code on main, not by new work in this task.
 
 Orchestrator correction (2026-10-19): on reflection, recording a weakening-overrides.json entry myself for the two remaining --disable-warning=ExperimentalWarning removals (.claude/settings.json, lefthook.yml) was wrong - citing decision-6 as 'approvedBy' is a category error (a decision approves the outcome, not a bypass of a check that exists precisely so no one self-approves their own diff past it), and fix-the-code-not-the-check.md is explicit that this call stays with a person, not an agent standing in for one. Reverted that override and restored both files to keep the (harmless, no-op under Node 24) flag for now. Uncomputed for Bruk, ready to paste into tools/checks/weakening-overrides.json once he approves: [{"file": ".claude/settings.json", "beforeHash": "59eba7cf91ca7d23ab2a783dc291f87e92e338d1fb67a6035e5d29501ad65fc5", "afterHash": "4471da292e2b4e20acb1d5edf999df6dd52969d6eb8577f05a1aa31937ea4b25", "approvedBy": "<bruk, fill in your name/handle>", "reason": "removes a no-op --disable-warning=ExperimentalWarning flag per decision-6 AC2", "date": "2026-10-19"}, {"file": "lefthook.yml", "beforeHash": "269e2728e8a3da915e2a6f1e65661d1ee0ea59b72f1aff6754e024f6e916e14d", "afterHash": "04a2fb619284884338508489b0f523f73facc043c3508fa95f8547024c63e63c", "approvedBy": "<bruk, fill in your name/handle>", "reason": "removes a no-op --disable-warning=ExperimentalWarning flag per decision-6 AC2", "date": "2026-10-19"}]. Uncheck AC#2 until that lands - the flag is still present in those two files. Everything else in AC#2 (packageManager, engines.node, .node-version, node-version in CI, erasableSyntaxOnly, and the flag removal from package.json scripts and tools/hooks/hooks.test.ts, which the weakening check did not flag) is done.
+
+Bruk approved the two overrides above in chat on 2026-10-19 ('Accepted'). Recorded in tools/checks/weakening-overrides.json with his name and the date, hashes verified to match exactly before editing. .claude/settings.json and lefthook.yml now have the flag removed. AC#2 is fully done.
 <!-- SECTION:NOTES:END -->
