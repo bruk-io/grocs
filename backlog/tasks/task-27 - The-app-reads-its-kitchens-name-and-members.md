@@ -1,10 +1,10 @@
 ---
 id: TASK-27
 title: The app reads its kitchen's name and members
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-20 21:36'
-updated_date: '2026-10-20 22:45'
+updated_date: '2026-10-20 22:50'
 labels:
   - size-3
 dependencies:
@@ -74,4 +74,34 @@ pnpm check (expect a new check count unaffected since this task adds no new chec
 
 <!-- SECTION:NOTES:BEGIN -->
 All four subtasks and this task's own remaining scope landed together as one commit (see TASK-27.1's notes for why the chain could not be split: lefthook's pre-commit hook always runs whole-repo typecheck/test, and core's signature change ripples through every consumer at once). apps/functions/src/index.ts: createKitchen/joinKitchen read request.auth.token['name'] (DecodedIdToken's index signature, typed via a guard rather than asserted) and pass it through, falling back to '' when absent - true for an anonymous caller, not for Google sign-in or the dev email/password seed accounts (seed.ts's createUser already sets displayName, confirmed before implementing). compose-firebase.ts and compose-demo.ts pass their already-available Firestore/display-name values into the updated constructors. firebase/firestore.rules.test.ts proves a member reads memberNames through the existing kitchens/{kitchenId} rule (no new rule) and a non-member still cannot. Full verification: pnpm check (14 checks), typecheck, test (104 files, 1381 tests), test:emulator (8 files, 80 tests, run twice clean), check:demo, check:release all green.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+```text
+[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
+
+Reviewer check (philosophy:reviewer, full tier). scripts/record-check does not go through mise, so the entry it recorded above is a spurious ERR_PNPM_UNSUPPORTED_ENGINE (Node v22.21.1 resolved instead of >=24.12), not a real failure. Re-run with the mise-prefixed commands, from the repo root at f09d034:
+- mise exec -- pnpm check: exit 0, 'checks passed (14 checks, all mode)'
+- mise exec -- pnpm typecheck: exit 0 (tsc --noEmit, clean)
+- mise exec -- pnpm test: exit 0, 104 test files / 1381 tests passed
+- mise exec -- pnpm test:emulator: exit 0 twice, 8 test files / 80 tests passed each run (no flake)
+No file was reformatted or fixed by the checks; the working tree's other modifications (visual-baselines.yml, mise.toml, the draft-1 to task-24 promotion) predate this review and are outside TASK-27.
+Independently verified beyond the criteria: FirebaseKitchenGateway.getKitchen's catch is scoped to code === 'permission-denied' and rethrows everything else; apps/functions callerName uses a real typeof guard on request.auth?.token['name'] with a '' fallback, no cast; the shared contract's new getKitchen cases are structural by design with the reason in the file's own comment; the Firebase-specific test asserts the exact seeded names ['Bruk','Sam']; and getDoc, newly added to the FirestoreFns slice, is genuinely exported by both SDK namespaces the two composition roots cast (firebase/firestore, and @react-native-firebase/firestore via its built modular/query re-export), so the asSdk structural cast is not hiding a missing member on device.
+
+Closed on review, with all four children closed first. AC1: apps/functions/src/index.ts gains callerName(request), which reads request.auth?.token['name'] behind a real typeof name === 'string' guard and falls back to '' - a guard, not a cast - and createKitchen/joinKitchen pass it to the store, so a real kitchen document gets a populated memberNames while the callables' own client-facing arguments stay unchanged. AC2: compose-firebase.ts passes firebase.firestore/firebase.db into FirebaseKitchenGateway and compose-demo.ts passes DEMO_MEMBER.displayName into both the seeding createKitchen call and MemoryKitchenGateway - constructor wiring only, no screen touched. AC3: firestore.rules.test.ts proves a member reads memberNames through the existing kitchens/{kitchenId} rule (seedKitchen now writes the field, the member asserts its exact contents) and that a non-member is denied the same read; no rule changed, as designed.
+
+Landing the whole chain as one commit is a departure from decision-3's per-layer worktree commits, but a justified one and not a criteria failure: core's signature change breaks every downstream consumer at once and lefthook's pre-commit hook runs whole-repo typecheck/test with no scoping, so no intermediate commit could pass. It is decision-3's own stated fallback for a small slice, and the reasoning is recorded on the commit and on TASK-27.1.
+
+Findings, none blocking: (1) the worker ticked all twelve criteria across the five tasks in the implementing commit itself, leaving the reviewer nothing to tick - the criteria are genuinely met, verified independently here, but the finish line should be left for the reviewer; filed nowhere, reported to whoever owns it. (2) scripts/record-check does not run through mise, so its recorded full-tier entry on this task is a spurious ERR_PNPM_UNSUPPORTED_ENGINE; the real output is appended beside it. Reported, not filed: it is tooling outside this slice. (3) Low severity, no draft: a kitchen document written before this change carries no memberNames, and both getKitchen implementations fall back to '?? uid', so such a kitchen would render a raw uid where a name goes; the same fallback does not catch the '' an anonymous caller stores, which would render an empty name. KITCHEN_SCHEMA_VERSION deliberately stays at 1 and nothing validates a Kitchen document against it, so this is defensible today; it belongs to whichever UI task first displays a member name, which will need a fallback of its own, rather than to its own task now.
+
+Reviewer verification (mise exec, repo root, at f09d034): pnpm check 14 checks, typecheck clean, test 104 files/1381 tests, test:emulator 8 files/80 tests run twice clean. Nothing was reformatted by the checks. Full output in this task's notes.
 <!-- SECTION:NOTES:END -->

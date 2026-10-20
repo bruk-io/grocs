@@ -1,10 +1,10 @@
 ---
 id: TASK-27.4
 title: 'getKitchenInfo: the application query beside findMyKitchen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-20 22:24'
-updated_date: '2026-10-20 22:45'
+updated_date: '2026-10-20 22:50'
 labels:
   - layer-application
   - size-1
@@ -29,4 +29,6 @@ For TASK-27, depends on TASK-27.2 (the frozen port/contract) - does not need TAS
 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented directly by the orchestrator together with the rest of the TASK-27 chain (see TASK-27.1's notes). packages/application/src/queries/get-kitchen-info.ts: getKitchenInfo(deps, kitchenId) calls deps.kitchens.getKitchen and marks isCaller from deps.auth.currentUser()?.uid, keeping the gateway's KitchenDetails data-only. Exported from the package's index.ts alongside findMyKitchen. Tests cover the caller flag, a partner's row, and the null case, using FakeKitchenGateway's new asMember(uid, displayName) and constructor display-name parameter.
+
+Closed on review. AC1 verified in f09d034: packages/application/src/queries/get-kitchen-info.ts returns {name, members: {uid, name, isCaller}[]} or null, marking isCaller from deps.auth.currentUser()?.uid so the gateway's KitchenDetails stays data-only, matching decision-13's split and find-my-kitchen.ts's shape. Exported from the package index alongside findMyKitchen. Its three tests cover the caller flag, a partner's row (asserting the exact name 'Shazya' and isCaller: false) and the null case, through FakeKitchenGateway rather than any provider, which is the right boundary for this layer. Criteria were already ticked in the implementing commit; genuinely met, reported as a process note. Reviewer verification on TASK-27.
 <!-- SECTION:NOTES:END -->

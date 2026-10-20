@@ -1,11 +1,11 @@
 ---
 id: TASK-27.1
 title: 'Kitchen gains memberNames: core domain change'
-status: In Progress
+status: Done
 assignee:
   - '@builder-core'
 created_date: '2026-10-20 22:24'
-updated_date: '2026-10-20 22:44'
+updated_date: '2026-10-20 22:50'
 labels:
   - layer-core
   - size-1
@@ -52,4 +52,6 @@ vitest run --project unit packages/core passes, and Kitchen/NewKitchenInput/addM
 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented directly by the orchestrator, not the dispatched builder-core-small agent: that agent's TASK-27.1 work was correct (verified independently - 10 test files, 64 tests) but could not commit, since lefthook's pre-commit hook always runs whole-repo typecheck/test with no scoping, and every downstream caller of createKitchen/addMember breaks the instant the signature changes. Per decision-3's own fallback for small slices ('cheaper for one builder working through the layers in order'), the whole TASK-27 chain (27.1-27.4 plus apps/functions and the two composition roots) was implemented in one pass and lands as one commit. This task's own piece: Kitchen gains memberNames, NewKitchenInput gains ownerName, addMember gains a name parameter. kitchen.test.ts: 8 -> 10 tests (2 added, none removed).
+
+Closed on review. AC1/AC2 verified in f09d034: Kitchen gains memberNames: Readonly<Record<string,string>>, NewKitchenInput gains ownerName, createKitchen seeds memberNames with the owner, addMember(kitchen, uid, name) adds the joiner without disturbing the owner's entry. kitchen.test.ts went 8 -> 10 tests (two added, none removed, no shrink), and both new behaviours are asserted directly. KITCHEN_SCHEMA_VERSION deliberately stays at 1, with the reasoning on the task. Criteria were already ticked in the implementing commit rather than left for the reviewer; they are genuinely met, so this does not block the close, but it is reported as a process note. Verification re-run by the reviewer, not taken from the notes: pnpm check (14 checks), typecheck, test (104 files/1381 tests), test:emulator (8 files/80 tests, twice) all green under mise exec; full output on TASK-27.
 <!-- SECTION:NOTES:END -->
