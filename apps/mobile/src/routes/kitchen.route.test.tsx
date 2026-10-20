@@ -81,6 +81,13 @@ describe('creating a kitchen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
     expect(await mine.findMyKitchen()).toBeNull();
   });
+
+  it('hides Share link and Copy code until the kitchen exists', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
+    expect(await screen.findByText('Your code appears after Start planning.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Share link/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
+  });
 });
 
 describe('joining a kitchen', () => {
