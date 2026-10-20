@@ -1,9 +1,11 @@
 ---
 id: TASK-29
 title: Screens draw under the phone's status bar and gesture bar
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
+updated_date: '2026-10-20 22:55'
 labels:
   - size-3
   - layer-ui

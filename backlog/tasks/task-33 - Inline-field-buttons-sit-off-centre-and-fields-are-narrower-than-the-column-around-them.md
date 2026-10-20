@@ -3,9 +3,11 @@ id: TASK-33
 title: >-
   Inline field buttons sit off centre, and fields are narrower than the column
   around them
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
+updated_date: '2026-10-20 22:55'
 labels:
   - size-2
   - layer-ui

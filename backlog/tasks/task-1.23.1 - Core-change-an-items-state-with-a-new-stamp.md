@@ -1,10 +1,11 @@
 ---
 id: TASK-1.23.1
 title: 'Core: change an item''s state with a new stamp'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-core-small'
 created_date: '2026-10-20 22:51'
-updated_date: '2026-10-20 22:51'
+updated_date: '2026-10-20 22:55'
 labels:
   - size-1
   - layer-core
