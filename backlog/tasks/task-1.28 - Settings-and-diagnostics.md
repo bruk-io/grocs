@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-20 21:20'
+updated_date: '2026-10-20 21:23'
 labels:
   - size-2
   - slice
@@ -176,4 +176,6 @@ visual: 326 story views checked (axe, 44 x 44, 326 images compared)
 ```
 
 Re-review (philosophy:reviewer, Oct 20, 2026): all three criteria met; #2 ticked. TASK-1.28.1 (merged in f388e17) makes instrument.ts withhold every message, keeping name and code, with a test that a failed call quoting an item and a person's name logs neither; observe.ts already withholds. The Settings copy test on a real BufferLogger shows the copy is that buffer plus a header. Full tier exited 0, pnpm check:demo exited 0. Not closed: close-task refused because child TASK-1.28.2 (phone check of the error handlers, Bruk) is To Do. Low, filed nowhere: the app-level copy test could also drive a failed port call end to end.
+
+Merged to main by the orchestrator (Oct 20, 2026) with all three criteria met on review. It stays In Progress only because its child TASK-1.28.2 (the phone check of the error handlers, for @bruk) is open; close-task refuses a parent with an open child.
 <!-- SECTION:NOTES:END -->
