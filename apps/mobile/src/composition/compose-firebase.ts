@@ -16,8 +16,8 @@ export interface FirebaseModules {
   readonly auth: AuthFns;
   readonly db: unknown;
   readonly authInstance: unknown;
-  /** The Cloud Functions SDK and instance behind the kitchen gateway. The Node emulator tests that only sync items leave it out. */
-  readonly functions?: { readonly fns: FunctionsFns; readonly instance: unknown };
+  /** The Cloud Functions SDK and instance behind the kitchen gateway. */
+  readonly functions: { readonly fns: FunctionsFns; readonly instance: unknown };
 }
 
 export interface FirebaseAppOptions {
@@ -34,7 +34,7 @@ export function composeFirebaseApp({ firebase, logger, runtime, copyText, clock,
     ports: {
       syncStore: new FirestoreSyncStore(firebase.firestore, firebase.db),
       auth: new FirebaseAuth(firebase.auth, firebase.authInstance),
-      ...(firebase.functions ? { kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance) } : {}),
+      kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance),
       clock: clock ?? new SystemClock(),
       ids: ids ?? new RandomIds(),
     },
