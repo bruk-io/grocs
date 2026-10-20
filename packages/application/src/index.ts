@@ -17,6 +17,10 @@ export type {
 export { instrumentDeps, instrumentPort } from './instrumentation/instrument.ts';
 export { addItem } from './commands/add-item.ts';
 export type { AddItem, ItemAdded } from './commands/add-item.ts';
+export { createKitchen } from './commands/create-kitchen.ts';
+export type { CreateKitchen, KitchenCreated } from './commands/create-kitchen.ts';
+export { joinKitchen } from './commands/join-kitchen.ts';
+export type { JoinKitchen, KitchenJoined, KitchenJoinRejected } from './commands/join-kitchen.ts';
 export { commandHandlers } from './commands/index.ts';
 export { watchWeekItems } from './queries/watch-week.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';
