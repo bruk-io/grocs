@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createExtraItem, DEFAULT_AISLE, normaliseName } from './item.ts';
+import { mergeItem } from '../merge/item-merge.ts';
+import { createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './item.ts';
+import type { Item } from './item.ts';
 
 const stamp = { at: 1000, by: 'bruk' };
 
@@ -48,5 +50,41 @@ describe('createExtraItem (R10)', () => {
   it('rejects a name with nothing in it', () => {
     expect(createExtraItem({ id: 'i1', weekId: 'w', name: '   ' }, stamp)).toEqual({ ok: false, error: 'empty-name' });
     expect(createExtraItem({ id: 'i1', weekId: 'w', name: '!!' }, stamp)).toEqual({ ok: false, error: 'empty-name' });
+  });
+});
+
+describe('setItemState (R18)', () => {
+  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'bruk' });
+  if (!made.ok) throw new Error('fixture must be a valid item');
+  const original: Item = { ...made.value, badges: ['m1'] };
+  const tick = { at: 2, by: 'sam' };
+  const untick = { at: 3, by: 'bruk' };
+
+  it('restamps only the state; every other field is the same value', () => {
+    const next = setItemState(original, 'in-cart', tick);
+    expect(next.state).toEqual({ value: 'in-cart', stamp: tick });
+    expect(next.id).toBe(original.id);
+    expect(next.weekId).toBe(original.weekId);
+    expect(next.addedBy).toBe(original.addedBy);
+    expect(next.createdAt).toBe(original.createdAt);
+    expect(next.name).toBe(original.name);
+    expect(next.amount).toBe(original.amount);
+    expect(next.aisle).toBe(original.aisle);
+    expect(next.badges).toBe(original.badges);
+    expect(next.deleted).toBe(original.deleted);
+    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'bruk' } });
+  });
+
+  it('a tick merged with the original keeps the tick, in both orders', () => {
+    const inCart = setItemState(original, 'in-cart', tick);
+    expect(mergeItem(inCart, original).state.value).toBe('in-cart');
+    expect(mergeItem(original, inCart).state.value).toBe('in-cart');
+  });
+
+  it('a stale tick merged with a later untick keeps the untick, in both orders', () => {
+    const ticked = setItemState(original, 'in-cart', tick);
+    const unticked = setItemState(original, 'to-buy', untick);
+    expect(mergeItem(unticked, ticked).state.value).toBe('to-buy');
+    expect(mergeItem(ticked, unticked).state.value).toBe('to-buy');
   });
 });
