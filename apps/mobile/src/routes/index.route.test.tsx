@@ -1,6 +1,6 @@
 // Level 4 of decision-11: the index route renders with its sample data and no errors.
 import { createExtraItem, weekIdFor } from '@grocs/core';
-import { FakeClock, InMemorySyncStore } from '@grocs/ports/testing';
+import { FakeClock, FakeKitchenGateway, InMemorySyncStore } from '@grocs/ports/testing';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -62,8 +62,10 @@ describe('index route', () => {
     const stamp = { at: 1, by: 'u2' };
     const made = createExtraItem({ id: 'c1', weekId: weekIdFor(new FakeClock().now()), name: 'Bananas' }, stamp);
     if (!made.ok) throw new Error('bad fixture');
-    await syncStore.mergeItem('', { ...made.value, state: { value: 'in-cart', stamp } });
-    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore }) });
+    const kitchens = new FakeKitchenGateway('u1');
+    const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+    await syncStore.mergeItem(kitchenId, { ...made.value, state: { value: 'in-cart', stamp } });
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens }) });
     expect(await screen.findByRole('checkbox', { name: 'Bananas' })).toBeTruthy();
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
     expect(screen.queryByText('This week')).toBeNull();

@@ -5,7 +5,7 @@ import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AddItem } from '@grocs/application';
 import { weekIdFor } from '@grocs/core';
-import { InMemorySyncStore } from '@grocs/ports/testing';
+import { FakeKitchenGateway, InMemorySyncStore } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 
@@ -24,12 +24,14 @@ describe('add-item flow through the Groceries template (R50)', () => {
 
   it("shows an item the other client adds to the shared store while the screen is open (R49)", async () => {
     const syncStore = new InMemorySyncStore();
-    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore }) });
+    const kitchens = new FakeKitchenGateway('u1');
+    const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens }) });
     await screen.findByText('Nothing on the list yet');
 
     const other = await appOnFakes({ signedIn: true, syncStore });
     const weekId = weekIdFor(other.app.now());
-    const command: AddItem = { type: 'AddItem', kitchenId: '', weekId, name: 'Oat milk' };
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Oat milk' };
     const added = await other.app.dispatch(command);
     expect(added.ok).toBe(true);
 

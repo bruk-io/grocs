@@ -1,6 +1,6 @@
 // The composition root's wiring: ports in, an App for the screens out (R26). This is the one place
 // where providers meet the application layer, and the one place that instruments them (R31).
-import { commandHandlers, createDispatcher, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, signOut } from '@grocs/application';
+import { commandHandlers, createDispatcher, findMyKitchen, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, signOut } from '@grocs/application';
 import type { Command, CommandResult, Deps, RuntimeInfo } from '@grocs/application';
 import type { Item } from '@grocs/core';
 import type { Logger, Unsubscribe, User } from '@grocs/ports';
@@ -18,6 +18,8 @@ export interface App {
   watchWeekItems(kitchenId: string, weekId: string, onItems: (items: readonly Item[]) => void, onError?: (error: Error) => void): Unsubscribe;
   watchSession(onUser: (user: User | null) => void): Unsubscribe;
   signOut(): Promise<void>;
+  /** The signed-in member's kitchen id, or null when they have none yet (or nobody is signed in). */
+  findMyKitchen(): Promise<string | null>;
   /** Now, as the app's clock reads it, for choosing the current week. */
   now(): number;
 }
@@ -43,6 +45,7 @@ export function composeApp({ ports, logger, runtime }: AppOptions): App {
     watchWeekItems: (kitchenId, weekId, onItems, onError) => watchWeekItems(session, kitchenId, weekId, onItems, onError),
     watchSession: (onUser) => watchSession(session, onUser),
     signOut: () => signOut(session),
+    findMyKitchen: () => findMyKitchen(session),
     now: () => ports.clock.now(),
   };
 }

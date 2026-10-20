@@ -38,7 +38,7 @@ describe('Welcome', () => {
   it('leads to the invite from Open it to join', async () => {
     await open('/');
     fireEvent.click(await screen.findByRole('button', { name: 'Open it to join' }));
-    expect(await screen.findByText("You're invited")).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Check code' })).toBeTruthy();
   });
 });
 
@@ -53,21 +53,20 @@ describe('Household', () => {
 });
 
 describe('JoinInvite', () => {
-  it('shows the invite and Join with Google leads to Meal plan', async () => {
-    await open('/join');
+  it('shows the invite from a link, and the code entry from /join', async () => {
+    await open('/join?code=MOREL-0042');
     expect(await screen.findByText("You're invited")).toBeTruthy();
-    press('Join with Google');
-    expect(await screen.findByText('This week')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Join with Google' })).toBeTruthy();
   });
 });
 
-describe('JoinInviteInvalid', () => {
-  it('shows the error and Back to my invite leads to the invite', async () => {
+describe('JoinInviteInvalid (sample)', () => {
+  it('shows the error and Back to my invite leads to the join screen', async () => {
     await open('/join-invalid');
     expect(await screen.findByText("Code didn't work")).toBeTruthy();
     expect(screen.getByText(/That code is not a match/)).toBeTruthy();
     press('Back to my invite');
-    expect(await screen.findByText("You're invited")).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Check code' })).toBeTruthy();
   });
 });
 

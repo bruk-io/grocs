@@ -3,6 +3,7 @@
 // The check `release-bundle` fails the build if a release bundle still contains it.
 import { connectAuthEmulator, getAuth } from '@react-native-firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from '@react-native-firebase/firestore';
+import { connectFunctionsEmulator, getFunctions } from '@react-native-firebase/functions';
 import { Platform } from 'react-native';
 import type { AuthFns } from '@grocs/providers-firebase';
 import { seedKitchen, seedUsers } from '../../../../firebase/seed/data.ts';
@@ -26,6 +27,7 @@ export const devTools = {
     const host = emulatorHost();
     connectFirestoreEmulator(getFirestore(), host, 8080);
     connectAuthEmulator(getAuth(), `http://${host}:9099`);
+    connectFunctionsEmulator(getFunctions(), host, 5001);
   },
 
   /** A function that signs in a seeded account. Screens call this and never name the test sign-in port. */

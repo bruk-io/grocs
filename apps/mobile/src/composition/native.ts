@@ -2,11 +2,12 @@
 // emulators and the test sign-in. This is the only file that imports the native SDK for the providers (R26).
 import * as nativeAuth from '@react-native-firebase/auth';
 import * as nativeFirestore from '@react-native-firebase/firestore';
+import * as nativeFunctions from '@react-native-firebase/functions';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { BufferLogger, ConsoleLogger } from '@grocs/providers-device';
 import { GoogleAuth, asSdk } from '@grocs/providers-firebase';
-import type { AuthFns, FirestoreFns } from '@grocs/providers-firebase';
+import type { AuthFns, FirestoreFns, FunctionsFns } from '@grocs/providers-firebase';
 import type { GoogleSignIn, Logger } from '@grocs/ports';
 import type { App } from './compose-app.ts';
 import { composeFirebaseApp } from './compose-firebase.ts';
@@ -61,6 +62,7 @@ export function createNativeApp(): NativeApp {
       auth: authFns,
       db: nativeFirestore.getFirestore(),
       authInstance,
+      functions: { fns: asSdk<FunctionsFns>(nativeFunctions), instance: nativeFunctions.getFunctions() },
     },
     logger,
     runtime: {
