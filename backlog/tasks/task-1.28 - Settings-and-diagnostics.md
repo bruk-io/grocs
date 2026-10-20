@@ -5,14 +5,14 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-20 17:34'
+updated_date: '2026-10-20 20:31'
 labels:
   - size-2
   - slice
   - finish-moved
 milestone: m-3
 dependencies:
-  - TASK-20
+  - TASK-1.28.1
 parent_task_id: TASK-1
 type: task
 ---
