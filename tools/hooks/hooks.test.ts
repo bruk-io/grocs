@@ -237,4 +237,28 @@ describe('staged and CI review against git (R57)', () => {
     git('commit', '-qm', 'delete');
     expect(reviewGitChange(root, 'main').map((r) => r.finding.rule)).toEqual(['weakening/delete-test']);
   });
+
+  it('does not ask for a check config that only exists on its own branch, even across commits (DRAFT-9)', () => {
+    git('checkout', '-q', '-b', 'apk-demo');
+    put('.github/workflows/demo.yml', 'on: push\njobs:\n  build:\n    steps:\n      - run: a\n      - run: b\n      - run: c\n');
+    git('add', '-A');
+    git('commit', '-qm', 'add workflow');
+    put('.github/workflows/demo.yml', 'on: push\njobs:\n  build:\n    steps:\n      - run: a\n');
+    git('add', '-A');
+    expect(reviewGitChange(root, 'staged')).toEqual([]);
+    git('commit', '-qm', 'trim workflow');
+    rmSync(join(root, '.github/workflows/demo.yml'));
+    git('checkout', '-q', 'main');
+  });
+
+  it('still asks for a check config that exists on main once lines shrink', () => {
+    git('checkout', '-q', '-b', 'edit-lefthook');
+    put('lefthook.yml', 'pre-commit:\n');
+    git('add', '-A');
+    const staged = reviewGitChange(root, 'staged');
+    expect(staged.map((r) => r.finding.rule)).toEqual(['weakening/loosen-check-config']);
+    git('commit', '-qm', 'loosen lefthook');
+    git('checkout', '-q', 'main');
+    git('branch', '-qD', 'apk-demo', 'edit-lefthook');
+  });
 });

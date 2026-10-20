@@ -11,7 +11,7 @@ import { dirname, resolve } from 'node:path';
 import type { Check, CheckContext, Finding } from './lib.ts';
 import { formatFinding, makeContext } from './lib.ts';
 import { checks } from './registry.ts';
-import { check as weakeningCheck, loadOverrides, reviewChange } from './weakening.ts';
+import { check as weakeningCheck, isProtected, loadOverrides, reviewChange } from './weakening.ts';
 
 export interface Report {
   readonly check: Check;
@@ -49,18 +49,36 @@ function gitShow(root: string, spec: string): string | null {
   }
 }
 
-/** Review the change for weakened checks. base === 'staged' compares the index with HEAD. */
+/** The commit HEAD and `ref` share, or null when `ref` does not resolve (e.g. no main branch in an isolated fixture). */
+function mergeBase(root: string, ref: string): string | null {
+  try {
+    return execFileSync('git', ['merge-base', 'HEAD', ref], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], env: ISOLATE_ENV }).trim();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Review the change for weakened checks. base === 'staged' compares the index with HEAD, except
+ * for a protected check file (weakening.ts's isProtected): there, `before` comes from the merge
+ * base with main rather than from HEAD. Without that, iterating a check config across several
+ * commits on a branch that never touched main reads every shrinking commit as loosening a check
+ * that already existed, when the config is new on this branch (DRAFT-9). CI mode already compares
+ * against the real base with a three-dot diff, so it is unaffected.
+ */
 export function reviewGitChange(root: string, base: string): Report[] {
   const staged = base === 'staged';
   const names = staged
     ? git(root, ['diff', '--cached', '--name-status', '--no-renames'])
     : git(root, ['diff', '--name-status', '--no-renames', `${base}...HEAD`]);
   const overrides = loadOverrides(root);
+  const stagedBase = staged ? mergeBase(root, 'main') : null;
   const reports: Report[] = [];
   for (const line of names.split('\n').filter(Boolean)) {
     const [status, file] = line.split('\t');
     if (!status || !file) continue;
-    const before = gitShow(root, staged ? `HEAD:${file}` : `${base}:${file}`);
+    let before = gitShow(root, staged ? `HEAD:${file}` : `${base}:${file}`);
+    if (staged && stagedBase && isProtected(file) && gitShow(root, `${stagedBase}:${file}`) === null) before = null;
     const after = status === 'D' ? null : gitShow(root, staged ? `:${file}` : `HEAD:${file}`);
     for (const w of reviewChange(file, before, after, overrides)) reports.push({ check: weakeningCheck, finding: w });
   }
