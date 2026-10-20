@@ -1,7 +1,7 @@
 ---
-id: DRAFT-11
+id: TASK-21
 title: The /join screen shows the neutral code entry until a code is rejected
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-20 17:39'
 labels:
