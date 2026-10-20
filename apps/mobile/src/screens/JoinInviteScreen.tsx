@@ -73,6 +73,10 @@ export function JoinInviteScreen() {
       />
     );
   }
+  // Nothing has been checked yet: a neutral code entry. After a rejection it becomes the retry shape.
+  if (linked === null && error === undefined) {
+    return <InviteRetryTemplate attempt="first" code={code} onCodeChange={setCode} checking={busy} onCheck={() => void join(code)} />;
+  }
   return (
     <InviteRetryTemplate
       inviter="your partner"

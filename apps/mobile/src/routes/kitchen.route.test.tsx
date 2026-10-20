@@ -81,6 +81,13 @@ describe('creating a kitchen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
     expect(await mine.findMyKitchen()).toBeNull();
   });
+
+  it('hides Share link and Copy code until the kitchen exists', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
+    expect(await screen.findByText('Your code appears after Start planning.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Share link/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
+  });
 });
 
 describe('joining a kitchen', () => {
@@ -99,6 +106,16 @@ describe('joining a kitchen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
     await screen.findByText('Nothing on the list yet');
     expect(await mine.findMyKitchen()).toBe(kitchenId);
+  });
+
+  it('opens /join with a neutral code entry, and says the code did not work only after a rejection', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }), location: '/join' });
+    expect(await screen.findByText('Enter your invite code')).toBeTruthy();
+    expect(screen.queryByText("Code didn't work")).toBeNull();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'NOPE-0000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+    expect(await screen.findByText("Code didn't work")).toBeTruthy();
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('NOPE-0000');
   });
 
   async function enterCode(mine: FakeKitchenGateway, clock: FakeClock, code: string) {

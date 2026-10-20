@@ -50,8 +50,28 @@ describe('instrumentPort (R31)', () => {
     expect(() => thing.boom()).toThrow('sync boom');
     await expect(thing.asyncBoom()).rejects.toThrow('async boom');
     const [a, b] = logger.records();
-    expect(a).toMatchObject({ severity: 'error', attributes: { outcome: 'error', error: { name: 'Error', message: 'sync boom' } } });
-    expect(b?.attributes['error']).toMatchObject({ message: 'async boom' });
+    expect(a).toMatchObject({ severity: 'error', attributes: { outcome: 'error', error: { name: 'Error', message: '[sdk message withheld]' } } });
+    expect(b?.attributes['error']).toMatchObject({ message: '[sdk message withheld]' });
+  });
+
+  it("withholds a failed call's message, so no data it quotes reaches the log", async () => {
+    const logger = new MemoryLogger();
+    const shop = instrumentPort(
+      'shop',
+      {
+        async readItem(): Promise<never> {
+          throw new Error('permission denied reading Zucchini for Sam');
+        },
+      },
+      logger,
+      new FakeClock(),
+      correlation,
+    );
+    await expect(shop.readItem()).rejects.toThrow('permission denied reading Zucchini for Sam');
+    const logged = JSON.stringify(logger.records());
+    expect(logged).not.toContain('Zucchini');
+    expect(logged).not.toContain('Sam');
+    expect(logger.records()[0]?.attributes['error']).toMatchObject({ message: '[sdk message withheld]' });
   });
 
   it('wraps every provider a command uses', async () => {
