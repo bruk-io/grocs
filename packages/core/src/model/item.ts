@@ -65,3 +65,8 @@ export function createExtraItem(input: NewItemInput, stamp: Stamp): Result<Item,
     deleted: null,
   });
 }
+
+/** Set an item's state (to-buy or in-cart). Only the state is restamped (R18); everything else is unchanged. */
+export function setItemState(item: Item, state: ItemState, stamp: Stamp): Item {
+  return { ...item, state: stamped(state, stamp) };
+}
