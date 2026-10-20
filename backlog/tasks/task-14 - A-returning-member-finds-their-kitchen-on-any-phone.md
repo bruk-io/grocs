@@ -1,7 +1,7 @@
 ---
-id: DRAFT-10
+id: TASK-14
 title: A returning member finds their kitchen on any phone
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-10-20 03:20'
 labels:
