@@ -3,11 +3,11 @@ id: TASK-16
 title: >-
   Weakening check asks when a commit edits a check config that is new on its own
   branch
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 19:03'
-updated_date: '2026-10-20 08:01'
+updated_date: '2026-10-20 08:03'
 labels:
   - size-1
   - ci
@@ -174,4 +174,6 @@ Repro at 6073a72655f2, test files: tools/hooks/hooks.test.ts; command: `mise exe
    Start at  04:00:50
    Duration  620ms (transform 100ms, setup 0ms, import 389ms, tests 157ms, environment 0ms)
 ```
+
+Re-review at 9cfeb80: CLOSED. Both blockers from the first pass are gone. The work is committed (6073a72 carries tools/checks/run.ts, tools/hooks/hooks.test.ts and the DRAFT-9 to TASK-16 board move; 9cfeb80 the repro and the modified_files correction), the working tree is clean apart from a pre-existing untracked mise.toml, and HEAD's run.ts contains the merge-base guard verbatim as reviewed. The recorded repro is genuine, not a restated claim: against the pre-fix run.ts the filtered test exited 1 with weakening/loosen-check-config on .github/workflows/demo.yml, detail 'removes 2 line(s), for example: - run: b', which is exactly the symptom in the description; with the fix restored the file's 25 tests pass. Both criteria re-verified from the commits and stay ticked - AC#1 by that repro plus the test's toEqual([]) assertion, AC#2 by the lefthook.yml companion test still returning exactly ['weakening/loosen-check-config'] on a config that does exist at the fixture merge-base, so the ask path is narrowed rather than switched off. The full tier recorded earlier (pnpm check && typecheck && test && test:emulator && check:release && build-storybook && visual) exited 0 and reformatted nothing, against code byte-identical to what is now committed. Findings: the modified_files drift is fixed. The order-coupling nit in the two new tests (the second deletes the branch the first creates, so it cannot run under a -t filter alone) is accepted as a known non-blocking nit: the coordinator had the fix but reverting it was the right call, since re-editing hooks.test.ts after the repro was recorded would have made the repro note point at a commit whose test file no longer matched. It is cosmetic, affects no normal run, and did not earn a draft. mise.toml is pre-existing and outside this task.
 <!-- SECTION:NOTES:END -->
