@@ -9,7 +9,7 @@ import { render } from '@testing-library/react';
 import { ExpoRoot, Slot } from 'expo-router';
 import { inMemoryContext } from 'expo-router/build/testing-library/context-stubs';
 import type { ComponentType } from 'react';
-import { FakeAuth, FakeClock, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
@@ -19,16 +19,26 @@ export async function appOnFakes({
   signedIn,
   dev = false,
   syncStore = new InMemorySyncStore(),
+  kitchen = true,
+  clock = new FakeClock(),
+  kitchens = new FakeKitchenGateway('u1', undefined, clock),
 }: {
   signedIn: boolean;
   dev?: boolean;
   /** Pass a store to put items in it before the app opens. */
   syncStore?: InMemorySyncStore;
+  /** Whether the signed-in member (u1) already belongs to a kitchen. False gives the kitchen setup screen. */
+  kitchen?: boolean;
+  /** The kitchen gateway, as u1 sees it. Pass one built with `.asMember('u2')`'s shared state to put a partner's invite in it. */
+  kitchens?: FakeKitchenGateway;
+  /** The clock the gateway and the app share, to move time past an invite's expiry. */
+  clock?: FakeClock;
 }): Promise<NativeApp> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
+  if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
   const app = composeApp({
-    ports: { syncStore, auth, clock: new FakeClock(), ids: new SequentialIds('t') },
+    ports: { syncStore, auth, clock, ids: new SequentialIds('t'), kitchens },
     logger: new MemoryLogger(),
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
   });

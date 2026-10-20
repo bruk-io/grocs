@@ -1,10 +1,11 @@
 // The demo composition (decision-12): the app on the in-memory provider, seeded from the sample
 // data. Nothing here touches a network or a disk. Only the demo variant's bundle reaches this folder.
 import type { RuntimeInfo } from '@grocs/application';
-import { createExtraItem, weekIdFor } from '@grocs/core';
+import { createExtraItem, createKitchen, weekIdFor } from '@grocs/core';
+import type { Kitchen } from '@grocs/core';
 import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
-import { MemoryAuth, MemorySyncStore } from '@grocs/providers-memory';
+import { DEMO_MEMBER, MemoryAuth, MemoryKitchenGateway, MemorySyncStore } from '@grocs/providers-memory';
 import { composeApp } from '../composition/compose-app.ts';
 import type { NativeApp } from '../composition/native.ts';
 import { meat, produce } from '../sample/sample-data.ts';
@@ -24,7 +25,12 @@ export function composeDemoApp({ logger, runtime, clock = new SystemClock(), ids
   const syncStore = new MemorySyncStore();
   seed(syncStore, clock);
 
-  const app = composeApp({ ports: { syncStore, auth, clock, ids }, logger, runtime });
+  // The demo member already belongs to the one demo kitchen, so signing in lands on Groceries (decision-12).
+  const made = createKitchen({ id: DEMO_KITCHEN_ID, name: 'Our kitchen', timeZone: 'UTC', ownerUid: DEMO_MEMBER.uid, createdAt: clock.now() });
+  if (!made.ok) throw new Error('the demo kitchen is not a valid kitchen');
+  const kitchens = new MemoryKitchenGateway(DEMO_MEMBER.uid, { kitchens: new Map<string, Kitchen>([[made.value.id, made.value]]), invites: new Map() }, clock, ids);
+
+  const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens }, logger, runtime });
   return {
     app,
     dev: null,

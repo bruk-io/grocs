@@ -1,7 +1,7 @@
 import type { RuntimeInfo } from '@grocs/application';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
-import { FirebaseAuth, FirestoreSyncStore } from '@grocs/providers-firebase';
-import type { AuthFns, FirestoreFns } from '@grocs/providers-firebase';
+import { FirebaseAuth, FirebaseKitchenGateway, FirestoreSyncStore } from '@grocs/providers-firebase';
+import type { AuthFns, FirestoreFns, FunctionsFns } from '@grocs/providers-firebase';
 import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { composeApp } from './compose-app.ts';
 import type { App } from './compose-app.ts';
@@ -16,6 +16,8 @@ export interface FirebaseModules {
   readonly auth: AuthFns;
   readonly db: unknown;
   readonly authInstance: unknown;
+  /** The Cloud Functions SDK and instance behind the kitchen gateway. The Node emulator tests that only sync items leave it out. */
+  readonly functions?: { readonly fns: FunctionsFns; readonly instance: unknown };
 }
 
 export interface FirebaseAppOptions {
@@ -31,6 +33,7 @@ export function composeFirebaseApp({ firebase, logger, runtime, clock, ids }: Fi
     ports: {
       syncStore: new FirestoreSyncStore(firebase.firestore, firebase.db),
       auth: new FirebaseAuth(firebase.auth, firebase.authInstance),
+      ...(firebase.functions ? { kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance) } : {}),
       clock: clock ?? new SystemClock(),
       ids: ids ?? new RandomIds(),
     },
