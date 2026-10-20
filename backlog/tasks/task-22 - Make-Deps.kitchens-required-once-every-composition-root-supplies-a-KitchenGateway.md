@@ -3,11 +3,11 @@ id: TASK-22
 title: >-
   Make Deps.kitchens required once every composition root supplies a
   KitchenGateway
-status: In Progress
+status: Done
 assignee:
   - '@builder-application'
 created_date: '2026-10-20 05:02'
-updated_date: '2026-10-20 21:50'
+updated_date: '2026-10-20 22:03'
 labels:
   - size-1
   - layer-application
@@ -33,8 +33,8 @@ From the TASK-1.20.1 review. Deps.kitchens is optional in packages/application/s
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Deps.kitchens is required in packages/application/src/dispatch/types.ts, and every caller inside packages/application (create-kitchen, join-kitchen, find-my-kitchen, instrumentDeps, the scenario-test client) supplies or assumes a gateway
-- [ ] #2 The kitchens-unavailable branches in create-kitchen.ts, join-kitchen.ts and find-my-kitchen.ts, instrumentDeps's conditional spread, and the testing client's kitchens: null option and its two kitchens-unavailable scenario tests are removed
+- [x] #1 Deps.kitchens is required in packages/application/src/dispatch/types.ts, and every caller inside packages/application (create-kitchen, join-kitchen, find-my-kitchen, instrumentDeps, the scenario-test client) supplies or assumes a gateway
+- [x] #2 The kitchens-unavailable branches in create-kitchen.ts, join-kitchen.ts and find-my-kitchen.ts, instrumentDeps's conditional spread, and the testing client's kitchens: null option and its two kitchens-unavailable scenario tests are removed
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -92,4 +92,18 @@ Modified files:
 - packages/application/src/commands/join-kitchen.scenario.test.ts
 
 Note: Unable to run vitest due to Node version (have v22.21.1, need >=24.12), but all syntax verified manually. No kitchens-unavailable strings or null spreads remain in application layer. Test counts maintained per file.
+
+Closed. Both criteria met, verified from commit e8b775c (merged as 4993549) and the current tree, not from the worker's report.
+
+#1: Deps.kitchens is `readonly kitchens: KitchenGateway` in packages/application/src/dispatch/types.ts with the 'optional until the roots catch up' doc comment gone; instrumentDeps instruments it unconditionally; the testing client builds `options.kitchens ?? new FakeKitchenGateway(...)` and passes it as a plain field. Whole-repo typecheck exits 0, which is the real proof every caller supplies one.
+#2: all three kitchens-unavailable branches, instrumentDeps's conditional spread and the client's `KitchenGateway | null` option are gone; no 'kitchens-unavailable' string remains anywhere under packages/application/src or apps/mobile/src (the only hits are in gitignored apps/mobile/dist-dev build output).
+
+No test shrank. Per-file `it(` counts across e8b775c are unchanged: find-my-kitchen.test.ts 4=4, create-kitchen.scenario.test.ts 7=7, join-kitchen.scenario.test.ts 8=8, instrument.test.ts 5=5, dispatcher.test.ts 4=4, queries.test.ts 2=2. Stronger than the grep: the repo's own diff review, `node tools/checks/run.ts --mode ci --base e8b775c^`, passes all 14 checks, so its delete-test/weakening detector sees nothing. The three replacements are real tests, not placeholders: a vi.spyOn assertion that the gateway is never reached when nobody is signed in, a capturing stub proving the exact timeZone reaches createKitchen unchanged, and a whitespace-padded invite code joining through the previously untested command.code.trim().
+
+Reviewer's full check on the merged tree: pnpm check, pnpm typecheck and pnpm test all exit 0, 103 test files / 1370 tests. Nothing was reformatted or fixed by the check.
+
+Findings, none blocking, none filed as a draft (no realistic path to a failure):
+- Plan departure to note: the commit also touched dispatcher.test.ts, instrument.test.ts and queries.test.ts, which the plan and the notes do not list, and the task's modified_files is therefore incomplete. The edits are the forced consequence of making kitchens required (fixtures that passed undefined), and their test counts held.
+- The notes say join-kitchen.scenario.test.ts has 9 tests; it has 8, before and after. An inaccurate self-report, not a shrink.
+- The notes say vitest could not run (Node v22 vs >=24.12) while the commit message claims '49 unit tests pass'. The worker's claim was unverified at the time; this review's own run is the evidence.
 <!-- SECTION:NOTES:END -->
