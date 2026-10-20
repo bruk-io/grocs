@@ -5,8 +5,8 @@ import { SubHeader } from '../organisms/SubHeader.tsx';
 import { ActionBar } from './layouts/ActionBar.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
-/** The Your kitchen screen: waiting for the partner, and once they have joined. */
-export const KITCHENSETUPTEMPLATE_STATES = ['rest'] as const;
+/** The Your kitchen screen: waiting for the partner, once they have joined, and before there is an invite to share (the card's buttons disabled). */
+export const KITCHENSETUPTEMPLATE_STATES = ['rest', 'inviteUnavailable'] as const;
 
 export interface KitchenSetupTemplateProps {
   /** The Google account that is signed in. */
@@ -16,6 +16,7 @@ export interface KitchenSetupTemplateProps {
   /** The invite code and, once it is shared, where the invite stands. */
   inviteCode: string;
   inviteStatus?: StatusRowProps;
+  /** Leave onShare or onCopy out and that button on the invite card is disabled. */
   onShare?: () => void;
   onCopy?: () => void;
   onStart?: () => void;

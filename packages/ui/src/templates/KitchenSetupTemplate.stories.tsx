@@ -15,4 +15,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Household. */
-export const Rest: Story = {};
+export const Rest: Story = { args: { onShare: () => undefined, onCopy: () => undefined } };
+/** No invite to share yet: the card's Share link and Copy code are disabled. */
+export const InviteUnavailable: Story = {};

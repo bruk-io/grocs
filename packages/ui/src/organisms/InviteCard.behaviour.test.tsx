@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './InviteCard.stories.tsx';
 
-const { Waiting, Joined, Unsent } = composeStories(stories);
+const { Waiting, Joined, Unsent, Unshareable } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -39,5 +39,16 @@ describe('InviteCard', () => {
   it('has no status line before the link is shared', () => {
     const { container } = render(<Unsent />);
     expect(container.querySelector('[aria-live="polite"]')).toBeNull();
+  });
+
+  it('disables both buttons when there is nothing to share, and enables each with its handler', () => {
+    const disabled = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-disabled') === 'true';
+    render(<Unshareable />);
+    expect(disabled('Share link')).toBe(true);
+    expect(disabled('Copy code')).toBe(true);
+    cleanup();
+    render(<Unshareable onShare={() => undefined} />);
+    expect(disabled('Share link')).toBe(false);
+    expect(disabled('Copy code')).toBe(true);
   });
 });

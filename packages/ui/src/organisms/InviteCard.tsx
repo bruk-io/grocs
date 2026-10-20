@@ -6,13 +6,14 @@ import { StatusRow } from '../molecules/StatusRow.tsx';
 import type { StatusRowProps } from '../molecules/StatusRow.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
-/** invite.card: before it is shared, waiting for the partner to join, and joined. */
-export const INVITECARD_STATES = ['waiting', 'joined', 'unsent'] as const;
+/** invite.card: before it is shared, waiting for the partner to join, joined, and with nothing to share yet (both buttons disabled). */
+export const INVITECARD_STATES = ['waiting', 'joined', 'unsent', 'unshareable'] as const;
 
 export interface InviteCardProps {
   code: string;
   /** The line at the foot: waiting for them, or who joined. Left out before the invite is sent. */
   status?: StatusRowProps;
+  /** A button whose handler is left out renders disabled, never dead. */
   onShare?: () => void;
   onCopy?: () => void;
 }
@@ -30,10 +31,10 @@ export function InviteCard({ code, status, onShare, onCopy }: InviteCardProps) {
       <InviteCode code={code} />
       <View style={styles.buttons}>
         <View style={styles.button}>
-          <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" {...(onShare ? { onPress: onShare } : {})} />
+          <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" disabled={!onShare} {...(onShare ? { onPress: onShare } : {})} />
         </View>
         <View style={styles.button}>
-          <Button stretch size="s" variant="secondary" label="Copy code" {...(onCopy ? { onPress: onCopy } : {})} />
+          <Button stretch size="s" variant="secondary" label="Copy code" disabled={!onCopy} {...(onCopy ? { onPress: onCopy } : {})} />
         </View>
       </View>
       {status ? <StatusRow {...status} /> : null}

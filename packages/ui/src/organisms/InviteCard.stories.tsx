@@ -8,8 +8,11 @@ const meta = {
 } satisfies Meta<typeof InviteCard>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+const sendable = { onShare: () => undefined, onCopy: () => undefined };
 
-export const Waiting: Story = { args: { status: { message: 'Link sent. Waiting for them to join…' } } };
-export const Joined: Story = { args: { status: { kind: 'joined', name: 'Sam', message: 'Sam joined your kitchen!' } } };
+export const Waiting: Story = { args: { ...sendable, status: { message: 'Link sent. Waiting for them to join…' } } };
+export const Joined: Story = { args: { ...sendable, status: { kind: 'joined', name: 'Sam', message: 'Sam joined your kitchen!' } } };
 /** Before the link is shared there is no status line yet. */
-export const Unsent: Story = {};
+export const Unsent: Story = { args: sendable };
+/** There is nothing to share yet (no kitchen): neither handler is given, so both buttons are disabled. */
+export const Unshareable: Story = {};
