@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-application-small'
 created_date: '2026-10-20 20:31'
-updated_date: '2026-10-20 20:31'
+updated_date: '2026-10-20 20:42'
 labels:
   - size-1
   - layer-application
@@ -34,3 +34,9 @@ Found reviewing TASK-1.28. packages/application/src/instrumentation/instrument.t
 3. If an existing test in that file expects a copied message text, change only that expected value to '[sdk message withheld]' (or '[value withheld]') and say so in your report; delete no test.
 4. Run pnpm test, pnpm check and pnpm typecheck. If a step does not fit the code, stop and report which.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Report (builder-application-small): describeError now keeps name and code for an Error and withholds its message as '[sdk message withheld]'; a non-Error value gives { name: 'NonError', message: '[value withheld]' }. A one-line comment above the function cites decision-8. Step 2: added test 'withholds a failed call's message, so no data it quotes reaches the log' (a shop port rejecting with 'permission denied reading Zucchini for Sam'; asserts the JSON of the records has neither 'Zucchini' nor 'Sam', and the error message is '[sdk message withheld]'). Step 3: two existing expectations in the 'logs and rethrows' test changed from 'sync boom' and 'async boom' to '[sdk message withheld]'; no test deleted or skipped. Step 4: pnpm test passed (100 files, 1350 tests); pnpm check passed (13 checks); pnpm -s typecheck passed. No step failed to fit the code. Acceptance criteria left unchecked for the reviewer.
+<!-- SECTION:NOTES:END -->

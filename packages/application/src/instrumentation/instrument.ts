@@ -66,12 +66,13 @@ export function instrumentPort<P extends object>(
   });
 }
 
+// Messages are withheld until GrocsError exists (decision-8): SDK text can quote document data.
 function describeError(error: unknown): { name: string; code?: string; message: string } {
   if (error instanceof Error) {
     const code = (error as { code?: unknown }).code;
-    return { name: error.name, ...(typeof code === 'string' ? { code } : {}), message: error.message.slice(0, 200) };
+    return { name: error.name, ...(typeof code === 'string' ? { code } : {}), message: '[sdk message withheld]' };
   }
-  return { name: 'NonError', message: String(error).slice(0, 200) };
+  return { name: 'NonError', message: '[value withheld]' };
 }
 
 /** Wrap every provider in the ports a command uses. The composition root calls this once per command. */
