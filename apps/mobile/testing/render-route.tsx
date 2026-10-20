@@ -9,10 +9,12 @@ import { render } from '@testing-library/react';
 import { ExpoRoot, Slot } from 'expo-router';
 import { inMemoryContext } from 'expo-router/build/testing-library/context-stubs';
 import type { ComponentType } from 'react';
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
+import { BufferLogger } from '@grocs/providers-device';
+import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
+import { diagnosticsText } from '../src/composition/diagnostics.ts';
 import type { NativeApp } from '../src/composition/native.ts';
 import { FakeClipboard } from './fake-clipboard.ts';
 
@@ -39,9 +41,11 @@ export async function appOnFakes({
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
   const clipboard = new FakeClipboard();
+  // The release build's own logger, so a test of the diagnostics copy reads what a phone would copy.
+  const logger = new BufferLogger();
   const app = composeApp({
     ports: { syncStore, auth, clock, ids: new SequentialIds('t'), kitchens },
-    logger: new MemoryLogger(),
+    logger,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     copyText: clipboard.copyText,
   });
@@ -55,7 +59,7 @@ export async function appOnFakes({
         },
       }
     : null;
-  return { clipboard, app, dev: devAccess, demo: null, diagnostics: null, signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  return { clipboard, app, dev: devAccess, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
 }
 
 /**
