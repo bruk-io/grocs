@@ -16,11 +16,12 @@ export const DEMO_KITCHEN_ID = 'demo-kitchen';
 export interface DemoOptions {
   readonly logger: Logger;
   readonly runtime: RuntimeInfo;
+  readonly copyText: (text: string) => Promise<void>;
   readonly clock?: Clock;
   readonly ids?: IdGenerator;
 }
 
-export function composeDemoApp({ logger, runtime, clock = new SystemClock(), ids = new RandomIds() }: DemoOptions): NativeApp {
+export function composeDemoApp({ logger, runtime, copyText, clock = new SystemClock(), ids = new RandomIds() }: DemoOptions): NativeApp {
   const auth = new MemoryAuth();
   const syncStore = new MemorySyncStore();
   seed(syncStore, clock);
@@ -30,7 +31,7 @@ export function composeDemoApp({ logger, runtime, clock = new SystemClock(), ids
   if (!made.ok) throw new Error('the demo kitchen is not a valid kitchen');
   const kitchens = new MemoryKitchenGateway(DEMO_MEMBER.uid, { kitchens: new Map<string, Kitchen>([[made.value.id, made.value]]), invites: new Map() }, clock, ids);
 
-  const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens }, logger, runtime });
+  const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens }, logger, runtime, copyText });
   return {
     app,
     dev: null,

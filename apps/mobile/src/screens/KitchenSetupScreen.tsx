@@ -50,6 +50,7 @@ export function KitchenSetupScreen({ app, email, onReady }: { app: App; email: s
           ? {
               inviteStatus: { kind: 'waiting' as const, message: 'Waiting for your partner to join' },
               onShare: () => void Share.share({ message: `Join our kitchen on Grocs: ${inviteLink(created.inviteCode)} (code ${created.inviteCode})` }),
+              onCopy: () => void app.copyText(created.inviteCode),
               onStart: () => onReady(created.kitchenId),
             }
           : name.trim() === ''

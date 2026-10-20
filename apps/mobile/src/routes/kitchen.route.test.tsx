@@ -63,6 +63,16 @@ describe('creating a kitchen', () => {
     expect(await screen.findByRole('checkbox', { name: 'Oat milk' })).toBeTruthy();
   });
 
+  it('puts the invite code on the clipboard when Copy code is pressed', async () => {
+    const app = await appOnFakes({ signedIn: true, kitchen: false });
+    renderRoute(ROUTES, { app });
+    await screen.findByText('Your kitchen');
+    fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
+    const code = (await screen.findByText(/^[A-Z]+-\d{4}$/)).textContent;
+    fireEvent.click(screen.getByRole('button', { name: 'Copy code' }));
+    await waitFor(() => expect(app.clipboard.copied).toEqual([code]));
+  });
+
   it('does not make a kitchen with no name', async () => {
     const mine = new FakeKitchenGateway('u1');
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine }) });
