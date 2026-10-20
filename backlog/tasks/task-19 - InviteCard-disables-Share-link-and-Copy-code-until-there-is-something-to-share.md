@@ -5,10 +5,11 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 12:11'
-updated_date: '2026-10-20 17:52'
+updated_date: '2026-10-20 17:56'
 labels:
   - size-2
   - layer-ui
+  - finish-moved
 dependencies: []
 type: task
 ---
@@ -21,8 +22,8 @@ Found by the TASK-17 builder. InviteCard always renders Share link and Copy code
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 InviteCard's unsent state shows Share link and Copy code disabled (a button without its handler is disabled, never dead), with its story and behaviour test
-- [x] #2 KitchenSetupTemplate can show the card unsent; every existing state and baseline is unchanged and the new baselines are approved
+- [x] #1 KitchenSetupTemplate can show the card unsent; every existing state and baseline is unchanged and the new baselines are approved
+- [ ] #2 With no code, InviteCard hides Share link and Copy code and shows a hint where the code will be; with a code, a button without its handler is disabled, never dead; with stories and behaviour tests
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -105,4 +106,6 @@ visual: 323 story views checked (axe, 44 x 44, 323 images compared)
 ```
 
 Review (philosophy:reviewer, Oct 20, 2026): not closed. Full tier recorded above exited 0 (1345 tests, 323 visual views clean). Criterion 2 met and ticked: KitchenSetupTemplate inviteCode={null} (state noInviteYet, story NoInviteYet) shows the card before a code; existing baselines byte-unchanged; new baselines (no-invite-yet x3, invitecard--no-code, invitecode--pending) approved by @bruk in round two. Criterion 1 not ticked: it says the unsent state shows both buttons disabled, but on @bruk's decision ('hide them instead') code:null hides them and shows the hint, and the existing 'unsent' state stays enabled. The built behaviour matches his decision and is tested (InviteCard 'before there is a code...' and 'disables the button whose handler is missing'; the type union refuses status/onShare/onCopy with code:null; InviteCode gains 'pending'), so the work is right and the criterion's wording is stale. The reviewer cannot move a finish line: whoever owns it should reword criterion 1 to the hide-plus-hint behaviour (keeping 'with a code, a missing handler renders disabled, never dead'), add finish-moved and a note citing Bruk's round-one choice, commit, and re-run close-task; it should then close. Other findings: builder's 'pnpm test' count was the ui vitest project only (full suite 1345) - reporting slip. Hand-removed unapproved baselines: workflow run 39458891270 wrote 324 files byte-identical to the branch, so the result equals a full visual:update; sound. HouseholdScreen now shows both buttons disabled, not dead: acceptable, folded into TASK-17's notes. Nit: KitchenSetupTemplate.tsx STATES comment reads 'and and'.
+
+Finish line moved by the orchestrator (Oct 20, 2026): criterion 1 reworded to the behaviour Bruk chose in round one ('Hide them instead', rather than greyed-out buttons) and approved in round two. The old wording (the unsent state shows the buttons disabled) described the first attempt he turned down. The reviewer judged the work meets the new behaviour but may not change criteria.
 <!-- SECTION:NOTES:END -->
