@@ -17,3 +17,8 @@ allowBuilds:
   "esbuild": true
   "lefthook": true
   "protobufjs": true
+  # Optional native speed-up for superstatic, under firebase-tools (the emulators). Its build
+  # needs a compiler and nothing here needs it: superstatic falls back to RegExp. Declined
+  # explicitly because pnpm 11 fails an install over any build script it was not told about
+  # (TASK-15).
+  "re2": false
