@@ -6,7 +6,7 @@ import { weekIdFor } from '@grocs/core';
 import type { Item } from '@grocs/core';
 import { FirebaseAuth } from '@grocs/providers-firebase';
 import { asSdk } from '@grocs/providers-firebase';
-import type { AuthFns } from '@grocs/providers-firebase';
+import type { AuthFns, FunctionsFns } from '@grocs/providers-firebase';
 import type { LogRecord, Logger } from '@grocs/ports';
 import { eventually, testSignInContract } from '@grocs/ports/testing';
 import { afterAll, describe, expect, it } from 'vitest';
@@ -39,7 +39,13 @@ async function signedInClient(who: 'bruk' | 'sam'): Promise<{ app: App; logger: 
   await client.authFns.signInWithEmailAndPassword(client.auth, email, password);
   const logger = new RawLogger();
   const app = composeFirebaseApp({
-    firebase: { firestore: client.firestoreFns, auth: client.authFns, db: client.db, authInstance: client.auth },
+    firebase: {
+      firestore: client.firestoreFns,
+      auth: client.authFns,
+      db: client.db,
+      authInstance: client.auth,
+      functions: { fns: asSdk<FunctionsFns>(client.functionsFns), instance: client.functions },
+    },
     logger,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     copyText: new FakeClipboard().copyText,

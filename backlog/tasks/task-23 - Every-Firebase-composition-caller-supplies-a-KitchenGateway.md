@@ -46,3 +46,31 @@ A sibling task, TASK-22, makes packages/application's Deps.kitchens required; it
 ### Proof
 `pnpm typecheck` and `vitest run --project app --project tools apps` both pass on their own, before TASK-22 lands.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+### Completed Steps
+
+All steps completed successfully:
+
+1. **Changed FirebaseModules.functions from optional to required** in compose-firebase.ts
+   - Dropped the `?` from the field definition
+   - Updated doc comment to remove mention of emulator tests leaving it out
+
+2. **Updated composeFirebaseApp** to supply kitchens unconditionally
+   - Changed from conditional spread `...(firebase.functions ? { kitchens: ... } : {})` to unconditional `kitchens: new FirebaseKitchenGateway(...)`
+
+3. **Added functions to the firebase object** in two-client.emulator.test.ts
+   - Imported `FunctionsFns` from @grocs/providers-firebase
+   - Added `functions: { fns: asSdk<FunctionsFns>(client.functionsFns), instance: client.functions }` to the firebase object passed to composeFirebaseApp in signedInClient
+   - Matches the pattern used in apps/mobile/src/composition/native.ts and packages/providers-firebase/src/kitchen-gateway.emulator.test.ts
+
+4. **Typecheck passed clean**
+   - `pnpm -s typecheck` completed without errors
+   - This change is safe on its own against current main since providing an optional field is always valid
+
+5. **Tests passed**
+   - `vitest run --project app --project tools apps` passed all 73 tests across 9 test files
+   - No failures or errors
+
+Ready for TASK-22 to land together as planned.
