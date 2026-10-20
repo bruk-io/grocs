@@ -5,11 +5,12 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 11:35'
-updated_date: '2026-10-20 12:07'
+updated_date: '2026-10-20 12:11'
 labels:
   - size-2
   - layer-app
-dependencies: []
+dependencies:
+  - TASK-19
 type: bug
 ---
 
@@ -29,4 +30,6 @@ TASK-1.20.2 review. KitchenSetupScreen passes onShare but no onCopy, so InviteCa
 
 <!-- SECTION:NOTES:BEGIN -->
 Accepted by @bruk (Oct 20, 2026: 'go further'). Resized to 2 at acceptance: it adds expo-clipboard, a native module, and a clipboard seam on the app composition that route tests can fake. decision-8 already names expo-clipboard for the diagnostics copy (TASK-1.28), so this lays the shared piece.
+
+Oct 20, 2026 (orchestrator): the builder stopped before editing because criterion 2 needs a ui change (TASK-19). Split by order, not by task: this task builds criterion 1 now (expo-clipboard, the copyText seam, Copy code once a kitchen exists, a route test on a fake clipboard) and comes back for criterion 2's route test once TASK-19 merges.
 <!-- SECTION:NOTES:END -->

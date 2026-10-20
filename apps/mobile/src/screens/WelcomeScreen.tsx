@@ -16,16 +16,12 @@ export function WelcomeScreen({ dev, demo = null }: { dev: DevAccess | null; dem
       <SignInTemplate
         title="Grocs"
         tagline="Plan the week. Shop together."
-        onOpenInvite={go.join}
-        {...(demo ? { footer: <TryDemo demo={demo} /> } : dev ? { footer: <DevSignIn dev={dev} /> } : {})}
+        {...(demo
+          ? { primaryLabel: 'Try the demo', onPrimary: () => void demo.signIn() }
+          : { onOpenInvite: go.join, ...(dev ? { footer: <DevSignIn dev={dev} /> } : {}) })}
       />
     </View>
   );
-}
-
-/** The demo variant's way in: no account, and sample data that stays on the phone (decision-12). */
-function TryDemo({ demo }: { demo: DemoAccess }) {
-  return <Button variant="text" size="s" label="Try the demo" onPress={() => void demo.signIn()} />;
 }
 
 function DevSignIn({ dev }: { dev: DevAccess }) {
