@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-20 20:31'
+updated_date: '2026-10-20 21:20'
 labels:
   - size-2
   - slice
@@ -26,7 +26,7 @@ Waits on the skeleton. Cites R35.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Settings holds the notifications toggle, copy diagnostics and sign out
-- [ ] #2 Copy diagnostics copies the recent log records from the on-phone buffer, with no personal content
+- [x] #2 Copy diagnostics copies the recent log records from the on-phone buffer, with no personal content
 - [x] #3 Uncaught errors, unhandled rejections, render errors and screen changes are logged by handlers installed once at app start (R33)
 <!-- AC:END -->
 
@@ -108,4 +108,72 @@ visual: 326 story views checked (axe, 44 x 44, 326 images compared)
 ```
 
 Review (philosophy:reviewer, Oct 20, 2026): not closed, on criterion #2 only. Full tier passed (recorded above) and pnpm check:demo passed. #1 met: route tests show sign out ends the session and shows Welcome, Copy diagnostics copies through app.copyText, and the switch is disabled, unchecked, with 'Coming soon' (TASK-20's API; the change rode in merge 863fca4 because the merged template refused the old props, which is explained in the notes). #3 met: observe.ts installs once from createNativeApp, keeps and calls the previous ErrorUtils handler, guards the Hermes tracker, the root ErrorBoundary logs source render with the route and retries, and the layout logs the useSegments pattern, never a pathname; one app-<id> correlation id. Unit and route tests drive these with fakes; the on-phone confirmation decision-8 asks for moves to DRAFT-14 (assigned to Bruk), as TASK-1.37.7 did for fonts. #2 not met: withholding every message in observe.ts is sound and stricter than decision-8 (it loses only our own id-only messages until GrocsError exists), but the buffer also holds instrumentPort's records, and describeError there still copies SDK error messages (200 chars) into the copy. The copy test covers only a successful AddItem, so that path is untested. Filed as DRAFT-13. Demo build leaving observer() a no-op is right: the demo has no on-phone buffer to write to and its diagnostics say nothing is logged; the ErrorBoundary still shows retry. Finding filed in DRAFT-14: React Native installs its own Hermes rejection tracker in __DEV__, which ours replaces, so dev builds lose the unhandled-rejection warning. Lower, filed nowhere: BufferLogger is still one 500-record ring in memory (decision-8's two rings and persistence wait on the key-value port), and Settings shows sample kitchen and partner names.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(708 earlier lines omitted)
+```text
+|  storybook-static/assets/PreferencesTemplate.stories-DMm4jNL7.js
+|  4.58 kB │ gzip:   1.76 kB
+|  storybook-static/assets/ItemRow-BgzP7XFR.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-Bu-n0q9_.js
+|  5.75 kB │ gzip:   1.97 kB
+|  storybook-static/assets/Button-CxILU1aQ.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-D4jB9WQY.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-BPDuhWkL.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-PNLDbSaq.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-CGfbGzBZ.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-vq108xyw.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-DmUd5E6i.js
+|  1,359.38 kB │ gzip: 391.72 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 4.14s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 2.8s of this 4.1s
+|  build (70%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin storybook:react-docgen-plugin transform (35%, 1.4s, 822
+|  calls)
+|  - plugin vite:css transform (32%, 1.3s, 2 calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a1fa31dd9258f9d8c/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: 326 story views checked (axe, 44 x 44, 326 images compared)
+```
+
+Re-review (philosophy:reviewer, Oct 20, 2026): all three criteria met; #2 ticked. TASK-1.28.1 (merged in f388e17) makes instrument.ts withhold every message, keeping name and code, with a test that a failed call quoting an item and a person's name logs neither; observe.ts already withholds. The Settings copy test on a real BufferLogger shows the copy is that buffer plus a header. Full tier exited 0, pnpm check:demo exited 0. Not closed: close-task refused because child TASK-1.28.2 (phone check of the error handlers, Bruk) is To Do. Low, filed nowhere: the app-level copy test could also drive a failed port call end to end.
 <!-- SECTION:NOTES:END -->
