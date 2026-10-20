@@ -1,6 +1,7 @@
 // Level 4 of decision-11 for the screens that render a template with sample data: each route shows its
 // screen, and its links lead to the routes the design shows.
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import type { AddItem } from '@grocs/application';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import Home from '../../app/index.tsx';
 import AddMeal from '../../app/add-meal.tsx';
@@ -192,6 +193,41 @@ describe('Settings', () => {
     expect(await screen.findByText('Diagnostics')).toBeTruthy();
     press('Sign out');
     expect(await screen.findByText('Plan the week. Shop together.')).toBeTruthy();
+  });
+
+  it('signs the member out: the session ends and Welcome shows', async () => {
+    const app = await appOnFakes({ signedIn: true });
+    renderRoute(ROUTES, { app, location: '/settings' });
+    expect(await screen.findByText('U1')).toBeTruthy();
+    press('Sign out');
+    expect(await screen.findByText('Plan the week. Shop together.')).toBeTruthy();
+    const users: unknown[] = [];
+    const stop = app.app.watchSession((user) => users.push(user));
+    await waitFor(() => expect(users).toEqual([null]));
+    stop();
+  });
+
+  it('copies diagnostics with the header and recent records, and nothing personal', async () => {
+    const app = await appOnFakes({ signedIn: true });
+    const command: AddItem = { type: 'AddItem', kitchenId: 'k1', weekId: '2026-W43', name: 'Zucchini for Sam', amount: '3 kg' };
+    const added = await app.app.dispatch(command);
+    expect(added.ok).toBe(true);
+    renderRoute(ROUTES, { app, location: '/settings' });
+    expect(await screen.findByText('U1')).toBeTruthy();
+    press('Copy diagnostics');
+    await waitFor(() => expect(app.clipboard.copied).toHaveLength(1));
+    const copied = app.clipboard.text ?? '';
+    expect(copied.split('\n')[0]).toBe('grocs diagnostics - version test, platform test, build 1');
+    expect(copied).toContain('AddItem');
+    for (const personal of ['Zucchini', 'Sam', '3 kg', 'u1@grocs.test', 'U1']) expect(copied).not.toContain(personal);
+  });
+
+  it('draws the notifications switch disabled with the reason "Coming soon"', async () => {
+    await open('/settings');
+    expect(await screen.findByText('Coming soon')).toBeTruthy();
+    const toggle = screen.getByRole('switch');
+    expect(toggle.getAttribute('aria-disabled') === 'true' || toggle.hasAttribute('disabled')).toBe(true);
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
   });
 
   it('goes back to Groceries', async () => {

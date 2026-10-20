@@ -6,13 +6,15 @@ import * as nativeFunctions from '@react-native-firebase/functions';
 import { setStringAsync } from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { BufferLogger, ConsoleLogger } from '@grocs/providers-device';
+import { BufferLogger, ConsoleLogger, RandomIds, SystemClock } from '@grocs/providers-device';
 import { GoogleAuth, asSdk } from '@grocs/providers-firebase';
 import type { AuthFns, FirestoreFns, FunctionsFns } from '@grocs/providers-firebase';
 import type { GoogleSignIn, Logger } from '@grocs/ports';
 import type { App } from './compose-app.ts';
 import { composeFirebaseApp } from './compose-firebase.ts';
+import { diagnosticsText } from './diagnostics.ts';
 import { loadDevTools } from './load-dev.ts';
+import { installObservers } from './observe.ts';
 
 export interface DevAccess {
   readonly kitchenId: string;
@@ -32,8 +34,11 @@ export interface NativeApp {
   readonly dev: DevAccess | null;
   /** Null in every build but the demo variant. */
   readonly demo: DemoAccess | null;
-  /** Release builds keep a bounded buffer of log records for the diagnostics action (R35). */
-  readonly diagnostics: (() => string) | null;
+  /**
+   * The text the diagnostics action copies (R35): a header line, then the on-phone buffer's records. Release
+   * builds keep the buffer; development builds log to the console, so theirs is the header and a note.
+   */
+  readonly diagnostics: () => string;
   /** Google sign-in produces no domain event, so it is wired here directly, not through the command dispatcher. */
   readonly signInWithGoogle: GoogleSignIn['signInWithGoogle'];
 }
@@ -56,6 +61,14 @@ export function createNativeApp(): NativeApp {
   const authInstance = nativeAuth.getAuth();
   const buffer = dev ? null : new BufferLogger();
   const logger: Logger = buffer ?? new ConsoleLogger();
+  const build = {
+    appVersion: Constants.expoConfig?.version ?? '0.0.0',
+    platform: Platform.OS,
+    build: Constants.expoConfig?.ios?.buildNumber ?? String(Constants.expoConfig?.android?.versionCode ?? 'unknown'),
+  };
+
+  // The global handlers go in before anything renders, and only here (R33).
+  installObservers({ logger, clock: new SystemClock(), ids: new RandomIds() });
 
   const app = composeFirebaseApp({
     firebase: {
@@ -70,8 +83,8 @@ export function createNativeApp(): NativeApp {
       await setStringAsync(text);
     },
     runtime: {
-      appVersion: Constants.expoConfig?.version ?? '0.0.0',
-      platform: Platform.OS,
+      appVersion: build.appVersion,
+      platform: build.platform,
       kitchenRole: 'member',
     },
   });
@@ -84,7 +97,7 @@ export function createNativeApp(): NativeApp {
       ? { kitchenId: dev.kitchenId, accounts: dev.accounts, signIn: dev.signInFunction(authFns, authInstance) }
       : null,
     demo: null,
-    diagnostics: buffer ? () => buffer.dump() : null,
+    diagnostics: () => diagnosticsText(build, buffer ? buffer.dump() : 'development build: log records go to the console'),
     signInWithGoogle: () => googleAuth.signInWithGoogle(),
   };
 }

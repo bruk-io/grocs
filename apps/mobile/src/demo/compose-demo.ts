@@ -7,6 +7,7 @@ import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
 import { DEMO_MEMBER, MemoryAuth, MemoryKitchenGateway, MemorySyncStore } from '@grocs/providers-memory';
 import { composeApp } from '../composition/compose-app.ts';
+import { diagnosticsText } from '../composition/diagnostics.ts';
 import type { NativeApp } from '../composition/native.ts';
 import { meat, produce } from '../sample/sample-data.ts';
 
@@ -35,7 +36,7 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   return {
     app,
     dev: null,
-    diagnostics: null,
+    diagnostics: () => diagnosticsText({ appVersion: runtime.appVersion, platform: runtime.platform, build: 'demo' }, 'demo build: nothing is logged to the phone'),
     demo: {
       kitchenId: DEMO_KITCHEN_ID,
       signIn: async () => {
