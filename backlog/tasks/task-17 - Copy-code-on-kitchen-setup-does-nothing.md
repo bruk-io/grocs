@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 11:35'
-updated_date: '2026-10-20 12:11'
+updated_date: '2026-10-20 17:39'
 labels:
   - size-2
   - layer-app
@@ -32,4 +32,6 @@ TASK-1.20.2 review. KitchenSetupScreen passes onShare but no onCopy, so InviteCa
 Accepted by @bruk (Oct 20, 2026: 'go further'). Resized to 2 at acceptance: it adds expo-clipboard, a native module, and a clipboard seam on the app composition that route tests can fake. decision-8 already names expo-clipboard for the diagnostics copy (TASK-1.28), so this lays the shared piece.
 
 Oct 20, 2026 (orchestrator): the builder stopped before editing because criterion 2 needs a ui change (TASK-19). Split by order, not by task: this task builds criterion 1 now (expo-clipboard, the copyText seam, Copy code once a kitchen exists, a route test on a fake clipboard) and comes back for criterion 2's route test once TASK-19 merges.
+
+From the TASK-19 review (Oct 20, 2026): HouseholdScreen (apps/mobile/src/screens/HouseholdScreen.tsx, the /household sample-data route) passes inviteCode='MOREL-24' and a waiting status but no onShare/onCopy, so since TASK-19 it shows Share link and Copy code disabled (before, they looked live and did nothing). Not dead, so acceptable, but a 'waiting' sample with both buttons greyed reads oddly. When this task adds the clipboard seam, give HouseholdScreen onCopy (and a no-op-free onShare) or decide it should pass inviteCode={null}. Folded here rather than a separate task: same card, same layer.
 <!-- SECTION:NOTES:END -->
