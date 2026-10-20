@@ -8,6 +8,8 @@ export interface KitchenGateway {
   createKitchen(name: string, timeZone: string): Promise<CreatedKitchen>;
   /** Uses an invite code to join a kitchen (R3). */
   joinKitchen(code: string): Promise<JoinOutcome>;
+  /** The caller's kitchen, found on any phone after signing in - or null if they have none yet. */
+  findMyKitchen(): Promise<string | null>;
 }
 
 export interface CreatedKitchen {

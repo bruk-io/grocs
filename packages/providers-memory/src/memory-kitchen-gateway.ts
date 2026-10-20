@@ -70,4 +70,11 @@ export class MemoryKitchenGateway implements KitchenGateway {
     invite.status = 'used';
     return { kind: 'joined', kitchenId: kitchen.id };
   }
+
+  async findMyKitchen(): Promise<string | null> {
+    for (const kitchen of this.#state.kitchens.values()) {
+      if (kitchen.members.includes(this.#callerUid)) return kitchen.id;
+    }
+    return null;
+  }
 }

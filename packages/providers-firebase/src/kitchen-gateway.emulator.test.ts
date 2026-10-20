@@ -54,4 +54,15 @@ describe('FirebaseKitchenGateway: unauthenticated calls', () => {
       await client.dispose();
     }
   });
+
+  it('rejects findMyKitchen with no one signed in', async () => {
+    const client = createEmulatorClient('fkg-anon-find');
+    try {
+      const fns = asSdk<FunctionsFns>(client.functionsFns);
+      const gateway = new FirebaseKitchenGateway(fns, client.functions);
+      await expect(gateway.findMyKitchen()).rejects.toThrow();
+    } finally {
+      await client.dispose();
+    }
+  });
 });

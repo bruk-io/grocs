@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:59'
-updated_date: '2026-10-20 03:21'
+updated_date: '2026-10-20 03:30'
 labels:
   - size-1
 dependencies:
@@ -25,9 +25,9 @@ decision-6 (D3, TASK-1.8) pins the workspace to pnpm 10.34.7 and names the move 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packageManager and the pnpm-workspace.yaml nodeLinker/engineStrict settings are updated for pnpm 11 (pinned to the latest 11.x at the time of the upgrade)
-- [ ] #2 Every package with a build script that pnpm 11's strictDepBuilds would otherwise block is listed under allowBuilds in pnpm-workspace.yaml, found by running the install and reacting to what it blocks rather than guessing the list
-- [ ] #3 pnpm install --frozen-lockfile, pnpm check, pnpm typecheck, pnpm test and pnpm check:release all pass on pnpm 11
+- [x] #1 packageManager and the pnpm-workspace.yaml nodeLinker/engineStrict settings are updated for pnpm 11 (pinned to the latest 11.x at the time of the upgrade)
+- [x] #2 Every package with a build script that pnpm 11's strictDepBuilds would otherwise block is listed under allowBuilds in pnpm-workspace.yaml, found by running the install and reacting to what it blocks rather than guessing the list
+- [x] #3 pnpm install --frozen-lockfile, pnpm check, pnpm typecheck, pnpm test and pnpm check:release all pass on pnpm 11
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -49,3 +49,44 @@ decision-6 (D3, TASK-1.8) pins the workspace to pnpm 10.34.7 and names the move 
 - pnpm install --frozen-lockfile, pnpm check, pnpm typecheck, pnpm test, pnpm check:release all pass under pnpm 11 in the worktree.
 - allowBuilds list was derived from the install's own blocked-package warnings, not guessed.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Summary
+
+Upgraded workspace from pnpm 10.34.7 to pnpm 11.28.6 in isolated worktree.
+
+### Changes Made
+1. **package.json**: Bumped packageManager from pnpm@10.34.7 to pnpm@11.28.6
+2. **pnpm-workspace.yaml**: Added allowBuilds configuration for packages blocked by pnpm 11's strictDepBuilds default:
+   - @firebase/util (postinstall script)
+   - esbuild (postinstall script)
+   - lefthook (postinstall script)
+   - protobufjs (postinstall script)
+
+### Why These Packages Needed allowBuilds
+pnpm 11 defaults to strictDepBuilds=true, which prevents build scripts from running unless explicitly allowed. These packages have postinstall scripts required for proper functionality:
+- @firebase/util: postinstall.js (utility setup)
+- esbuild: install.js (native binary compilation)
+- lefthook: postinstall.js (git hook synchronization)
+- protobufjs: scripts/postinstall (code generation)
+
+### Verification
+All checks and tests pass under pnpm 11:
+- pnpm check: ✓ (13 checks)
+- pnpm typecheck: ✓ (no type errors)
+- pnpm test: ✓ (1277 tests passed across 96 test files)
+- pnpm check:release: ✓ (release bundle builds successfully)
+- Pre-commit hook: ✓ (checks + typecheck + unit-tests all passed)
+- react-native: confirmed as real directory (not symlink), proving proper hoisted installation
+
+### Commit
+Branch: task-7-pnpm11-upgrade
+Commit SHA: c84346a
+Worktree: /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/task-7-pnpm11
+
+No compatibility issues detected. pnpm-lock.yaml remained unchanged (frozen install), confirming lock file compatibility with pnpm 11.
+
+Orchestrator: independently re-verified in the worktree (not just the builder's word) - pnpm install --frozen-lockfile, pnpm check, pnpm typecheck, pnpm test, pnpm check:release, pnpm check:demo and pnpm test:emulator (57/57) all green under pnpm 11.28.6. Merged to main (commit c84346a, fast-forward). One real consequence worth recording: pnpm install under pnpm 11 purged and rebuilt node_modules (ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY without CI=true), which crashed this session's long-running 'npx expo run:android' background process (ENOENT on a node_modules file it had already resolved). Restarted it; no data loss, just a reminder that a pnpm major-version bump invalidates any process holding node_modules open, on this or any other session sharing the checkout.
+<!-- SECTION:NOTES:END -->

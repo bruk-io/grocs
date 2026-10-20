@@ -17,6 +17,10 @@ interface InviteDoc {
   readonly status: 'pending' | 'used';
 }
 
+interface MembershipDoc {
+  readonly kitchenId: string;
+}
+
 /**
  * Kitchen and invite documents, read and written through the Admin SDK (R2, R3). Translates; the
  * decisions (whether a name is valid, whether an invite may be used, whether a kitchen has room)
@@ -53,6 +57,7 @@ export class KitchenStore {
       const batch = this.#db.batch();
       batch.create(this.#db.doc(`kitchens/${id}`), made.value);
       batch.create(this.#db.doc(`inviteCodes/${code}`), invite);
+      batch.set(this.#db.doc(`memberships/${ownerUid}`), { kitchenId: id } satisfies MembershipDoc);
       try {
         await batch.commit();
         return { kitchenId: id, inviteCode: code };
@@ -87,7 +92,15 @@ export class KitchenStore {
 
       tx.set(kitchenRef, joined.value);
       tx.update(inviteRef, { status: 'used' });
+      tx.set(this.#db.doc(`memberships/${callerUid}`), { kitchenId: kitchen.id } satisfies MembershipDoc);
       return { kind: 'joined', kitchenId: kitchen.id };
     });
+  }
+
+  /** The kitchen a person belongs to, found on any phone after signing in - or null if they have none yet. */
+  async findKitchenForUid(uid: string): Promise<string | null> {
+    const snap = await this.#db.doc(`memberships/${uid}`).get();
+    if (!snap.exists) return null;
+    return (snap.data() as MembershipDoc).kitchenId;
   }
 }

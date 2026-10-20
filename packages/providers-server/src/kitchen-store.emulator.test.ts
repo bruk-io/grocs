@@ -21,6 +21,9 @@ function gatewayFor(store: KitchenStore, uid: string): KitchenGateway {
     async joinKitchen(code) {
       return store.joinKitchen(code, uid);
     },
+    async findMyKitchen() {
+      return store.findKitchenForUid(uid);
+    },
   };
 }
 
@@ -67,5 +70,24 @@ describe('KitchenStore: stored shape and races', () => {
     await db.doc(`inviteCodes/${created.inviteCode}`).update({ createdAt: 0 }); // 1970: long past the 1-day lifetime
     const outcome = await store.joinKitchen(created.inviteCode, 'partner-uid');
     expect(outcome).toEqual({ kind: 'rejected', reason: 'expired' });
+  });
+
+  it('writes a membership document for the owner, atomically with the kitchen (TASK-14)', async () => {
+    const db = adminFirestore();
+    const store = new KitchenStore(db, newId);
+    const created = await store.createKitchen('Our kitchen', 'America/New_York', 'owner-uid');
+    const snap = await db.doc('memberships/owner-uid').get();
+    expect(snap.exists).toBe(true);
+    expect(snap.data()).toEqual({ kitchenId: created.kitchenId });
+  });
+
+  it('writes a membership document for the joiner, atomically with the join', async () => {
+    const db = adminFirestore();
+    const store = new KitchenStore(db, newId);
+    const created = await store.createKitchen('Our kitchen', 'America/New_York', 'owner-uid');
+    await store.joinKitchen(created.inviteCode, 'partner-uid');
+    const snap = await db.doc('memberships/partner-uid').get();
+    expect(snap.exists).toBe(true);
+    expect(snap.data()).toEqual({ kitchenId: created.kitchenId });
   });
 });

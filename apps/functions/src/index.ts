@@ -42,3 +42,8 @@ export const joinKitchen = onCall(async (request) => {
   const code = requireString(request.data, 'code');
   return store().joinKitchen(code, uid);
 });
+
+export const findMyKitchen = onCall(async (request) => {
+  const uid = requireUid(request);
+  return store().findKitchenForUid(uid);
+});

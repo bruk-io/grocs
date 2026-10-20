@@ -1,9 +1,11 @@
 ---
 id: TASK-1.20.2
 title: Kitchen setup and join screens dispatch the kitchen commands
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-20 03:20'
+updated_date: '2026-10-20 05:06'
 labels:
   - size-3
   - layer-app
@@ -29,3 +31,9 @@ decision-13. KitchenSetupTemplate and the join screen (InviteJoinTemplate, Invit
 - [ ] #2 Entering or opening an invite code joins the kitchen, and each rejection reason shows its own inline error where the code was entered (TASK-1.20 AC3)
 - [ ] #3 Route tests cover create, join, and every rejection reason on the in-memory gateway; the real composition uses the Firebase gateway and check:release stays clean
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Oct 20, 2026 (orchestrator): TASK-14 (Bruk's session) added KitchenGateway.findMyKitchen(), so a returning member's kitchen comes from the gateway, not session state. Use it: on sign-in, a member with a kitchen lands on Groceries for it and one without sees kitchen setup. The session-state stopgap in this task's description and in decision-13's last consequence is superseded. TASK-1.20.1 is merged (a43fcd5).
+<!-- SECTION:NOTES:END -->
