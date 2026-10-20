@@ -222,6 +222,14 @@ describe('Settings', () => {
     for (const personal of ['Zucchini', 'Sam', '3 kg', 'u1@grocs.test', 'U1']) expect(copied).not.toContain(personal);
   });
 
+  it('draws the notifications switch disabled with the reason "Coming soon"', async () => {
+    await open('/settings');
+    expect(await screen.findByText('Coming soon')).toBeTruthy();
+    const toggle = screen.getByRole('switch');
+    expect(toggle.getAttribute('aria-disabled') === 'true' || toggle.hasAttribute('disabled')).toBe(true);
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+  });
+
   it('goes back to Groceries', async () => {
     await open('/settings', true);
     press(/Groceries/);

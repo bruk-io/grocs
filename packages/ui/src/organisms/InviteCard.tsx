@@ -6,16 +6,28 @@ import { StatusRow } from '../molecules/StatusRow.tsx';
 import type { StatusRowProps } from '../molecules/StatusRow.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
-/** invite.card: before it is shared, waiting for the partner to join, and joined. */
-export const INVITECARD_STATES = ['waiting', 'joined', 'unsent'] as const;
+/** invite.card: before it is shared, waiting for the partner to join, joined, and before any code exists (noCode: a hint, and no buttons at all). */
+export const INVITECARD_STATES = ['waiting', 'joined', 'unsent', 'noCode'] as const;
 
-export interface InviteCardProps {
+/** There is a code to share. */
+export interface InviteCardCodeProps {
   code: string;
   /** The line at the foot: waiting for them, or who joined. Left out before the invite is sent. */
   status?: StatusRowProps;
+  /** A button whose handler is left out renders disabled, never dead. */
   onShare?: () => void;
   onCopy?: () => void;
 }
+
+/** No code yet (no kitchen): the card says when it will appear, and Share link and Copy code are not shown, so no handler or status is accepted. */
+export interface InviteCardNoCodeProps {
+  code: null;
+  status?: never;
+  onShare?: never;
+  onCopy?: never;
+}
+
+export type InviteCardProps = InviteCardCodeProps | InviteCardNoCodeProps;
 
 /** Invites the partner: the code, the two ways to send it and where it stands (text.heading, invite.code, button x 2, status.row). */
 export function InviteCard({ code, status, onShare, onCopy }: InviteCardProps) {
@@ -27,16 +39,18 @@ export function InviteCard({ code, status, onShare, onCopy }: InviteCardProps) {
           They get the same plan and list, live on their phone.
         </Text>
       </View>
-      <InviteCode code={code} />
-      <View style={styles.buttons}>
-        <View style={styles.button}>
-          <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" {...(onShare ? { onPress: onShare } : {})} />
+      {code === null ? <InviteCode hint="Your code appears after Start planning." /> : <InviteCode code={code} />}
+      {code === null ? null : (
+        <View style={styles.buttons}>
+          <View style={styles.button}>
+            <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" disabled={!onShare} {...(onShare ? { onPress: onShare } : {})} />
+          </View>
+          <View style={styles.button}>
+            <Button stretch size="s" variant="secondary" label="Copy code" disabled={!onCopy} {...(onCopy ? { onPress: onCopy } : {})} />
+          </View>
         </View>
-        <View style={styles.button}>
-          <Button stretch size="s" variant="secondary" label="Copy code" {...(onCopy ? { onPress: onCopy } : {})} />
-        </View>
-      </View>
-      {status ? <StatusRow {...status} /> : null}
+      )}
+      {code === null || !status ? null : <StatusRow {...status} />}
     </View>
   );
 }

@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './PreferencesTemplate.stories.tsx';
 
-const { Rest } = composeStories(stories);
+const { Rest, Unavailable } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -32,6 +32,16 @@ describe('PreferencesTemplate', () => {
     render(<Rest onNotificationsChange={onNotificationsChange} />);
     await user.click(screen.getByRole('switch', { name: 'Tell me when Sam adds something' }));
     expect(onNotificationsChange).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('shows the switch unavailable with its reason, and never sends a change', async () => {
+    render(<Unavailable />);
+    const toggle = screen.getByRole('switch', { name: /Tell me when Sam adds something/ });
+    expect(toggle.getAttribute('aria-disabled')).toBe('true');
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(screen.getByText('Coming soon')).toBeTruthy();
+    await user.click(toggle);
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
   });
 
   it('copies diagnostics, signs out and goes back, each to its own callback', async () => {

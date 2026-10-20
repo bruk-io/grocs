@@ -4,8 +4,9 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './KitchenSetupTemplate.stories.tsx';
+import { KitchenSetupTemplate } from './KitchenSetupTemplate.tsx';
 
-const { Rest } = composeStories(stories);
+const { Rest, NoInviteYet } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -51,5 +52,20 @@ describe('KitchenSetupTemplate', () => {
     await user.click(busy);
     expect(onStart).not.toHaveBeenCalled();
     expect((screen.getByRole('textbox', { name: 'Name your kitchen' }) as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  it('disables the invite button whose handler is missing', () => {
+    render(<KitchenSetupTemplate email="you@example.com" kitchenName="Our kitchen" onKitchenNameChange={() => undefined} inviteCode="MOREL-24" onShare={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'Share link' }).getAttribute('aria-disabled')).not.toBe('true');
+    expect(screen.getByRole('button', { name: 'Copy code' }).getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('before there is a code shows a hint, no sample code, and no Share link or Copy code', () => {
+    render(<NoInviteYet />);
+    expect(screen.getByText('Your code appears after Start planning.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Share link' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
+    expect(screen.queryByText(/MOREL/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Start planning' })).toBeTruthy();
   });
 });

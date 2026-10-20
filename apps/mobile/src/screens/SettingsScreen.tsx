@@ -6,8 +6,8 @@ import { useGo } from './navigate.ts';
 
 /**
  * Settings. Sign out ends the session and leads to Welcome; Copy diagnostics puts the header and the
- * on-phone log buffer on the clipboard (R35). The notifications switch is left off and without a handler:
- * push opt-in is TASK-1.29, and the template cannot draw the switch disabled.
+ * on-phone log buffer on the clipboard (R35). The notifications switch is drawn off and disabled with the
+ * reason "Coming soon" until push opt-in (TASK-1.29) wires the real toggle.
  */
 export function SettingsScreen() {
   const go = useGo();
@@ -29,7 +29,7 @@ export function SettingsScreen() {
       email={user?.email ?? ''}
       kitchen="Our kitchen" // the app has no read of the kitchen's name yet; this is the name every kitchen starts with
       partnerName="your partner"
-      notificationsOn={false}
+      notificationsUnavailable="Coming soon" // push opt-in is TASK-1.29, which wires the real toggle
       onBack={go.groceries}
       onCopyDiagnostics={copyDiagnostics}
       onSignOut={signOut}

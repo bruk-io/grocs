@@ -10,9 +10,27 @@ import { Card } from './layouts/Card.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
 /** The Settings screen as it appears in the reference: notifications off. */
-export const PREFERENCESTEMPLATE_STATES = ['rest'] as const;
+export const PREFERENCESTEMPLATE_STATES = ['rest', 'unavailable'] as const;
 
-export interface PreferencesTemplateProps {
+/**
+ * The notifications switch is one of two shapes, so it is never live without its handler:
+ * live (a value and the handler that changes it) or unavailable (drawn off and disabled, with the reason why).
+ */
+export type NotificationsSwitch =
+  | {
+      notificationsOn: boolean;
+      /** Sends the state it wants, never a toggle. */
+      onNotificationsChange: (on: boolean) => void;
+      notificationsUnavailable?: never;
+    }
+  | {
+      /** A short reason shown beside the disabled switch, such as "Coming soon". */
+      notificationsUnavailable: string;
+      notificationsOn?: never;
+      onNotificationsChange?: never;
+    };
+
+export type PreferencesTemplateProps = NotificationsSwitch & {
   /** The signed-in person. */
   name: string;
   email: string;
@@ -20,17 +38,14 @@ export interface PreferencesTemplateProps {
   kitchen: string;
   /** The partner, named in the notification line: "Tell me when Sam adds something". */
   partnerName: string;
-  notificationsOn: boolean;
-  /** Sends the state it wants, never a toggle. */
-  onNotificationsChange?: (on: boolean) => void;
   onCopyDiagnostics?: () => void;
   onSignOut?: () => void;
   /** Goes back to Groceries. */
   onBack?: () => void;
-}
+};
 
 /** template.task filled for Settings: header.sub, settings cards (switch, button.secondary--s), action.bar--secondary. */
-export function PreferencesTemplate({ name, email, kitchen, partnerName, notificationsOn, onNotificationsChange, onCopyDiagnostics, onSignOut, onBack }: PreferencesTemplateProps) {
+export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyDiagnostics, onSignOut, onBack, ...notifications }: PreferencesTemplateProps) {
   const prompt = `Tell me when ${partnerName} adds something`;
   return (
     <TaskLayout
@@ -47,8 +62,13 @@ export function PreferencesTemplate({ name, email, kitchen, partnerName, notific
         <View style={styles.switchRow}>
           <View style={styles.switchLabel}>
             <Text variant="label">{prompt}</Text>
+            {notifications.notificationsUnavailable !== undefined ? <Text variant="small" tone="muted">{notifications.notificationsUnavailable}</Text> : null}
           </View>
-          <Switch on={notificationsOn} label={prompt} {...(onNotificationsChange ? { onChange: onNotificationsChange } : {})} />
+          {notifications.notificationsUnavailable !== undefined ? (
+            <Switch on={false} disabled label={`${prompt} (${notifications.notificationsUnavailable})`} />
+          ) : (
+            <Switch on={notifications.notificationsOn} label={prompt} onChange={notifications.onNotificationsChange} />
+          )}
         </View>
       </Card>
       <Card>

@@ -3,9 +3,10 @@ import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { InviteCard } from './InviteCard.tsx';
 import * as stories from './InviteCard.stories.tsx';
 
-const { Waiting, Joined, Unsent } = composeStories(stories);
+const { Waiting, Joined, Unsent, NoCode } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -39,5 +40,25 @@ describe('InviteCard', () => {
   it('has no status line before the link is shared', () => {
     const { container } = render(<Unsent />);
     expect(container.querySelector('[aria-live="polite"]')).toBeNull();
+  });
+
+  it('disables the button whose handler is missing, never leaves it dead', () => {
+    const disabled = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-disabled') === 'true';
+    render(<InviteCard code="MOREL-24" onShare={() => undefined} />);
+    expect(disabled('Share link')).toBe(false);
+    expect(disabled('Copy code')).toBe(true);
+    cleanup();
+    render(<InviteCard code="MOREL-24" onCopy={() => undefined} />);
+    expect(disabled('Share link')).toBe(true);
+    expect(disabled('Copy code')).toBe(false);
+  });
+
+  it('before there is a code shows a hint, no sample code and no buttons', () => {
+    render(<NoCode />);
+    expect(screen.getByText('Your code appears after Start planning.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Share link' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.queryByText(/[A-Z]+-\d+/)).toBeNull();
   });
 });
