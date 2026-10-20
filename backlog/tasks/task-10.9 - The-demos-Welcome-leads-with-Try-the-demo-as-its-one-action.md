@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app-small'
 created_date: '2026-10-20 04:15'
-updated_date: '2026-10-20 11:58'
+updated_date: '2026-10-20 12:05'
 labels:
   - size-1
   - layer-app
@@ -41,4 +41,6 @@ The app half of DRAFT-7, split at acceptance (TASK-12 is the ui half). TASK-12 g
 
 <!-- SECTION:NOTES:BEGIN -->
 Oct 20, 2026 (orchestrator): TASK-12 merged; step 1 rewritten for its final API, which forbids onOpenInvite in primary mode.
+
+Worker report (builder-app-small): Steps 1-4 done as written. Step 1: WelcomeScreen passes primaryLabel/onPrimary in demo mode and onOpenInvite (plus the dev footer) only outside it, matching TASK-12's primary-mode type. TryDemo removed; DemoAccess import kept. Step 3 added the two demo-variant negative expectations; step 4 added the Continue with Google positive expectation. No other expectation changed, no test deleted. Checks: pnpm test 100 files / 1331 tests passed; pnpm typecheck clean; pnpm check passed (13 checks); pnpm check:release clean (2 bundles, 9 patterns); pnpm check:demo clean (2 bundles, 5 barred patterns). No step needed to stop.
 <!-- SECTION:NOTES:END -->
