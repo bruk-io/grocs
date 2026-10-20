@@ -1,11 +1,11 @@
 ---
 id: TASK-14
 title: A returning member finds their kitchen on any phone
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-20 03:20'
-updated_date: '2026-10-20 03:36'
+updated_date: '2026-10-20 03:40'
 labels:
   - size-3
 dependencies: []
@@ -68,4 +68,21 @@ Implemented per the plan. KitchenGateway gained findMyKitchen(): Promise<string 
 Verification: pnpm check (13 checks), pnpm typecheck (clean), pnpm test (96 files, 1283 tests), pnpm test:emulator (8 files, 70 tests, including a real findMyKitchen round trip through the Cloud Functions emulator and two new direct KitchenStore tests proving the membership doc is written atomically with create and with join), pnpm check:demo and pnpm check:release all green. Ran test:emulator twice to confirm no flake.
 
 Scope held: no apps/mobile screen or composition wiring, no packages/ui - that split (decision-13) is TASK-1.20.1/1.20.2's, already claimed by @builder-application.
+
+Closed by review (reviewer did not do the work). Both acceptance criteria met, verified against the diff at 38ff51c, not the report.
+
+AC1: KitchenGateway.findMyKitchen(): Promise<string | null> on the existing port, implemented by FakeKitchenGateway, MemoryKitchenGateway, FirebaseKitchenGateway (httpsCallable 'findMyKitchen') and the server-store gateway adapter. All four run the same kitchenGatewayContract (fake.test.ts, memory-kitchen-gateway.test.ts, kitchen-store.emulator.test.ts, kitchen-gateway.emulator.test.ts), including the three new cases: created, joined, and null for someone with no kitchen. The Firebase subject goes through the real Cloud Functions emulator, and an extra case asserts findMyKitchen rejects with no one signed in. findMyKitchen in apps/functions/src/index.ts is auth-checked through the same requireUid as createKitchen and joinKitchen.
+
+AC2: firebase/firestore.rules has match /memberships/{uid} with read allowed only to its own uid and write denied outright, with four real rules tests: own read allowed, another member's read denied, signed-out read denied, direct write denied.
+
+Data model: memberships/{uid} = {kitchenId} is genuinely written inside the existing atomic units - batch.set in createKitchen's batch, tx.set in joinKitchen's transaction - so a reader cannot see a kitchen or a join without its membership record.
+
+Checks run by the reviewer, all green: pnpm check (13 checks), pnpm typecheck, pnpm test (96 files, 1283 tests), pnpm test:emulator (8 files, 70 tests), pnpm check:demo, pnpm check:release.
+
+Findings, neither blocking:
+- Low: the two new kitchen-store emulator tests are titled 'atomically with the kitchen'/'with the join' but only read memberships/{uid} after a successful create/join - no failure injection, no rollback assertion. The atomicity guarantee is structural (batch/transaction membership in the diff) and real; the test titles overclaim what the tests check.
+- Low: createKitchen uses batch.create for kitchens/{id} and inviteCodes/{code} but batch.set for memberships/{ownerUid} (tx.set likewise in joinKitchen), so a second create or join silently overwrites an existing membership and orphans the prior kitchen. Neither callable guards against already belonging to a kitchen, so this is pre-existing under the one-kitchen-per-person model and outside AC1/AC2. Not filed as a draft; raised to the orchestrator for a decision on whether findMyKitchen's model needs that guard.
+- Noted, not a finding: the fake and in-memory gateways answer findMyKitchen by scanning their own member lists rather than simulating the membership doc. Disclosed in the implementation notes, and all four subjects pass the shared contract, which is what AC1 asks for.
+
+Scope held: the 12-file diff touches no packages/ui and no apps/mobile screen or composition path. TASK-1.20.1/1.20.2 remain untouched.
 <!-- SECTION:NOTES:END -->
