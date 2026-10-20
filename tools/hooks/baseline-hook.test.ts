@@ -19,7 +19,7 @@ beforeAll(() => {
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
 function preEdit(payload: Record<string, unknown>): { status: number | null; stderr: string } {
-  const r = spawnSync('node', ['--disable-warning=ExperimentalWarning', join(here, 'pre-edit.ts')], {
+  const r = spawnSync('node', [join(here, 'pre-edit.ts')], {
     input: JSON.stringify({ agent_type: 'builder-ui', ...payload }),
     env: { ...process.env, GROCS_ROOT: root },
     encoding: 'utf8',

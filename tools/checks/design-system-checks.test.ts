@@ -166,11 +166,15 @@ describe('design levels (R60)', () => {
     const f = run({ 'packages/ui/src/helpers/h.ts': 'export const h = 1;' });
     expect(rulesOf(f)).toEqual(['import-layers/unknown-ui-folder']);
     expect(message(importLayers, f[0]!)).toContain('Why:');
+    expect(message(importLayers, f[0]!)).toContain('Fix:');
   });
 
   it('fails a file importing its own package index, by path or by name', () => {
     const byPath = run({ 'packages/ui/src/index.ts': 'export const x = 1;', 'packages/ui/src/molecules/M.tsx': "import { x } from '../index.ts'; export { x };" });
     expect(rulesOf(byPath)).toContain('import-layers/no-self-barrel');
+    const byPathFinding = byPath.find((x) => x.rule === 'import-layers/no-self-barrel')!;
+    expect(message(importLayers, byPathFinding)).toContain('Why:');
+    expect(message(importLayers, byPathFinding)).toContain('Fix:');
     const byName = run({ 'packages/ui/src/index.ts': 'export const x = 1;', 'packages/ui/src/molecules/M.tsx': "import { x } from '@grocs/ui'; export { x };" });
     expect(rulesOf(byName)).toContain('import-layers/no-self-barrel');
   });

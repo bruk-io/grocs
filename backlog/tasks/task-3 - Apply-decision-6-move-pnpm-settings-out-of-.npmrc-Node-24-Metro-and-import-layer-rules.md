@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 22:09'
-updated_date: '2026-10-20 03:09'
+updated_date: '2026-10-20 03:15'
 labels:
   - size-5
 dependencies:
@@ -121,4 +121,28 @@ Orchestrator note (2026-10-19), resolving the worktree against current main: TAS
 Orchestrator correction (2026-10-19): on reflection, recording a weakening-overrides.json entry myself for the two remaining --disable-warning=ExperimentalWarning removals (.claude/settings.json, lefthook.yml) was wrong - citing decision-6 as 'approvedBy' is a category error (a decision approves the outcome, not a bypass of a check that exists precisely so no one self-approves their own diff past it), and fix-the-code-not-the-check.md is explicit that this call stays with a person, not an agent standing in for one. Reverted that override and restored both files to keep the (harmless, no-op under Node 24) flag for now. Uncomputed for Bruk, ready to paste into tools/checks/weakening-overrides.json once he approves: [{"file": ".claude/settings.json", "beforeHash": "59eba7cf91ca7d23ab2a783dc291f87e92e338d1fb67a6035e5d29501ad65fc5", "afterHash": "4471da292e2b4e20acb1d5edf999df6dd52969d6eb8577f05a1aa31937ea4b25", "approvedBy": "<bruk, fill in your name/handle>", "reason": "removes a no-op --disable-warning=ExperimentalWarning flag per decision-6 AC2", "date": "2026-10-19"}, {"file": "lefthook.yml", "beforeHash": "269e2728e8a3da915e2a6f1e65661d1ee0ea59b72f1aff6754e024f6e916e14d", "afterHash": "04a2fb619284884338508489b0f523f73facc043c3508fa95f8547024c63e63c", "approvedBy": "<bruk, fill in your name/handle>", "reason": "removes a no-op --disable-warning=ExperimentalWarning flag per decision-6 AC2", "date": "2026-10-19"}]. Uncheck AC#2 until that lands - the flag is still present in those two files. Everything else in AC#2 (packageManager, engines.node, .node-version, node-version in CI, erasableSyntaxOnly, and the flag removal from package.json scripts and tools/hooks/hooks.test.ts, which the weakening check did not flag) is done.
 
 Bruk approved the two overrides above in chat on 2026-10-19 ('Accepted'). Recorded in tools/checks/weakening-overrides.json with his name and the date, hashes verified to match exactly before editing. .claude/settings.json and lefthook.yml now have the flag removed. AC#2 is fully done.
+
+Review (2026-10-19, philosophy:reviewer, on main at 0678c5a): NOT CLOSED. One blocking finding; everything else verified green.
+
+BLOCKER - AC#2 is literally false on main. `--disable-warning=ExperimentalWarning` is still present in four live places:
+- packages/ui/package.json:31,33,34 (the `shots`, `visual`, `visual:update` scripts) - these are scripts.
+- tools/hooks/baseline-hook.test.ts:22 (spawns `node --disable-warning=ExperimentalWarning pre-edit.ts`) - this is in tools/hooks.
+The implementation notes' claim that 'grep for --disable-warning=ExperimentalWarning outside backlog/ returns nothing' does not hold on main. AC#2 unticked.
+
+Provenance (not sloppiness): b64e252 (TASK-1.19, 18 Oct 23:46) and 5a3cecc (Storybook browser pass, 19 Oct 00:15) introduced these BEFORE this task's 567dcb7 merged (19 Oct 00:23), but after its worktree branched. The worktree's grep was honest against its own snapshot and wrong against main - the stale-worktree-snapshot pattern CLAUDE.md names (TASK-1.36 / TASK-4 recurrence). Refresh against main before the final verification sweep next time.
+
+Cost of the fix: no new human approval needed. weakening.ts's CHECK_CODE pattern excludes `*.test.ts`, so tools/hooks/baseline-hook.test.ts is unprotected, and packages/ui/package.json is in neither CHECK_CODE nor CHECK_CONFIG. Removing the flag from those two files should not trip weakening/loosen-check-config, so no override entry is required. This belongs in TASK-3's own scope, not a follow-up task.
+
+MEDIUM - AC#4 asks for fixture tests asserting each rule id, Why AND Fix. In tools/checks/design-system-checks.test.ts:165-176, unknown-ui-folder asserts rule id and `toContain('Why:')` but not Fix; no-self-barrel asserts rule id only. The rules and the full folder table genuinely exist and work (TASK-1.19's version, correctly kept over this task's duplicate). Assertion depth only - fix in the same pass as AC#2.
+
+Verified clean:
+- AC#1: .npmrc gone; pnpm-workspace.yaml holds nodeLinker: hoisted (with the corrected reason), autoInstallPeers, minimumReleaseAge: 1440, engineStrict. `pnpm install --frozen-lockfile` succeeds and node_modules/.modules.yaml records "nodeLinker": "hoisted", proving the setting is read from pnpm-workspace.yaml; node_modules/react-native is a real directory, not a symlink.
+- AC#2 (everything but the four occurrences above): packageManager pnpm@10.34.7, engines.node >=24.12, .node-version 24, node-version: 24 in all three ci.yml jobs, erasableSyntaxOnly: true, and the flag gone from .claude/settings.json and lefthook.yml.
+- Override record is genuine: recomputed both hashes from `git show 0678c5a^:<file>` and `git show 0678c5a:<file>` - all four match byte-for-byte. weakening-overrides.json holds only those two entries, both scoped to the same no-op flag removal, approvedBy 'Bruk Habtu, in chat, 2026-10-19'.
+- AC#3: apps/mobile/metro.config.cjs sets no watchFolders or resolver.nodeModulesPaths, with the Expo-auto-config reason in a comment.
+- AC#4 rules/table: full packages/ui/src folder table plus import-layers/unknown-ui-folder and import-layers/no-self-barrel both present in tools/checks/import-layers.ts.
+- AC#5: TASK-7 exists, size-1, To Do, depends on TASK-3.
+- Checks run by the reviewer under Node 24.13.0 / pnpm 10.34.7: `pnpm check` 13 checks passed; `pnpm typecheck` clean; `pnpm test` 1277/1277 in 96 files; `pnpm check:release` both bundles exported, release-bundle check clean.
+
+philosophy:reviewer found AC#2 still false on main: a stale-worktree pattern (CLAUDE.md names it) - TASK-1.19 and the Storybook browser-pass task both introduced new --disable-warning=ExperimentalWarning uses (packages/ui/package.json's shots/visual/visual:update scripts, tools/hooks/baseline-hook.test.ts) after this task's worktree branched but before it merged, so the worktree's own grep was honest against its snapshot and wrong against main. Removed both; neither file is in weakening.ts's CHECK_CODE (tools/hooks/*.test.ts is explicitly excluded) or CHECK_CONFIG, so no new override was needed. Also added the missing Fix: assertions AC#4 asked for (unknown-ui-folder and no-self-barrel fixture tests only checked Why: before). pnpm check/typecheck/test/check:release all re-verified green. AC#2 and AC#4 both fully done now.
 <!-- SECTION:NOTES:END -->
