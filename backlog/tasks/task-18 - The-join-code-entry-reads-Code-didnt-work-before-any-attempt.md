@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 11:35'
-updated_date: '2026-10-20 16:20'
+updated_date: '2026-10-20 17:14'
 labels:
   - size-2
   - layer-ui
@@ -36,4 +36,6 @@ Report (builder-ui): InviteRetryTemplate gains attempt?: 'first' | 'retry' (defa
 Rework (builder-ui, after Bruk saw the screenshots: 'fix the copy first'). Plan: the first attempt is someone who chose to join, so no name is known and nothing failed. InviteRetryTemplate props become a union on attempt (as SignInTemplate did for primary mode, TASK-12): attempt:'first' accepts only code, onCodeChange, onCheck, checking (inviter, errorMessage, onBack are ?: never); attempt?:'retry' keeps inviter (required), errorMessage, onBack. First: label 'Invite code' (was 'Invite code from Bruk'), placeholder 'MOREL-42' (the code's shape), no 'Not expecting this? You can ignore it.' footer (kept on retry, where the person may not have expected the invite). Title and no-back-button unchanged. Files: InviteRetryTemplate.tsx/.stories.tsx/.behaviour.test.tsx; Invalid story now carries inviter and errorMessage in its own args, so its baselines are unchanged.
 
 Report (builder-ui, rework): final API for the app half. <InviteRetryTemplate attempt="first" code onCodeChange onCheck? checking? /> for typed entry before any attempt (no inviter, errorMessage or onBack: the type refuses them). After a rejection render <InviteRetryTemplate inviter errorMessage onBack? ... /> (attempt omitted or 'retry'); both are the same component at the same tree position so the field keeps focus and the typed code when the app flips. Today's apps/mobile JoinInviteScreen passes inviter always and typechecks as a retry; the app task must pass attempt='first' until a rejection. First-attempt copy: title 'Enter your invite code', label 'Invite code', placeholder 'MOREL-42', no footer. Baselines changed (regenerated, same three names as before): packages/ui/visual-baselines/templates-invite-retry--first-attempt.png, ...--first-attempt--fold-inner.png, ...--first-attempt--fold-outer.png, plus 3 manifest.json lines. None added or removed; every other baseline unchanged (visual: 322 views compared clean). pnpm check, typecheck, test (794) pass.
+
+Baselines approved by @bruk on Oct 20, 2026, in the second round ('Approve both'), after the first round's 'fix the copy first' (TASK-18) and 'hide them instead' (TASK-19). The visual baselines workflow (run 39458891270, on 3c015fe pushed as task-18-19-ui) wrote 324 files byte-identical to this branch's packages/ui/visual-baselines, so the four hand-removed, never-approved files from the first attempt match what a full visual:update retires.
 <!-- SECTION:NOTES:END -->
