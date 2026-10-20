@@ -7,6 +7,7 @@ export function fixture(files: Record<string, string>, changed: string[] = []): 
     root: '/fixture',
     files: Object.keys(files).filter((f) => /\.(ts|tsx|mts|js|jsx|mjs|cjs)$/.test(f)).sort(),
     allFiles: Object.keys(files).sort(),
+    trackedFiles: Object.keys(files).sort(),
     changed,
     readSource: (f) => {
       const text = files[f];

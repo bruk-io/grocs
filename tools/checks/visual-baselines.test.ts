@@ -22,6 +22,7 @@ const context = (changed: string[] = []): CheckContext => ({
   root,
   files: ['packages/ui/src/atoms/Button.stories.tsx'],
   allFiles: [],
+  trackedFiles: [],
   changed,
   readSource: () => '',
 });

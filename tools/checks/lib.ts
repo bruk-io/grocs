@@ -1,5 +1,6 @@
 // Shared types and helpers for the check scripts. Plain TypeScript run by Node's
 // built-in type stripping (no build step), so it only uses erasable syntax.
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
@@ -25,6 +26,8 @@ export interface CheckContext {
   readonly files: readonly string[];
   /** Every non-ignored file (config, rules, workflows), for checks that read more than source code. */
   readonly allFiles: readonly string[];
+  /** Every file git tracks, including backlog/ and .claude/, which allFiles' SKIP_DIRS excludes. For a check whose concern cuts across every kind of file in the repository, board files and agent config included. */
+  readonly trackedFiles: readonly string[];
   /** Files the current edit or commit touched; empty means "everything". */
   readonly changed: readonly string[];
   readSource(file: string): string;
@@ -76,11 +79,19 @@ export function listFiles(root: string, accept: (name: string) => boolean, dir =
 
 export const listSourceFiles = (root: string): string[] => listFiles(root, (n) => SOURCE_EXT.test(n));
 
+/** git ls-files, root-relative with forward slashes. Every file git tracks, with no SKIP_DIRS exclusion. */
+export function listTrackedFiles(root: string): string[] {
+  return execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
+    .split('\n')
+    .filter(Boolean);
+}
+
 export function makeContext(root: string, changed: readonly string[] = []): CheckContext {
   return {
     root,
     files: listSourceFiles(root),
     allFiles: listFiles(root, (n) => !/\.(lock|lockb|png|jpg|jpeg|ico|ttf|otf|woff2?)$/.test(n) && n !== 'pnpm-lock.yaml'),
+    trackedFiles: listTrackedFiles(root),
     changed,
     readSource: (file) => readFileSync(join(root, file), 'utf8'),
   };
