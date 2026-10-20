@@ -4,8 +4,8 @@ import { Button } from '../atoms/Button.tsx';
 import { Text } from '../atoms/Text.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
-/** auth.sheet: ready to sign in, signing in, and with sign-in off. */
-export const AUTHSHEET_STATES = ['rest', 'signingIn', 'disabled'] as const;
+/** auth.sheet: ready to sign in, signing in, with sign-in off, and leading with one primary action instead. */
+export const AUTHSHEET_STATES = ['rest', 'signingIn', 'disabled', 'primaryAction'] as const;
 
 export interface AuthSheetProps {
   /** Sign-in is Google only. */
@@ -15,29 +15,39 @@ export interface AuthSheetProps {
   /** Google's sheet is open: the button shows it is busy. */
   signingIn?: boolean;
   disabled?: boolean;
+  /** Leads the sheet with one primary action, this label, in place of Continue with Google and the invite row. Pass it with onPrimary. */
+  primaryLabel?: string;
+  /** Pressed when the primary action is. Used only with primaryLabel. */
+  onPrimary?: () => void;
   /** Below the invite row, in the sheet's own layout. Development builds put the test sign-in here (R53). */
   footer?: ReactNode;
 }
 
-/** The sheet at the foot of Welcome: the one way in, and the way in for an invite (button.secondary, text.small, button.text). */
-export function AuthSheet({ onContinue, onOpenInvite, signingIn = false, disabled = false, footer }: AuthSheetProps) {
+/** The sheet at the foot of Welcome: the one way in, and the way in for an invite (button.primary, button.secondary, text.small, button.text). */
+export function AuthSheet({ onContinue, onOpenInvite, signingIn = false, disabled = false, primaryLabel, onPrimary, footer }: AuthSheetProps) {
   return (
     <View style={styles.sheet}>
-      <Button
-        variant="secondary"
-        label="Continue with Google"
-        loading={signingIn}
-        loadingLabel="Signing in"
-        disabled={disabled}
-        stretch
-        {...(onContinue ? { onPress: onContinue } : {})}
-      />
-      <View style={styles.invite}>
-        <Text variant="small" tone="muted">
-          Got an invite?
-        </Text>
-        <Button variant="text" size="s" label="Open it to join" disabled={disabled} {...(onOpenInvite ? { onPress: onOpenInvite } : {})} />
-      </View>
+      {primaryLabel ? (
+        <Button variant="primary" label={primaryLabel} disabled={disabled} stretch {...(onPrimary ? { onPress: onPrimary } : {})} />
+      ) : (
+        <>
+          <Button
+            variant="secondary"
+            label="Continue with Google"
+            loading={signingIn}
+            loadingLabel="Signing in"
+            disabled={disabled}
+            stretch
+            {...(onContinue ? { onPress: onContinue } : {})}
+          />
+          <View style={styles.invite}>
+            <Text variant="small" tone="muted">
+              Got an invite?
+            </Text>
+            <Button variant="text" size="s" label="Open it to join" disabled={disabled} {...(onOpenInvite ? { onPress: onOpenInvite } : {})} />
+          </View>
+        </>
+      )}
       {footer ?? null}
     </View>
   );

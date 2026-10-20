@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './AuthSheet.stories.tsx';
 
-const { Rest, SigningIn, Disabled } = composeStories(stories);
+const { Rest, SigningIn, Disabled, PrimaryAction } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -48,5 +48,16 @@ describe('AuthSheet', () => {
     }
     expect(onContinue).not.toHaveBeenCalled();
     expect(onOpenInvite).not.toHaveBeenCalled();
+  });
+
+  it('can lead with one primary action in place of Google and the invite row', async () => {
+    const onPrimary = vi.fn();
+    const onContinue = vi.fn();
+    render(<PrimaryAction onPrimary={onPrimary} onContinue={onContinue} />);
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).toBeNull();
+    expect(screen.queryByText('Got an invite?')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Try the demo' }));
+    expect(onPrimary).toHaveBeenCalledExactlyOnceWith();
+    expect(onContinue).not.toHaveBeenCalled();
   });
 });
