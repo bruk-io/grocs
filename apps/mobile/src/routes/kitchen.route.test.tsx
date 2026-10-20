@@ -101,6 +101,15 @@ describe('joining a kitchen', () => {
     expect(await mine.findMyKitchen()).toBe(kitchenId);
   });
 
+  it('opens /join with a neutral code entry, and says the code did not work only after a rejection', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }), location: '/join' });
+    expect(await screen.findByText('Enter your invite code')).toBeTruthy();
+    expect(screen.queryByText("Code didn't work")).toBeNull();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'NOPE-0000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+    expect(await screen.findByText("Code didn't work")).toBeTruthy();
+  });
+
   async function enterCode(mine: FakeKitchenGateway, clock: FakeClock, code: string) {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: '/join' });
     fireEvent.change(await screen.findByRole('textbox'), { target: { value: code } });
