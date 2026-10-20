@@ -4,10 +4,12 @@ title: Upgrade pnpm 10 to pnpm 11
 status: To Do
 assignee: []
 created_date: '2026-10-19 03:59'
+updated_date: '2026-10-20 03:10'
 labels:
   - size-1
 dependencies:
   - TASK-3
+type: task
 ---
 
 ## Description
