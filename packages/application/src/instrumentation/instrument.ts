@@ -81,5 +81,6 @@ export function instrumentDeps(deps: Deps, logger: Logger, timer: Clock, correla
     auth: instrumentPort('auth', deps.auth, logger, timer, correlation),
     clock: instrumentPort('clock', deps.clock, logger, timer, correlation),
     ids: instrumentPort('ids', deps.ids, logger, timer, correlation),
+    ...(deps.kitchens ? { kitchens: instrumentPort('kitchens', deps.kitchens, logger, timer, correlation) } : {}),
   };
 }

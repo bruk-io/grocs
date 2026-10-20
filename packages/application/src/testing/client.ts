@@ -1,7 +1,7 @@
 // A client built from the in-memory fakes, for scenario tests (R47). Two clients that share
 // one store stand in for the two phones.
-import { FakeAuth, FakeClock, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
-import type { SyncStore } from '@grocs/ports';
+import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
+import type { KitchenGateway, SyncStore } from '@grocs/ports';
 import { commandHandlers } from '../commands/index.ts';
 import { createDispatcher } from '../dispatch/dispatcher.ts';
 import { loggingMiddleware } from '../dispatch/logging-middleware.ts';
@@ -13,6 +13,8 @@ export interface TestClientOptions {
   readonly store?: SyncStore;
   readonly clock?: FakeClock;
   readonly signedIn?: boolean;
+  /** A gateway to use, or `null` to compose none. Defaults to a fake for this member. */
+  readonly kitchens?: KitchenGateway | null;
 }
 
 export interface TestClient {
@@ -27,6 +29,7 @@ export async function createTestClient(options: TestClientOptions): Promise<Test
   const { uid, signedIn = true } = options;
   const store = options.store ?? new InMemorySyncStore();
   const clock = options.clock ?? new FakeClock();
+  const kitchens = options.kitchens === null ? undefined : (options.kitchens ?? new FakeKitchenGateway(uid, undefined, clock));
   const logger = new MemoryLogger();
   const auth = new FakeAuth([{ uid, email: `${uid}@grocs.test`, displayName: uid, password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount(`${uid}@grocs.test`, 'pw');
@@ -37,7 +40,7 @@ export async function createTestClient(options: TestClientOptions): Promise<Test
     handlers: commandHandlers,
     runtime,
     ids,
-    depsFor: (correlation) => instrumentDeps({ syncStore: store, auth, clock, ids }, logger, clock, correlation),
+    depsFor: (correlation) => instrumentDeps({ syncStore: store, auth, clock, ids, ...(kitchens ? { kitchens } : {}) }, logger, clock, correlation),
     middleware: [loggingMiddleware(logger, clock)],
   });
   return { dispatcher, logger, store, clock, auth };
