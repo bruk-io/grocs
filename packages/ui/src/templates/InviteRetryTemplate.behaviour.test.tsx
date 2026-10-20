@@ -53,19 +53,27 @@ describe('InviteRetryTemplate', () => {
     expect((screen.getByRole('textbox', { name: 'Invite code from Bruk' }) as HTMLInputElement).readOnly).toBe(true);
   });
 
+  it('on a retry keeps the footer for someone who did not expect the invite', () => {
+    render(<Invalid />);
+    expect(screen.getByText('Not expecting this? You can ignore it.')).toBeTruthy();
+  });
+
   it('shows no error when none is given', () => {
-    render(<InviteRetryTemplate inviter="Bruk" code="MOREL-42" onCodeChange={() => undefined} />);
+    render(<InviteRetryTemplate attempt="retry" inviter="Bruk" code="MOREL-42" onCodeChange={() => undefined} />);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('on a first attempt is neutral: no error title, no error, no way back', async () => {
+  it('on a first attempt is neutral: no error title, no name, no error, no way back, no footer', async () => {
     const onCheck = vi.fn();
     render(<FirstAttempt onCheck={onCheck} />);
     expect(screen.getByRole('heading', { name: 'Enter your invite code' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: "Code didn't work" })).toBeNull();
     expect(screen.queryByRole('alert')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Back to my invite' })).toBeNull();
-    const field = screen.getByRole('textbox', { name: 'Invite code from Bruk' });
+    expect(screen.queryByText(/Bruk/)).toBeNull();
+    expect(screen.queryByText('Not expecting this? You can ignore it.')).toBeNull();
+    const field = screen.getByRole('textbox', { name: 'Invite code' });
+    expect((field as HTMLInputElement).placeholder).toBe('MOREL-42');
     expect((field as HTMLInputElement).value).toBe('');
     expect(field.getAttribute('aria-invalid')).not.toBe('true');
     await user.type(field, '{Enter}');
