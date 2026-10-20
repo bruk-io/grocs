@@ -4,7 +4,7 @@ title: 'Shopping: we tick items off while shopping'
 status: To Do
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-18 19:18'
+updated_date: '2026-10-20 22:51'
 labels:
   - size-3
   - slice
@@ -34,4 +34,6 @@ Waits on the grocery list slice. Cites R13, R14, R17, R18.
 
 <!-- SECTION:NOTES:BEGIN -->
 Finish moved on 2026-10-18, right after acceptance and before work started: added the R51 criterion, which no task cited. Shopping is the first slice where every flow it names exists.
+
+2026-10-20: #1 (ticking) split out as TASK-1.23.1 (core), 1.23.2 (application) and 1.23.3 (app) and pulled ahead of TASK-1.22 at Bruk's request, so the demo APK's tick boxes work. They need no meal or list slice. #2-#4 stay here and still wait on TASK-1.22.
 <!-- SECTION:NOTES:END -->
