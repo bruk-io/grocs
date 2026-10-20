@@ -79,6 +79,8 @@ export { mascotArt } from './mascots/art/index.ts';
 export type { MascotName } from './mascots/art/index.ts';
 export { Part, PartPropsContext } from './mascots/part.tsx';
 export type { PartProps } from './mascots/part.tsx';
+export { SafeAreaProvider, useSafeArea, NO_INSETS, PHONE_INSETS } from './platform/safe-area.tsx';
+export type { SafeAreaInsets, SafeAreaProviderProps } from './platform/safe-area.tsx';
 export { MotionProvider, useMotion, readBrowserReducedMotion } from './platform/motion.tsx';
 export type { MotionProviderProps, MotionValue } from './platform/motion.tsx';
 export { Mascot, MASCOT_STATES } from './molecules/Mascot.tsx';

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { withPhoneInsets } from './phone-insets.ts';
 import { Button } from '../atoms/Button.tsx';
 import { SignInTemplate } from './SignInTemplate.tsx';
 
@@ -20,3 +21,6 @@ export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo', onPr
 export const WithFooter: Story = {
   args: { footer: <Button variant="text" size="s" label="Sign in as Bruk (test)" /> },
 };
+
+/** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
+export const OnPhone: Story = { ...PrimaryAction, decorators: [withPhoneInsets] };
