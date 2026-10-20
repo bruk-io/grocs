@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-20 18:20'
-updated_date: '2026-10-20 21:51'
+updated_date: '2026-10-20 21:59'
 labels:
   - size-1
   - testing
@@ -44,3 +44,21 @@ False positives: a line of exactly 7 '=' with nothing else is rare in real prose
 ### Proof
 pnpm check reports 14 checks and stays clean on the current repo; the new test file shows both a pass and a catch; a quick manual check (insert a real <<<<<<< marker into a scratch file, run pnpm check --mode all, see it caught, then remove it) confirms end to end.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+```text
+[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
+<!-- SECTION:NOTES:END -->

@@ -28,6 +28,9 @@ jobs:
       - name: Weakened checks (R57), reviewed against the base branch
         if: github.event_name == 'pull_request'
         run: node tools/checks/run.ts --mode ci --base origin/${{ github.base_ref }}
+      - name: Weakened checks (R57), reviewed against the previous commit on main
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: node tools/checks/run.ts --mode ci --base ${{ github.event.before }}
       - run: pnpm typecheck
       - run: pnpm test
 
