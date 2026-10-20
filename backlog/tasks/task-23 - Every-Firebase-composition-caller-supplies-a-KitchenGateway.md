@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 21:38'
-updated_date: '2026-10-20 21:40'
+updated_date: '2026-10-20 22:07'
 labels:
   - layer-app
   - size-1
@@ -25,7 +25,7 @@ TASK-22 makes packages/application's Deps.kitchens required. apps/mobile/src/com
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 FirebaseModules.functions in compose-firebase.ts is required, not optional, and composeFirebaseApp always supplies kitchens with no conditional spread
+- [x] #1 FirebaseModules.functions in compose-firebase.ts is required, not optional, and composeFirebaseApp always supplies kitchens with no conditional spread
 - [ ] #2 two-client.emulator.test.ts supplies functions from its EmulatorClient the same way native.ts does, and the full repo (pnpm check, typecheck, test, test:emulator) passes with TASK-22 merged
 <!-- AC:END -->
 
@@ -49,6 +49,7 @@ A sibling task, TASK-22, makes packages/application's Deps.kitchens required; it
 
 ## Implementation Notes
 
+<!-- SECTION:NOTES:BEGIN -->
 ### Completed Steps
 
 All steps completed successfully:
@@ -74,3 +75,90 @@ All steps completed successfully:
    - No failures or errors
 
 Ready for TASK-22 to land together as planned.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(633 earlier lines omitted)
+```text
+│  3.00 kB │ gzip:   1.16 kB
+│  storybook-static/assets/TabItem-DO_WQBW_.js
+│  3.21 kB │ gzip:   1.35 kB
+│  storybook-static/assets/Chip-BBQiiRFD.js
+│  3.25 kB │ gzip:   1.45 kB
+│  storybook-static/assets/ItemPickerTemplate.stories-BDWCWUYW.js
+│  4.34 kB │ gzip:   1.52 kB
+│  storybook-static/assets/Button.stories-sNN3dC1C.js
+│  4.47 kB │ gzip:   1.31 kB
+│  storybook-static/assets/TextField-BC9sKZ03.js
+│  4.58 kB │ gzip:   1.76 kB
+│  storybook-static/assets/PreferencesTemplate.stories-DMm4jNL7.js
+│  4.58 kB │ gzip:   1.76 kB
+│  storybook-static/assets/ItemRow-BgzP7XFR.js
+│  5.19 kB │ gzip:   1.99 kB
+│  storybook-static/assets/GroceryListTemplate.stories-Bu-n0q9_.js
+│  5.75 kB │ gzip:   1.97 kB
+│  storybook-static/assets/Button-CxILU1aQ.js
+│  6.43 kB │ gzip:   2.04 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/Mascot-D4jB9WQY.js
+│  11.37 kB │ gzip:   4.20 kB
+│  storybook-static/assets/icons-BPDuhWkL.js
+│  15.62 kB │ gzip:   2.56 kB
+│  storybook-static/assets/KitchenScene-PNLDbSaq.js
+│  17.31 kB │ gzip:   4.66 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-CGfbGzBZ.js
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-vq108xyw.js
+│  167.09 kB │ gzip:  49.83 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-DmUd5E6i.js
+│  1,359.38 kB │ gzip: 391.72 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.12s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 326 story views checked (axe, 44 x 44, images not compared)
+```
+
+### Review (philosophy:reviewer, 2026-10-20)
+
+Verdict: NOT closed. Criterion #1 is met and ticked. Criterion #2 is half met and cannot be finished yet, because TASK-22 is not merged.
+
+Criterion #1 (met): deb0ffd makes FirebaseModules.functions required in apps/mobile/src/composition/compose-firebase.ts (the '?' is gone and the doc comment no longer claims a caller omits it) and composeFirebaseApp supplies 'kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance)' unconditionally, with the conditional spread removed.
+
+Criterion #2 (not met): the first half holds - two-client.emulator.test.ts now passes 'functions: { fns: asSdk<FunctionsFns>(client.functionsFns), instance: client.functions }', the same shape as apps/mobile/src/composition/native.ts:79. The second half, 'the full repo ... passes with TASK-22 merged', has no evidence: TASK-22 is still In Progress and unmerged. packages/application/src/dispatch/types.ts:30 on main still reads 'readonly kitchens?: KitchenGateway;', and no TASK-22 commit exists on any branch. Everything below therefore ran against a tree where Deps.kitchens is still optional - exactly the state this task's own plan (step 4) called safe and said proves nothing about the combined repo.
+
+What was run and passed, on main at 62f27be, TASK-22 absent:
+- mise exec -- pnpm check: checks passed (14 checks, all mode)
+- mise exec -- pnpm typecheck: clean
+- mise exec -- npx vitest run --project app --project tools apps: 9 files, 73 tests
+- mise exec -- pnpm test: 103 files, 1370 tests
+- mise exec -- pnpm test:emulator: 8 files, 70 tests, including this task's two-client.emulator.test.ts (4 tests in the emulator project) - the file the change touches is only exercised here, and the worker's notes did not cover it, so the reviewer ran it
+No check reformatted or fixed a file as it ran.
+
+To close: merge TASK-22, re-run pnpm check, typecheck, test and test:emulator on the combined tree, then tick #2. No code change is needed in this task. Nothing else blocks it; the change matches its plan exactly, and no bug or security finding was found.
+
+Note: the full-tier check block recorded above ran under 'mise exec --'; plain pnpm in a fresh shell here resolves Node v22 against engines.node >=24.12.
+<!-- SECTION:NOTES:END -->
