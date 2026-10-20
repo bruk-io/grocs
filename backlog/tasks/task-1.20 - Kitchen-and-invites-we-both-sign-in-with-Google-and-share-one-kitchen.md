@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 23:26'
+updated_date: '2026-10-20 03:20'
 labels:
   - size-5
   - slice
@@ -81,4 +81,6 @@ What's left for AC1-3 to actually close: wiring onto a real screen (apps/mobile)
 Review by philosophy:reviewer (commits dfba127, 3a52db6) found and all fixed: an internal-error-message leak in apps/functions/src/index.ts (fixed, relying on onCall's own safe default instead of a broad catch); a real invite-code collision/guessability gap (3,400-code space with silent overwrite on collision - widened to ~340,000 codes with create()+retry instead of set()); two of five JoinRejectedReason values untested through the port's own contract suite (added a genuine 'already-member' case: the owner re-entering their own pending invite); and, found empirically while fixing the above, a live test-isolation bug where firestore.rules.test.ts's clearFirestore() wiped data out from under concurrently-running emulator test files (fixed: fileParallelism: false on the emulator vitest project, confirmed stable over two consecutive clean runs). Also added: a joinKitchen-unauthenticated test, MemoryKitchenGateway now takes an injected Clock/IdGenerator (matching FakeKitchenGateway) with a test proving it drives expiry, and allow/deny tests for inviteCodes/{code}.
 
 Open design question the review raised, for whoever does the app/UI wiring (not resolved here - needs a human call, not mine to make): should KitchenGateway be called through packages/application's command dispatcher (R28 says 'only the application layer calls them'), or wired directly on the composition root the way GoogleSignIn already is (no domain event to dispatch)? Both are defensible; this is a real architecture decision, not a defect.
+
+Oct 19, 2026 (orchestrator, cloud session): Bruk answered the open design question: kitchen create and join go through application commands (decision-13). The UI wiring is split into TASK-1.20.1 (application) and TASK-1.20.2 (app); the returning-member lookup is DRAFT-10 for the backend side. AC1 and AC2 still need real phones and the Google sign-in spike (TASK-1.15).
 <!-- SECTION:NOTES:END -->
