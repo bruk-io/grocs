@@ -190,10 +190,14 @@ export interface MotionReading {
   readonly sidewaysAnimations: number;
   /** The furthest any of them takes its element between two points of a cycle, in pixels. */
   readonly travel: number;
+  /** Elements inside #storybook-root when it was read; a story that rendered nothing has none. */
+  readonly elements: number;
 }
 
 /** A pan carries the scene hundreds of pixels; a few pixels of sideways wobble is not one. */
 export const MIN_PAN_TRAVEL_PX = 50;
+/** The kitchen scene draws dozens of elements; fewer than this means the scene did not render, so 'still' would prove nothing (TASK-13). */
+export const MIN_SCENE_ELEMENTS = 10;
 /** Real time between the two looks at every element, long enough for any running loop to have moved. */
 const DRIFT_WAIT_MS = 300;
 /** Where in one cycle of an animation its element is read. */
@@ -237,7 +241,7 @@ export async function readMotion(page: Page): Promise<MotionReading> {
         if (spread >= 1) sidewaysAnimations++;
         travel = Math.max(travel, spread);
       }
-      return { drifting, sidewaysAnimations, travel };
+      return { drifting, sidewaysAnimations, travel, elements: elements.length };
     },
     { waitMs: DRIFT_WAIT_MS, points: CYCLE_POINTS },
   );
@@ -250,6 +254,7 @@ export function judgeMotion(reading: MotionReading, expected: MotionExpectation)
       ? []
       : [`with motion on, nothing carries the scene sideways over a cycle (furthest ${Math.round(reading.travel)} px, wanted at least ${MIN_PAN_TRAVEL_PX}); the kitchen must pan unless motion is reduced (R41, R60), and the pass shows it still, so only this check proves it moves`];
   }
+  if (reading.elements < MIN_SCENE_ELEMENTS) return [`the reduced story drew ${reading.elements} elements, fewer than ${MIN_SCENE_ELEMENTS}, so there is no scene to hold still; a story that renders nothing must not pass as reduced (R41, R60)`];
   return reading.sidewaysAnimations === 0 && reading.drifting === 0
     ? []
     : [`with reduce motion set by the app and the browser allowing motion, ${reading.drifting} elements still changed their transform and ${reading.sidewaysAnimations} animations still carried the scene sideways; reduce motion means nothing moves (R41, R60)`];
