@@ -1,11 +1,11 @@
 ---
 id: TASK-23
 title: Every Firebase composition caller supplies a KitchenGateway
-status: In Progress
+status: Done
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 21:38'
-updated_date: '2026-10-20 22:07'
+updated_date: '2026-10-20 22:16'
 labels:
   - layer-app
   - size-1
@@ -26,7 +26,7 @@ TASK-22 makes packages/application's Deps.kitchens required. apps/mobile/src/com
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 FirebaseModules.functions in compose-firebase.ts is required, not optional, and composeFirebaseApp always supplies kitchens with no conditional spread
-- [ ] #2 two-client.emulator.test.ts supplies functions from its EmulatorClient the same way native.ts does, and the full repo (pnpm check, typecheck, test, test:emulator) passes with TASK-22 merged
+- [x] #2 two-client.emulator.test.ts supplies functions from its EmulatorClient the same way native.ts does, and the full repo (pnpm check, typecheck, test, test:emulator) passes with TASK-22 merged
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -161,4 +161,92 @@ No check reformatted or fixed a file as it ran.
 To close: merge TASK-22, re-run pnpm check, typecheck, test and test:emulator on the combined tree, then tick #2. No code change is needed in this task. Nothing else blocks it; the change matches its plan exactly, and no bug or security finding was found.
 
 Note: the full-tier check block recorded above ran under 'mise exec --'; plain pnpm in a fresh shell here resolves Node v22 against engines.node >=24.12.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(633 earlier lines omitted)
+```text
+│  3.00 kB │ gzip:   1.16 kB
+│  storybook-static/assets/TabItem-DO_WQBW_.js
+│  3.21 kB │ gzip:   1.35 kB
+│  storybook-static/assets/Chip-BBQiiRFD.js
+│  3.25 kB │ gzip:   1.45 kB
+│  storybook-static/assets/ItemPickerTemplate.stories-BDWCWUYW.js
+│  4.34 kB │ gzip:   1.52 kB
+│  storybook-static/assets/Button.stories-sNN3dC1C.js
+│  4.47 kB │ gzip:   1.31 kB
+│  storybook-static/assets/TextField-BC9sKZ03.js
+│  4.58 kB │ gzip:   1.76 kB
+│  storybook-static/assets/PreferencesTemplate.stories-DMm4jNL7.js
+│  4.58 kB │ gzip:   1.76 kB
+│  storybook-static/assets/ItemRow-BgzP7XFR.js
+│  5.19 kB │ gzip:   1.99 kB
+│  storybook-static/assets/GroceryListTemplate.stories-Bu-n0q9_.js
+│  5.75 kB │ gzip:   1.97 kB
+│  storybook-static/assets/Button-CxILU1aQ.js
+│  6.43 kB │ gzip:   2.04 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/Mascot-D4jB9WQY.js
+│  11.37 kB │ gzip:   4.20 kB
+│  storybook-static/assets/icons-BPDuhWkL.js
+│  15.62 kB │ gzip:   2.56 kB
+│  storybook-static/assets/KitchenScene-PNLDbSaq.js
+│  17.31 kB │ gzip:   4.66 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-CGfbGzBZ.js
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-vq108xyw.js
+│  167.09 kB │ gzip:  49.83 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-DmUd5E6i.js
+│  1,359.38 kB │ gzip: 391.72 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.09s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 326 story views checked (axe, 44 x 44, images not compared)
+```
+
+### Review (philosophy:reviewer, 2026-10-20, second pass)
+
+Verdict: CLOSED. Both criteria met. The first pass left this open only because criterion #2 requires the full repo to pass with TASK-22 merged, and TASK-22 was unmerged then. TASK-22 merged at 4993549 and closed at cf20170; this pass re-verified on main at b8f4edc, with both changes present together.
+
+Criterion #1 (re-confirmed at the source): packages/application/src/dispatch/types.ts:26 now reads 'readonly kitchens: KitchenGateway;' with no '?'. apps/mobile/src/composition/compose-firebase.ts:20 declares 'readonly functions: { readonly fns: FunctionsFns; readonly instance: unknown };' as required, and :37 supplies 'kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance)' unconditionally, with no conditional spread.
+
+Criterion #2 (now met): apps/mobile/src/composition/two-client.emulator.test.ts:47 passes 'functions: { fns: asSdk<FunctionsFns>(client.functionsFns), instance: client.functions }', the same shape as apps/mobile/src/composition/native.ts. The full repo passes with TASK-22 merged. Run on main at b8f4edc (all under 'mise exec --'):
+- full-tier recorded check (pnpm check && typecheck && test && test:emulator && check:release && build-storybook && visual --no-build): exited 0
+- pnpm check: checks passed (14 checks, all mode)
+- pnpm typecheck: clean, no output
+- pnpm test: 103 files, 1370 tests passed
+- pnpm test:emulator: 8 files, 70 tests passed
+- the touched file specifically, under the emulator harness ('firebase emulators:exec --only firestore,auth,functions --project demo-grocs' wrapping 'vitest run --project emulator apps/mobile/src/composition/two-client.emulator.test.ts'): 1 file, 4 tests passed
+No check reformatted or fixed a file as it ran; the only working-tree change after the full check was this task's own notes.
+
+Findings: none that earn a task. No bug, no security problem; the change matches its plan step for step.
+
+Notes for the reader, neither a finding nor a draft:
+- Verification ran against main b8f4edc plus unrelated uncommitted orchestrator work in the tree (.github/workflows/visual-baselines.yml modified, backlog/drafts/draft-1 deleted, backlog/tasks/task-24 and mise.toml untracked). None of them touch packages/application/src/dispatch/types.ts, apps/mobile/src/composition/compose-firebase.ts or two-client.emulator.test.ts, and all 14 checks passed with them present.
+- Running 'vitest run --project emulator <file>' without the wrapper fails all 4 tests on connection: 'pnpm test:emulator' is what starts the emulators. The file is in the emulator project either way, so that is harness setup, not a defect.
+- As CLAUDE.md records, plain pnpm in a fresh shell here resolves Node v22 against engines.node >=24.12 (ERR_PNPM_UNSUPPORTED_ENGINE); every command above was prefixed with 'mise exec --'.
 <!-- SECTION:NOTES:END -->
