@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { judgeMotion, MIN_PAN_TRAVEL_PX, viewportsFor } from './storybook-browser.ts';
+import { judgeMotion, MIN_PAN_TRAVEL_PX, MIN_SCENE_ELEMENTS, viewportsFor } from './storybook-browser.ts';
 import type { MotionReading } from './storybook-browser.ts';
 
 describe('judgeMotion (the browser pass shows stories still, so the pan is checked on a page that allows motion)', () => {
-  const panning: MotionReading = { drifting: 12, sidewaysAnimations: 1, travel: 630 };
-  const bobbingOnly: MotionReading = { drifting: 12, sidewaysAnimations: 0, travel: 0 };
-  const still: MotionReading = { drifting: 0, sidewaysAnimations: 0, travel: 0 };
+  const panning: MotionReading = { drifting: 12, sidewaysAnimations: 1, travel: 630, elements: 40 };
+  const bobbingOnly: MotionReading = { drifting: 12, sidewaysAnimations: 0, travel: 0, elements: 40 };
+  const still: MotionReading = { drifting: 0, sidewaysAnimations: 0, travel: 0, elements: 40 };
 
   it('accepts a pan that carries the scene sideways', () => {
     expect(judgeMotion(panning, 'pans')).toEqual([]);
@@ -16,7 +16,7 @@ describe('judgeMotion (the browser pass shows stories still, so the pan is check
   });
 
   it('rejects a wobble shorter than a pan', () => {
-    expect(judgeMotion({ drifting: 3, sidewaysAnimations: 1, travel: MIN_PAN_TRAVEL_PX - 1 }, 'pans')).toHaveLength(1);
+    expect(judgeMotion({ drifting: 3, sidewaysAnimations: 1, travel: MIN_PAN_TRAVEL_PX - 1, elements: 40 }, 'pans')).toHaveLength(1);
   });
 
   it('accepts a scene where nothing moves, as reduced', () => {
@@ -26,6 +26,13 @@ describe('judgeMotion (the browser pass shows stories still, so the pan is check
   it('rejects a reduced scene where anything moves, or that pans', () => {
     expect(judgeMotion(bobbingOnly, 'still')).toHaveLength(1);
     expect(judgeMotion(panning, 'still')).toHaveLength(1);
+  });
+
+  it('rejects a reduced story that drew no scene', () => {
+    const empty = judgeMotion({ drifting: 0, sidewaysAnimations: 0, travel: 0, elements: 0 }, 'still');
+    expect(empty).toHaveLength(1);
+    expect(empty[0]).toContain('R41');
+    expect(judgeMotion({ ...still, elements: MIN_SCENE_ELEMENTS - 1 }, 'still')).toHaveLength(1);
   });
 
   it('names the rule in what it reports', () => {

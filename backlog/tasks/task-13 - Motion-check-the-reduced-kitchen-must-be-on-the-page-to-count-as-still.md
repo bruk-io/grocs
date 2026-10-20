@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder'
 created_date: '2026-10-19 13:41'
-updated_date: '2026-10-20 03:20'
+updated_date: '2026-10-20 04:00'
 labels:
   - size-1
   - testing
@@ -41,4 +41,6 @@ From the review of TASK-1.37.10. judgeMotion(reading, 'still') passes when drift
 
 <!-- SECTION:NOTES:BEGIN -->
 Accepted by @bruk (Oct 19, 2026).
+
+Finished an interrupted build. A builder was stopped by a container restart after editing tools/storybook-browser.ts and tools/storybook-browser.test.ts in this worktree. I checked those uncommitted edits against plan steps 1-6 and all six matched the code exactly, so none were redone. Step 7 results: pnpm check passed (13 checks), pnpm typecheck passed, pnpm test passed (96 files, 1278 tests, including the new 'rejects a reduced story that drew no scene' test), and pnpm --filter @grocs/ui visual passed (311 story views checked, 311 images compared, no baseline changed). No existing test was deleted, skipped or weakened. Acceptance criteria #1 and #2 are covered by the MIN_SCENE_ELEMENTS check and its unit test.
 <!-- SECTION:NOTES:END -->
