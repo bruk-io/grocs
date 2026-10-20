@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
 export const Rest: Story = {};
 
 /** Welcome with one primary action in place of Continue with Google and the invite row (the demo). */
-export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo' } };
+export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo', onPrimary: () => {} } };
 
 /** Welcome in a development build: the test sign-in sits in the sheet's footer, below the invite row. */
 export const WithFooter: Story = {

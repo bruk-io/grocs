@@ -10,4 +10,4 @@ export const Rest: Story = {};
 export const SigningIn: Story = { args: { signingIn: true } };
 export const Disabled: Story = { args: { disabled: true } };
 /** One primary action in place of Google and the invite row (the demo's Welcome). */
-export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo' } };
+export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo', onPrimary: () => {} } };

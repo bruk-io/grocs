@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 19:03'
-updated_date: '2026-10-20 05:02'
+updated_date: '2026-10-20 05:44'
 labels:
   - size-2
   - layer-ui
@@ -26,6 +26,12 @@ Seen in run 39301929518's smoke-output welcome.png (TASK-10.4). In the demo APK,
 - [x] #1 AuthSheet and SignInTemplate can show one primary action in place of Continue with Google and the invite row, with a state and story for it
 - [ ] #2 Existing SignInTemplate and AuthSheet states and baselines are unchanged; the new story's baseline is approved through visual:update
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Review round (Oct 20): (1) Make primary mode a type-level choice: AuthSheetProps and SignInTemplateProps become a union of a sign-in shape (onContinue, onOpenInvite, signingIn; primaryLabel/onPrimary: never) and a primary shape (primaryLabel and onPrimary both required; onContinue, onOpenInvite, signingIn: never). signingIn in primary mode: not accepted, because there is no Google sheet to be busy with and the lone button has no loading state; disabled and footer stay shared. (2) Behaviour test: footer renders under the primary action; also one button only. (3) Remove the tall empty band: in primary mode the sheet content starts at the top (flex-start) instead of centring in the sheet, so the button sits where the rest sheet's content begins; the rest sheet stays centred and unchanged. (4) Regenerate with visual:update; only the SignInTemplate primary-action views should change. Run check, typecheck, test, visual.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
@@ -107,4 +113,6 @@ visual: 315 story views checked (axe, 44 x 44, 315 images compared)
 Review (philosophy:reviewer, Oct 20 2026), commit 49d302e. Verdict: not closed. AC2 is not evidenced. Full tier recorded above, exit 0 (visual: 315 views, 315 images compared; check, typecheck, test, emulator, release all green). #1 met and ticked: AuthSheet and SignInTemplate take primaryLabel/onPrimary, the primaryAction state is added to both STATES lists, PrimaryAction stories exist in both, and the AuthSheet behaviour test shows Google and the invite row are gone, the primary button fires onPrimary, and onContinue does not. #2 NOT ticked. The existing half holds: the manifest diff adds only four entries, the existing entries are unchanged, and the visual compare passes. But the four new baselines came from the interrupted first builder, uncommitted, with no record of being made by visual:update or the visual-baselines workflow (CLAUDE.md: the workflow is the reference). The finishing builder says it ran no visual:update, and nobody has recorded approving them. To close: run the visual baselines workflow on the pushed branch and confirm the four images match, or regenerate them, and record approval by @bruk. My read of the images: 'Try the demo' is the only control on the sheet, full-width primary, and clearly the one way in. One flaw: the sheet keeps its old height, leaving a tall empty band above the button. Findings: the ignored onContinue/onOpenInvite (and signingIn) plus primaryLabel-without-onPrimary rendering a dead button belong at the type level, and there is no test that footer still renders in primary mode. Filed as a draft (size-1, layer-ui), to do before or with the app half.
 
 Oct 20, 2026 (orchestrator): the review's findings are folded back into this task rather than a draft, since it is not closed and the app half (TASK-10.9) builds on the API. To do: make primary mode a choice at the type level (primaryLabel needs onPrimary; say what happens to signingIn in that mode); test that the footer still renders in primary mode; remove the tall empty band above the single button; then regenerate the new baselines through visual:update. The orchestrator then runs the visual baselines workflow on the pushed branch and asks Bruk to approve the four images.
+
+Review round (Oct 20, builder-ui): primary mode is now a type-level choice. AuthSheetProps and SignInTemplateProps are unions. Sign-in shape: onContinue?, onOpenInvite?, signingIn? (primaryLabel/onPrimary: never). Primary shape: primaryLabel: string and onPrimary: () => void both required (onContinue, onOpenInvite, signingIn: never). signingIn is not accepted in primary mode: no Google sheet exists to be busy with. disabled and footer are shared; footer renders in both. Final API for TASK-10.9: <SignInTemplate title=... tagline=... primaryLabel="Try the demo" onPrimary={...} />. Layout: in primary mode the sheet content starts at the top (justifyContent flex-start) instead of centring, so the button sits where the rest sheet's first row sits, with no band above; rest sheet is unchanged. Tests: new AuthSheet behaviour test that the footer still renders under the primary action, and that it is the only button; the old test no longer passes onContinue (the type forbids it). Baselines: visual:update wrote all 315; only 3 files changed: templates-sign-in--primary-action.png, --fold-inner.png, --fold-outer.png (plus their 3 manifest hashes). organisms-authsheet--primary-action.png and every existing state are byte-identical. I looked at the new image: one full-width Try the demo button at the top of the sheet. Checks: pnpm check, typecheck, test (1310 passed), visual (315 views, 315 images compared) pass. Still open: the orchestrator runs the visual baselines workflow on the pushed branch and Bruk approves the images (AC2).
 <!-- SECTION:NOTES:END -->
