@@ -13,6 +13,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { transformSync } from '@babel/core';
+import { configure } from '@testing-library/react';
 import { vi } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -72,3 +73,8 @@ process.env['EXPO_OS'] = 'web';
 // The app's own import of the library (DeviceSafeArea) is loaded by Vite, not by the Node hook above that
 // stubs it for expo-router; this gives it the same stub, which honours initialMetrics.
 vi.mock('react-native-safe-area-context', () => require('./stubs/react-native-safe-area-context.cjs') as object);
+
+// findBy*/waitFor's default 1000 ms wait flaked under load (DRAFT-14): several full suites running at
+// once starve a route test's React renders and FakeKitchenGateway round trips past that window, even
+// though nothing is actually broken - the same content shows up moments later in a quieter run.
+configure({ asyncUtilTimeout: 5000 });

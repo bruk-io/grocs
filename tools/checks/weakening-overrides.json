@@ -14,5 +14,21 @@
     "approvedBy": "Bruk Habtu, in chat, 2026-10-19",
     "reason": "Same flag removal as the .claude/settings.json override, in the pre-commit staged-check step. No-op: changes no check behaviour.",
     "date": "2026-10-19"
+  },
+  {
+    "file": ".github/workflows/ci.yml",
+    "beforeHash": "7708c061b349b54a7535dbf4a66b4742def4c5b4dbbea043beb284cec6519e5b",
+    "afterHash": "5de2305a9bd56f9253e305aa92d1d6b70b2d3b7494e1c2b94d911f855534401d",
+    "approvedBy": "Bruk Habtu, in chat, 2026-10-21",
+    "reason": "TASK-24: pins all three jobs' runs-on from ubuntu-latest to ubuntu-24.04, urgent because GitHub moves the ubuntu-latest label to 26 this week (DRAFT-1, filed from the TASK-1.40/1.41 review). Hardens CI, does not weaken it: the existing version-bump exemption (isVersionBumpPair) only recognises 'uses: owner/repo@vN' and '*-version:' lines, and normalizeDigits cannot match 'latest' against '24.04' as a digit-only change, so this specific diff trips the line-removal finding with no automatic exemption.",
+    "date": "2026-10-21"
+  },
+  {
+    "file": ".github/workflows/visual-baselines.yml",
+    "beforeHash": "cd85be2e2e8847f27fc8fc9ce6ac0e0b085f5d64601deeae1e51027e57491853",
+    "afterHash": "9ef1bcab9ce33a89e92c0595fb3a5be5a82fe2d36f9507a460a97fd585a86590",
+    "approvedBy": "Bruk Habtu, in chat, 2026-10-21",
+    "reason": "Same pin as the ci.yml override (TASK-24), for the one job that must share its runner image and Chromium with ci.yml's browser pass (R42, decision-11) - the two would silently drift apart otherwise.",
+    "date": "2026-10-21"
   }
 ]

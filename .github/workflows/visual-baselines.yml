@@ -3,6 +3,9 @@ name: visual baselines
 # The one environment where visual baselines are generated (TASK-1.40, decision-11). Baselines are
 # compared on Linux only because font rendering differs by system, and this job runs on the same
 # runner image and Chromium as the browser pass in ci.yml, so what it writes is what CI compares.
+# Both files pin the same ubuntu-24.04 image for exactly this reason (TASK-24); when GitHub
+# deprecates it, bump the pin here and in ci.yml's three jobs together, then regenerate the
+# baselines through this same workflow before merging, so the two never drift apart.
 #
 # It never commits: a baseline change is reviewed as images before it lands. To regenerate:
 #   gh workflow run visual-baselines.yml --ref <your pushed branch>
@@ -19,7 +22,7 @@ permissions:
 jobs:
   baselines:
     name: Write every baseline through visual:update
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

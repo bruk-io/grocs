@@ -12,7 +12,7 @@ concurrency:
 jobs:
   checks:
     name: Checks, types and unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,7 +36,7 @@ jobs:
 
   emulators:
     name: Provider contracts and two-client sync on the Firebase emulators
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -58,7 +58,7 @@ jobs:
 
   bundles:
     name: Android and iOS bundles, Storybook build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
