@@ -1,0 +1,13 @@
+[tools]
+java = "temurin-21"
+node = "24"
+
+[env]
+GOOGLE_SERVICES_JSON_PATH = "{{env.HOME}}/.config/grocs-dev/google-services.json"
+GOOGLE_SERVICE_INFO_PLIST_PATH = "{{env.HOME}}/.config/grocs-dev/GoogleService-Info.plist"
+ANDROID_HOME = "{{env.HOME}}/Library/Android/sdk"
+ANDROID_SDK_ROOT = "{{env.HOME}}/Library/Android/sdk"
+_.path = [
+  "{{env.HOME}}/Library/Android/sdk/platform-tools",
+  "{{env.HOME}}/Library/Android/sdk/emulator",
+]
