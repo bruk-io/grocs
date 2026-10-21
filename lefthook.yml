@@ -8,4 +8,5 @@ pre-commit:
     typecheck:
       run: pnpm -s typecheck
     unit-tests:
-      run: pnpm -s test
+      # Skipped when every staged file is under backlog/ - a pure board change cannot break a test.
+      run: node tools/hooks/unit-tests.ts

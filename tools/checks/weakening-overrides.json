@@ -24,6 +24,14 @@
     "date": "2026-10-21"
   },
   {
+    "file": "lefthook.yml",
+    "beforeHash": "04a2fb619284884338508489b0f523f73facc043c3508fa95f8547024c63e63c",
+    "afterHash": "8d53eea07e542189a6653b870bb7bc4018470c04500c7aa0a4ce21cc1a94f072",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-10-21",
+    "reason": "TASK-37: the literal 'run: pnpm -s test' line becomes 'run: node tools/hooks/unit-tests.ts', a wrapper that skips the suite only when every staged file is under backlog/ and runs it unchanged otherwise. Not a loosening in substance (a pure board change cannot break a test), but the line-removal heuristic cannot tell that apart from an actual loosening. Bruk approved the board-only skip explicitly before this was written.",
+    "date": "2026-10-21"
+  },
+  {
     "file": ".github/workflows/visual-baselines.yml",
     "beforeHash": "cd85be2e2e8847f27fc8fc9ce6ac0e0b085f5d64601deeae1e51027e57491853",
     "afterHash": "9ef1bcab9ce33a89e92c0595fb3a5be5a82fe2d36f9507a460a97fd585a86590",
