@@ -14,6 +14,7 @@ import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialI
 import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
+import { DeviceSafeArea } from '../src/platform/DeviceSafeArea.tsx';
 import { diagnosticsText } from '../src/composition/diagnostics.ts';
 import type { NativeApp } from '../src/composition/native.ts';
 import { FakeClipboard } from './fake-clipboard.ts';
@@ -64,14 +65,16 @@ export async function appOnFakes({
 
 /**
  * Renders the given routes, keyed by file name as under apps/mobile/app ('index', 'list/[id]', ...),
- * at `location`. Navigate in a test by clicking a link or calling `router` from expo-router.
+ * at `location`. `insets` is the phone's safe area (default none). Navigate in a test by clicking a link or calling `router` from expo-router.
  */
-export function renderRoute(routes: Record<string, ComponentType>, { app, location = '/' }: { app: NativeApp; location?: string }) {
+export function renderRoute(routes: Record<string, ComponentType>, { app, location = '/', insets }: { app: NativeApp; location?: string; insets?: { top: number; right: number; bottom: number; left: number } }) {
   function Layout() {
     return (
       <AppProvider value={app}>
         <PlatformStyleProvider value="android">
-          <Slot />
+          <DeviceSafeArea initialMetrics={insets ? { insets, frame: { x: 0, y: 0, width: 393, height: 852 } } : null}>
+            <Slot />
+          </DeviceSafeArea>
         </PlatformStyleProvider>
       </AppProvider>
     );

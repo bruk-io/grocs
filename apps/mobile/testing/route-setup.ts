@@ -13,6 +13,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { transformSync } from '@babel/core';
+import { vi } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -67,3 +68,7 @@ extensions['.js'] = (m, filename) => {
 
 (globalThis as { __DEV__?: boolean }).__DEV__ = true;
 process.env['EXPO_OS'] = 'web';
+
+// The app's own import of the library (DeviceSafeArea) is loaded by Vite, not by the Node hook above that
+// stubs it for expo-router; this gives it the same stub, which honours initialMetrics.
+vi.mock('react-native-safe-area-context', () => require('./stubs/react-native-safe-area-context.cjs') as object);

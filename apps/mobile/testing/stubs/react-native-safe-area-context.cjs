@@ -1,4 +1,5 @@
-// Route tests render in jsdom with a fixed 393 x 852 screen and no notch or home bar.
+// Route tests render in jsdom with a fixed 393 x 852 screen and no notch or home bar, unless a test gives
+// the provider initialMetrics (as the real library allows), which the hooks then report.
 const React = require('react');
 const { View } = require('react-native-web');
 
@@ -9,11 +10,16 @@ const FrameContext = React.createContext(frame);
 
 module.exports = {
   __esModule: true,
-  SafeAreaProvider: ({ children }) => children,
+  SafeAreaProvider: ({ children, initialMetrics }) =>
+    React.createElement(
+      InsetsContext.Provider,
+      { value: initialMetrics ? initialMetrics.insets : insets },
+      React.createElement(FrameContext.Provider, { value: initialMetrics ? initialMetrics.frame : frame }, children),
+    ),
   SafeAreaView: View,
   SafeAreaInsetsContext: InsetsContext,
   SafeAreaFrameContext: FrameContext,
-  useSafeAreaInsets: () => insets,
-  useSafeAreaFrame: () => frame,
+  useSafeAreaInsets: () => React.useContext(InsetsContext),
+  useSafeAreaFrame: () => React.useContext(FrameContext),
   initialWindowMetrics: { insets, frame },
 };
