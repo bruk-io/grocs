@@ -14,18 +14,18 @@ afterEach(cleanup);
 
 const ROUTES = { index: Home, plan: Plan, settings: Settings };
 
-function demoApp() {
+function demoApp(clock = new FakeClock()) {
   return composeDemoApp({
     logger: new MemoryLogger(),
     copyText: new FakeClipboard().copyText,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
-    clock: new FakeClock(),
+    clock,
     ids: new SequentialIds('d'),
   });
 }
 
-async function openDemo() {
-  renderRoute(ROUTES, { app: demoApp() });
+async function openDemo(clock = new FakeClock()) {
+  renderRoute(ROUTES, { app: demoApp(clock) });
   fireEvent.click(await screen.findByRole('button', { name: 'Try the demo' }));
   await screen.findByText('Yellow onions');
 }
@@ -61,6 +61,14 @@ describe('demo composition', () => {
     fireEvent.keyDown(box, { key: 'Enter', code: 'Enter' });
     expect(await screen.findByRole('checkbox', { name: 'Oat milk' })).toBeTruthy();
     expect(screen.getByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
+  });
+
+  it('ticks a sample item into the cart', async () => {
+    const clock = new FakeClock();
+    await openDemo(clock);
+    clock.advance(60_000); // the sample was added a minute ago, so the tick is the later action
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Garlic' }));
+    expect(await screen.findByRole('checkbox', { name: 'Garlic', checked: true })).toBeTruthy();
   });
 
   it('shows the sample meal plan and the settings, reached by the tabs', async () => {
