@@ -1,10 +1,11 @@
 ---
 id: TASK-1.23.3
 title: 'App: ticking on Groceries dispatches SetItemState'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-20 22:51'
-updated_date: '2026-10-20 22:51'
+updated_date: '2026-10-21 00:29'
 labels:
   - size-2
   - layer-app

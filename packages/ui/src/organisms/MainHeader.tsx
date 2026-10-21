@@ -66,7 +66,7 @@ export function MainHeader({ title, eyebrow, weekNav, members, onSettings, masco
 }
 
 const styles = StyleSheet.create({
-  header: { gap: tokens.space[10], paddingTop: tokens.space[16], paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[12] },
+  header: { gap: tokens.space[10], paddingTop: tokens.space[16], paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[12] },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   who: { flexDirection: 'row', alignItems: 'center', gap: tokens.space[4] },
   titleRow: { flexDirection: 'row', alignItems: 'flex-end', gap: tokens.space[12] },

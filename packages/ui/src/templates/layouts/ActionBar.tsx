@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Button } from '../../atoms/Button.tsx';
+import { useSafeArea } from '../../platform/safe-area.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 
 export interface ActionBarProps {
@@ -14,8 +15,9 @@ export interface ActionBarProps {
 
 /** action.bar: a template region, not an organism. One pinned button, 16 from each side and 24 from the bottom. */
 export function ActionBar({ label, variant = 'primary', onPress, disabled = false, loading = false, loadingLabel }: ActionBarProps) {
+  const inset = useSafeArea();
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: tokens.space[24] + inset.bottom, paddingLeft: tokens.space[16] + inset.left, paddingRight: tokens.space[16] + inset.right }]}>
       <View style={[styles.shadow, variant === 'primary' && !disabled && { boxShadow: [...tokens.shadow.action] }]}>
         <Button
           stretch

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeArea } from '../../platform/safe-area.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 
 export interface TaskLayoutProps {
@@ -15,13 +16,16 @@ export interface TaskLayoutProps {
 
 /** template.task: one job per screen. The back link names the parent; the action bar is optional. */
 export function TaskLayout({ header, children, actionBar, footer }: TaskLayoutProps) {
+  const inset = useSafeArea();
+  // Whatever sits last on the screen clears the gesture bar; the action bar does that itself.
+  const clear = tokens.space[24] + inset.bottom;
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: inset.top, paddingLeft: inset.left, paddingRight: inset.right }]}>
       {header}
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, !footer && !actionBar && { paddingBottom: clear }]}>
         {children}
       </ScrollView>
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
+      {footer ? <View style={[styles.footer, !actionBar && { paddingBottom: clear }]}>{footer}</View> : null}
       {actionBar}
     </View>
   );
@@ -30,6 +34,6 @@ export function TaskLayout({ header, children, actionBar, footer }: TaskLayoutPr
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.surfaceCanvas },
   scroll: { flex: 1 },
-  content: { gap: tokens.space[14], paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[24] },
-  footer: { alignItems: 'center', paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[24] },
+  content: { gap: tokens.space[14], paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[24] },
+  footer: { alignItems: 'center', paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[24] },
 });

@@ -3,16 +3,20 @@ id: TASK-33
 title: >-
   Inline field buttons sit off centre, and fields are narrower than the column
   around them
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-20 23:39'
+updated_date: '2026-10-21 01:33'
 labels:
   - size-2
   - layer-ui
 dependencies: []
 modified_files:
   - packages/ui/src/atoms/TextField.tsx
+  - packages/ui/src/templates/layouts/TaskLayout.tsx
+  - packages/ui/src/organisms/MainHeader.tsx
+  - packages/ui/src/organisms/SubHeader.tsx
   - packages/ui/visual-baselines
 type: bug
 ---
@@ -118,4 +122,6 @@ Review (philosophy:reviewer, 2026-10-20): NOT CLOSED.
 #2 not met in a way that holds (left unticked). TextField's wrap gets marginHorizontal:-4, so the atom assumes its container pads 20. It lines up on Groceries (MainHeader 20) and Add a meal (TaskLayout 20 beside ActionBar 16), but in the same TaskLayout column anything else at the 20 gutter now sits 4 inside the field: KitchenSetup's InviteCard, InviteRetry and ItemPicker content. Any field placed in a 16 container (MainLayout content, a card, ActionBar) would overhang by 4. The label and error text in the wrap shift too. The mismatch is in the gutters: TaskLayout content/footer and MainHeader pad space[20] while MainLayout, rows, tab bar and ActionBar pad space[16]. Fix: drop the negative margin and bring TaskLayout and MainHeader to space[16] (or one shared gutter token). TaskLayout is in packages/ui/src/templates/layouts, which TASK-29 is changing now, so sequence after TASK-29 or coordinate with it.
 #3 left unticked: the baselines will be regenerated once #2 is redone; the focus ring shows in the current focus baselines. Regenerated baselines are not approved; Bruk approves them before main.
 Full-tier check exited 1: apps/mobile/src/routes/kitchen.route.test.tsx 'creating a kitchen > shows the invite link and code, then Groceries works on that kitchen' timed out at findByText('Nothing on the list yet'). Reran alone: worktree 1 fail in 6 runs, main 0 in 6. Looks like a timing flake rather than this styling change, but unproven; confirm on the redo's full check.
+
+Redo of #2 after review: merged main (TASK-29 landed; only conflicts were the task file's updated_date and the visual manifest, which I regenerated). Removed TextField's marginHorizontal -4. Fixed the gutters instead: TaskLayout content and footer, MainHeader and SubHeader now pad space[16], the same as MainLayout, rows, the tab bar and ActionBar, so no atom depends on its container. TaskLayout was touched for the two padding values only, on top of TASK-29's inset work; StageLayout and SignInTemplate untouched. Checks: pnpm check, pnpm typecheck clean, full pnpm test 106 files / 1418 tests passed, visual:update (353 views) then visual compare pass (353 images compared, axe and 44x44 pass). Baselines changed vs main: atoms-textfield--* (11) and molecules-addbar/labelledfield--* (9): inline button centred; organisms-mainheader--groceries and --meal-plan, organisms-subheader--back/line/wordmark: 16 gutter; templates grocery-list, invite-join, invite-retry, item-picker, kitchen-setup, meal-form, meal-plan, preferences (all existing stories with fold variants): header and fields at 16 gutter plus centred buttons. New on-phone baselines (TASK-29) were regenerated with the new gutters. Fields' visible edges now match rows, cards and action buttons. Not verified on the Fold; baselines need Bruk's approval. The earlier kitchen.route.test flake did not recur in this full run.
 <!-- SECTION:NOTES:END -->

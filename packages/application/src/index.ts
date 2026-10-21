@@ -21,6 +21,8 @@ export { createKitchen } from './commands/create-kitchen.ts';
 export type { CreateKitchen, KitchenCreated } from './commands/create-kitchen.ts';
 export { joinKitchen } from './commands/join-kitchen.ts';
 export type { JoinKitchen, KitchenJoined, KitchenJoinRejected } from './commands/join-kitchen.ts';
+export { setItemStateCommand } from './commands/set-item-state.ts';
+export type { ItemMovedBack, ItemMovedToCart, SetItemState } from './commands/set-item-state.ts';
 export { commandHandlers } from './commands/index.ts';
 export { watchWeekItems } from './queries/watch-week.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';

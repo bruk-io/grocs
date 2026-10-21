@@ -1,9 +1,11 @@
 ---
 id: TASK-31
 title: Welcome leaves a tall empty band under Try the demo on a tall phone
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
+updated_date: '2026-10-21 00:45'
 labels:
   - size-2
   - layer-ui
@@ -28,3 +30,9 @@ Welcome (SignInTemplate, StageLayout), the first screen anyone sees.
 - [ ] #2 On a short phone viewport (360 x 640) the button stays fully visible without scrolling
 - [ ] #3 Both viewports are in the visual baselines
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+From TASK-29's review: with phone insets, Welcome (StageLayout) paints the 40-point band above the kitchen scene in the stage colour, lighter than the scene's sky (see packages/ui/visual-baselines/templates-sign-in--on-phone*.png). Cosmetic, nothing sits in the band; worth fixing alongside this Welcome layout work by filling the inset with the sky colour.
+<!-- SECTION:NOTES:END -->

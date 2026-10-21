@@ -83,8 +83,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
 }
 
 const styles = StyleSheet.create({
-  /** Fields sit in a 20 gutter while rows, the tab bar and action buttons sit in 16; the field's visible edge reaches the 16. */
-  wrap: { gap: tokens.space[6], marginHorizontal: -tokens.space[4] },
+  wrap: { gap: tokens.space[6] },
   /** Button sets alignSelf flex-start, which would pin it to the top of the box. */
   action: { alignSelf: 'center' },
   box: {
