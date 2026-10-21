@@ -4,6 +4,7 @@ title: Welcome's button sits under the navigation bar on an Android emulator
 status: To Do
 assignee: []
 created_date: '2026-10-21 05:17'
+updated_date: '2026-10-21 11:22'
 labels:
   - size-2
   - layer-ui
@@ -26,3 +27,9 @@ Welcome, the first screen anyone sees; StageLayout, SignInTemplate, KitchenScene
 - [ ] #1 On the demo APK on an Android device or emulator with 3-button navigation and with gesture navigation, 'Try the demo' sits whole above the navigation bar, with screenshots in the notes
 - [ ] #2 The cause is named in the notes, and a test or story that fails on the cause is added where the browser can show it
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Stage 1 diagnosis: temporary [layout] console.log of onLayout sizes (StageLayout screen/stage/scene/sheet and insets, KitchenScene window), committed as DIAGNOSTIC; orchestrator returns logcat. Stage 2: name the cause, prefer layout-driven sizing (aspectRatio or viewBox) over onLayout plus transform scale, add a failing test or story, remove logs in own commit, visual:update only if baselines change. Suspect: the KitchenScene world is 600 dp tall in layout because a transform does not shrink the layout box, so on Android it may inflate the scene and stage past their flex share.
+<!-- SECTION:PLAN:END -->

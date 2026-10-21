@@ -4,6 +4,7 @@ import Animated from 'react-native-reanimated';
 import { Mascot } from '../../molecules/Mascot.tsx';
 import type { MascotName } from '../../mascots/art/index.ts';
 import { PartPropsContext } from '../../mascots/part.tsx';
+import { useReportWindow } from '../../platform/diagnostic-layout.tsx';
 import { useMotion } from '../../platform/motion.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 import { KitchenArt } from './art/Kitchen.tsx';
@@ -23,6 +24,7 @@ export interface KitchenSceneProps {
 /** Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60); it is drawn at 1020 x 600 and scaled evenly so its height fills its parent, which sets the window; the sides clip. */
 export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
   const { reduced } = useMotion();
+  const report = useReportWindow();
   const [size, setSize] = useState<{ width: number; height: number }>(WORLD);
   const scale = size.height / WORLD.height;
   const visibleWidth = size.width / scale;
@@ -33,7 +35,7 @@ export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
     </View>
   );
   return (
-    <View style={styles.window} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width || WORLD.width, height: e.nativeEvent.layout.height || WORLD.height })}>
+    <View style={styles.window} onLayout={(e) => { const l = e.nativeEvent.layout; report(`x=${l.x} y=${l.y} w=${l.width} h=${l.height}`); setSize({ width: e.nativeEvent.layout.width || WORLD.width, height: e.nativeEvent.layout.height || WORLD.height }); }}>
       <View style={[styles.world, { transform: [{ scale }] }]}>
         <Animated.View style={[styles.fill, motion.pan]}>
           <Animated.View style={[styles.fill, motion.bob]}>
