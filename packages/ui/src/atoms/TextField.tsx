@@ -64,7 +64,11 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           returnKeyType="done"
           style={[styles.input, actionLabel !== undefined && styles.inputInline, display && styles.inputDisplay, disabled && styles.inputDisabled]}
         />
-        {actionLabel !== undefined ? <Button variant={actionKind === 'soft' ? 'soft' : actionKind === 'primary' ? 'primary' : 'icon'} {...(actionKind === 'primary' ? { size: 's' as const } : {})} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} /> : null}
+        {actionLabel !== undefined ? (
+          <View style={styles.action}>
+            <Button variant={actionKind === 'soft' ? 'soft' : actionKind === 'primary' ? 'primary' : 'icon'} {...(actionKind === 'primary' ? { size: 's' as const } : {})} label={actionLabel} disabled={disabled} {...(onAction ? { onPress: onAction } : {})} />
+          </View>
+        ) : null}
       </View>
       {invalid ? (
         <View style={styles.error} role="alert">
@@ -80,6 +84,8 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
 
 const styles = StyleSheet.create({
   wrap: { gap: tokens.space[6] },
+  /** Button sets alignSelf flex-start, which would pin it to the top of the box. */
+  action: { alignSelf: 'center' },
   box: {
     minHeight: tokens.size.control,
     flexDirection: 'row',

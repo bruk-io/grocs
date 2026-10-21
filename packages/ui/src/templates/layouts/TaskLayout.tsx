@@ -34,6 +34,6 @@ export function TaskLayout({ header, children, actionBar, footer }: TaskLayoutPr
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.surfaceCanvas },
   scroll: { flex: 1 },
-  content: { gap: tokens.space[14], paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[24] },
-  footer: { alignItems: 'center', paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[24] },
+  content: { gap: tokens.space[14], paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[24] },
+  footer: { alignItems: 'center', paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[24] },
 });
