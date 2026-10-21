@@ -3,7 +3,7 @@ import { stamped } from '../merge/lww.ts';
 import { err, ok } from '../result/result.ts';
 import type { Result } from '../result/result.ts';
 
-export type ItemState = 'to-buy' | 'in-cart';
+export type ItemState = 'to-buy' | 'in-cart' | 'cleared';
 
 /** One grocery item. Every editable field carries the stamp of the change that last set it (R18). */
 export interface Item {
@@ -69,4 +69,9 @@ export function createExtraItem(input: NewItemInput, stamp: Stamp): Result<Item,
 /** Set an item's state (to-buy or in-cart). Only the state is restamped (R18); everything else is unchanged. */
 export function setItemState(item: Item, state: ItemState, stamp: Stamp): Item {
   return { ...item, state: stamped(state, stamp) };
+}
+
+/** Remove an item from the cart: set its state to cleared (R14: removed from the week's view, not deleted — it stays available to a later suggestion query by name). */
+export function clearFromCart(item: Item, stamp: Stamp): Item {
+  return setItemState(item, 'cleared', stamp);
 }

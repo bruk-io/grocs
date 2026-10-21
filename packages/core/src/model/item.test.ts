@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mergeItem } from '../merge/item-merge.ts';
-import { createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './item.ts';
+import { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './item.ts';
 import type { Item } from './item.ts';
 
 const stamp = { at: 1000, by: 'bruk' };
@@ -86,5 +86,27 @@ describe('setItemState (R18)', () => {
     const unticked = setItemState(original, 'to-buy', untick);
     expect(mergeItem(unticked, ticked).state.value).toBe('to-buy');
     expect(mergeItem(ticked, unticked).state.value).toBe('to-buy');
+  });
+});
+
+describe('clearFromCart (R14)', () => {
+  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'bruk' });
+  if (!made.ok) throw new Error('fixture must be a valid item');
+  const original: Item = { ...made.value, badges: ['m1'] };
+  const clear = { at: 2, by: 'sam' };
+
+  it('stamps the state as cleared and leaves every other field untouched', () => {
+    const next = clearFromCart(original, clear);
+    expect(next.state).toEqual({ value: 'cleared', stamp: clear });
+    expect(next.id).toBe(original.id);
+    expect(next.weekId).toBe(original.weekId);
+    expect(next.addedBy).toBe(original.addedBy);
+    expect(next.createdAt).toBe(original.createdAt);
+    expect(next.name).toBe(original.name);
+    expect(next.amount).toBe(original.amount);
+    expect(next.aisle).toBe(original.aisle);
+    expect(next.badges).toBe(original.badges);
+    expect(next.deleted).toBe(original.deleted);
+    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'bruk' } });
   });
 });

@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import type { Item } from '../model/item.ts';
-import { createExtraItem } from '../model/item.ts';
+import { clearFromCart, createExtraItem } from '../model/item.ts';
 import { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './item-doc.ts';
 
 const make = (): Item => {
@@ -28,6 +28,12 @@ describe('item document (R30)', () => {
         expect(decodeItem(encodeItem(item))).toEqual({ ok: true, value: item });
       }),
     );
+  });
+
+  it('round-trips a cleared item through the stored form, including JSON', () => {
+    const item = clearFromCart(make(), { at: 7, by: 'sam' });
+    expect(decodeItem(encodeItem(item))).toEqual({ ok: true, value: item });
+    expect(decodeItem(JSON.parse(JSON.stringify(encodeItem(item))))).toEqual({ ok: true, value: item });
   });
 
   it('rejects data from a version this code does not know', () => {

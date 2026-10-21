@@ -3,7 +3,7 @@ export type { Result } from './result/result.ts';
 export { compareStamps, laterStamp, mergeStamped, stamped } from './merge/lww.ts';
 export type { Stamp, Stamped } from './merge/lww.ts';
 export { isDeleted, mergeItem } from './merge/item-merge.ts';
-export { createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
+export { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
 export type { Item, ItemState, NewItemError, NewItemInput } from './model/item.ts';
 export { addExtraItem, emptyList, mergeIntoList, visibleItems } from './model/list.ts';
 export type { AddItemError, WeekList } from './model/list.ts';

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { clearFromCart } from '../model/item.ts';
 import { mergeItem } from '../merge/item-merge.ts';
 import { stamped } from '../merge/lww.ts';
 import { addExtraItem, emptyList, mergeIntoList, visibleItems } from './list.ts';
@@ -59,5 +60,25 @@ describe('mergeIntoList and visibleItems', () => {
       list = r.value.list;
     }
     expect(visibleItems(list).map((i) => i.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('hides cleared items but keeps the in-cart and to-buy ones', () => {
+    const added1 = addExtraItem(emptyList('w'), { id: 'i1', name: 'Item 1' }, bruk);
+    if (!added1.ok) throw new Error('setup');
+    const added2 = addExtraItem(added1.value.list, { id: 'i2', name: 'Item 2' }, bruk);
+    if (!added2.ok) throw new Error('setup');
+    const added3 = addExtraItem(added2.value.list, { id: 'i3', name: 'Item 3' }, bruk);
+    if (!added3.ok) throw new Error('setup');
+    let list = added3.value.list;
+
+    // Mark i1 as in-cart, i2 as to-buy, and i3 as cleared
+    const item1 = list.items['i1'];
+    const item3 = list.items['i3'];
+    if (!item1 || !item3) throw new Error('setup');
+    const inCart = { ...item1, state: stamped('in-cart' as const, sam) };
+    const cleared = clearFromCart(item3, sam);
+    list = { ...list, items: { ...list.items, ['i1']: inCart, ['i3']: cleared } };
+
+    expect(visibleItems(list).map((i) => i.id)).toEqual(['i1', 'i2']);
   });
 });
