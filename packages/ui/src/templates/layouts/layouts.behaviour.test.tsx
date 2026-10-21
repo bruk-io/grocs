@@ -96,7 +96,8 @@ describe('StageLayout', () => {
   it('moves the stage and the wordmark below the top inset', () => {
     render(phone(layout));
     expect(up(screen.getByText('kitchen'), 'paddingTop')).toBe(40);
-    expect(up(screen.getByText('name'), 'top')).toBe(56 + 40);
+    expect(up(screen.getByText('name'), 'paddingTop')).toBe(24);
+    expect(up(screen.getByText('name').parentElement?.parentElement as Element, 'paddingTop')).toBe(40);
   });
   it('carries the sheet colour under the bottom inset', () => {
     render(phone(layout));
@@ -105,7 +106,7 @@ describe('StageLayout', () => {
   });
   it('adds nothing with zero insets', () => {
     render(layout);
-    expect(up(screen.getByText('name'), 'top')).toBe(56);
     expect(up(screen.getByText('kitchen'), 'paddingTop')).toBe(0);
+    expect(up(screen.getByText('name').parentElement?.parentElement as Element, 'paddingTop')).toBe(0);
   });
 });

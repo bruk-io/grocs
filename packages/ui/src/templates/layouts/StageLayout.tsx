@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { WORLD } from '../../organisms/kitchen/art/scene-layout.ts';
 import { useSafeArea } from '../../platform/safe-area.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 
@@ -13,14 +12,16 @@ export interface StageLayoutProps {
   sheet: ReactNode;
 }
 
-/** template.stage: first impressions only. The illustration fills the stage; the sheet holds every action and takes the rest of the screen. */
+/** template.stage: first impressions only. The illustration fills the stage; the sheet holds every action and is only as tall as its content. */
 export function StageLayout({ wordmark, stage, sheet }: StageLayoutProps) {
   const inset = useSafeArea();
   return (
     <View style={styles.screen}>
-      <View style={[styles.stage, { paddingTop: inset.top, height: WORLD.height + inset.top }]}>{stage}</View>
-      <View pointerEvents="none" style={[styles.wordmark, { top: tokens.space[56] + inset.top }]}>
-        {wordmark}
+      <View style={[styles.stage, { paddingTop: inset.top }]}>
+        <View pointerEvents="none" style={styles.wordmark}>
+          {wordmark}
+        </View>
+        <View style={styles.scene}>{stage}</View>
       </View>
       <View style={styles.sheet}>
         <View style={[styles.sheetBody, { paddingLeft: inset.left, paddingRight: inset.right }]}>{sheet}</View>
@@ -33,9 +34,11 @@ export function StageLayout({ wordmark, stage, sheet }: StageLayoutProps) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.surfaceStage },
-  // The scene is drawn at its own height; the sheet's rounded top overlaps its floor.
-  stage: { height: WORLD.height },
-  wordmark: { position: 'absolute', top: tokens.space[56], left: 0, right: 0, alignItems: 'center', gap: tokens.space[6] },
-  sheet: { flex: 1, marginTop: -tokens.space[4] },
-  sheetBody: { flex: 1 },
+  // The stage takes whatever the sheet leaves; the scene sits on the sheet's top edge, and the ceiling colour fills the inset and any room above it.
+  stage: { flex: 1, minHeight: 0, backgroundColor: tokens.color.scene.ceiling },
+  // In the stage's flow, so a short phone crops the scene's ceiling rather than letting the name sit over the cast.
+  wordmark: { paddingTop: tokens.space[24], paddingBottom: tokens.space[8], alignItems: 'center', gap: tokens.space[6] },
+  scene: { flex: 1, minHeight: 0 },
+  sheet: { marginTop: -tokens.space[4] },
+  sheetBody: {},
 });

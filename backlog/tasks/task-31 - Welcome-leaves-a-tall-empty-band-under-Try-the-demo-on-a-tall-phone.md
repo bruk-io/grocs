@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 00:45'
+updated_date: '2026-10-21 01:33'
 labels:
   - size-2
   - layer-ui
@@ -35,4 +35,6 @@ Welcome (SignInTemplate, StageLayout), the first screen anyone sees.
 
 <!-- SECTION:NOTES:BEGIN -->
 From TASK-29's review: with phone insets, Welcome (StageLayout) paints the 40-point band above the kitchen scene in the stage colour, lighter than the scene's sky (see packages/ui/visual-baselines/templates-sign-in--on-phone*.png). Cosmetic, nothing sits in the band; worth fixing alongside this Welcome layout work by filling the inset with the sky colour.
+
+Built. Files: StageLayout.tsx (stage flex:1 on the scene's ceiling colour; wordmark now in the stage's flow, not absolute; sheet sizes to content), KitchenScene.tsx (outside the named files: window bottom-anchors the 600-high world, ceiling colour above, so the floor meets the sheet), SignInTemplate.stories.tsx (OnTallPhone 412x915, OnShortPhone 360x640 via a sized-frame decorator), layouts.behaviour.test.tsx (StageLayout assertions follow the wordmark moving into the flow; no test loosened). AC1: tall baseline shows floor meeting the sheet, sheet = button + 24 + gesture bar; the top band is the ceiling colour (TASK-29 note done). AC2: short baseline shows the button fully visible; the scene loses its ceiling and top of the cast shelf instead. AC3: templates-sign-in--on-tall-phone* and --on-short-phone* added. Caveat: the visual tool shoots at its fixed viewports (393x852, 412x929, 791x820), so the 412-wide frame is clipped to 393 in the iphone image and the 360x640 frame sits in the corner of a 393x852 image; the fold-outer image is the true 412 view. Checks: pnpm check, typecheck, pnpm test (1422), visual (359 compared) pass. Baselines for Bruk to approve - NEW: templates-sign-in--on-tall-phone{,--fold-outer,--fold-inner}.png, --on-short-phone{,--fold-outer,--fold-inner}.png. CHANGED: all templates-sign-in--{rest,primary-action,with-footer,on-phone}{,--fold-outer,--fold-inner}.png (sheet now content-height, stage fills above, wordmark in flow), organisms-kitchen-scene--{panning,reduced}.png (window bottom-anchored with ceiling colour).
 <!-- SECTION:NOTES:END -->

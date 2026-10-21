@@ -50,7 +50,8 @@ export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
 }
 
 const styles = StyleSheet.create({
-  window: { flex: 1, overflow: 'hidden', backgroundColor: tokens.color.surfaceStage },
+  // The kitchen rests on the bottom edge (its floor meets whatever is below); room above it is ceiling, and a short window crops the ceiling first.
+  window: { flex: 1, overflow: 'hidden', justifyContent: 'flex-end', backgroundColor: tokens.color.scene.ceiling },
   world: { width: WORLD.width, height: WORLD.height },
   fill: { position: 'absolute', left: 0, top: 0, width: WORLD.width, height: WORLD.height },
   host: { position: 'absolute' },
