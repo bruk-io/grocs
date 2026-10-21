@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-core'
 created_date: '2026-10-21 11:11'
-updated_date: '2026-10-21 11:12'
+updated_date: '2026-10-21 11:18'
 labels:
   - layer-core
   - size-1
@@ -55,3 +55,28 @@ This task alone does not wire a ClearCart command - TASK-1.23.5 (application) is
 ### Proof
 vitest run --project unit packages/core passes with the test counts grown as described in step 6, and ItemState/clearFromCart/isState match this plan exactly.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+```text
+[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
+
+Check `mise exec -- pnpm check` exited 0
+
+```text
+$ node tools/checks/run.ts --mode all
+checks passed (14 checks, all mode, 327 ms)
+```
+<!-- SECTION:NOTES:END -->
