@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 04:05'
+updated_date: '2026-10-21 04:23'
 labels:
   - size-2
   - layer-ui
@@ -176,4 +176,6 @@ visual: FAILED organisms-subheader--speaking-at-360 @ iphone: looks different fr
 ```
 
 Review (philosophy:reviewer): closed. All three criteria met (see review note above); full check passed. Repro recorded: the three speaking-at-360 visual stories fail against ead0dbc^'s Mascot.tsx (1.85-3.96% pixels differ) and pass with the fix. Findings: none filed; minor style only (SubHeader story inlines its 360 decorator, MainHeader names it at360).
+
+Bruk saw the three new speaking-at-360 images on 2026-10-21 and chose this placement (beside the mascot, covering part of the title for the few seconds after a tap) over opening below it. The visual baselines workflow run 39542631603 on task-32-bubble produced the same 356 images byte for byte; that choice is recorded as the approval of these images.
 <!-- SECTION:NOTES:END -->
