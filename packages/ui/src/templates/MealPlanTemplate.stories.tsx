@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { withPhoneInsets } from './phone-insets.ts';
 import { household, week } from './fixtures.ts';
 import { MealPlanTemplate } from './MealPlanTemplate.tsx';
 
@@ -12,3 +13,6 @@ type Story = StoryObj<typeof meta>;
 
 /** Plan. */
 export const Week: Story = {};
+
+/** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
+export const OnPhone: Story = { ...Week, decorators: [withPhoneInsets] };

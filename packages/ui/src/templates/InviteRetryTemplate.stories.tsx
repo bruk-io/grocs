@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { withPhoneInsets } from './phone-insets.ts';
 import { InviteRetryTemplate } from './InviteRetryTemplate.tsx';
 
 const meta = {
@@ -19,3 +20,6 @@ export const Invalid: Story = {
 
 /** The typed code entry before any code was tried: neutral title and label, empty field showing the code's shape, no error, no way back, no footer. */
 export const FirstAttempt: Story = { args: { attempt: 'first', code: '' } };
+
+/** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
+export const OnPhone: Story = { ...Invalid, decorators: [withPhoneInsets] };

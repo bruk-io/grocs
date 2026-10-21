@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { withPhoneInsets } from './phone-insets.ts';
 import { cart, household, meat, offlineDairy, offlineProduce, produce, toastDairy, toastProduce } from './fixtures.ts';
 import { GroceryListTemplate } from './GroceryListTemplate.tsx';
 
@@ -55,3 +56,6 @@ export const Toast: Story = {
 export const Empty: Story = { args: { toGo: 0, inCart: 0 } };
 /** Everything is in the cart: the celebration replaces the list. */
 export const AllDone: Story = { args: { mascot: 'enoki', toGo: 0, inCart: 3, cartItems: cart } };
+
+/** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
+export const OnPhone: Story = { ...Groceries, decorators: [withPhoneInsets] };

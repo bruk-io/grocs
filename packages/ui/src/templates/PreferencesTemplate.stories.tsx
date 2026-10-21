@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
+import { withPhoneInsets } from './phone-insets.ts';
 import { PreferencesTemplate } from './PreferencesTemplate.tsx';
 
 const meta = {
@@ -16,3 +17,6 @@ export const Rest: Story = { args: { notificationsOn: false, onNotificationsChan
 export const Unavailable: Story = {
   args: { notificationsUnavailable: 'Coming soon' },
 };
+
+/** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
+export const OnPhone: Story = { ...Rest, decorators: [withPhoneInsets] };
