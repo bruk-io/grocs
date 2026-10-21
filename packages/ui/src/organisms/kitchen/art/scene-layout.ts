@@ -28,17 +28,29 @@ export const DOOR = { left: 383, top: 243, width: 83, height: 120 } as const;
 
 const at = (x: number) => ({ transform: [{ translateX: x }] });
 
+/** The camera's two stops as translateX in world units, for a window showing `visibleWidth` world units: `mid` centres the stove, `far` is the kitchen's right edge so the last host is whole. Never past the left edge. */
+export function panStops(visibleWidth: number): { mid: number; far: number } {
+  const far = -Math.max(0, WORLD.width - visibleWidth);
+  const stove = CAST_IN_FRONT.find((host) => host.name === 'cremi');
+  const centre = stove ? stove.left + stove.size / 2 : WORLD.width / 2;
+  const mid = Math.min(0, Math.max(far, visibleWidth / 2 - centre));
+  return { mid, far };
+}
+
 /** The camera: rest at the fridge, drift to the stove, then to the garden door, and back. */
-export const panKeyframes = {
-  '0%': at(0),
-  '9%': at(0),
-  '27%': at(-290),
-  '39%': at(-290),
-  '57%': at(-630),
-  '69%': at(-630),
-  '90%': at(0),
-  '100%': at(0),
-} as unknown as CSSAnimationKeyframes;
+export function panKeyframes(visibleWidth: number): CSSAnimationKeyframes {
+  const { mid, far } = panStops(visibleWidth);
+  return {
+    '0%': at(0),
+    '9%': at(0),
+    '27%': at(mid),
+    '39%': at(mid),
+    '57%': at(far),
+    '69%': at(far),
+    '90%': at(0),
+    '100%': at(0),
+  } as unknown as CSSAnimationKeyframes;
+}
 
 /** The whole kitchen breathing a little. */
 export const bobKeyframes = {
