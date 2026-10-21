@@ -18,10 +18,10 @@ export function StageLayout({ wordmark, stage, sheet }: StageLayoutProps) {
   return (
     <View style={styles.screen}>
       <View style={[styles.stage, { paddingTop: inset.top }]}>
-        <View pointerEvents="none" style={styles.wordmark}>
+        <View style={styles.scene}>{stage}</View>
+        <View pointerEvents="none" style={[styles.wordmark, { top: tokens.space[24] + inset.top }]}>
           {wordmark}
         </View>
-        <View style={styles.scene}>{stage}</View>
       </View>
       <View style={styles.sheet}>
         <View style={[styles.sheetBody, { paddingLeft: inset.left, paddingRight: inset.right }]}>{sheet}</View>
@@ -34,10 +34,10 @@ export function StageLayout({ wordmark, stage, sheet }: StageLayoutProps) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.surfaceStage },
-  // The stage takes whatever the sheet leaves; the scene sits on the sheet's top edge, and the ceiling colour fills the inset and any room above it.
+  // The stage takes whatever the sheet leaves; the scene scales to fill it, and its ceiling colour carries up under the inset.
   stage: { flex: 1, minHeight: 0, backgroundColor: tokens.color.scene.ceiling },
-  // In the stage's flow, so a short phone crops the scene's ceiling rather than letting the name sit over the cast.
-  wordmark: { paddingTop: tokens.space[24], paddingBottom: tokens.space[8], alignItems: 'center', gap: tokens.space[6] },
+  // Over the scene's own ceiling, above the cast at every height.
+  wordmark: { position: 'absolute', left: 0, right: 0, alignItems: 'center', gap: tokens.space[6] },
   scene: { flex: 1, minHeight: 0 },
   sheet: { marginTop: -tokens.space[4] },
   sheetBody: {},

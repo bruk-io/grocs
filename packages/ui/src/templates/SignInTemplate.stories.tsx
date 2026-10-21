@@ -28,12 +28,12 @@ export const WithFooter: Story = {
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...PrimaryAction, decorators: [withPhoneInsets] };
 
-/** A decorator drawing the story on a screen of exactly this size, under the phone's bars. */
-const onScreen = (width: number, height: number) => (Story: ComponentType): ReactElement =>
-  withPhoneInsets(() => createElement(View, { style: { width, height, flexShrink: 0, overflow: 'hidden' } }, createElement(Story)));
+/** A decorator drawing the story on a screen this size (exactly, or at least, when the browser's own viewport is taller and the sheet should run to its bottom), under the phone's bars. */
+const onScreen = (width: number, height: number, exact: boolean) => (Story: ComponentType): ReactElement =>
+  withPhoneInsets(() => createElement(View, { style: exact ? { width, height, flexShrink: 0, overflow: 'hidden' } : { flex: 1, minWidth: width, minHeight: height } }, createElement(Story)));
 
 /** A tall phone (412 x 915): the kitchen takes the space above the sheet, its floor meeting the sheet, and the sheet is only as tall as its button plus the gesture bar. */
-export const OnTallPhone: Story = { ...PrimaryAction, decorators: [onScreen(412, 915)] };
+export const OnTallPhone: Story = { ...PrimaryAction, decorators: [onScreen(412, 915, false)] };
 
-/** A short phone (360 x 640): the button stays in view; the kitchen gives up its ceiling. */
-export const OnShortPhone: Story = { ...PrimaryAction, decorators: [onScreen(360, 640)] };
+/** A short phone (360 x 640): the button stays in view; the whole kitchen shrinks to fit, cast and all. */
+export const OnShortPhone: Story = { ...PrimaryAction, decorators: [onScreen(360, 640, true)] };
