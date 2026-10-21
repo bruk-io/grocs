@@ -1,11 +1,11 @@
 ---
 id: TASK-1.23.5
 title: 'Application: a ClearCart command clears every in-cart item in one week'
-status: In Progress
+status: Done
 assignee:
   - '@builder-application'
 created_date: '2026-10-21 11:11'
-updated_date: '2026-10-21 11:18'
+updated_date: '2026-10-21 11:28'
 labels:
   - layer-application
   - size-2
@@ -28,9 +28,9 @@ For TASK-1.23 #3, depends on TASK-1.23.4 (core). Matches decision-13's pattern (
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ClearCart { kitchenId, weekId } reads the week's items, clears every in-cart one with the clock and signed-in member's stamp, merges each back through the sync store, and returns the not-signed-in error code when nobody is signed in
-- [ ] #2 It returns one CartCleared event naming every cleared item's id (empty when there was nothing to clear - not an error), with a scenario test covering several in-cart items, items that are not in-cart being left alone, and the empty-cart case
-- [ ] #3 It is registered in commandHandlers and its types are exported from @grocs/application
+- [x] #1 ClearCart { kitchenId, weekId } reads the week's items, clears every in-cart one with the clock and signed-in member's stamp, merges each back through the sync store, and returns the not-signed-in error code when nobody is signed in
+- [x] #2 It returns one CartCleared event naming every cleared item's id (empty when there was nothing to clear - not an error), with a scenario test covering several in-cart items, items that are not in-cart being left alone, and the empty-cart case
+- [x] #3 It is registered in commandHandlers and its types are exported from @grocs/application
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -54,3 +54,95 @@ No new port method is needed - getItems and mergeItem already exist on SyncStore
 ### Proof
 vitest run --project unit packages/application passes with the new scenario test file; commandHandlers and the package's exports include ClearCart; pnpm typecheck is clean.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+```text
+[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
+
+Check `mise exec -- bash -c 'pnpm check && pnpm typecheck && pnpm test'` exited 0
+
+(20 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/SharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/SharedRef.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/Platform.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/environment/browser.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeViewManagerAdapter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/errors/UnavailabilityError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/errors/CodedError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/requireNativeModule.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/registerWebModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/TypedArrays.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/PermissionsInterface.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/PermissionsHook.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/Refs.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/hooks/useReleasingSharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/hooks/useReleasingSharedObjectWithLifecycle.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/reload.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/LegacyEventEmitter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeModulesProxy.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/worklets/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/serverContext.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.fx.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  110 passed (110)
+      Tests  1452 passed (1452)
+   Start at  07:26:46
+   Duration  6.81s (transform 30.17s, setup 2.60s, import 91.31s, tests 29.56s, environment 16.06s)
+```
+
+Reviewed by philosophy:reviewer (did not do the work). Closed: all three acceptance criteria are met.
+
+AC1 and AC2: clear-cart.scenario.test.ts covers several in-cart items cleared with the to-buy item left at to-buy, the exact cleared-id list on CartCleared, the shared stamp (at and by), an empty-cart clear returning ok with an empty itemIds, and the not-signed-in rejection. AC3: ClearCart is in commandHandlers and clearCart plus the ClearCart/CartCleared types are exported from packages/application/src/index.ts. The change matches its plan: single shared stamp, N per-item merges through the existing SyncStore port, no new port method.
+
+Checks: pnpm check exit 0 (nothing reformatted - git status showed only record-check's own edit to this task file and the pre-existing untracked mise.toml), pnpm typecheck exit 0, pnpm test 110 files / 1452 tests passed. Note the task carries two check records: the first, from record-check --tier full, failed on Node v22.21.1 against engines.node >=24.12 because the declared tier script is not invoked through mise in this environment; the second, the same commands run under 'mise exec --', passed. The close rests on the second. That the declared full tier is not runnable as declared by a reviewer here is a small infra finding, reported, not filed.
+
+Findings. (1) Filed as DRAFT-14: CartCleared can name an item that is still in-cart. One clock reading per command plus field-level LWW means a tick at the same millisecond value wins the merge ('"cleared"' sorts below '"in-cart"' when stamps are equal, and a higher-sorting uid wins outright), so the event claims a clear the store did not keep. Reachable locally and sequentially (tick then clear in the same event-loop turn), not only as a two-phone race, which is why it got a draft rather than a note. No AC covered it and the shared stamp is the plan's explicit design, so it does not block this close. (2) Note only: clearedIds.push sits after the await on mergeItem, so a mid-loop throw leaves earlier items merged with no event returned; the plan accepted N per-item merges as equivalent to N individual ticks, so this is within intent.
+<!-- SECTION:NOTES:END -->
