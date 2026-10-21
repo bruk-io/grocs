@@ -17,6 +17,8 @@ export type {
 export { instrumentDeps, instrumentPort } from './instrumentation/instrument.ts';
 export { addItem } from './commands/add-item.ts';
 export type { AddItem, ItemAdded } from './commands/add-item.ts';
+export { clearCart } from './commands/clear-cart.ts';
+export type { CartCleared, ClearCart } from './commands/clear-cart.ts';
 export { createKitchen } from './commands/create-kitchen.ts';
 export type { CreateKitchen, KitchenCreated } from './commands/create-kitchen.ts';
 export { joinKitchen } from './commands/join-kitchen.ts';
