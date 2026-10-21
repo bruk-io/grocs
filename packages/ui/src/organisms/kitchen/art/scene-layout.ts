@@ -38,8 +38,11 @@ export function panStops(visibleWidth: number): { mid: number; far: number } {
 }
 
 /** The camera: rest at the fridge, drift to the stove, then to the garden door, and back. */
-export function panKeyframes(visibleWidth: number): CSSAnimationKeyframes {
-  const { mid, far } = panStops(visibleWidth);
+export function panKeyframes(visibleWidth: number, scale = 1): CSSAnimationKeyframes {
+  const stops = panStops(visibleWidth);
+  // The stops are in world units; the world is drawn at `scale` pixels per unit.
+  const mid = stops.mid * scale;
+  const far = stops.far * scale;
   return {
     '0%': at(0),
     '9%': at(0),
