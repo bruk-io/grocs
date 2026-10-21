@@ -73,7 +73,7 @@ function readField<T>(raw: unknown, path: string, value: (v: unknown) => v is T,
 
 const isString = (v: unknown): v is string => typeof v === 'string';
 const isNullableString = (v: unknown): v is string | null => v === null || typeof v === 'string';
-const isState = (v: unknown): v is ItemState => v === 'to-buy' || v === 'in-cart';
+const isState = (v: unknown): v is ItemState => v === 'to-buy' || v === 'in-cart' || v === 'cleared';
 
 /** Validate data read from the store (or anywhere else) and turn it into an Item. */
 export function decodeItem(raw: unknown): Result<Item, SchemaError> {
@@ -91,7 +91,7 @@ export function decodeItem(raw: unknown): Result<Item, SchemaError> {
   if (!amount.ok) return amount;
   const aisle = readField(raw['aisle'], 'aisle', isString, 'a string');
   if (!aisle.ok) return aisle;
-  const state = readField(raw['state'], 'state', isState, 'to-buy or in-cart');
+  const state = readField(raw['state'], 'state', isState, 'to-buy, in-cart or cleared');
   if (!state.ok) return state;
   const badges = raw['badges'];
   if (!Array.isArray(badges) || !badges.every(isString)) return bad('badges', 'expected a list of meal ids');
