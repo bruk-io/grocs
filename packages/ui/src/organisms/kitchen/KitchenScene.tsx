@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Mascot } from '../../molecules/Mascot.tsx';
@@ -20,9 +20,10 @@ export interface KitchenSceneProps {
   onMascotPress?: (name: MascotName, line: string) => void;
 }
 
-/** Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60); it is drawn at its own size (1020 x 600) and clips to its parent, which sets the window. */
+/** Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60); it is drawn at 1020 x 600 and scaled evenly so its height fills its parent, which sets the window; the sides clip. */
 export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
   const { reduced } = useMotion();
+  const [height, setHeight] = useState<number>(WORLD.height);
   const motion = useMemo(() => sceneMotion(reduced), [reduced]);
   const place = (host: CastPlace) => (
     <View key={host.name} style={[styles.host, { left: host.left, top: host.top }]}>
@@ -30,8 +31,8 @@ export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
     </View>
   );
   return (
-    <View style={styles.window}>
-      <View style={styles.world}>
+    <View style={styles.window} onLayout={(e) => setHeight(e.nativeEvent.layout.height || WORLD.height)}>
+      <View style={[styles.world, { transform: [{ scale: height / WORLD.height }] }]}>
         <Animated.View style={[styles.fill, motion.pan]}>
           <Animated.View style={[styles.fill, motion.bob]}>
             <PartPropsContext.Provider value={motion.parts}>
@@ -50,8 +51,8 @@ export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
 }
 
 const styles = StyleSheet.create({
-  window: { flex: 1, overflow: 'hidden', backgroundColor: tokens.color.surfaceStage },
-  world: { width: WORLD.width, height: WORLD.height },
+  window: { flex: 1, overflow: 'hidden', backgroundColor: tokens.color.scene.ceiling },
+  world: { width: WORLD.width, height: WORLD.height, transformOrigin: 'left top' },
   fill: { position: 'absolute', left: 0, top: 0, width: WORLD.width, height: WORLD.height },
   host: { position: 'absolute' },
   door: { position: 'absolute', left: DOOR.left, top: DOOR.top, width: DOOR.width, height: DOOR.height },
