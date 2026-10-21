@@ -7,7 +7,7 @@ status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 02:04'
+updated_date: '2026-10-21 03:05'
 labels:
   - size-2
   - layer-ui
@@ -194,4 +194,6 @@ visual: 353 story views checked (axe, 44 x 44, 353 images compared)
 No repro: a layout-only bug (alignment in pixels). Its test is the visual baseline comparison, which compares against images and could only fail once correct baselines exist, so there is no failing test to run before the fix. The before and after evidence is the baseline diff on this branch (atoms-textfield, molecules-addbar/labelledfield, header and template baselines), which Bruk reviews.
 
 Re-review (philosophy:reviewer, 2026-10-20): CLOSED. #1 inline button centred, 4 px inset top/right/bottom. #2 the redo fixes the gutters, not the atom: TextField's marginHorizontal -4 is gone; TaskLayout content and footer, MainHeader and SubHeader pad space[16] like MainLayout, rows, tab bar and ActionBar; on the meal-form and grocery-list baselines field edges line up with rows, cards and the action button. #3 the 353-view compare pass matches the baselines, axe and 44x44 pass, and the focus baselines show the ring. Headings and header text moving 4 px left is part of #2: one 16 px column, with titles on the same edge as fields, rows and cards. No finding. Full-tier check exited 0 (106 files / 1418 tests, emulator suites, visual). The kitchen route flake (DRAFT-14) did not recur in this run. Closing does not approve the new or changed baselines; Bruk approves them before main. Not verified on the Fold.
+
+Bruk approved the new and changed baselines on 2026-10-20 (reviewed as a before and after sheet of four Fold cover screens; the visual baselines workflow run 39531861063 on task-33-fields produced the same 353 images byte for byte).
 <!-- SECTION:NOTES:END -->

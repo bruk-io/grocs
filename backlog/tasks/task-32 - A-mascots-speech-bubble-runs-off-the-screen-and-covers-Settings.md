@@ -1,9 +1,11 @@
 ---
 id: TASK-32
 title: A mascot's speech bubble runs off the screen and covers Settings
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
+updated_date: '2026-10-21 03:11'
 labels:
   - size-2
   - layer-ui
