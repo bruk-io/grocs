@@ -3,6 +3,7 @@ import { Button } from '../atoms/Button.tsx';
 import { Tag } from '../atoms/Tag.tsx';
 import { Text } from '../atoms/Text.tsx';
 import { Mascot } from '../molecules/Mascot.tsx';
+import type { MascotProps } from '../molecules/Mascot.tsx';
 import type { MascotName } from '../mascots/art/index.ts';
 import { tokens } from '../tokens/tokens.ts';
 
@@ -21,10 +22,12 @@ export interface SubHeaderProps {
   tag?: string;
   title: string;
   mascot: MascotName;
+  /** Pins the mascot's state for stories and baselines; the phones never set it. */
+  mascotState?: MascotProps['forceState'];
 }
 
 /** The top of a task screen (button.back, tag.date, text.title-m, mascot). */
-export function SubHeader({ lead, tag, title, mascot }: SubHeaderProps) {
+export function SubHeader({ lead, tag, title, mascot, mascotState }: SubHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.lead}>
@@ -47,7 +50,7 @@ export function SubHeader({ lead, tag, title, mascot }: SubHeaderProps) {
             {title}
           </Text>
         </View>
-        <Mascot name={mascot} />
+        <Mascot name={mascot} bubbleSide="left" {...(mascotState ? { forceState: mascotState } : {})} />
       </View>
     </View>
   );

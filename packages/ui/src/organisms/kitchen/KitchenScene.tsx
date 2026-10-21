@@ -23,16 +23,18 @@ export interface KitchenSceneProps {
 /** Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60); it is drawn at 1020 x 600 and scaled evenly so its height fills its parent, which sets the window; the sides clip. */
 export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
   const { reduced } = useMotion();
-  const [height, setHeight] = useState<number>(WORLD.height);
-  const motion = useMemo(() => sceneMotion(reduced), [reduced]);
+  const [size, setSize] = useState<{ width: number; height: number }>(WORLD);
+  const scale = size.height / WORLD.height;
+  const visibleWidth = size.width / scale;
+  const motion = useMemo(() => sceneMotion(reduced, visibleWidth), [reduced, visibleWidth]);
   const place = (host: CastPlace) => (
     <View key={host.name} style={[styles.host, { left: host.left, top: host.top }]}>
       <Mascot name={host.name} size={host.size} {...(host.pose ? { pose: host.pose } : {})} {...(onMascotPress ? { onPress: (line: string) => onMascotPress(host.name, line) } : {})} />
     </View>
   );
   return (
-    <View style={styles.window} onLayout={(e) => setHeight(e.nativeEvent.layout.height || WORLD.height)}>
-      <View style={[styles.world, { transform: [{ scale: height / WORLD.height }] }]}>
+    <View style={styles.window} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width || WORLD.width, height: e.nativeEvent.layout.height || WORLD.height })}>
+      <View style={[styles.world, { transform: [{ scale }] }]}>
         <Animated.View style={[styles.fill, motion.pan]}>
           <Animated.View style={[styles.fill, motion.bob]}>
             <PartPropsContext.Provider value={motion.parts}>
