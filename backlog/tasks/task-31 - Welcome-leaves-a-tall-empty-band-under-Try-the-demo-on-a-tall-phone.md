@@ -1,10 +1,11 @@
 ---
 id: TASK-31
 title: Welcome leaves a tall empty band under Try the demo on a tall phone
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 00:06'
+updated_date: '2026-10-21 00:45'
 labels:
   - size-2
   - layer-ui
