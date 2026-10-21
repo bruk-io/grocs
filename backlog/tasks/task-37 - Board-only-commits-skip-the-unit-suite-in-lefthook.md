@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-21 11:06'
-updated_date: '2026-10-21 11:07'
+updated_date: '2026-10-21 11:09'
 labels: []
 dependencies: []
 modified_files:
@@ -45,4 +45,18 @@ Verified live against the real repo: staging only a backlog/ file prints the ski
 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented and verified live against the real repo (approved by Bruk in chat before implementing): staging only a backlog/ file and running node tools/hooks/unit-tests.ts directly printed 'unit-tests: skipped, every staged file is under backlog/' and exited 0 without running pnpm test; reverted that and confirmed the normal path still runs the suite. Caught and fixed one real bug while writing the test: main() was called unconditionally at module load, so importing unit-tests.ts for its isBoardOnly export (the test file itself) ran the full real pnpm test suite and called process.exit() as a side effect of import - guarded behind the same process.argv[1] check tools/hooks/run.ts and launch-guard.ts already use. pnpm check (14 checks), typecheck, and the new unit test file all pass.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+```text
+[ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
+
+Your Node version is incompatible with "/Users/brukhabtu/src/github.com/bruk-io/grocs".
+
+Expected version: >=24.12
+Got: v22.21.1
+
+This is happening because the package's manifest has an engines.node field specified.
+To fix this issue, install the required Node version.
+```
 <!-- SECTION:NOTES:END -->
