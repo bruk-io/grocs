@@ -69,6 +69,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Android and iOS bundles, development and release; release must hold no dev-only code (R53, R64)
         run: pnpm check:release
+      - name: Demo bundle holds no Firebase code (TASK-10.4)
+        run: pnpm check:demo
       - run: pnpm --filter @grocs/ui build-storybook
       - name: Chromium for the browser pass
         run: pnpm exec playwright-core install --with-deps chromium
