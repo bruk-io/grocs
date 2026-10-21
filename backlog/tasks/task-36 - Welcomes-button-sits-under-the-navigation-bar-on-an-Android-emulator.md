@@ -1,9 +1,11 @@
 ---
 id: TASK-36
 title: Welcome's button sits under the navigation bar on an Android emulator
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-21 05:17'
+updated_date: '2026-10-21 11:22'
 labels:
   - size-2
   - layer-ui
@@ -26,3 +28,9 @@ Welcome, the first screen anyone sees; StageLayout, SignInTemplate, KitchenScene
 - [ ] #1 On the demo APK on an Android device or emulator with 3-button navigation and with gesture navigation, 'Try the demo' sits whole above the navigation bar, with screenshots in the notes
 - [ ] #2 The cause is named in the notes, and a test or story that fails on the cause is added where the browser can show it
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-21: Bruk confirmed on his Fold (gesture navigation) that the bottom is cut off there too: screenshot in the conversation, same shape as the emulator's.
+<!-- SECTION:NOTES:END -->
