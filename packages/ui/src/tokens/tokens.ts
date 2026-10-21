@@ -183,6 +183,7 @@ export const tokens = {
     "navClearance": 110,
     "phoneStatusBar": 40,
     "phoneGestureBar": 24,
+    "phoneNarrow": 360,
     "icon": 24,
     "iconTag": 12,
     "iconTick": 15,

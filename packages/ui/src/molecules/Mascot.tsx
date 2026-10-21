@@ -9,6 +9,7 @@ import { lineFor, motionFor } from '../mascots/motion.ts';
 import { partPropsFor } from '../mascots/part-props.ts';
 import { PartPropsContext } from '../mascots/part.tsx';
 import type { MascotState } from '../mascots/types.ts';
+import { fontFace } from '../platform/font-face.ts';
 import { useMotion } from '../platform/motion.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
@@ -25,6 +26,11 @@ export interface MascotProps {
   disabled?: boolean;
   /** A pose that holds a prop: cremi "stir" (spoon), morty "scrub" (brush and tomato). */
   pose?: 'stir' | 'scrub';
+  /**
+   * Where the bubble opens. `above` (default) is for a mascot with room over it; `left` opens it beside the
+   * mascot, pointing right, for one at the right edge of a header where above would cover the Settings button.
+   */
+  bubbleSide?: 'above' | 'left';
   /** Pins a state for stories; the phones never set it. */
   forceState?: 'rest' | 'reacting' | 'speaking' | 'pressed' | 'focus';
 }
@@ -43,7 +49,7 @@ function timing(easing: string) {
   return cubicBezier(x1, y1, x2, y2);
 }
 
-export function Mascot({ name, size = tokens.size.mascotHeader, onPress, disabled = false, pose, forceState }: MascotProps) {
+export function Mascot({ name, size = tokens.size.mascotHeader, onPress, disabled = false, pose, forceState, bubbleSide = 'above' }: MascotProps) {
   const { reduced } = useMotion();
   const data = mascots[name];
   const Art = mascotArt[name];
@@ -85,6 +91,7 @@ export function Mascot({ name, size = tokens.size.mascotHeader, onPress, disable
         transformOrigin: plan.body.origin,
       }
     : { transformOrigin: data.idle.origin };
+  const side = bubbleSide === 'left';
   const showBubble = plan.bubble !== 'none';
   const ring = focused || forceState === 'focus';
 
@@ -95,19 +102,19 @@ export function Mascot({ name, size = tokens.size.mascotHeader, onPress, disable
           key={`bubble-${taps}`}
           aria-hidden
           style={[
-            styles.bubbleWrap,
+            side ? styles.bubbleWrapLeft : styles.bubbleWrap,
             {
               animationName: plan.bubble === 'pop' ? bubblePop : bubbleFade,
               animationDuration: tokens.motion.duration.bubble,
               animationTimingFunction: timing(plan.bubble === 'pop' ? tokens.motion.easing.pop : tokens.motion.easing.soft),
               animationFillMode: 'both',
-              transformOrigin: 'bottom',
+              transformOrigin: side ? 'right' : 'bottom',
             },
           ]}
         >
           <View style={styles.bubble}>
             <Text style={styles.bubbleText}>{line}</Text>
-            <View style={styles.tail} />
+            <View style={side ? styles.tailRight : styles.tail} />
           </View>
         </Animated.View>
       ) : null}
@@ -152,6 +159,8 @@ const styles = StyleSheet.create({
   disabled: { opacity: tokens.opacity.disabled },
   overflow: { overflow: 'visible' },
   bubbleWrap: { position: 'absolute', bottom: '100%', marginBottom: tokens.space[8], zIndex: 1 },
+  // Beside the mascot: ends where its box starts, centred on it; taller bubbles grow equally up and down.
+  bubbleWrapLeft: { position: 'absolute', right: '100%', top: 0, bottom: 0, justifyContent: 'center', marginRight: tokens.space[8], zIndex: 1 },
   bubble: {
     width: tokens.size.bubble,
     paddingVertical: tokens.space[10],
@@ -165,10 +174,9 @@ const styles = StyleSheet.create({
   bubbleText: {
     textAlign: 'center',
     color: tokens.color.ink,
-    fontFamily: tokens.font.family.body,
+    ...fontFace('body', tokens.font.weight.bold),
     fontSize: tokens.font.size.small,
     lineHeight: tokens.font.lineHeight.small,
-    fontWeight: tokens.font.weight.bold,
   },
   tail: {
     position: 'absolute',
@@ -179,6 +187,19 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.surfaceCard,
     borderRightWidth: tokens.size.lineW,
     borderBottomWidth: tokens.size.lineW,
+    borderColor: tokens.color.line,
+    transform: [{ rotate: '45deg' }],
+  },
+  tailRight: {
+    position: 'absolute',
+    right: -(tokens.size.dot / 2),
+    top: '50%',
+    marginTop: -(tokens.size.dot / 2),
+    width: tokens.size.dot,
+    height: tokens.size.dot,
+    backgroundColor: tokens.color.surfaceCard,
+    borderRightWidth: tokens.size.lineW,
+    borderTopWidth: tokens.size.lineW,
     borderColor: tokens.color.line,
     transform: [{ rotate: '45deg' }],
   },

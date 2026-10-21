@@ -6,6 +6,7 @@ import type { AddBarProps } from '../molecules/AddBar.tsx';
 import { AvatarStack } from '../molecules/AvatarStack.tsx';
 import type { StackMember } from '../molecules/AvatarStack.tsx';
 import { Mascot } from '../molecules/Mascot.tsx';
+import type { MascotProps } from '../molecules/Mascot.tsx';
 import { ProgressBar } from '../molecules/ProgressBar.tsx';
 import type { ProgressBarProps } from '../molecules/ProgressBar.tsx';
 import { WeekNav } from '../molecules/WeekNav.tsx';
@@ -28,6 +29,8 @@ export interface MainHeaderProps {
   onSettings?: () => void;
   /** Which mushroom sits beside the title. */
   mascot: MascotName;
+  /** Pins the mascot's state for stories and baselines; the phones never set it. */
+  mascotState?: MascotProps['forceState'];
   /** The shop's progress under the title. Groceries only. */
   progress?: ProgressBarProps;
   /** The add field under the title. Groceries only. */
@@ -35,7 +38,7 @@ export interface MainHeaderProps {
 }
 
 /** The top of a home screen (avatar.stack, button.icon--ghost, text.title-l, progress.bar, mascot, add.bar). */
-export function MainHeader({ title, eyebrow, weekNav, members, onSettings, mascot, progress, addBar }: MainHeaderProps) {
+export function MainHeader({ title, eyebrow, weekNav, members, onSettings, mascot, mascotState, progress, addBar }: MainHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.top}>
@@ -58,7 +61,7 @@ export function MainHeader({ title, eyebrow, weekNav, members, onSettings, masco
           </Text>
           {progress ? <ProgressBar {...progress} /> : null}
         </View>
-        <Mascot name={mascot} />
+        <Mascot name={mascot} bubbleSide="left" {...(mascotState ? { forceState: mascotState } : {})} />
       </View>
       {addBar ? <AddBar {...addBar} /> : null}
     </View>
