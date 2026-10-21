@@ -6,22 +6,29 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 afterEach(cleanup);
 
 describe('root ErrorBoundary', () => {
-  it('logs the render error without its message and retries on Try again', async () => {
-    vi.resetModules();
-    const { installObservers, observer } = await import('../composition/observe.ts');
-    const { ErrorBoundary } = await import('../../app/_layout.tsx');
-    const logger = new MemoryLogger();
-    installObservers({ logger, clock: new FakeClock(), ids: new SequentialIds('t'), globals: {} });
-    observer().screen('/week/[weekId]');
-    const retry = vi.fn(() => Promise.resolve());
+  it(
+    'logs the render error without its message and retries on Try again',
+    async () => {
+      vi.resetModules();
+      const { installObservers, observer } = await import('../composition/observe.ts');
+      const { ErrorBoundary } = await import('../../app/_layout.tsx');
+      const logger = new MemoryLogger();
+      installObservers({ logger, clock: new FakeClock(), ids: new SequentialIds('t'), globals: {} });
+      observer().screen('/week/[weekId]');
+      const retry = vi.fn(() => Promise.resolve());
 
-    render(<ErrorBoundary error={new Error('bad render of Oat milk')} retry={retry} />);
+      render(<ErrorBoundary error={new Error('bad render of Oat milk')} retry={retry} />);
 
-    expect(screen.getByText('Something went wrong')).toBeTruthy();
-    const record = logger.records().find((r) => r.message === 'render error');
-    expect(record?.attributes).toMatchObject({ source: 'render', route: '/week/[weekId]', error: { name: 'Error' } });
-    expect(JSON.stringify(logger.records())).not.toContain('Oat milk');
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(retry).toHaveBeenCalledOnce();
-  });
+      expect(screen.getByText('Something went wrong')).toBeTruthy();
+      const record = logger.records().find((r) => r.message === 'render error');
+      expect(record?.attributes).toMatchObject({ source: 'render', route: '/week/[weekId]', error: { name: 'Error' } });
+      expect(JSON.stringify(logger.records())).not.toContain('Oat milk');
+      fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+      expect(retry).toHaveBeenCalledOnce();
+    },
+    // app/_layout.tsx's dynamic import pulls in the whole app's module graph for the first time in
+    // this worker; on a cold cache that alone takes close to vitest's default 5 s budget (DRAFT-14),
+    // before the test has done anything of its own.
+    15_000,
+  );
 });
