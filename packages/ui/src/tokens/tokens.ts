@@ -181,6 +181,7 @@ export const tokens = {
     "spinner": 18,
     "bubble": 200,
     "navClearance": 110,
+    "rail": 224,
     "phoneStatusBar": 40,
     "phoneGestureBar": 24,
     "phoneNarrow": 360,

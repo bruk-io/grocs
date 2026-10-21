@@ -1,6 +1,7 @@
 // Sample content for the template stories: the data each reference screen shows. Stories only; the app passes real data.
 import type { StackMember } from '../molecules/AvatarStack.tsx';
 import type { ListItem } from '../organisms/ListSection.tsx';
+import type { RailMeal } from '../organisms/MealRail.tsx';
 import type { PlanDay } from '../organisms/WeekList.tsx';
 
 /** Bruk and Sam; Sam is in the app now. */
@@ -77,6 +78,18 @@ export const suggestions = [
   { id: 's2', name: 'Egg noodles', detail: 'Pantry' },
   { id: 's3', name: 'Eggplant', detail: 'Produce' },
 ] as const;
+
+/** This week's meals as the inner screen's rail lists them, with what is still to buy for each. */
+export const railMeals: readonly RailMeal[] = [
+  { id: 'chana', name: 'Chana masala', day: 'Mon', count: 5, tone: 'amber' },
+  { id: 'chicken', name: 'Sheet-pan chicken', day: 'Wed', count: 3, tone: 'sky' },
+  { id: 'salad', name: 'Green salad', day: 'Wed', count: 0, tone: 'leaf' },
+  { id: 'pizza', name: 'Pizza night', day: 'Fri', count: 2, tone: 'tomato' },
+  { id: 'out', name: 'Eating out', day: 'Sat', count: 0, tone: 'neutral' },
+];
+
+/** The produce rows that belong to Chana masala, for the filtered list. */
+export const chanaProduce: readonly ListItem[] = produce.filter((item) => ['i1', 'i2', 'i4', 'i5', 'i6'].includes(item.id));
 
 export const oftenBought = [
   { id: 'f1', label: 'Bananas' },

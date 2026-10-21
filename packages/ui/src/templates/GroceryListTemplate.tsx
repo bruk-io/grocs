@@ -1,9 +1,12 @@
 import { View } from 'react-native';
+import type { MealTone } from '../atoms/meal-tone.ts';
 import type { IconName } from '../icons/index.ts';
 import type { MascotName } from '../mascots/art/index.ts';
 import { ActivityToast } from '../molecules/ActivityToast.tsx';
 import type { ActivityToastProps } from '../molecules/ActivityToast.tsx';
 import type { StackMember } from '../molecules/AvatarStack.tsx';
+import { FilterEmpty } from '../molecules/FilterEmpty.tsx';
+import { MealFilterLine } from '../molecules/MealFilterLine.tsx';
 import { StatusBanner } from '../molecules/StatusBanner.tsx';
 import type { StatusBannerProps } from '../molecules/StatusBanner.tsx';
 import { CartSection } from '../organisms/CartSection.tsx';
@@ -12,7 +15,10 @@ import { EmptyList } from '../organisms/EmptyList.tsx';
 import { ListSection } from '../organisms/ListSection.tsx';
 import type { ListItem } from '../organisms/ListSection.tsx';
 import { MainHeader } from '../organisms/MainHeader.tsx';
+import { MealRail } from '../organisms/MealRail.tsx';
+import type { MealRailProps } from '../organisms/MealRail.tsx';
 import { NavTabs } from '../organisms/NavTabs.tsx';
+import { InnerLayout } from './layouts/InnerLayout.tsx';
 import { MainLayout } from './layouts/MainLayout.tsx';
 
 /** The Groceries screen as it appears in the reference: the list (Main), offline with changes waiting (Offline), the partner's toast (Toast), nothing on the list (Empty) and everything in the cart (AllDone). */
@@ -26,7 +32,22 @@ export interface GrocerySection {
   items: readonly ListItem[];
 }
 
+/** The meal the list is narrowed to. The caller passes only that meal's sections. */
+export interface GroceryFilter {
+  mealName: string;
+  /** Its items still to buy. */
+  count: number;
+  tone?: MealTone;
+  onShowAll?: () => void;
+}
+
 export interface GroceryListTemplateProps {
+  /** phone puts the tab bar under the list; inner (the Fold's inner screen) puts the meal rail on the left instead. */
+  layout?: 'phone' | 'inner';
+  /** The rail of the inner layout. The phone layout ignores it. */
+  rail?: MealRailProps;
+  /** Set while the list is narrowed to a meal: the filter line shows on top and an empty list says the meal has nothing. */
+  filter?: GroceryFilter;
   /** The small line top left, such as "Week of Oct 19". */
   weekLabel: string;
   members: readonly StackMember[];
@@ -59,6 +80,9 @@ export interface GroceryListTemplateProps {
 
 /** template.main filled for Groceries: header.main, toast, status.banner, list.section x n, cart.section, celebration.banner or list.empty, nav.tabs. */
 export function GroceryListTemplate({
+  layout = 'phone',
+  rail,
+  filter,
   weekLabel,
   members,
   onSettings,
@@ -78,11 +102,11 @@ export function GroceryListTemplate({
   onAddItem,
   onOpenPlan,
 }: GroceryListTemplateProps) {
-  const empty = sections.length === 0 && cartItems.length === 0;
-  const allDone = sections.length === 0 && cartItems.length > 0;
-  return (
-    <MainLayout
-      header={
+  const filtered = filter !== undefined;
+  const nothingForMeal = filtered && sections.length === 0;
+  const empty = !filtered && sections.length === 0 && cartItems.length === 0;
+  const allDone = !filtered && sections.length === 0 && cartItems.length > 0;
+  const header = (
         <MainHeader
           title="Groceries"
           eyebrow={weekLabel}
@@ -92,7 +116,42 @@ export function GroceryListTemplate({
           addBar={{ value: addValue, onChangeText: onAddValueChange, ...(onAdd ? { onAdd, onSubmit: onAdd } : {}) }}
           {...(onSettings ? { onSettings } : {})}
         />
-      }
+  );
+  const body = (
+    <>
+      {banner ? <StatusBanner {...banner} /> : null}
+      {toast ? (
+        <View>
+          <ActivityToast {...toast} />
+        </View>
+      ) : null}
+      {filter ? <MealFilterLine mealName={filter.mealName} count={filter.count} {...(filter.tone ? { tone: filter.tone } : {})} {...(filter.onShowAll ? { onShowAll: filter.onShowAll } : {})} /> : null}
+      {nothingForMeal ? <FilterEmpty mealName={filter.mealName} /> : null}
+      {empty ? <EmptyList {...(onAddItem ? { onAction: onAddItem } : {})} /> : null}
+      {allDone ? <CelebrationBanner /> : null}
+      {sections.map((section) => (
+        <ListSection
+          key={section.id}
+          icon={section.icon}
+          title={section.title}
+          items={section.items}
+          {...(onToggleItem ? { onToggleItem } : {})}
+          {...(onRemoveItem ? { onRemoveItem } : {})}
+        />
+      ))}
+      {!filtered && cartItems.length > 0 ? <CartSection items={cartItems} {...(onToggleItem ? { onToggleItem } : {})} {...(onClearCart ? { onClear: onClearCart } : {})} /> : null}
+    </>
+  );
+  if (layout === 'inner') {
+    return (
+      <InnerLayout rail={rail ? <MealRail {...rail} /> : null} header={header}>
+        {body}
+      </InnerLayout>
+    );
+  }
+  return (
+    <MainLayout
+      header={header}
       nav={
         <NavTabs
           tabs={[
@@ -106,25 +165,7 @@ export function GroceryListTemplate({
         />
       }
     >
-      {banner ? <StatusBanner {...banner} /> : null}
-      {toast ? (
-        <View>
-          <ActivityToast {...toast} />
-        </View>
-      ) : null}
-      {empty ? <EmptyList {...(onAddItem ? { onAction: onAddItem } : {})} /> : null}
-      {allDone ? <CelebrationBanner /> : null}
-      {sections.map((section) => (
-        <ListSection
-          key={section.id}
-          icon={section.icon}
-          title={section.title}
-          items={section.items}
-          {...(onToggleItem ? { onToggleItem } : {})}
-          {...(onRemoveItem ? { onRemoveItem } : {})}
-        />
-      ))}
-      {cartItems.length > 0 ? <CartSection items={cartItems} {...(onToggleItem ? { onToggleItem } : {})} {...(onClearCart ? { onClear: onClearCart } : {})} /> : null}
+      {body}
     </MainLayout>
   );
 }

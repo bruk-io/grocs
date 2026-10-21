@@ -5,6 +5,7 @@ import { Text } from 'react-native';
 import { afterEach, describe, expect, it } from 'vitest';
 import { SafeAreaProvider } from '../../platform/safe-area.tsx';
 import { ActionBar } from './ActionBar.tsx';
+import { InnerLayout } from './InnerLayout.tsx';
 import { MainLayout } from './MainLayout.tsx';
 import { StageLayout } from './StageLayout.tsx';
 import { TaskLayout } from './TaskLayout.tsx';
@@ -36,6 +37,27 @@ describe('MainLayout', () => {
     render(layout);
     expect(px(screen.getByText('head').parentElement as Element, 'paddingTop')).toBe(0);
     expect(up(screen.getByText('tabs'), 'bottom')).toBe(20);
+  });
+});
+
+describe('InnerLayout', () => {
+  const layout = (
+    <InnerLayout rail={<Text>rail</Text>} header={<Text>head</Text>}>
+      <Text>body</Text>
+    </InnerLayout>
+  );
+  it('puts the rail on the left of the page, with no tab bar', () => {
+    render(layout);
+    const rail = screen.getByText('rail');
+    const head = screen.getByText('head');
+    expect(rail.compareDocumentPosition(head) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(getComputedStyle(rail.parentElement as Element).flexDirection).toBe('row');
+    expect(screen.queryByRole('tablist')).toBeNull();
+  });
+  it('starts below the top inset and keeps the last row above the bottom inset', () => {
+    render(phone(layout));
+    expect(up(screen.getByText('rail'), 'paddingTop')).toBe(40);
+    expect(up(screen.getByText('body'), 'paddingBottom')).toBeGreaterThanOrEqual(24 + 24);
   });
 });
 
