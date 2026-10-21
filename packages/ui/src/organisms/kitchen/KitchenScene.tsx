@@ -20,42 +20,49 @@ export interface KitchenSceneProps {
   onMascotPress?: (name: MascotName, line: string) => void;
 }
 
-/** Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60); it is drawn at 1020 x 600 and scaled evenly so its height fills its parent, which sets the window; the sides clip. */
+/** A world coordinate as a share of the world's own extent. */
+const pct = (value: number, of: number) => `${(value / of) * 100}%` as const;
+
+/**
+ * Six hosts at home in one kitchen. The camera pans along it unless motion is reduced (R41, R60).
+ * The world is a box as tall as its window with the scene's own aspect ratio, so layout does the sizing and the
+ * sides clip: the art scales by its viewBox and everything else sits in percentages. Only the pan and the
+ * hosts' pixel sizes read the window's measure, never the layout.
+ */
 export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
   const { reduced } = useMotion();
   const [size, setSize] = useState<{ width: number; height: number }>(WORLD);
   const scale = size.height / WORLD.height;
   const visibleWidth = size.width / scale;
-  const motion = useMemo(() => sceneMotion(reduced, visibleWidth), [reduced, visibleWidth]);
+  const motion = useMemo(() => sceneMotion(reduced, visibleWidth, scale), [reduced, visibleWidth, scale]);
   const place = (host: CastPlace) => (
-    <View key={host.name} style={[styles.host, { left: host.left, top: host.top }]}>
-      <Mascot name={host.name} size={host.size} {...(host.pose ? { pose: host.pose } : {})} {...(onMascotPress ? { onPress: (line: string) => onMascotPress(host.name, line) } : {})} />
+    <View key={host.name} style={[styles.host, { left: pct(host.left, WORLD.width), top: pct(host.top, WORLD.height) }]}>
+      <Mascot name={host.name} size={host.size * scale} {...(host.pose ? { pose: host.pose } : {})} {...(onMascotPress ? { onPress: (line: string) => onMascotPress(host.name, line) } : {})} />
     </View>
   );
   return (
     <View style={styles.window} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width || WORLD.width, height: e.nativeEvent.layout.height || WORLD.height })}>
-      <View style={[styles.world, { transform: [{ scale }] }]}>
-        <Animated.View style={[styles.fill, motion.pan]}>
-          <Animated.View style={[styles.fill, motion.bob]}>
-            <PartPropsContext.Provider value={motion.parts}>
-              <KitchenArt width={WORLD.width} height={WORLD.height} style={styles.fill} />
-            </PartPropsContext.Provider>
-            {CAST_BEHIND_DOOR.map(place)}
-            <Animated.View aria-hidden style={[styles.door, motion.door]}>
-              <KitchenDoorArt width="100%" height="100%" />
-            </Animated.View>
-            {CAST_IN_FRONT.map(place)}
+      <Animated.View testID="kitchen-world" style={[styles.world, motion.pan]}>
+        <Animated.View style={[styles.fill, motion.bob]}>
+          <PartPropsContext.Provider value={motion.parts}>
+            <KitchenArt width="100%" height="100%" style={styles.fill} />
+          </PartPropsContext.Provider>
+          {CAST_BEHIND_DOOR.map(place)}
+          <Animated.View aria-hidden style={[styles.door, motion.door]}>
+            <KitchenDoorArt width="100%" height="100%" />
           </Animated.View>
+          {CAST_IN_FRONT.map(place)}
         </Animated.View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   window: { flex: 1, overflow: 'hidden', backgroundColor: tokens.color.scene.ceiling },
-  world: { width: WORLD.width, height: WORLD.height, transformOrigin: 'left top' },
-  fill: { position: 'absolute', left: 0, top: 0, width: WORLD.width, height: WORLD.height },
+  // Absolute, so the world's width (wider than a phone) takes no part in the window's own layout; its height is the window's.
+  world: { position: 'absolute', left: 0, top: 0, height: '100%', aspectRatio: WORLD.width / WORLD.height },
+  fill: { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' },
   host: { position: 'absolute' },
-  door: { position: 'absolute', left: DOOR.left, top: DOOR.top, width: DOOR.width, height: DOOR.height },
+  door: { position: 'absolute', left: pct(DOOR.left, WORLD.width), top: pct(DOOR.top, WORLD.height), width: pct(DOOR.width, WORLD.width), height: pct(DOOR.height, WORLD.height) },
 });

@@ -41,6 +41,37 @@ describe('KitchenScene', () => {
     expect(screen.getAllByRole('button')).toHaveLength(HOSTS.length);
   });
 
+  // TASK-36: the scene was a fixed 1020 x 600 box shrunk by a transform. A transform leaves the layout box at full
+  // size, and on Android that box pushed the sheet off the screen. Sizing must come from layout.
+  describe('layout (TASK-36)', () => {
+    it('sizes the world from its window with an aspect ratio, out of flow, and not by a transform', () => {
+      render(<Reduced />);
+      const world = screen.getByTestId('kitchen-world');
+      const style = getComputedStyle(world);
+      expect(style.position).toBe('absolute');
+      expect(style.height).toBe('100%');
+      expect(parseFloat(style.aspectRatio)).toBeCloseTo(WORLD.width / WORLD.height, 3);
+      expect(style.transform === '' || style.transform === 'none').toBe(true);
+    });
+
+    it('has no element with the scene drawn at a fixed pixel size', () => {
+      const { container } = render(<Reduced />);
+      const fixed = Array.from(container.querySelectorAll("*")).filter((el) => {
+        const style = getComputedStyle(el);
+        return style.width === `${WORLD.width}px` || style.height === `${WORLD.height}px`;
+      });
+      expect(fixed).toHaveLength(0);
+    });
+
+    it('places the hosts by percentage of the world', () => {
+      render(<Reduced />);
+      const morty = CAST_IN_FRONT.find((host) => host.name === 'morty');
+      const lefts: string[] = [];
+      for (let el: HTMLElement | null = screen.getByRole('button', { name: 'Morty the morel, tap to hear a line' }); el; el = el.parentElement) lefts.push(getComputedStyle(el).left);
+      expect(lefts).toContain(`${((morty?.left ?? 0) / WORLD.width) * 100}%`);
+    });
+  });
+
   describe('sceneMotion', () => {
     it('moves nothing when motion is reduced: no pan, no bob, no door, no steam or light', () => {
       expect(sceneMotion(true)).toEqual({ pan: null, bob: null, door: null, parts: {} });

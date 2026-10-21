@@ -40,7 +40,7 @@ function loop(animationName: CSSAnimationKeyframes, animationDuration: number, e
 const STILL: SceneMotion = { pan: null, bob: null, door: null, parts: {} };
 
 /** What moves in the kitchen. When motion is reduced nothing does: the camera rests at the fridge, the door is shut. */
-export function sceneMotion(reduced: boolean, visibleWidth: number = WORLD.width): SceneMotion {
+export function sceneMotion(reduced: boolean, visibleWidth: number = WORLD.width, scale = 1): SceneMotion {
   if (reduced) return STILL;
   const { duration, easing } = tokens.motion;
   const steamStep = duration.mascotCycle / STEAM_PARTS.length;
@@ -50,7 +50,7 @@ export function sceneMotion(reduced: boolean, visibleWidth: number = WORLD.width
   });
   for (const name of GLOW_PARTS) parts[name] = { style: loop(glowKeyframes, duration.mascotFloat, easing.soft) };
   return {
-    pan: loop(panKeyframes(visibleWidth), duration.kitchenPan, easing.soft),
+    pan: loop(panKeyframes(visibleWidth, scale), duration.kitchenPan, easing.soft),
     bob: loop(bobKeyframes, duration.kitchenBob, easing.soft),
     door: loop(doorKeyframes, duration.mascotPeek, easing.soft, 0, '100% 50%'),
     parts,
