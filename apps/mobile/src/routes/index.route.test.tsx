@@ -1,5 +1,6 @@
 // Level 4 of decision-11: the index route renders with its sample data and no errors.
 import { createExtraItem, weekIdFor } from '@grocs/core';
+import type { Item } from '@grocs/core';
 import { FakeClock, FakeKitchenGateway, InMemorySyncStore } from '@grocs/ports/testing';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { AccessibilityInfo } from 'react-native';
@@ -70,5 +71,42 @@ describe('index route', () => {
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
     expect(screen.queryByText('This week')).toBeNull();
     expect((screen.getAllByRole('button', { name: /enoki siblings, tap to hear a line/i })).length).toBeGreaterThan(0);
+  });
+
+  describe('ticking', () => {
+    async function withBananas(syncStore: InMemorySyncStore) {
+      const kitchens = new FakeKitchenGateway('u1');
+      const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+      const made = createExtraItem({ id: 'c1', weekId: weekIdFor(new FakeClock().now()), name: 'Bananas' }, { at: 1, by: 'u2' });
+      if (!made.ok) throw new Error('bad fixture');
+      await syncStore.mergeItem(kitchenId, made.value);
+      return appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens });
+    }
+
+    it('moves an item into the cart when ticked and back when unticked', async () => {
+      renderRoute({ index: Home }, { app: await withBananas(new InMemorySyncStore()) });
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Bananas', checked: false }));
+      expect(await screen.findByRole('checkbox', { name: 'Bananas', checked: true })).toBeTruthy();
+      expect(screen.queryByText('This week')).toBeNull();
+      fireEvent.click(screen.getByRole('checkbox', { name: 'Bananas' }));
+      expect(await screen.findByRole('checkbox', { name: 'Bananas', checked: false })).toBeTruthy();
+      expect(screen.getByText('This week')).toBeTruthy();
+    });
+
+    it('shows the banner and leaves the item where it was when the tick fails', async () => {
+      class FailingStore extends InMemorySyncStore {
+        failing = false;
+        override mergeItem(kitchenId: string, item: Item): Promise<void> {
+          return this.failing ? Promise.reject(new Error('offline')) : super.mergeItem(kitchenId, item);
+        }
+      }
+      const store = new FailingStore();
+      const failing = await withBananas(store);
+      store.failing = true;
+      renderRoute({ index: Home }, { app: failing });
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Bananas', checked: false }));
+      expect(await screen.findByText('Could not update that item')).toBeTruthy();
+      expect(screen.getByRole('checkbox', { name: 'Bananas', checked: false })).toBeTruthy();
+    });
   });
 });
