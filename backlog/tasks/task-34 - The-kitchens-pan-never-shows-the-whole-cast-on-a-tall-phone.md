@@ -1,9 +1,11 @@
 ---
 id: TASK-34
 title: The kitchen's pan never shows the whole cast on a tall phone
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-21 03:08'
+updated_date: '2026-10-21 03:37'
 labels:
   - size-2
   - layer-ui
