@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-21 11:22'
+updated_date: '2026-10-21 12:07'
 labels:
   - size-2
   - layer-ui
@@ -33,4 +33,6 @@ Welcome, the first screen anyone sees; StageLayout, SignInTemplate, KitchenScene
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-10-21: Bruk confirmed on his Fold (gesture navigation) that the bottom is cut off there too: screenshot in the conversation, same shape as the emulator's.
+
+2026-10-21: the diagnostic commit (38beab2, branch task-36-diagnostic, never to merge) draws [layout] sizes on screen. Its APK built in run 39593201709, but the emulator job could not start: GitHub reports that recent account payments failed or the spending limit needs raising, so Actions will not start jobs until Bruk changes billing. The diagnostic APK went to Bruk to screenshot on his Fold instead.
 <!-- SECTION:NOTES:END -->
