@@ -10,6 +10,7 @@ import { AppProvider } from '../src/app-context.tsx';
 import { observer, routePattern } from '../src/composition/observe.ts';
 import { ErrorFallback } from '../src/screens/ErrorFallback.tsx';
 import { createApp } from '../src/composition/create-app.ts';
+import { DeviceSafeArea } from '../src/platform/DeviceSafeArea.tsx';
 import { useSystemReduceMotion } from '../src/platform/useSystemReduceMotion.ts';
 
 // The faces the text atoms ask for, registered under the names @grocs/ui's NATIVE_FACES gives them
@@ -35,7 +36,9 @@ export default function RootLayout() {
     <AppProvider value={native}>
       <PlatformStyleProvider value={Platform.OS === 'ios' ? 'ios' : 'android'}>
         <MotionProvider reduced={reduced}>
-          <Slot />
+          <DeviceSafeArea>
+            <Slot />
+          </DeviceSafeArea>
         </MotionProvider>
       </PlatformStyleProvider>
     </AppProvider>
