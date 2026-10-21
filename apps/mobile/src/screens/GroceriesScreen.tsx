@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { AddItem, SetItemState } from '@grocs/application';
+import type { AddItem, ClearCart, SetItemState } from '@grocs/application';
 import { visibleItems, weekIdFor } from '@grocs/core';
 import type { Item } from '@grocs/core';
 import { GroceryListTemplate } from '@grocs/ui';
@@ -69,6 +69,12 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
     setProblem(result.ok ? undefined : 'Could not update that item');
   };
 
+  const clear = async () => {
+    const command: ClearCart = { type: 'ClearCart', kitchenId, weekId };
+    const result = await app.dispatch(command);
+    setProblem(result.ok ? undefined : 'Could not clear the cart');
+  };
+
   const banner = problem ?? (loadError ? `Could not load the list: ${loadError}` : undefined);
   const rows = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) }).map(toListItem);
   const toBuy = rows.filter((r) => !r.inCart);
@@ -86,6 +92,7 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
       onAdd={() => void add()}
       onAddItem={go.quickAdd}
       onToggleItem={(id, inCart) => void toggle(id, inCart)}
+      onClearCart={() => void clear()}
       onSettings={go.settings}
       onOpenPlan={go.plan}
       {...(banner ? { banner: { kind: 'offline' as const, message: banner } } : {})}
