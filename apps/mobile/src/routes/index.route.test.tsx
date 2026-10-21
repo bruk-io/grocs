@@ -109,4 +109,49 @@ describe('index route', () => {
       expect(screen.getByRole('checkbox', { name: 'Bananas', checked: false })).toBeTruthy();
     });
   });
+
+  describe('clearing the cart', () => {
+    class FailingStore extends InMemorySyncStore {
+      failing = false;
+      override mergeItem(kitchenId: string, item: Item): Promise<void> {
+        return this.failing ? Promise.reject(new Error('offline')) : super.mergeItem(kitchenId, item);
+      }
+    }
+
+    async function withBananas(syncStore: InMemorySyncStore, clock = new FakeClock()) {
+      const kitchens = new FakeKitchenGateway('u1', undefined, clock);
+      const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+      const made = createExtraItem({ id: 'c1', weekId: weekIdFor(clock.now()), name: 'Bananas' }, { at: 1, by: 'u2' });
+      if (!made.ok) throw new Error('bad fixture');
+      await syncStore.mergeItem(kitchenId, made.value);
+      const apples = createExtraItem({ id: 'c2', weekId: weekIdFor(clock.now()), name: 'Apples' }, { at: 1, by: 'u2' });
+      if (!apples.ok) throw new Error('bad fixture');
+      await syncStore.mergeItem(kitchenId, apples.value);
+      return appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, clock });
+    }
+
+    it('removes the in-cart items from Groceries when Clear the cart is pressed', async () => {
+      const clock = new FakeClock();
+      renderRoute({ index: Home }, { app: await withBananas(new InMemorySyncStore(), clock) });
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Bananas', checked: false }));
+      await screen.findByRole('checkbox', { name: 'Bananas', checked: true });
+      clock.advance(60_000); // the clear is a later action than the tick
+      fireEvent.click(screen.getByRole('button', { name: 'Clear the cart' }));
+      await waitFor(() => expect(screen.queryByText('Bananas')).toBeNull());
+      expect(screen.getByRole('checkbox', { name: 'Apples', checked: false })).toBeTruthy();
+    });
+
+    it('shows the banner and keeps the cart when the clear fails', async () => {
+      const store = new FailingStore();
+      const clock = new FakeClock();
+      renderRoute({ index: Home }, { app: await withBananas(store, clock) });
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Bananas', checked: false }));
+      await screen.findByRole('checkbox', { name: 'Bananas', checked: true });
+      store.failing = true;
+      clock.advance(60_000); // the clear is a later action than the tick
+      fireEvent.click(screen.getByRole('button', { name: 'Clear the cart' }));
+      expect(await screen.findByText('Could not clear the cart')).toBeTruthy();
+      expect(screen.getByRole('checkbox', { name: 'Bananas', checked: true })).toBeTruthy();
+    });
+  });
 });

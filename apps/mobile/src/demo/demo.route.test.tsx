@@ -71,6 +71,17 @@ describe('demo composition', () => {
     expect(await screen.findByRole('checkbox', { name: 'Garlic', checked: true })).toBeTruthy();
   });
 
+  it('clears a ticked sample item out of Groceries', async () => {
+    const clock = new FakeClock();
+    await openDemo(clock);
+    clock.advance(60_000);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Garlic' }));
+    await screen.findByRole('checkbox', { name: 'Garlic', checked: true });
+    clock.advance(60_000);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear the cart' }));
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: 'Garlic' })).toBeNull());
+  });
+
   it('shows the sample meal plan and the settings, reached by the tabs', async () => {
     await openDemo();
     fireEvent.click(screen.getByText('Meal plan'));
