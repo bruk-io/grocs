@@ -54,7 +54,7 @@ export function SubHeader({ lead, tag, title, mascot }: SubHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  header: { gap: tokens.space[10], paddingTop: tokens.space[16], paddingHorizontal: tokens.space[20], paddingBottom: tokens.space[12] },
+  header: { gap: tokens.space[10], paddingTop: tokens.space[16], paddingHorizontal: tokens.space[16], paddingBottom: tokens.space[12] },
   lead: { minHeight: tokens.size.target, justifyContent: 'center' },
   titleRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: tokens.space[12] },
   title: { flex: 1, minWidth: 0, gap: tokens.space[8] },

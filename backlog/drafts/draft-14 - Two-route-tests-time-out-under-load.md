@@ -4,6 +4,7 @@ title: Two route tests time out under load
 status: Draft
 assignee: []
 created_date: '2026-10-21 01:32'
+updated_date: '2026-10-21 02:01'
 labels:
   - testing
 dependencies: []
@@ -28,3 +29,9 @@ apps/mobile route tests; the pre-commit hook and CI, which run them.
 - [ ] #1 Both tests pass in 20 consecutive full runs on a loaded machine (for example three suites in parallel), with the evidence in the notes
 - [ ] #2 Neither test's timeout is raised without a recorded reason for the time it needs
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-20: recurred under load while committing TASK-30's review notes on its branch (a pre-commit unit-test run failed with no code change; the retry passed 1421/1421). Also recurred during TASK-33's redo commit.
+<!-- SECTION:NOTES:END -->
