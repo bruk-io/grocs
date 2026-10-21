@@ -1,11 +1,11 @@
 ---
 id: TASK-1.31.1
 title: 'UI: the meal rail and the inner-screen Groceries layout'
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 15:38'
-updated_date: '2026-10-21 16:33'
+updated_date: '2026-10-21 16:58'
 labels:
   - size-3
   - layer-ui
@@ -29,10 +29,10 @@ Cites R43. Builds the ui half of decision-14 (option C, design/reference/D2-Opti
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A meal rail organism holds the navigation (Meal plan; Groceries with its remaining count) and This week's meals (All items, each meal with its day and item count, Plan a meal), with stories for nothing selected, a meal selected, and no meals yet
-- [ ] #2 Groceries has an inner layout: the rail on the left, the list filling the rest and no floating tab bar, shown in the fold-inner baselines
-- [ ] #3 GroceryListTemplate shows the filter line ('Only <meal> · n to buy' with Show all) and the empty-meal line ('Nothing on the list for <meal> yet.') in both the phone and inner layouts, with stories
-- [ ] #4 Every rail control has a name and role the axe pass accepts and a 44 x 44 target
+- [x] #1 A meal rail organism holds the navigation (Meal plan; Groceries with its remaining count) and This week's meals (All items, each meal with its day and item count, Plan a meal), with stories for nothing selected, a meal selected, and no meals yet
+- [x] #2 Groceries has an inner layout: the rail on the left, the list filling the rest and no floating tab bar, shown in the fold-inner baselines
+- [x] #3 GroceryListTemplate shows the filter line ('Only <meal> · n to buy' with Show all) and the empty-meal line ('Nothing on the list for <meal> yet.') in both the phone and inner layouts, with stories
+- [x] #4 Every rail control has a name and role the axe pass accepts and a 44 x 44 target
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -85,4 +85,72 @@ Baselines for Bruk to approve: 36 new images, 0 changed, 0 removed.
 
 Left for TASK-1.31.2: the width switch (600 dp), the filter state and passing the rail and filter props. design/reference/D2-OptionC.dc.html (and A, B) is kept: the app half is not built yet.
 Reviewer notes: GroceryListTemplate stays backward compatible (new props optional, phone default). The inner header is MainHeader unchanged (16 side padding) wrapped to line up with the 24 content padding; Plan a meal reuses MealEmpty so it is 60 high with a 20 radius rather than the board's 44 and 16.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(742 earlier lines omitted)
+```text
+|  storybook-static/assets/RailLink-Bt5Lobjz.js
+|  3.40 kB │ gzip:   1.44 kB
+|  storybook-static/assets/SignInTemplate.stories-DMGDd-zy.js
+|  3.43 kB │ gzip:   1.58 kB
+|  storybook-static/assets/MealRail-C0jD0Wlr.js
+|  3.75 kB │ gzip:   1.49 kB
+|  storybook-static/assets/ItemPickerTemplate.stories-CH23T94O.js
+|  4.44 kB │ gzip:   1.58 kB
+|  storybook-static/assets/Button.stories-xDNgEJLQ.js
+|  4.47 kB │ gzip:   1.31 kB
+|  storybook-static/assets/TextField-CzXDmluD.js
+|  4.64 kB │ gzip:   1.78 kB
+|  storybook-static/assets/PreferencesTemplate.stories-B6X6L1GZ.js
+|  4.69 kB │ gzip:   1.82 kB
+|  storybook-static/assets/ItemRow-CL-odj_r.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/Button-mAbb9PVx.js
+|  6.43 kB │ gzip:   2.03 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/GroceryListTemplate.stories-DZZS859y.js
+|  9.35 kB │ gzip:   3.11 kB
+|  storybook-static/assets/Mascot-9wOdy4H3.js
+|  12.29 kB │ gzip:   4.46 kB
+|  storybook-static/assets/icons-BrtJGt-P.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-DLUJ5bxM.js
+|  17.99 kB │ gzip:   5.00 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-V5bZC6s3.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-CYAHSAHA.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-BjFF9lkE.js
+|  1,360.62 kB │ gzip: 392.04 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 6.32s
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-ad374c99b356699be/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: 398 story views checked (axe, 44 x 44, 398 images compared)
+```
+
+Reviewed by philosophy:reviewer. Closed: all four criteria met. Full check exit 0 (typecheck, check, tests, visual: 398 views, axe + 44x44 + 398 images compared). No existing baseline changed: the diff adds 36 PNGs and only adds manifest lines; the 20 sign-in/kitchen restores held. The fold-inner InnerFiltered baseline matches D2-OptionC. The 36 new images still need Bruk's approval. Findings: (1) Low. Squeezed inner stories: 8 phone/fold-outer images are noise. viewportsFor in tools/ chooses by title only, so a story cannot opt out without a tools change; filed as a draft. (2) Info. Departures accepted: Plan a meal reuses MealEmpty (60/r20 vs the board's 44/r16), which is consistent reuse and costs 16 dp. The MainHeader 8 dp wrapper is fine. The visually hidden ' to buy' is a 1x1 clip without clip/position offsets; acceptable, revisit if a native screen reader reads it oddly. (3) Info. R61 RailLink/RailRow split is sound; MealRail only composes. (4) Info. While filtered the template hides the cart, which the board does not show explicitly; TASK-1.31.2 should confirm this with Bruk.
 <!-- SECTION:NOTES:END -->
