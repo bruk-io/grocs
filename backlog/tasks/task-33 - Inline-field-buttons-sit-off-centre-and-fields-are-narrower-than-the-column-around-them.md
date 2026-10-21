@@ -3,11 +3,11 @@ id: TASK-33
 title: >-
   Inline field buttons sit off centre, and fields are narrower than the column
   around them
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 01:33'
+updated_date: '2026-10-21 02:04'
 labels:
   - size-2
   - layer-ui
@@ -36,8 +36,8 @@ TextField, AddBar, LabelledField; Groceries, Add a meal and every form.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 The inline buttons in AddBar and the recipe link field are centred vertically in their field, with equal inset on top, right and bottom
-- [ ] #2 A text field's visible edge lines up with the rows, cards and action buttons in the same column on Groceries and Add a meal
-- [ ] #3 The visual baselines show both, and the focus ring still shows
+- [x] #2 A text field's visible edge lines up with the rows, cards and action buttons in the same column on Groceries and Add a meal
+- [x] #3 The visual baselines show both, and the focus ring still shows
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -124,4 +124,74 @@ Review (philosophy:reviewer, 2026-10-20): NOT CLOSED.
 Full-tier check exited 1: apps/mobile/src/routes/kitchen.route.test.tsx 'creating a kitchen > shows the invite link and code, then Groceries works on that kitchen' timed out at findByText('Nothing on the list yet'). Reran alone: worktree 1 fail in 6 runs, main 0 in 6. Looks like a timing flake rather than this styling change, but unproven; confirm on the redo's full check.
 
 Redo of #2 after review: merged main (TASK-29 landed; only conflicts were the task file's updated_date and the visual manifest, which I regenerated). Removed TextField's marginHorizontal -4. Fixed the gutters instead: TaskLayout content and footer, MainHeader and SubHeader now pad space[16], the same as MainLayout, rows, the tab bar and ActionBar, so no atom depends on its container. TaskLayout was touched for the two padding values only, on top of TASK-29's inset work; StageLayout and SignInTemplate untouched. Checks: pnpm check, pnpm typecheck clean, full pnpm test 106 files / 1418 tests passed, visual:update (353 views) then visual compare pass (353 images compared, axe and 44x44 pass). Baselines changed vs main: atoms-textfield--* (11) and molecules-addbar/labelledfield--* (9): inline button centred; organisms-mainheader--groceries and --meal-plan, organisms-subheader--back/line/wordmark: 16 gutter; templates grocery-list, invite-join, invite-retry, item-picker, kitchen-setup, meal-form, meal-plan, preferences (all existing stories with fold variants): header and fields at 16 gutter plus centred buttons. New on-phone baselines (TASK-29) were regenerated with the new gutters. Fields' visible edges now match rows, cards and action buttons. Not verified on the Fold; baselines need Bruk's approval. The earlier kitchen.route.test flake did not recur in this full run.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(734 earlier lines omitted)
+```text
+|  storybook-static/assets/PreferencesTemplate.stories-BAVgTm-b.js
+|  4.69 kB │ gzip:   1.82 kB
+|  storybook-static/assets/ItemRow-Civj0FqF.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/GroceryListTemplate.stories-Dyp6Txjn.js
+|  5.86 kB │ gzip:   2.04 kB
+|  storybook-static/assets/Button-Da1um0PD.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/Mascot-CmnbjBiH.js
+|  11.37 kB │ gzip:   4.20 kB
+|  storybook-static/assets/icons-JJkNCm_O.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-DSq2YND2.js
+|  17.31 kB │ gzip:   4.66 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-DHqinQw4.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-C2AeJCYY.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-Dg_1RIvw.js
+|  1,359.48 kB │ gzip: 391.75 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 7.20s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 5.5s of this 7.1s
+|  build (78%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin storybook:react-docgen-plugin transform (32%, 2.3s, 824
+|  calls)
+|  - plugin vite:css transform (24%, 1.7s, 2 calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a75bc302ecd5cd02a/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: 353 story views checked (axe, 44 x 44, 353 images compared)
+```
+
+No repro: a layout-only bug (alignment in pixels). Its test is the visual baseline comparison, which compares against images and could only fail once correct baselines exist, so there is no failing test to run before the fix. The before and after evidence is the baseline diff on this branch (atoms-textfield, molecules-addbar/labelledfield, header and template baselines), which Bruk reviews.
+
+Re-review (philosophy:reviewer, 2026-10-20): CLOSED. #1 inline button centred, 4 px inset top/right/bottom. #2 the redo fixes the gutters, not the atom: TextField's marginHorizontal -4 is gone; TaskLayout content and footer, MainHeader and SubHeader pad space[16] like MainLayout, rows, tab bar and ActionBar; on the meal-form and grocery-list baselines field edges line up with rows, cards and the action button. #3 the 353-view compare pass matches the baselines, axe and 44x44 pass, and the focus baselines show the ring. Headings and header text moving 4 px left is part of #2: one 16 px column, with titles on the same edge as fields, rows and cards. No finding. Full-tier check exited 0 (106 files / 1418 tests, emulator suites, visual). The kitchen route flake (DRAFT-14) did not recur in this run. Closing does not approve the new or changed baselines; Bruk approves them before main. Not verified on the Fold.
 <!-- SECTION:NOTES:END -->
