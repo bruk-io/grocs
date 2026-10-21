@@ -35,9 +35,9 @@ export function mergeIntoList(list: WeekList, incoming: Item): Result<WeekList, 
   return ok({ ...list, items: { ...list.items, [incoming.id]: merged } });
 }
 
-/** Items to show: everything not deleted, in the order they were added. */
+/** Items to show: everything not deleted and not cleared, in the order they were added. */
 export function visibleItems(list: WeekList): Item[] {
   return Object.values(list.items)
-    .filter((i) => i.deleted === null)
+    .filter((i) => i.deleted === null && i.state.value !== 'cleared')
     .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1));
 }
