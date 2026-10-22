@@ -25,7 +25,19 @@ status=0
 adb wait-for-device
 adb install -r "$apk" || { echo "SMOKE FAIL: the APK did not install" >&2; exit 1; }
 adb logcat -c
-adb shell monkey -p "$package" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+# am start (not monkey's LAUNCHER-category resolution) - monkey's own input-injection setup
+# intermittently aborts with "System.exit called, status: -5" on some device profiles, before
+# the app ever gets a launch intent, which the wait loop below would otherwise misreport as a
+# generic "did not appear" timeout rather than the launch itself having failed (TASK-46).
+launch_output="$(adb shell am start -n "$package/.MainActivity" 2>&1)"
+# am start always prints "Starting: Intent {...}" even when the component does not resolve; the
+# failure signal is a separate "Error" line (am's own exit status is not reliable here either -
+# adb shell forwards it inconsistently across emulator images).
+if echo "$launch_output" | grep -q "^Error"; then
+  echo "SMOKE FAIL: could not launch $package:" >&2
+  echo "$launch_output" >&2
+  exit 1
+fi
 
 # Wait for the JavaScript to load and the Welcome screen to draw, or for the app to die first.
 shown=0
