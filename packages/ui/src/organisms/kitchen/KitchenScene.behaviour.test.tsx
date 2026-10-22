@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tokens } from '../../tokens/tokens.ts';
-import { CAST_BEHIND_DOOR, CAST_IN_FRONT, panStops, WORLD } from './art/scene-layout.ts';
+import { CAST_BEHIND_DOOR, CAST_IN_FRONT, panStops, targetDrift, WORLD } from './art/scene-layout.ts';
 import { sceneMotion } from './motion.ts';
 import * as stories from './Kitchen.stories.tsx';
 
@@ -72,6 +72,15 @@ describe('KitchenScene', () => {
     });
   });
 
+  describe('target drift (TASK-40)', () => {
+    it('pulls a small host back by half the target excess so its art keeps its place', () => {
+      expect(targetDrift(62, 0.5, tokens.size.target)).toBe(-(tokens.size.target - 31) / 2);
+    });
+    it('does not move a host whose art is at least as big as the target', () => {
+      expect(Math.abs(targetDrift(62, 1, tokens.size.target))).toBe(0);
+    });
+  });
+
   describe('sceneMotion', () => {
     it('moves nothing when motion is reduced: no pan, no bob, no door, no steam or light', () => {
       expect(sceneMotion(true)).toEqual({ pan: null, bob: null, door: null, parts: {} });
@@ -129,6 +138,12 @@ describe('KitchenScene', () => {
         const sweep = Array.from({ length: 101 }, (_unused, i) => (far * i) / 100);
         expect(sweep.some((stop) => wholeAt(stop, width, host))).toBe(true);
       }
+    });
+
+    it('multiplies the far stop by the scale at the 57% keyframe', () => {
+      const { far } = panStops(300);
+      const pan = sceneMotion(false, 300, 1.5).pan?.animationName as unknown as Record<string, { transform: { translateX: number }[] }>;
+      expect(pan['57%']?.transform[0]?.translateX).toBe(far * 1.5);
     });
 
     it('feeds the pan keyframes of the scene motion', () => {

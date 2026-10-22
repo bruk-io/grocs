@@ -8,7 +8,7 @@ import { useMotion } from '../../platform/motion.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 import { KitchenArt } from './art/Kitchen.tsx';
 import { KitchenDoorArt } from './art/KitchenDoor.tsx';
-import { CAST_BEHIND_DOOR, CAST_IN_FRONT, DOOR, WORLD } from './art/scene-layout.ts';
+import { CAST_BEHIND_DOOR, CAST_IN_FRONT, DOOR, targetDrift, WORLD } from './art/scene-layout.ts';
 import type { CastPlace } from './art/scene-layout.ts';
 import { sceneMotion } from './motion.ts';
 
@@ -35,11 +35,15 @@ export function KitchenScene({ onMascotPress }: KitchenSceneProps) {
   const scale = size.height / WORLD.height;
   const visibleWidth = size.width / scale;
   const motion = useMemo(() => sceneMotion(reduced, visibleWidth, scale), [reduced, visibleWidth, scale]);
-  const place = (host: CastPlace) => (
-    <View key={host.name} style={[styles.host, { left: pct(host.left, WORLD.width), top: pct(host.top, WORLD.height) }]}>
+  const place = (host: CastPlace) => {
+    // The Mascot keeps an unscaled minimum target and centres the art in it; pull the host back by the target's excess so the art stays put.
+    const drift = targetDrift(host.size, scale, tokens.size.target);
+    return (
+    <View key={host.name} style={[styles.host, { left: pct(host.left, WORLD.width), top: pct(host.top, WORLD.height), marginLeft: drift, marginTop: drift }]}>
       <Mascot name={host.name} size={host.size * scale} {...(host.pose ? { pose: host.pose } : {})} {...(onMascotPress ? { onPress: (line: string) => onMascotPress(host.name, line) } : {})} />
     </View>
-  );
+    );
+  };
   return (
     <View style={styles.window} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width || WORLD.width, height: e.nativeEvent.layout.height || WORLD.height })}>
       <Animated.View testID="kitchen-world" style={[styles.world, motion.pan]}>
