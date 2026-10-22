@@ -63,4 +63,23 @@ describe('ClearCart scenarios (R47)', () => {
     const result = await out.dispatcher.dispatch(clear());
     expect(!result.ok && result.error.code).toBe('not-signed-in');
   });
+
+  it('leaves an item still in-cart out of itemIds when a same-instant tick wins the merge (DRAFT-14)', async () => {
+    const store = new InMemorySyncStore();
+    const { items } = await withItems(['Eggs'], 'bruk', store);
+    const [eggs] = items;
+    const sam = await createTestClient({ uid: 'sam', store });
+    const bruk = await createTestClient({ uid: 'bruk', store });
+
+    // Same millisecond for both: compareStamps breaks the tie on `by`, and 'bruk' < 'sam', so the
+    // stored in-cart stamp sorts later and the merge keeps the item in-cart despite the clear.
+    sam.clock.set(1_800_000_004_000);
+    bruk.clock.set(1_800_000_004_000);
+    await sam.dispatcher.dispatch(tick(eggs?.id ?? '', true));
+    const result = await bruk.dispatcher.dispatch(clear());
+
+    expect(result).toEqual({ ok: true, value: [{ type: 'CartCleared', weekId: WEEK, itemIds: [] }] });
+    const [after] = await store.getItems(KITCHEN, WEEK);
+    expect(after?.state.value).toBe('in-cart');
+  });
 });

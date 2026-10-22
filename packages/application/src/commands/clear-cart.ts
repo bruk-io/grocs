@@ -23,12 +23,19 @@ export async function clearCart(command: ClearCart, ctx: CommandContext): Promis
   const inCart = items.filter((item) => item.state.value === 'in-cart');
   const stamp = { at: clock.now(), by: user.uid };
 
-  const clearedIds: string[] = [];
+  const attemptedIds: string[] = [];
   for (const item of inCart) {
     const cleared = clearFromCart(item, stamp);
     await syncStore.mergeItem(command.kitchenId, cleared);
-    clearedIds.push(cleared.id);
+    attemptedIds.push(cleared.id);
   }
+
+  // A tick stamped at the same instant as this clear can win the merge's field-level LWW tie-break
+  // (R18), leaving the item still in-cart: re-check what's actually stored so the event never
+  // claims an item was cleared when it was not.
+  const after = await syncStore.getItems(command.kitchenId, command.weekId);
+  const clearedNow = new Set(after.filter((item) => item.state.value === 'cleared').map((item) => item.id));
+  const clearedIds = attemptedIds.filter((id) => clearedNow.has(id));
 
   const event: CartCleared = { type: 'CartCleared', weekId: command.weekId, itemIds: clearedIds };
   return ok([event]);
