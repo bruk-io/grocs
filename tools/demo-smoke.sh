@@ -66,5 +66,53 @@ if [ "$shown" -ne 1 ]; then
   fail "the Welcome screen's \"Try the demo\" did not appear within ${wait_seconds} seconds"
 fi
 
+# A control fully inside the display's root bounds can still sit under the system navigation
+# bar (TASK-36: Welcome's button passed every browser baseline because the browser has no nav
+# bar to sit under). The nav bar reserves a rect of the display rather than occupying a node in
+# the accessibility tree on every device (gesture navigation has no visible pill there), so the
+# authoritative source is the window manager's own inset, not another uiautomator dump.
+#
+# "Try the demo" names the clickable Button, not the TextView label inside it - checking the
+# label's own bounds understates the control's real footprint. The clickable ancestor is found by
+# bounds containment (the smallest clickable="true" rect that encloses the label's bounds), since
+# uiautomator's dump is one line with no usable line-based nesting to walk.
+bounds_containing() {
+  # $1: the label's bounds string "[x1,y1][x2,y2]"; reads clickable candidates from stdin.
+  local lx1 ly1 lx2 ly2
+  IFS=', []' read -r _ lx1 ly1 _ lx2 ly2 _ <<<"$1"
+  local best="" best_area=""
+  while read -r cand; do
+    local cx1 cy1 cx2 cy2
+    IFS=', []' read -r _ cx1 cy1 _ cx2 cy2 _ <<<"$cand"
+    if [ "$cx1" -le "$lx1" ] && [ "$cy1" -le "$ly1" ] && [ "$cx2" -ge "$lx2" ] && [ "$cy2" -ge "$ly2" ]; then
+      local area=$(( (cx2 - cx1) * (cy2 - cy1) ))
+      if [ -z "$best_area" ] || [ "$area" -lt "$best_area" ]; then
+        best="$cand"
+        best_area="$area"
+      fi
+    fi
+  done
+  echo "$best"
+}
+
+if [ "$shown" -eq 1 ]; then
+  label_bounds="$(grep -o 'text="Try the demo"[^>]*bounds="\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]"' "$out/ui.xml" | grep -o '\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]' | head -1)"
+  button_bounds="$(grep -oE 'clickable="true"[^>]*bounds="\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]"' "$out/ui.xml" | grep -oE '\[[0-9]+,[0-9]+\]\[[0-9]+,[0-9]+\]' | bounds_containing "$label_bounds")"
+  nav_frame="$(adb shell dumpsys window displays | grep -o 'type=navigationBars frame=\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]' | head -1 | grep -o '\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]')"
+  if [ -z "$label_bounds" ]; then
+    fail "could not find \"Try the demo\"'s bounds in the UI dump to check it against the navigation bar"
+  elif [ -z "$button_bounds" ]; then
+    fail "could not find a clickable ancestor of \"Try the demo\" in the UI dump to check against the navigation bar"
+  elif [ -z "$nav_frame" ]; then
+    fail "could not find the navigation bar's inset in \"adb shell dumpsys window displays\" to check the button against"
+  else
+    button_bottom="$(echo "$button_bounds" | sed -E 's/\[[0-9]+,[0-9]+\]\[[0-9]+,([0-9]+)\]/\1/')"
+    nav_top="$(echo "$nav_frame" | sed -E 's/\[[0-9]+,([0-9]+)\]\[[0-9]+,[0-9]+\]/\1/')"
+    if [ "$button_bottom" -gt "$nav_top" ]; then
+      fail "\"Try the demo\" ($button_bounds) overlaps the navigation bar (top $nav_top) - a control a screen names must not sit under system UI"
+    fi
+  fi
+fi
+
 if [ "$status" -eq 0 ]; then echo "smoke ok: $package is running and the Welcome screen shows \"Try the demo\""; fi
 exit "$status"
