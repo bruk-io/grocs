@@ -1,11 +1,14 @@
 ---
-id: DRAFT-17
+id: TASK-40
 title: 'Kitchen hosts drift on short scenes, and the pan''s scale has no test'
-status: Draft
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-21 12:52'
+updated_date: '2026-10-22 04:04'
 labels:
   - layer-ui
+  - size-2
 dependencies: []
 type: bug
 ---

@@ -1,11 +1,14 @@
 ---
-id: DRAFT-16
+id: TASK-39
 title: The app states edge to edge and uses one safe-area provider
-status: Draft
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-21 12:31'
+updated_date: '2026-10-22 04:04'
 labels:
   - layer-app
+  - size-2
 dependencies: []
 type: task
 ---
