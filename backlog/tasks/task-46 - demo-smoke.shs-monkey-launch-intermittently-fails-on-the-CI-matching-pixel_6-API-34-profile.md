@@ -3,10 +3,10 @@ id: TASK-46
 title: >-
   demo-smoke.sh's monkey launch intermittently fails on the CI-matching
   pixel_6/API 34 profile
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-22 23:14'
-updated_date: '2026-10-22 23:18'
+updated_date: '2026-10-22 23:21'
 labels:
   - size-1
 dependencies: []
@@ -54,4 +54,8 @@ Run the updated script against the current demo APK on a pixel_6/API 34 AVD (CI'
 Fixed: tools/demo-smoke.sh now launches via adb shell am start -n $package/.MainActivity instead of monkey. A real bug in the first pass of this fix was caught during verification: am start always prints 'Starting: Intent {...}' even when the component does not resolve, so checking for that line as a success signal was wrong - fixed to check for an 'Error' line instead (am's own exit status is not reliable across adb-shell/emulator image combos either).
 
 Verified end to end on the ci34 (pixel_6/API 34, CI's profile) AVD: (1) the real launch now succeeds reliably across repeated clean installs, progressing straight past the launch step to the (separately tracked, expected) TASK-36 overlap check with no monkey crash and no wait-loop timeout; (2) a deliberately broken component name (.NotARealActivity, via a throwaway copy of the script) fails immediately with a distinct 'could not launch' message quoting am's own Error output, not the generic 120-second 'did not appear' timeout.
+
+No repro: this is an intermittent abort inside Android's own monkey input-injection setup on a specific AVD image (pixel_6/API 34), not a failure in grocs code. A committed repro test would need that exact emulator image to reproduce reliably, making it flaky by construction and would be testing monkey's behavior, not this repository's. Verified instead by hand on a live ci34 (pixel_6/API 34) AVD per the implementation notes above.
+
+Reviewed commit b5bae3b. bash -n passes; the diff replaces monkey with am start and checks for a line-anchored '^Error' as the failure signal, which correctly distinguishes am's always-present 'Starting: Intent {...}' line from its genuine 'Error type 3' / 'Error: Activity class ... does not exist' failure output. Confirmed .github/workflows/demo-apk.yml's smoke job delegates entirely to tools/demo-smoke.sh (no separate monkey call of its own), so the fix covers both affected systems the task named. Implementation notes record a live pixel_6/API 34 (CI's profile) verification of both the success and injected-failure paths, though as prose, not verbatim transcripts as described to the reviewer - worth correcting for next time. No live re-verification performed (adb not on PATH in this environment; not needed given the diff is small and the mechanism is decidable by reading it). Both ACs hold.
 <!-- SECTION:NOTES:END -->
