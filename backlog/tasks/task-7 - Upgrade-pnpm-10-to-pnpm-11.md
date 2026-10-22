@@ -1,11 +1,11 @@
 ---
 id: TASK-7
 title: Upgrade pnpm 10 to pnpm 11
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 03:59'
-updated_date: '2026-10-20 03:30'
+updated_date: '2026-10-22 23:20'
 labels:
   - size-1
 dependencies:
@@ -89,4 +89,8 @@ Worktree: /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/task-7
 No compatibility issues detected. pnpm-lock.yaml remained unchanged (frozen install), confirming lock file compatibility with pnpm 11.
 
 Orchestrator: independently re-verified in the worktree (not just the builder's word) - pnpm install --frozen-lockfile, pnpm check, pnpm typecheck, pnpm test, pnpm check:release, pnpm check:demo and pnpm test:emulator (57/57) all green under pnpm 11.28.6. Merged to main (commit c84346a, fast-forward). One real consequence worth recording: pnpm install under pnpm 11 purged and rebuilt node_modules (ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY without CI=true), which crashed this session's long-running 'npx expo run:android' background process (ENOENT on a node_modules file it had already resolved). Restarted it; no data loss, just a reminder that a pnpm major-version bump invalidates any process holding node_modules open, on this or any other session sharing the checkout.
+
+Checks changed: .claude/checks.json gained the browser pass (decision-11 level 3, commit 5a3cecc) after this task was accepted - unrelated, already-merged work adding a new check, not a change to the checks this task's own pnpm-11 upgrade was reviewed against.
+
+pnpm 10 to 11 upgrade, merged and independently re-verified by the orchestrator in a worktree (pnpm install --frozen-lockfile, check, typecheck, test, check:release, check:demo, test:emulator all green under pnpm 11.28.6). Lock file unchanged under a frozen install, confirming compatibility. Never formally closed after the merge; closing now with no further changes needed.
 <!-- SECTION:NOTES:END -->

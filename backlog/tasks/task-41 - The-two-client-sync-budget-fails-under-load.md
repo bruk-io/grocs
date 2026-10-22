@@ -1,11 +1,11 @@
 ---
 id: TASK-41
 title: The two-client sync budget fails under load
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-22 04:41'
+updated_date: '2026-10-22 23:20'
 labels:
   - testing
   - size-1
@@ -46,4 +46,8 @@ mise exec -- pnpm test:emulator passes; the test still fails if sync genuinely b
 
 <!-- SECTION:NOTES:BEGIN -->
 Bruk's decision in chat: keep the hard 3s assertion, but only correctness is load-sensitive. eventually()'s deadline raised from SYNC_BUDGET_MS to a new CORRECTNESS_DEADLINE_MS (15000) for every round; the hard SYNC_BUDGET_MS timing check now runs for round 1 only (a real regression gate against the fast path), not every round. Test renamed to match what it now asserts. Verified it still catches a real regression: temporarily made FirestoreSyncStore.watchItems report onItems([]) instead of the real items, ran pnpm test:emulator, confirmed the two-client test failed (and firestore-sync-store.emulator.test.ts's own test failed too, as expected), then reverted (git diff clean). pnpm check (14 checks), typecheck, test (116/1539), and test:emulator all pass.
+
+No repro: a repro cycle was already performed and is documented in prose above (temporarily broke FirestoreSyncStore.watchItems to report onItems([]) instead of real items, ran pnpm test:emulator, confirmed both the two-client test and firestore-sync-store.emulator.test.ts's own test failed, then reverted - git diff clean). Not re-recorded via record-check's machine-captured format here to avoid a second live break/revert cycle against the emulator for work already verified and merged.
+
+The two-client sync budget test no longer conflates correctness (every item eventually arrives) with speed (the first item within 3 seconds) under concurrent-agent load. Bruk's own decision in chat: keep the hard 3s assertion but make only correctness load-sensitive - implemented as a generous 15s deadline for the per-round eventually() wait, with the hard timing assertion narrowed to round 1 only. Repro cycle already documented in the notes. Never formally closed after merging; closing now.
 <!-- SECTION:NOTES:END -->
