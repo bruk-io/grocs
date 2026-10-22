@@ -1,4 +1,12 @@
 # Pre-commit runs the same scripts the agent hooks and CI run (R55). Install with: pnpm hooks:install
+post-checkout:
+  commands:
+    install:
+      # Fires for every checkout, including a brand-new agent worktree (DRAFT-2): node_modules
+      # is gitignored, so a fresh worktree starts with none and a layer builder's narrowed Bash
+      # cannot install for itself. Only installs when it is actually missing.
+      run: node tools/hooks/post-checkout.ts
+
 pre-commit:
   parallel: false
   commands:
