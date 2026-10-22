@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-21 03:26'
+updated_date: '2026-10-22 04:35'
 labels:
   - testing
   - size-1
@@ -24,8 +24,8 @@ Filed from the TASK-1.40/1.41 review. ci.yml and visual-baselines.yml run on ubu
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every job in ci.yml and visual-baselines.yml runs on one pinned Ubuntu image, named in one place
-- [ ] #2 The repo says how to move to a new image: bump the pin and regenerate the baselines through the visual baselines workflow in the same change
+- [x] #1 Every job in ci.yml and visual-baselines.yml runs on one pinned Ubuntu image, named in one place
+- [x] #2 The repo says how to move to a new image: bump the pin and regenerate the baselines through the visual baselines workflow in the same change
 <!-- AC:END -->
 
 ## Implementation Plan
