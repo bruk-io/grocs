@@ -14,6 +14,7 @@ import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialI
 import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
+import { SafeAreaProvider as NativeSafeAreaProvider } from 'react-native-safe-area-context';
 import { DeviceSafeArea } from '../src/platform/DeviceSafeArea.tsx';
 import { diagnosticsText } from '../src/composition/diagnostics.ts';
 import type { NativeApp } from '../src/composition/native.ts';
@@ -72,9 +73,12 @@ export function renderRoute(routes: Record<string, ComponentType>, { app, locati
     return (
       <AppProvider value={app}>
         <PlatformStyleProvider value="android">
-          <DeviceSafeArea initialMetrics={insets ? { insets, frame: { x: 0, y: 0, width: 393, height: 852 } } : null}>
-            <Slot />
-          </DeviceSafeArea>
+          {/* ExpoRoot's own provider reports no insets in jsdom; this one, inside it, reports the test's. */}
+          <NativeSafeAreaProvider initialMetrics={insets ? { insets, frame: { x: 0, y: 0, width: 393, height: 852 } } : null}>
+            <DeviceSafeArea>
+              <Slot />
+            </DeviceSafeArea>
+          </NativeSafeAreaProvider>
         </PlatformStyleProvider>
       </AppProvider>
     );
