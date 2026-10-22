@@ -26,6 +26,11 @@ export const CAST_IN_FRONT: readonly CastPlace[] = [
 
 export const DOOR = { left: 383, top: 243, width: 83, height: 120 } as const;
 
+/** How far to pull a host of `size` world units, drawn at `scale`, back so its art keeps its place when the Mascot's unscaled `target` is larger than the art (the Mascot centres the art in it). */
+export function targetDrift(size: number, scale: number, target: number): number {
+  return -Math.max(0, target - size * scale) / 2;
+}
+
 const at = (x: number) => ({ transform: [{ translateX: x }] });
 
 /** The camera's two stops as translateX in world units, for a window showing `visibleWidth` world units: `mid` centres the stove, `far` is the kitchen's right edge so the last host is whole. Never past the left edge. */
