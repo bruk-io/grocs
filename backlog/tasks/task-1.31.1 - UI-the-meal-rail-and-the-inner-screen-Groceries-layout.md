@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 15:38'
-updated_date: '2026-10-21 16:58'
+updated_date: '2026-10-22 03:17'
 labels:
   - size-3
   - layer-ui
@@ -153,4 +153,6 @@ visual: 398 story views checked (axe, 44 x 44, 398 images compared)
 ```
 
 Reviewed by philosophy:reviewer. Closed: all four criteria met. Full check exit 0 (typecheck, check, tests, visual: 398 views, axe + 44x44 + 398 images compared). No existing baseline changed: the diff adds 36 PNGs and only adds manifest lines; the 20 sign-in/kitchen restores held. The fold-inner InnerFiltered baseline matches D2-OptionC. The 36 new images still need Bruk's approval. Findings: (1) Low. Squeezed inner stories: 8 phone/fold-outer images are noise. viewportsFor in tools/ chooses by title only, so a story cannot opt out without a tools change; filed as a draft. (2) Info. Departures accepted: Plan a meal reuses MealEmpty (60/r20 vs the board's 44/r16), which is consistent reuse and costs 16 dp. The MainHeader 8 dp wrapper is fine. The visually hidden ' to buy' is a 1x1 clip without clip/position offsets; acceptable, revisit if a native screen reader reads it oddly. (3) Info. R61 RailLink/RailRow split is sound; MealRail only composes. (4) Info. While filtered the template hides the cart, which the board does not show explicitly; TASK-1.31.2 should confirm this with Bruk.
+
+Bruk approved the 36 new baselines on 2026-10-21 (reviewed as a sheet of the four fold-inner Groceries images; the GitHub baselines workflow could not run, Actions being blocked on billing, so the sandbox's visual:update output is what landed).
 <!-- SECTION:NOTES:END -->

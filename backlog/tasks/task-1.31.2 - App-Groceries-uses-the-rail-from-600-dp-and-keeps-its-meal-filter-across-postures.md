@@ -3,9 +3,11 @@ id: TASK-1.31.2
 title: >-
   App: Groceries uses the rail from 600 dp and keeps its meal filter across
   postures
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-app'
 created_date: '2026-10-21 15:38'
+updated_date: '2026-10-22 03:17'
 labels:
   - size-2
   - layer-app
@@ -28,3 +30,9 @@ Cites R43. Builds the app half of decision-14: the width switch (600 dp and wide
 - [ ] #3 In the demo, the sample items carry the sample meals' badges, and choosing a meal in the rail filters the list (demo route test)
 - [ ] #4 On the Fold, unfolding and folding with a meal chosen keeps the filter, with screenshots in the notes
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Bruk, 2026-10-21: while a meal is chosen the In the cart section stays hidden; it comes back with Show all (as TASK-1.31.1's template already does).
+<!-- SECTION:NOTES:END -->
