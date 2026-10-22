@@ -1,6 +1,6 @@
 // Level 4 of decision-11 on the demo composition (decision-12): the real routes, rendered over
 // composeDemoApp, which runs on the in-memory provider and the sample data.
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
@@ -52,6 +52,22 @@ describe('demo composition', () => {
       expect(screen.getByRole('checkbox', { name })).toBeTruthy();
     }
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
+  });
+
+  it('carries the sample meals badges, and choosing a meal in the rail filters the list', async () => {
+    await openDemo();
+    act(() => {
+      window.innerWidth = 791;
+      window.dispatchEvent(new Event('resize'));
+    });
+    // Yellow onions is for two meals, so both badges show beside it.
+    expect(screen.getAllByText('Chana masala').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Sheet-pan chicken').length).toBeGreaterThan(1);
+    fireEvent.click(screen.getByRole('button', { name: /Sheet-pan chicken/ }));
+    expect(screen.getByRole('checkbox', { name: 'Chicken thighs' })).toBeTruthy();
+    expect(screen.queryByRole('checkbox', { name: 'Garlic' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
+    expect(screen.getByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
   });
 
   it('adds an item to the sample list', async () => {

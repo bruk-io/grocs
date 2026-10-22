@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 import type { AddItem, ClearCart, SetItemState } from '@grocs/application';
 import { visibleItems, weekIdFor } from '@grocs/core';
 import type { Item } from '@grocs/core';
 import { GroceryListTemplate } from '@grocs/ui';
 import type { ListItem } from '@grocs/ui';
 import type { App } from '../composition/compose-app.ts';
+import { week } from '../sample/sample-data.ts';
 import { useGo } from './navigate.ts';
 
 export interface GroceriesScreenProps {
@@ -22,12 +24,22 @@ function weekLabelFor(at: number): string {
   return `Week of ${MONTHS[monday.getUTCMonth()]} ${monday.getUTCDate()}`;
 }
 
-const toListItem = (item: Item): ListItem => ({
-  id: item.id,
-  name: item.name.value,
-  amount: item.amount.value,
-  inCart: item.state.value === 'in-cart',
-});
+/** The inner layout applies from here up (decision-14: the medium width class), by window width, not by device. */
+export const INNER_MIN_WIDTH = 600;
+
+/** The meals the rail shows: the sample week until the meal plan slice (TASK-1.21) brings the real one. */
+const weekMeals = week.flatMap((day) => day.meals.map((meal) => ({ ...meal, day: day.weekday })));
+
+const toListItem = (item: Item): ListItem => {
+  const mealBadges = weekMeals.filter((meal) => item.badges.includes(meal.id)).map((meal) => ({ label: meal.name, ...(meal.tone ? { tone: meal.tone } : {}) }));
+  return {
+    id: item.id,
+    name: item.name.value,
+    amount: item.amount.value,
+    ...(mealBadges.length > 0 ? { mealBadges } : {}),
+    inCart: item.state.value === 'in-cart',
+  };
+};
 
 /**
  * Groceries from the live list (R10, R50): GroceryListTemplate fed by the app facade. The Item model holds
@@ -40,6 +52,10 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [problem, setProblem] = useState<string | undefined>(undefined);
+  // Held here, above the width switch, so folding or unfolding keeps it (R43).
+  const [mealId, setMealId] = useState<string | undefined>(undefined);
+  const { width } = useWindowDimensions();
+  const inner = width >= INNER_MIN_WIDTH;
 
   useEffect(
     () =>
@@ -79,11 +95,28 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   const rows = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) }).map(toListItem);
   const toBuy = rows.filter((r) => !r.inCart);
   const cartItems = rows.filter((r) => r.inCart);
+  const badged = new Map(items.map((i) => [i.id, i.badges]));
+  const forMeal = (id: string) => toBuy.filter((r) => badged.get(r.id)?.includes(id));
+  const chosen = weekMeals.find((meal) => meal.id === mealId);
+  const shown = chosen ? forMeal(chosen.id) : toBuy;
+  const showAll = () => setMealId(undefined);
 
   return (
     <GroceryListTemplate
       weekLabel={weekLabelFor(app.now())}
       members={[]}
+      layout={inner ? 'inner' : 'phone'}
+      rail={{
+        activeSection: 'groceries',
+        toGo: toBuy.length,
+        meals: weekMeals.map((meal) => ({ id: meal.id, name: meal.name, day: meal.day, count: forMeal(meal.id).length, ...(meal.tone ? { tone: meal.tone } : {}) })),
+        ...(chosen ? { selectedMealId: chosen.id } : {}),
+        onSelectSection: (id) => id === 'plan' && go.plan(),
+        onSelectMeal: setMealId,
+        onShowAll: showAll,
+        onPlanMeal: go.addMeal,
+      }}
+      {...(chosen ? { filter: { mealName: chosen.name, count: shown.length, ...(chosen.tone ? { tone: chosen.tone } : {}), onShowAll: showAll } } : {})}
       mascot={toBuy.length === 0 && cartItems.length > 0 ? 'enoki' : 'cremi'}
       toGo={toBuy.length}
       inCart={cartItems.length}
@@ -96,7 +129,7 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
       onSettings={go.settings}
       onOpenPlan={go.plan}
       {...(banner ? { banner: { kind: 'offline' as const, message: banner } } : {})}
-      sections={toBuy.length > 0 ? [{ id: 'to-buy', icon: 'cart', title: 'This week', items: toBuy }] : []}
+      sections={shown.length > 0 ? [{ id: 'to-buy', icon: 'cart', title: 'This week', items: shown }] : []}
       cartItems={cartItems}
     />
   );

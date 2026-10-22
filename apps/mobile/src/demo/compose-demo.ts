@@ -9,7 +9,7 @@ import { DEMO_MEMBER, MemoryAuth, MemoryKitchenGateway, MemorySyncStore } from '
 import { composeApp } from '../composition/compose-app.ts';
 import { diagnosticsText } from '../composition/diagnostics.ts';
 import type { NativeApp } from '../composition/native.ts';
-import { meat, produce } from '../sample/sample-data.ts';
+import { meat, produce, week } from '../sample/sample-data.ts';
 
 /** The one kitchen the demo has. */
 export const DEMO_KITCHEN_ID = 'demo-kitchen';
@@ -71,6 +71,8 @@ function seed(syncStore: MemorySyncStore, clock: Clock): void {
     );
     if (!made.ok) throw new Error(`the demo sample item ${sample.id} is not a valid item`);
     // The in-memory store takes the item before its first await, so the list is full when the app opens.
-    void syncStore.mergeItem(DEMO_KITCHEN_ID, made.value);
+    // The sample's badges are meal names; items hold meal ids, which the sample week gives.
+    const badges = (sample.mealBadges ?? []).flatMap((b) => week.flatMap((d) => d.meals).filter((m) => m.name === (typeof b === 'string' ? b : b.label)).map((m) => m.id));
+    void syncStore.mergeItem(DEMO_KITCHEN_ID, { ...made.value, badges });
   }
 }
