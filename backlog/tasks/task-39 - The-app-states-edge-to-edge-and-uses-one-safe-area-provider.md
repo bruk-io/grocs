@@ -5,10 +5,11 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-21 12:31'
-updated_date: '2026-10-22 04:10'
+updated_date: '2026-10-22 04:14'
 labels:
   - layer-app
   - size-2
+  - finish-moved
 dependencies: []
 type: task
 ---
@@ -27,8 +28,8 @@ apps/mobile app config and root layout; every screen's insets on Android.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 app.config.ts states the edge-to-edge setting explicitly, with a comment on why
-- [ ] #2 DeviceSafeArea reads the insets from the router's provider instead of mounting its own, and the safe-area route test still passes
+- [ ] #1 DeviceSafeArea reads the insets from the router's provider instead of mounting its own, and the safe-area route test still passes
+- [ ] #2 app.config.ts says why the app is edge to edge with no setting (Expo SDK 58 dropped android.edgeToEdgeEnabled; React Native 0.88 turns edge to edge on for SDK 35 targets), and a test fails if that key is added back
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -41,4 +42,6 @@ Finding first: Expo SDK 58 has no edge-to-edge config key. @expo/prebuild-config
 
 <!-- SECTION:NOTES:BEGIN -->
 Built (builder-app). AC1: the premise needed correcting. Expo SDK 58 has no edge-to-edge setting to write: node_modules/@expo/prebuild-config/build/plugins/unversioned/edge-to-edge/withEdgeToEdge.js warns that android.edgeToEdgeEnabled is 'no longer available - Android 16 makes edge-to-edge mandatory' if present. React Native 0.88: node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt, updateEdgeToEdgeFeatureFlag, turns edge to edge on when the app targets SDK 35+ (always on Android 16+; on Android 15 unless the theme opts out via windowOptOutEdgeToEdgeEnforcement) and calls window.enableEdgeToEdge(). So the app is edge to edge today and stays so; app.config.ts now states that in a comment (why, and where it was verified) and sets nothing, so behaviour on a phone is unchanged. New apps/mobile/src/app-config.test.ts fails if android.edgeToEdgeEnabled is ever added. If you want an explicit value anyway, the AC should be reworded; I did not add a key that only produces a prebuild warning. AC2: DeviceSafeArea (apps/mobile/src/platform/DeviceSafeArea.tsx) no longer mounts a NativeSafeAreaProvider and lost its initialMetrics prop; it reads useSafeAreaInsets from ExpoRoot's provider and feeds @grocs/ui. Route harness (apps/mobile/testing/render-route.tsx) wraps DeviceSafeArea in the stub NativeSafeAreaProvider with initialMetrics, since ExpoRoot's provider reports zero in jsdom. safe-area.route.test (top 40 applied, none without) and layout-safe-area.test pass unchanged. Checks: pnpm check, pnpm typecheck, pnpm test (117 files, 1540 tests), pnpm check:release and pnpm check:demo all pass. Only a device can confirm: that ExpoRoot's provider reports the same non-zero insets (status bar, 48 dp bottom on 3-button, gesture bar) on the Fold and an emulator as DeviceSafeArea's own did; that edge to edge really is on at runtime (SDK 35+ target on Android 15 and 16); and TASK-30 AC3 / TASK-36 AC1 screenshots.
+
+Finish moved by the orchestrator on 2026-10-22, before review: #1 asked to state the edge-to-edge setting explicitly, but there is no setting any more (the builder's notes cite withEdgeToEdge.js and WindowUtil.kt). The criterion now asks for the reason in a comment and a guard test, which is what was built.
 <!-- SECTION:NOTES:END -->
