@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-21 15:38'
-updated_date: '2026-10-22 04:02'
+updated_date: '2026-10-22 04:03'
 labels:
   - size-2
   - layer-app
@@ -15,7 +15,6 @@ dependencies:
   - TASK-1.31.1
 modified_files:
   - apps/mobile/src/screens/GroceriesScreen.tsx
-  - apps/mobile/src/sample/sample-data.ts
   - apps/mobile/src/demo/compose-demo.ts
   - apps/mobile/src/demo/demo.route.test.tsx
   - apps/mobile/src/routes/groceries-rail.route.test.tsx
