@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-22 04:57'
+updated_date: '2026-10-22 04:59'
 labels:
   - agents
   - size-1
@@ -58,4 +58,6 @@ Reproduced directly on this machine:
 Net: AC1 is not met (dependencies are not reliably installed before the agent's first command - two independent failure modes block it), and AC2 is therefore unverified (no fresh worktree in this review ever reached a state where test/typecheck could run). Leaving status In Progress and both ACs unchecked. Scratch worktrees/branches used for reproduction were removed afterward.
 
 Review (philosophy:reviewer) found two real, reproducible failures the first pass missed: (1) a worktree-triggered pnpm install re-runs lefthook's own postinstall ('lefthook install'), which regenerates the SHARED .git/hooks/post-checkout dispatcher (every worktree shares one .git/hooks dir) with a hardcoded path into the triggering worktree's own node_modules - breaking the hook for every worktree, including main, once the triggering one is removed; (2) the ambient PATH in the non-interactive shell git invokes the hook from can carry a Node version older than mise.toml pins, so a bare 'pnpm install' fails its engines check even though mise has the right version available. Fixed both: post-checkout.ts now runs 'mise exec -- pnpm install --frozen-lockfile' (pins the Node version instead of trusting PATH) with CI=1 and LEFTHOOK=0 in its env (lefthook's postinstall.js skips re-running 'lefthook install' when CI is set and LEFTHOOK is not, per node_modules/lefthook/postinstall.js - this is a documented skip, not a hack).
+
+Re-verified end to end against the committed fix (89d2b64): created a scratch worktree with ambient PATH node still at v22.21.1 (not mise's 24.x) - install succeeded via the hook's own mise exec call, node_modules existed afterward, and .git/hooks/post-checkout's hardcoded lefthook path still pointed at the main checkout both immediately after the worktree install and after removing the scratch worktree/branch. pnpm check (14), pnpm typecheck, pnpm test (117 files/1544 tests) all green on main at 89d2b64 before push.
 <!-- SECTION:NOTES:END -->
