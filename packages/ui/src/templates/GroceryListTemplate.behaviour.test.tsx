@@ -6,7 +6,7 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './GroceryListTemplate.stories.tsx';
 
-const { Groceries, Offline, Toast, Empty, AllDone } = composeStories(stories);
+const { Groceries, Offline, Toast, Empty, AllDone, Filtered, EmptyMeal, InnerGroceries, InnerFiltered, InnerEmptyMeal } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 beforeEach(() => {
   vi.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
@@ -104,5 +104,50 @@ describe('GroceryListTemplate', () => {
     expect(onOpenPlan).toHaveBeenCalledExactlyOnceWith();
     await user.click(screen.getByRole('button', { name: 'Settings' }));
     expect(onSettings).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('narrowed to a meal shows the filter line first and goes back to every item', async () => {
+    const onShowAll = vi.fn();
+    render(<Filtered filter={{ mealName: 'Chana masala', count: 5, tone: 'amber', onShowAll }} />);
+    expect(screen.getByText('Only Chana masala · 5 to buy')).toBeTruthy();
+    expect(screen.queryByRole('checkbox', { name: 'Bell peppers' })).toBeNull();
+    expect(screen.getByRole('checkbox', { name: 'Lemon' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Show all' }));
+    expect(onShowAll).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('with a meal that has nothing left says so, and not that the whole list is empty', () => {
+    render(<EmptyMeal />);
+    expect(screen.getByText('Only Green salad · 0 to buy')).toBeTruthy();
+    expect(screen.getByText('Nothing on the list for Green salad yet.')).toBeTruthy();
+    expect(screen.queryByText('Nothing on the list yet')).toBeNull();
+    expect(screen.queryByText('All done!')).toBeNull();
+  });
+
+  it('shows no filter line when the list is not narrowed', () => {
+    render(<Groceries />);
+    expect(screen.queryByText(/^Only /)).toBeNull();
+  });
+
+  it('on the inner screen puts the meal rail where the tab bar was, with the same list', async () => {
+    const onOpenPlan = vi.fn();
+    render(<InnerGroceries onOpenPlan={onOpenPlan} rail={{ ...InnerGroceries.args.rail!, onSelectSection: (id) => id === 'plan' && onOpenPlan() }} />);
+    expect(screen.getByRole('navigation', { name: 'Sections and meals' })).toBeTruthy();
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Groceries' })).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Yellow onions' })).toBeTruthy();
+    await user.click(screen.getByRole('link', { name: 'Meal plan' }));
+    expect(onOpenPlan).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('on the inner screen narrows to the meal chosen in the rail and shows the filter line', () => {
+    render(<InnerFiltered />);
+    expect(screen.getByRole('button', { name: /^Mon.*Chana masala.*5/ }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText('Only Chana masala · 5 to buy')).toBeTruthy();
+  });
+
+  it('on the inner screen says when the chosen meal has nothing left', () => {
+    render(<InnerEmptyMeal />);
+    expect(screen.getByText('Nothing on the list for Green salad yet.')).toBeTruthy();
   });
 });
