@@ -8,6 +8,15 @@ import type { ExpoConfig } from 'expo/config';
  */
 const demo = process.env['APP_VARIANT'] === 'demo';
 
+/**
+ * Edge to edge (TASK-39): the app draws under the status bar and the navigation bar on Android, and its
+ * screens depend on the safe-area insets (DeviceSafeArea) to stay clear of them. There is no setting to
+ * write for it: Expo SDK 58 removed `android.edgeToEdgeEnabled` (the prebuild plugin warns it is "no longer
+ * available - Android 16 makes edge-to-edge mandatory"), and React Native 0.88 turns it on by itself when
+ * the app targets SDK 35 or later (WindowUtil.kt, updateEdgeToEdgeFeatureFlag). So this file states it by
+ * not setting it, and app-config.test.ts fails if `edgeToEdgeEnabled` is added.
+ */
+
 export default (): ExpoConfig => ({
   name: demo ? 'Grocs Demo' : 'Grocs',
   slug: 'grocs',
