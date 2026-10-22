@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { transformSync } from '@babel/core';
 import { configure } from '@testing-library/react';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -78,3 +78,13 @@ vi.mock('react-native-safe-area-context', () => require('./stubs/react-native-sa
 // once starve a route test's React renders and FakeKitchenGateway round trips past that window, even
 // though nothing is actually broken - the same content shows up moments later in a quieter run.
 configure({ asyncUtilTimeout: 5000 });
+
+// jsdom has no layout, so react-native-web would read a window width of 0 (documentElement.clientWidth). It
+// reads window.innerWidth here instead, which a test sets and follows with a 'resize' event. Each test starts
+// at the outer screen's width (412 dp); a test of the inner layout widens the window itself.
+Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, get: () => window.innerWidth });
+Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, get: () => window.innerHeight });
+beforeEach(() => {
+  window.innerWidth = 412;
+  window.dispatchEvent(new Event('resize'));
+});
