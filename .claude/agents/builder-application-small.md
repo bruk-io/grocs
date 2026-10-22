@@ -24,8 +24,8 @@ You may write only within:
 
 Your Bash is narrowed to this layer's own checks, enforced by the write guard
 (`tools/hooks/pre-edit.ts`) rather than by this tool list:
-- `vitest run --project unit packages/application`
-- `pnpm -s typecheck`
+- `mise exec -- pnpm exec vitest run --project unit packages/application`
+- `mise exec -- pnpm -s typecheck`
 
 ## Examples from the walking skeleton (TASK-1.4)
 

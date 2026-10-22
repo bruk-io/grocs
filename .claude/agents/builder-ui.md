@@ -24,12 +24,12 @@ You may write only within:
 
 Your Bash is narrowed to this layer's own checks, enforced by the write guard
 (`tools/hooks/pre-edit.ts`) rather than by this tool list:
-- `vitest run --project ui`
-- `pnpm -s typecheck`
-- `pnpm --filter @grocs/ui build-storybook`
-- `pnpm --filter @grocs/ui shots`
-- `pnpm --filter @grocs/ui visual`
-- `pnpm --filter @grocs/ui visual:update`
+- `mise exec -- pnpm exec vitest run --project ui`
+- `mise exec -- pnpm -s typecheck`
+- `mise exec -- pnpm --filter @grocs/ui build-storybook`
+- `mise exec -- pnpm --filter @grocs/ui shots`
+- `mise exec -- pnpm --filter @grocs/ui visual`
+- `mise exec -- pnpm --filter @grocs/ui visual:update`
 
 ## Examples from the walking skeleton (TASK-1.4)
 

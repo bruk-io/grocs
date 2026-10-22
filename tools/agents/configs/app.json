@@ -2,8 +2,8 @@
   "layer": "app",
   "summary": "App: the composition root. Chooses and wires providers; screens connect application to UI (R26, R31)",
   "paths": ["apps/**"],
-  "testCommand": "vitest run --project app --project tools apps",
-  "typecheckCommand": "pnpm -s typecheck",
+  "testCommand": "mise exec -- pnpm exec vitest run --project app --project tools apps",
+  "typecheckCommand": "mise exec -- pnpm -s typecheck",
   "rulesFiles": [],
   "exampleFiles": ["apps/mobile/src/composition/compose-app.ts", "apps/mobile/app/index.tsx", "apps/mobile/src/screens/ListScreen.tsx"]
 }

@@ -179,15 +179,15 @@ describe('write guard (decision-3): layer agents and the orchestrator', () => {
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toContain('write-guard/bash-narrowed');
 
-    const allowed = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'vitest run --project unit packages/core' } });
+    const allowed = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'mise exec -- pnpm exec vitest run --project unit packages/core' } });
     expect(allowed.status).toBe(0);
   });
 
   it("also lets a layer agent run the extra commands its config lists, and no others", () => {
-    const allowed = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-ui', tool_input: { command: 'pnpm --filter @grocs/ui shots' } });
+    const allowed = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-ui', tool_input: { command: 'mise exec -- pnpm --filter @grocs/ui shots' } });
     expect(allowed.status).toBe(0);
 
-    const blocked = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'pnpm --filter @grocs/ui shots' } });
+    const blocked = hook('pre-edit', { tool_name: 'Bash', agent_type: 'builder-core', tool_input: { command: 'mise exec -- pnpm --filter @grocs/ui shots' } });
     expect(blocked.status).toBe(2);
     expect(blocked.stderr).toContain('write-guard/bash-narrowed');
   });

@@ -1,15 +1,16 @@
 ---
 id: TASK-42
 title: 'New agent worktrees start without dependencies, so layer builders stall'
-status: Done
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-22 19:13'
+updated_date: '2026-10-22 19:22'
 labels:
   - agents
   - size-1
-dependencies: []
+dependencies:
+  - TASK-44
 modified_files:
   - tools/hooks/post-checkout.ts
   - lefthook.yml
@@ -25,7 +26,7 @@ Found Oct 19, 2026: worktrees from the Agent tool's isolation:'worktree' have no
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 A worktree made for an agent has its dependencies installed before the agent's first command, without the agent running an install
-- [x] #2 A layer builder can run its layer's test and type-check commands in a fresh worktree on its first try
+- [ ] #2 A layer builder can run its layer's test and type-check commands in a fresh worktree on its first try
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -123,4 +124,8 @@ may want to decide whether this is worth its own follow-up task, since I was not
 Orchestrator follow-up (2026-10-22): tested the reviewer's exact open question directly. A genuinely fresh shell - zsh -lc 'node --version && pnpm -s typecheck' (simulating what a newly spawned layer-builder agent's Bash actually gets, as opposed to this long-lived orchestrator session's stale snapshot) - resolved node to v25.2.1 via mise's shims on PATH by default, and the literal 'pnpm -s typecheck' command the write-guard requires ran clean with no engines error. The ambient-PATH staleness the reviewer found is specific to this session's own long-lived shell (which predates mise.toml being tracked and never re-sourced its profile), not a systemic condition a fresh agent worktree or fresh layer-builder Bash would share. AC2 holds; checking it.
 
 Both acceptance criteria met and independently verified across two review passes. AC1 (fresh worktree gets node_modules installed, no manual install): confirmed end to end multiple times, including under an ambient PATH carrying the wrong Node version - the hook's mise exec call installs correctly regardless, and the shared .git/hooks/post-checkout dispatcher survives the install and worktree removal, pointing at main throughout. AC2 (a layer builder can run its layer's test/typecheck commands on first try): the one open question - whether this session's observed ERR_PNPM_UNSUPPORTED_ENGINE under write-guard's exact-string test/typecheck commands would affect a real fresh layer-builder agent - resolved: a genuinely fresh shell resolves the correct Node version via mise's shims by default; the staleness is specific to this long-lived orchestrator session's own shell snapshot, not a systemic condition. No follow-up task needed.
+
+Reopened by @claude (2026-10-22): the AC2 close was wrong. The evidence used (zsh -lc 'node --version && pnpm -s typecheck') tested a LOGIN shell, which re-sources profile scripts differently than a real agent's Bash tool - it is not representative. Tested properly with two independent fresh general-purpose agents running the literal commands directly through their own Bash tool (no shell wrapper): (1) echo $PATH shows this machine's mise installs/node/22/bin ahead of mise/shims on a fresh agent's default PATH, not just in this long-lived session; (2) running the literal 'node --version && pnpm -s typecheck' came back v22.21.1 and ERR_PNPM_UNSUPPORTED_ENGINE, exactly reproducing the original reviewer's finding; (3) a bare 'vitest run --project unit packages/core' (every layer's exact configured testCommand, confirmed via tools/agents/configs/*.json) separately fails with 'command not found: vitest' in every shell tried, login or not, fresh or stale, since node_modules/.bin is never on PATH outside a pnpm-run script context - this is a second, distinct failure mode, not explained by Node version at all. AC2 does not hold. Filing the root cause as its own task and marking it a blocker for this AC per the standing goal's rule.
+
+AC2 is blocked on TASK-44 (the write-guard command-resolution gap this finding led to).
 <!-- SECTION:NOTES:END -->

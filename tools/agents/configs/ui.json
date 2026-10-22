@@ -2,9 +2,9 @@
   "layer": "ui",
   "summary": "UI: presentational components on design tokens only; data and callbacks come in as props (R26, R38)",
   "paths": ["packages/ui/**"],
-  "testCommand": "vitest run --project ui",
-  "typecheckCommand": "pnpm -s typecheck",
+  "testCommand": "mise exec -- pnpm exec vitest run --project ui",
+  "typecheckCommand": "mise exec -- pnpm -s typecheck",
   "rulesFiles": [],
   "exampleFiles": ["packages/ui/src/atoms/Button.tsx", "packages/ui/src/molecules/ItemRow.tsx", "packages/ui/src/tokens/tokens.ts"],
-  "extraCommands": ["pnpm --filter @grocs/ui build-storybook", "pnpm --filter @grocs/ui shots", "pnpm --filter @grocs/ui visual", "pnpm --filter @grocs/ui visual:update"]
+  "extraCommands": ["mise exec -- pnpm --filter @grocs/ui build-storybook", "mise exec -- pnpm --filter @grocs/ui shots", "mise exec -- pnpm --filter @grocs/ui visual", "mise exec -- pnpm --filter @grocs/ui visual:update"]
 }

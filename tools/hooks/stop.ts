@@ -7,10 +7,14 @@ import { needsBrowserPass, readPayload, repoRoot } from './lib.ts';
 
 const payload = await readPayload();
 
+// Runs through mise so this hook checks against the Node version mise.toml pins, not whatever
+// is ahead of mise's shims on this process's own PATH (TASK-44: the same ambient-PATH gap that
+// broke a layer builder's configured commands shows up here too, since this hook spawns pnpm
+// directly rather than through a shell that resolves mise's shims).
 const steps: { name: string; cmd: string; args: string[] }[] = [
-  { name: 'checks', cmd: 'node', args: ['tools/checks/run.ts', '--mode', 'all'] },
-  { name: 'typecheck', cmd: 'pnpm', args: ['-s', 'typecheck'] },
-  { name: 'unit tests', cmd: 'pnpm', args: ['-s', 'test'] },
+  { name: 'checks', cmd: 'mise', args: ['exec', '--', 'node', 'tools/checks/run.ts', '--mode', 'all'] },
+  { name: 'typecheck', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'typecheck'] },
+  { name: 'unit tests', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'test'] },
 ];
 
 /** Files this change touches compared with main: committed, uncommitted and new. Null when that cannot be told. */
