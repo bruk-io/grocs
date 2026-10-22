@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-22 19:21'
-updated_date: '2026-10-22 19:25'
+updated_date: '2026-10-22 19:30'
 labels:
   - size-2
 dependencies: []
@@ -64,4 +64,6 @@ A fresh (non-orchestrator-session) agent running the exact configured testComman
 Plan drift: the write-guard tests live in tools/hooks/hooks.test.ts, not a separate write-guard.test.ts. Also extended the fix beyond testCommand/typecheckCommand to ui.json's extraCommands, which have the identical engines-check failure mode under the wrong ambient Node (same root cause, same files, no separate risk).
 
 Fixed: all 6 layer configs' testCommand/typecheckCommand (and ui.json's extraCommands) now prefixed with 'mise exec --' (test commands additionally go through 'pnpm exec' to resolve the vitest binary, which is never on PATH outside a pnpm-run script context). Regenerated .claude/agents/*.md via pnpm agents:generate - no drift, pnpm check's agent-definitions check passes. Updated tools/hooks/hooks.test.ts's two hardcoded literal-command fixtures to match. Verified end to end with an independent fresh general-purpose agent: created a scratch worktree, ran the exact new typecheckCommand and testCommand (core layer) directly via its own Bash tool - both exited 0 (tsc clean; 10 files/70 tests passed), cleaned up after. Also fixed tools/hooks/stop.ts, which has been causing this whole session's recurring 'typecheck/unit tests failed: ERR_PNPM_UNSUPPORTED_ENGINE' Stop-hook false alarms - same root cause (bare pnpm/node spawned without resolving mise's shims); now runs every step through mise exec. Full suite green: pnpm check (14), pnpm typecheck, pnpm test (117 files/1545 tests).
+
+AC1 follow-up: the earlier verification only ran core's commands. A fresh agent ran all 6 layers' exact testCommand strings (core, application, ports, providers, ui, app) directly via its own Bash tool in one scratch worktree - all 6 passed (97 test files, 1240 tests, 0 failures total). typecheckCommand is identical across all 6 configs, already verified. Cleanup confirmed.
 <!-- SECTION:NOTES:END -->
