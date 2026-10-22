@@ -6,6 +6,7 @@ title: >-
 status: Draft
 assignee: []
 created_date: '2026-10-22 20:07'
+updated_date: '2026-10-22 23:14'
 labels: []
 dependencies: []
 type: bug
@@ -36,3 +37,9 @@ apps/mobile's Welcome screen on Android (packages/ui, apps/mobile - UI layer; fi
 <!-- AC:BEGIN -->
 - [ ] #1 A UI-layer investigation confirms or rules out the overlap on a real device or CI's actual emulator job, and either fixes it or explains why these four local reproductions do not reflect what ships
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Superseded: this is TASK-36 itself, which was never closed (left open pending exactly this device check). Folded this draft's findings into TASK-36's notes instead of tracking the same issue twice. Archiving.
+<!-- SECTION:NOTES:END -->

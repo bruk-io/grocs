@@ -1,10 +1,10 @@
 ---
 id: TASK-45
 title: 'The emulator run screenshots the key screens on Android, not just Welcome'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-21 12:09'
-updated_date: '2026-10-22 20:08'
+updated_date: '2026-10-22 23:15'
 labels:
   - ci
   - testing
@@ -63,4 +63,8 @@ AC2 (dialog coverage) verified by code reading, not a fresh live repro: the new 
 AC3 (fails on both the historical and current build) verified far more thoroughly than planned, on two emulators: a pixel_6/API 36 AVD and a freshly-built pixel_6/API 34 AVD matching CI's demo-apk.yml smoke job exactly (downloaded the system image, confirmed via `./gradlew app:properties`: targetSdk 36/compileSdk 37). All four combinations (2 builds x 2 API levels), with clean installs and settled renders, show the identical overlap: label bounds [408,2321][672,2374], clickable Button bounds [63,2274][1017,2400] (bottom flush with the screen edge), navigationBars frame [0,2337][1080,2400]. This means the check currently fails on CURRENT MAIN too, not just the historical commit - the overlap TASK-36 was meant to fix is still present. Filed as DRAFT-20 (UI-layer, filed as an observation only per the UI/backend boundary, not picked up by any agent). Confirmed demo-apk.yml does not trigger on push to main (workflow_dispatch, push to apk/** branches, demo-v* tags only), so landing this check does not turn main's CI red - it will correctly fail the next time someone cuts a demo tag or dispatches the workflow, until DRAFT-20 is resolved.
 
 Full suite green: pnpm check (14), pnpm typecheck, pnpm test.
+
+Independently re-verified by a reviewer dispatched for this task: re-derived the bounds-containment regex logic from scratch, confirmed [^>]* (not [^/]*) is correct because it is bounded by the tag's own closing >, reproduced the exact same overlap bit-for-bit on its own fresh ci34 AVD run, and found that TASK-36 itself was never actually closed - its reviewer explicitly left it NOT CLOSED pending exactly this device check, which this task's live run finally provided. Updated TASK-36 directly with the device-check evidence instead of tracking it as a separate regression; DRAFT-20 (the earlier placeholder for this) has been archived as superseded. Also surfaced DRAFT-20 (now), a genuine CI-relevant finding: demo-smoke.sh's monkey-based launch intermittently fails on the CI-matching pixel_6/API 34 profile with System.exit status -5, reproduced independently twice; am start works reliably as a replacement.
+
+All three acceptance criteria met and independently re-verified by a second reviewer on its own fresh emulator run. The check correctly distinguishes a control merely inside the display's root bounds from one actually behind the navigation bar, using the real clickable control's bounds (not the inner text label - an implementation bug caught during this work). Verified on two API levels including CI's exact profile. In the process, found and properly attributed the apparent 'regression' to TASK-36 itself, which was never closed; updated that task directly with the device-check evidence rather than tracking a duplicate. Also surfaced a genuine, separate CI finding (DRAFT-20: demo-smoke.sh's monkey launch intermittently fails on CI's exact device profile) which will be addressed as its own small follow-up.
 <!-- SECTION:NOTES:END -->
