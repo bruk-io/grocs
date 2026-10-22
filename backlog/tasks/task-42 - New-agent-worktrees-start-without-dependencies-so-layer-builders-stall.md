@@ -1,11 +1,11 @@
 ---
 id: TASK-42
 title: 'New agent worktrees start without dependencies, so layer builders stall'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-22 19:22'
+updated_date: '2026-10-22 23:12'
 labels:
   - agents
   - size-1
@@ -26,7 +26,7 @@ Found Oct 19, 2026: worktrees from the Agent tool's isolation:'worktree' have no
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 A worktree made for an agent has its dependencies installed before the agent's first command, without the agent running an install
-- [ ] #2 A layer builder can run its layer's test and type-check commands in a fresh worktree on its first try
+- [x] #2 A layer builder can run its layer's test and type-check commands in a fresh worktree on its first try
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -128,4 +128,8 @@ Both acceptance criteria met and independently verified across two review passes
 Reopened by @claude (2026-10-22): the AC2 close was wrong. The evidence used (zsh -lc 'node --version && pnpm -s typecheck') tested a LOGIN shell, which re-sources profile scripts differently than a real agent's Bash tool - it is not representative. Tested properly with two independent fresh general-purpose agents running the literal commands directly through their own Bash tool (no shell wrapper): (1) echo $PATH shows this machine's mise installs/node/22/bin ahead of mise/shims on a fresh agent's default PATH, not just in this long-lived session; (2) running the literal 'node --version && pnpm -s typecheck' came back v22.21.1 and ERR_PNPM_UNSUPPORTED_ENGINE, exactly reproducing the original reviewer's finding; (3) a bare 'vitest run --project unit packages/core' (every layer's exact configured testCommand, confirmed via tools/agents/configs/*.json) separately fails with 'command not found: vitest' in every shell tried, login or not, fresh or stale, since node_modules/.bin is never on PATH outside a pnpm-run script context - this is a second, distinct failure mode, not explained by Node version at all. AC2 does not hold. Filing the root cause as its own task and marking it a blocker for this AC per the standing goal's rule.
 
 AC2 is blocked on TASK-44 (the write-guard command-resolution gap this finding led to).
+
+AC2 now holds: TASK-44 fixed the root cause (every layer's configured test/typecheck commands now resolve correctly on a fresh Bash tool, independently verified across all 6 layers by fresh agents). Re-checking AC2.
+
+Both acceptance criteria genuinely met. AC1 (fresh worktree gets node_modules installed, no manual install): confirmed end to end multiple times, including under an ambient PATH carrying the wrong Node version - the post-checkout hook's mise exec call installs correctly regardless, and the shared .git/hooks/post-checkout dispatcher survives both the install and worktree removal. AC2 (a layer builder can run its layer's test/typecheck commands on a fresh worktree on first try): closed via TASK-44, which fixed the two distinct failure modes a fresh agent's Bash tool actually hits (wrong ambient Node version, and bare vitest never resolving). This task went through two close/reopen cycles - closed once prematurely on a login-shell test that wasn't representative of a real agent's Bash tool, caught and reopened, root-caused and fixed as TASK-44, and now genuinely closes.
 <!-- SECTION:NOTES:END -->

@@ -3,11 +3,11 @@ id: TASK-44
 title: >-
   A layer builder's configured test and typecheck commands fail on a fresh Bash
   tool
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-22 19:21'
-updated_date: '2026-10-22 19:30'
+updated_date: '2026-10-22 23:11'
 labels:
   - size-2
 dependencies: []
@@ -66,4 +66,8 @@ Plan drift: the write-guard tests live in tools/hooks/hooks.test.ts, not a separ
 Fixed: all 6 layer configs' testCommand/typecheckCommand (and ui.json's extraCommands) now prefixed with 'mise exec --' (test commands additionally go through 'pnpm exec' to resolve the vitest binary, which is never on PATH outside a pnpm-run script context). Regenerated .claude/agents/*.md via pnpm agents:generate - no drift, pnpm check's agent-definitions check passes. Updated tools/hooks/hooks.test.ts's two hardcoded literal-command fixtures to match. Verified end to end with an independent fresh general-purpose agent: created a scratch worktree, ran the exact new typecheckCommand and testCommand (core layer) directly via its own Bash tool - both exited 0 (tsc clean; 10 files/70 tests passed), cleaned up after. Also fixed tools/hooks/stop.ts, which has been causing this whole session's recurring 'typecheck/unit tests failed: ERR_PNPM_UNSUPPORTED_ENGINE' Stop-hook false alarms - same root cause (bare pnpm/node spawned without resolving mise's shims); now runs every step through mise exec. Full suite green: pnpm check (14), pnpm typecheck, pnpm test (117 files/1545 tests).
 
 AC1 follow-up: the earlier verification only ran core's commands. A fresh agent ran all 6 layers' exact testCommand strings (core, application, ports, providers, ui, app) directly via its own Bash tool in one scratch worktree - all 6 passed (97 test files, 1240 tests, 0 failures total). typecheckCommand is identical across all 6 configs, already verified. Cleanup confirmed.
+
+No repro: this is an environment/PATH-resolution bug (ambient Node version and bare vitest resolution in a fresh Bash tool), not a code defect with a test file to point record-check's --repro at. The repro and the fix's verification are both recorded above as literal command transcripts from independent fresh agents (not this session), which is the actual reproducible unit here.
+
+Both testCommand/typecheckCommand (and ui.json's extraCommands) across all 6 layer configs now resolve correctly on a genuinely fresh Bash tool, independently verified by multiple fresh general-purpose agents - not just this session, which has its own separate, pre-existing stale-PATH quirk. Root cause had two distinct failure modes (ambient Node version via mise's installs/node/22/bin preceding shims on a fresh agent's PATH, and bare vitest never resolving outside a pnpm-run script context), both fixed by routing every configured command through mise exec -- (test commands additionally through pnpm exec). Regenerated .claude/agents/*.md with no drift; pnpm check's agent-definitions check passes. Also fixed tools/hooks/stop.ts, an unrelated instance of the same bare-pnpm gap that had been the source of this session's own recurring Stop-hook false alarms.
 <!-- SECTION:NOTES:END -->
