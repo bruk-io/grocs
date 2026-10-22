@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-19 12:40'
-updated_date: '2026-10-22 04:44'
+updated_date: '2026-10-22 04:57'
 labels:
   - agents
   - size-1
@@ -43,3 +43,19 @@ pnpm must already be on PATH wherever git worktree add runs for this to help - t
 ### Proof
 A scratch worktree created after this change has node_modules without anyone running an install by hand; pnpm check/typecheck/test still pass from the main checkout.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review by @claude (2026-10-22), per task-finalization: did NOT close, both ACs remain unmet on independent reproduction.
+
+Board had no implementation notes, comments, or final summary recording the claimed verification - nothing to check the reported manual test against, as required before closing.
+
+Reproduced directly on this machine:
+1. `git worktree add -b scratch /tmp/wt main` printed "Can't find lefthook in PATH" and the new worktree had no node_modules - AC1 failed outright. Cause: the committed lefthook.yml/post-checkout.ts are fine, but the *locally generated, uncommitted* .git/hooks/post-checkout dispatcher that `lefthook install`/`pnpm hooks:install` writes had a stale hardcoded fallback path baked in from a previous run - `/private/tmp/test-worktree-depcheck3/node_modules/lefthook-darwin-arm64/bin/lefthook` - which no longer exists. That implies hooks:install was last run from inside a scratch worktree rather than the main checkout; since git worktrees share one .git/hooks directory, that run overwrote the shared hook with a path specific to that now-deleted worktree. Every other fallback in lefthook's dispatcher also probes `$dir/node_modules/...` where $dir is the *new* worktree's own toplevel - which by definition has no node_modules yet - so none of them can bootstrap a brand-new worktree either; the dispatcher can only work via a global `lefthook` on PATH (not installed on this machine) or a correctly-pathed stale fallback.
+2. After re-running `mise exec -- pnpm hooks:install` from the main checkout root (regenerating the hook with the correct absolute path), a fresh worktree add did invoke post-checkout.ts, but `pnpm install --frozen-lockfile` then failed loud with ERR_PNPM_UNSUPPORTED_ENGINE: the ambient `node` on PATH during `git worktree add` was v22.21.1 (mise shims not active in this shell), while package.json requires >=24.12. node_modules was still missing afterward. This is the same ambient-PATH gap the Risk section anticipated only for a missing pnpm, not for a wrong-but-present node/pnpm version - and it reproduces in exactly the kind of non-interactive shell an Agent-tool worktree would run in.
+
+Net: AC1 is not met (dependencies are not reliably installed before the agent's first command - two independent failure modes block it), and AC2 is therefore unverified (no fresh worktree in this review ever reached a state where test/typecheck could run). Leaving status In Progress and both ACs unchecked. Scratch worktrees/branches used for reproduction were removed afterward.
+
+Review (philosophy:reviewer) found two real, reproducible failures the first pass missed: (1) a worktree-triggered pnpm install re-runs lefthook's own postinstall ('lefthook install'), which regenerates the SHARED .git/hooks/post-checkout dispatcher (every worktree shares one .git/hooks dir) with a hardcoded path into the triggering worktree's own node_modules - breaking the hook for every worktree, including main, once the triggering one is removed; (2) the ambient PATH in the non-interactive shell git invokes the hook from can carry a Node version older than mise.toml pins, so a bare 'pnpm install' fails its engines check even though mise has the right version available. Fixed both: post-checkout.ts now runs 'mise exec -- pnpm install --frozen-lockfile' (pins the Node version instead of trusting PATH) with CI=1 and LEFTHOOK=0 in its env (lefthook's postinstall.js skips re-running 'lefthook install' when CI is set and LEFTHOOK is not, per node_modules/lefthook/postinstall.js - this is a documented skip, not a hack).
+<!-- SECTION:NOTES:END -->

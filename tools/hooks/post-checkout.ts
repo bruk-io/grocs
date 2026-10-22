@@ -14,7 +14,20 @@ function main(): number {
   if (existsSync(join(root, 'node_modules'))) return 0;
   console.log('post-checkout: node_modules is missing here, installing...');
   try {
-    execFileSync('pnpm', ['install', '--frozen-lockfile'], { cwd: root, stdio: 'inherit' });
+    // mise.toml pins the Node version pnpm's engines check needs; the ambient PATH in the
+    // non-interactive shell git invokes this hook from can carry a different one, so this runs
+    // through mise rather than trusting PATH (TASK-42 review).
+    //
+    // CI=1 (with LEFTHOOK unset) makes lefthook's own postinstall skip re-running `lefthook
+    // install`. Every worktree shares one .git/hooks directory; letting that command run here
+    // would bake *this* worktree's own node_modules path into the shared post-checkout
+    // dispatcher, breaking it for every other worktree, including the main checkout, the moment
+    // this one is removed (TASK-42 review).
+    execFileSync('mise', ['exec', '--', 'pnpm', 'install', '--frozen-lockfile'], {
+      cwd: root,
+      stdio: 'inherit',
+      env: { ...process.env, CI: '1', LEFTHOOK: '0' },
+    });
   } catch (error) {
     console.error('post-checkout: install failed, a layer builder may need to report this rather than push through:', error);
     return 1;
