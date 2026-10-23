@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-23 01:30'
+updated_date: '2026-10-23 02:55'
 labels:
   - size-2
   - layer-ui
@@ -25,7 +25,7 @@ Welcome, the first screen anyone sees; StageLayout, SignInTemplate, KitchenScene
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 On the demo APK on an Android device or emulator with 3-button navigation and with gesture navigation, 'Try the demo' sits whole above the navigation bar, with screenshots in the notes
+- [x] #1 On the demo APK on an Android device or emulator with 3-button navigation and with gesture navigation, 'Try the demo' sits whole above the navigation bar, with screenshots in the notes
 - [x] #2 The cause is named in the notes, and a test or story that fails on the cause is added where the browser can show it
 <!-- AC:END -->
 
@@ -227,4 +227,14 @@ visual: 398 story views checked (axe, 44 x 44, 398 images compared)
 ```
 
 Review (philosophy:reviewer, 2026-10-22, Stage 3): NOT CLOSED, only because #1 needs a device (the other session checks main after merge); close-task not run on purpose. #2 MET, ticked. Cause checked against the code: StageLayout's sheet is content-sized (sheet {marginTop: -space4}, sheetBody {}), the stage is flex 1 minHeight 0, and AuthSheet was flex: 1 (basis 0 on Yoga) with paddingTop/Bottom space24. At 2.625 px/dp: AuthSheet 48 dp = 126 px, inset spacer 63 px, sheet top 2400 - 189 = 2211 (the -4 dp margin gives the stage 10.5 px and pulls the sheet up the same, so it cancels), button top 2211 + 63 = 2274. Matches the emulator's [2274,2400]. One correction: the button is not 126 px. Button big height is size.control = 56 dp = 147 px, so its bottom is at 2421, and the dump's 2400 is the screen clipping it. The 126 px is the sheet, not the button. This does not change the cause. Test: asserting on the flattened style is an acceptable 'fails on the cause' here, since the cause is the style value itself and the browser's flexbox cannot reproduce Yoga's basis-0 result; the repro (record-check --repro against the reverted style, 2 of 8 fail) shows it fails on flex: 1. It does not prove the layout on a device; that is #1. Repro recorded by reverting in the working tree rather than a test-first commit: acceptable given the pre-commit hook; record-check captured the commit and command. Audit: agreed. The Welcome screen's flex: 1 uses are StageLayout screen/stage/scene and KitchenScene window, all under definite heights. Findings: (low) the audit did not trace every other flex: 1 in packages/ui to its parent's height, so the same Yoga basis-0 trap could exist on another screen under a content-sized column. Nothing points to one, so no draft. (low) the emulator's nav bar is 63 px = 24 dp (gesture navigation), not 48 dp 3-button; #1 still needs both modes. Full check (record-check --tier full) exited 0: 398 images match, and the tree is unchanged apart from this task file. Merge: ready to merge to main.
+
+Device check, re-run against the fix (orchestrator, 2026-10-22): AC1 is now met. Built the demo APK from current main (50d4b9b, includes 895bf99's AuthSheet flexGrow fix) and installed cleanly on the same pixel_6/API 34 AVD used for the earlier failing check, in both navigation modes.
+
+Gesture navigation (nav bar [0,2337][1080,2400], 63px): 'Try the demo' label bounds [408,2174][672,2227]; its clickable Button ancestor [63,2127][1017,2274]. Button bottom 2274 < nav bar top 2337 - fully clear, 63px of headroom. Screenshot shows the button whole, above the gesture pill.
+
+3-button navigation (nav bar [0,2274][1080,2400], 126px - the taller 48dp bar, confirmed via adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton): label bounds [408,2111][672,2164]; Button bounds [63,2064][1017,2211]. Button bottom 2211 < nav bar top 2274 - fully clear, 63px of headroom there too. Screenshot shows the button whole, above the three system buttons.
+
+tools/demo-smoke.sh (TASK-45) run against this build in both navigation modes: 'smoke ok: io.bruk.grocs.demo is running and the Welcome screen shows "Try the demo"' - exit 0 both times, where it failed with the navigation-bar-overlap message every time before this fix.
+
+AC1 met: on a device/emulator with 3-button navigation and with gesture navigation, Try the demo sits whole above the navigation bar, evidenced by the bounds and screenshots above. Sending to philosophy:reviewer to close #1.
 <!-- SECTION:NOTES:END -->
