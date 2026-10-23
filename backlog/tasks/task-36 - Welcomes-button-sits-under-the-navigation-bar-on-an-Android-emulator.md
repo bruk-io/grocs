@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-23 01:09'
+updated_date: '2026-10-23 01:30'
 labels:
   - size-2
   - layer-ui
@@ -26,7 +26,7 @@ Welcome, the first screen anyone sees; StageLayout, SignInTemplate, KitchenScene
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 On the demo APK on an Android device or emulator with 3-button navigation and with gesture navigation, 'Try the demo' sits whole above the navigation bar, with screenshots in the notes
-- [ ] #2 The cause is named in the notes, and a test or story that fails on the cause is added where the browser can show it
+- [x] #2 The cause is named in the notes, and a test or story that fails on the cause is added where the browser can show it
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -159,4 +159,72 @@ Stage 3 (builder-ui, plan then report). Plan: AuthSheet's sheet style flex: 1 ->
 Done: AuthSheet.tsx sheet style is now flexGrow: 1. It sizes to its content under StageLayout's content-sized sheet and still grows to fill a parent that has a height. Test: AuthSheet.behaviour.test.tsx 'does not set a flex basis of 0 on the %s sheet, which Yoga turns into a sheet of padding only under a content-sized parent' (both the sign-in and primary-action sheets). It calls AuthSheet (a plain function component), flattens the root View's style and asserts flex is unset/0/negative and flexBasis is unset or auto. Repro recorded with record-check --repro against flex: 1 (2 of 8 fail), fix restored afterwards. The test and fix are one commit, not test-first, because the pre-commit hook runs the full unit tests and rejects a commit with a failing test.
 Audit of flex: 1 in packages/ui/src (same pattern = a flex: 1 column child whose parent is content-sized): none other found on the Welcome screen. StageLayout screen/stage/scene and KitchenScene window have definite-height parents (screen flex 1 under the router; stage flex 1 minHeight 0). Others are in row parents where flex: 1 shares width (TextField, PreferencesTemplate switchLabel, SectionHeader title, SuggestionRow/ItemRow/DayMeal/DayRow/RailRow/StatusBanner/StatusRow/MainHeader/SubHeader/RecipeSummary/CelebrationBanner text, InviteCard button, MealFilterLine, RailLink, TabItem) which have a definite width, or are layouts' screen/scroll under a screen with a height (TaskLayout, MainLayout, InnerLayout, MealRail scroll). I did not trace every one to its parent's height; none is on this screen, so none was changed. SignInTemplate.stories.tsx has a flex: 1 decorator (story-only).
 Baselines: none changed (visual: 398 story views, 398 images match). pnpm check, pnpm typecheck and full unit tests passed (in the pre-commit hook). Not run: pnpm test:emulator. AC1 needs a device: not met by me.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(754 earlier lines omitted)
+```text
+|  storybook-static/assets/PreferencesTemplate.stories-Ke3lnm0L.js
+|  4.69 kB │ gzip:   1.82 kB
+|  storybook-static/assets/ItemRow-bUPTHXCl.js
+|  5.19 kB │ gzip:   1.99 kB
+|  storybook-static/assets/Button-DQIce8AX.js
+|  6.43 kB │ gzip:   2.04 kB
+|  storybook-static/assets/react-BWPDF9mI.js
+|  7.87 kB │ gzip:   3.00 kB
+|  storybook-static/assets/GroceryListTemplate.stories-Yf5CKbJm.js
+|  9.35 kB │ gzip:   3.10 kB
+|  storybook-static/assets/Mascot-DBOHd5kg.js
+|  12.29 kB │ gzip:   4.46 kB
+|  storybook-static/assets/icons-Cle-J8lQ.js
+|  15.62 kB │ gzip:   2.56 kB
+|  storybook-static/assets/KitchenScene-Cxy6ku_c.js
+|  18.10 kB │ gzip:   5.05 kB
+|  storybook-static/vite-inject-mocker-entry.js
+|  27.81 kB │ gzip:   9.67 kB
+|  storybook-static/assets/module-fHjPET1_.js
+|  35.63 kB │ gzip:  10.09 kB
+|  storybook-static/assets/art-Cy-k8njJ.js
+|  167.09 kB │ gzip:  49.83 kB
+|  storybook-static/assets/react-18-CZ7Uj1bU.js
+|  211.29 kB │ gzip:  66.04 kB
+|  storybook-static/assets/iframe-DmsEaFnu.js
+|  1,360.62 kB │ gzip: 392.03 kB
+
+|
+!  Vite [plugin builtin:vite-reporter]
+|  (!) Some chunks are larger than 500 kB after minification. Consider:
+|  - Using dynamic import() to code-split the application
+|  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+|  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+|  - Adjust chunk size limit for this warning via
+|  build.chunkSizeWarningLimit.
+|
+!  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+|  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+|  Vite ✓ built in 7.00s
+|
+!  Vite [33m[PLUGIN_TIMINGS] [0mJavaScript callbacks ran for 5.7s of this 6.9s
+|  build (82%).
+|  The slowest callbacks, timed inside each callback (the wait before a
+|  callback starts is excluded, the time it awaits is included):
+|  - plugin storybook:react-docgen-plugin transform (36%, 2.5s, 835
+|  calls)
+|  - plugin vite:css transform (29%, 2.0s, 2 calls)
+|  Additional callback time came from callbacks under 1s.
+|  See ]8;;https://rolldown.rs/reference/InputOptions.checks#bundlertimingshttps://rolldown.rs/reference/InputOptions.checks#bundlertimings]8;;
+|  for more details.
+
+|
+o  Output directory:
+|  /home/claude/grocs/.claude/worktrees/agent-a82aba97d6e181482/packages/ui/storybook-static
+|
+—  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: 398 story views checked (axe, 44 x 44, 398 images compared)
+```
+
+Review (philosophy:reviewer, 2026-10-22, Stage 3): NOT CLOSED, only because #1 needs a device (the other session checks main after merge); close-task not run on purpose. #2 MET, ticked. Cause checked against the code: StageLayout's sheet is content-sized (sheet {marginTop: -space4}, sheetBody {}), the stage is flex 1 minHeight 0, and AuthSheet was flex: 1 (basis 0 on Yoga) with paddingTop/Bottom space24. At 2.625 px/dp: AuthSheet 48 dp = 126 px, inset spacer 63 px, sheet top 2400 - 189 = 2211 (the -4 dp margin gives the stage 10.5 px and pulls the sheet up the same, so it cancels), button top 2211 + 63 = 2274. Matches the emulator's [2274,2400]. One correction: the button is not 126 px. Button big height is size.control = 56 dp = 147 px, so its bottom is at 2421, and the dump's 2400 is the screen clipping it. The 126 px is the sheet, not the button. This does not change the cause. Test: asserting on the flattened style is an acceptable 'fails on the cause' here, since the cause is the style value itself and the browser's flexbox cannot reproduce Yoga's basis-0 result; the repro (record-check --repro against the reverted style, 2 of 8 fail) shows it fails on flex: 1. It does not prove the layout on a device; that is #1. Repro recorded by reverting in the working tree rather than a test-first commit: acceptable given the pre-commit hook; record-check captured the commit and command. Audit: agreed. The Welcome screen's flex: 1 uses are StageLayout screen/stage/scene and KitchenScene window, all under definite heights. Findings: (low) the audit did not trace every other flex: 1 in packages/ui to its parent's height, so the same Yoga basis-0 trap could exist on another screen under a content-sized column. Nothing points to one, so no draft. (low) the emulator's nav bar is 63 px = 24 dp (gesture navigation), not 48 dp 3-button; #1 still needs both modes. Full check (record-check --tier full) exited 0: 398 images match, and the tree is unchanged apart from this task file. Merge: ready to merge to main.
 <!-- SECTION:NOTES:END -->
