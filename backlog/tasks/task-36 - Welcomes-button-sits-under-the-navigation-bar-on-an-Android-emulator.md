@@ -1,11 +1,11 @@
 ---
 id: TASK-36
 title: Welcome's button sits under the navigation bar on an Android emulator
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-23 02:55'
+updated_date: '2026-10-23 03:27'
 labels:
   - size-2
   - layer-ui
@@ -237,4 +237,29 @@ Gesture navigation (nav bar [0,2337][1080,2400], 63px): 'Try the demo' label bou
 tools/demo-smoke.sh (TASK-45) run against this build in both navigation modes: 'smoke ok: io.bruk.grocs.demo is running and the Welcome screen shows "Try the demo"' - exit 0 both times, where it failed with the navigation-bar-overlap message every time before this fix.
 
 AC1 met: on a device/emulator with 3-button navigation and with gesture navigation, Try the demo sits whole above the navigation bar, evidenced by the bounds and screenshots above. Sending to philosophy:reviewer to close #1.
+
+Independent re-verification (orchestrator, 2026-10-22, this session): re-derived the fix and the device check from scratch rather than trusting the account handed to me.
+
+Diff read: b096471 (merged in 895bf99) changes AuthSheet.tsx's sheet style from `flex: 1` to `flexGrow: 1` (basis left auto), with a comment naming the basis-0-on-Yoga mechanism. This is a real, minimal change that matches the named cause exactly: `flex: 1` on Yoga is flexGrow 1 + flexShrink 1 + flexBasis 0%, which collapses a child of a content-sized column to its own padding; `flexGrow: 1` with basis auto sizes to content under a content-sized parent while still growing under a parent with a definite height.
+
+Own device reproduction: booted the `ci34` AVD myself (adb/emulator from ~/Library/Android/sdk; not CI, no prior state) - sdk_gphone64_arm64, 1080x2400, matching the profile - and ran tools/demo-smoke.sh against the prebuilt apps/mobile/android/app/build/outputs/apk/release/app-release.apk (confirmed via aapt: package io.bruk.grocs.demo) in both navigation modes:
+
+- 3-button (the AVD's boot default; nav frame [0,2274][1080,2400], 126px): label bounds [408,2111][672,2164], clickable Button bounds [63,2064][1017,2211]. Exit 0: "smoke ok: io.bruk.grocs.demo is running and the Welcome screen shows \"Try the demo\"". Screenshot viewed directly: the button sits whole, with clear white space above the three system nav icons.
+- Gesture (switched via `adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.gestural`; nav frame [0,2337][1080,2400], 63px): label bounds [408,2174][672,2227], Button bounds [63,2127][1017,2274]. Exit 0, same "smoke ok" message.
+
+Both sets of bounds and both nav frames match the device-check notes above exactly, pixel for pixel - this is a from-scratch reproduction, not a re-read of the same run.
+
+The fix mechanism predicts both button bottoms exactly, which the earlier notes' arithmetic didn't quite land on (it used the sheet's top, not the button's bottom, and an incorrect button height): bottom offset from the screen edge = the safe-area inset spacer + AuthSheet's paddingBottom (space24 = 24dp = 63px at 2.625px/dp). Gesture: 63 + 63 = 126 -> 2400 - 126 = 2274, matching the Button bottom above exactly. 3-button: 126 + 63 = 189 -> 2400 - 189 = 2211, matching exactly. Both modes confirm the fix by construction, not just by the smoke check passing.
+
+Emulator shut down after (`adb emu kill`) so nothing is left running.
+
+AC1 and AC2 both hold up under independent re-derivation. Closing.
+
+Verdict: both acceptance criteria hold. Closing.
+
+AC2 (cause named, browser-visible test): met, as the Stage 3 reviewer already found - AuthSheet.behaviour.test.tsx fails on the reverted `flex: 1` style and passes on `flexGrow: 1`.
+
+AC1 (device check, both nav modes, screenshots in the notes): met. Re-verified independently in this session rather than taking the prior account on trust - read the actual diff (b096471/895bf99: AuthSheet.tsx sheet style `flex: 1` -> `flexGrow: 1`, basis left auto) and confirmed it matches the named Yoga basis-0 mechanism; then booted an AVD myself (ci34, 1080x2400, matching the CI profile) and ran tools/demo-smoke.sh against the built demo APK in both 3-button and gesture navigation. Both passed ("smoke ok", exit 0), and the label/button bounds and nav-bar insets I captured match the task's existing device-check notes exactly, pixel for pixel, in both modes - an independent from-scratch reproduction, not a re-read of the same run. The fix's mechanism also predicts both button bottoms to the pixel (inset spacer + AuthSheet's 63px paddingBottom = 126 for gesture, 189 for 3-button; 2400 minus each matches the measured Button bottom exactly), which is new evidence beyond what was already on the task.
+
+No open findings from either review pass (Stage 2's cosmetic Mascot-scaling finding was filed as a note, not a defect in this task's own work; Stage 3 had none outstanding).
 <!-- SECTION:NOTES:END -->
