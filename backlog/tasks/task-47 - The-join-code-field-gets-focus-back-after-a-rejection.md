@@ -1,11 +1,13 @@
 ---
-id: DRAFT-13
+id: TASK-47
 title: The join code field gets focus back after a rejection
-status: Draft
-assignee: []
+status: In Progress
+assignee:
+  - '@builder-ui'
 created_date: '2026-10-20 20:31'
+updated_date: '2026-10-23 00:46'
 labels:
-  - size-1
+  - size-2
   - layer-ui
 dependencies: []
 type: task
@@ -21,3 +23,9 @@ Moved out of TASK-21's criterion by the orchestrator. InviteRetryTemplate disabl
 <!-- AC:BEGIN -->
 - [ ] #1 After a rejection the code field has focus again, shown by a behaviour test
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Sized 2 rather than 1 on acceptance (2026-10-22): whether TextField can take focus from its parent (a forwarded ref or a prop) is not yet known.
+<!-- SECTION:NOTES:END -->
