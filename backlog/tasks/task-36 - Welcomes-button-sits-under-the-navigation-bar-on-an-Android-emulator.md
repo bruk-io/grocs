@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-23 00:44'
+updated_date: '2026-10-23 01:09'
 labels:
   - size-2
   - layer-ui
@@ -115,4 +115,48 @@ All four combinations (2 builds x 2 API levels) show the identical overlap: the 
 So: the KitchenScene rework (this task's actual code change) did not fix AC1, whatever its effect on the scene's own layout. The inset audit already on this task's notes named three real candidates (DeviceSafeArea's redundant second SafeAreaProvider, app.config.ts stating no explicit edge-to-edge setting, StageLayout's inset.bottom spacer) but did not test which (if any) is the actual cause - that's still open. Leaving this task open (AC1 unmet, AC2's cause still unconfirmed); it is layer-ui and out of this session's boundary to fix. A corresponding check now exists (TASK-45, demo-smoke.sh) that will fail CI's demo-apk smoke job the next time it runs against a build with this bug, rather than relying on a human noticing a screenshot.
 
 Cause, from the other session's emulator numbers (orchestrator, 2026-10-22): AuthSheet's style is flex: 1, which on Yoga is flexGrow 1 with flexBasis 0. Since TASK-31, StageLayout's sheet is content-sized, so on Android AuthSheet's height comes from its basis (0) plus its padding: 24 + 24 dp = 126 px, and the 126 px button overflows it. Arithmetic at 1080 x 2400 (2.625 px/dp): sheet = AuthSheet 126 + inset spacer 63 = 189, pulled up 10.5 by the sheet's -4 dp margin, so the sheet's top is at 2211, the button's top is at 2211 + 63 = 2274, and its bottom is at 2400. That matches the emulator's [2274,2400] exactly, on both builds, which is also why the KitchenScene rework changed nothing. The browser's flexbox sizes a flex: 1 1 0% child of an auto-height column to its content, so Storybook never showed it. Before TASK-31 the sheet itself was flex: 1 and filled the space. Fix: flexGrow 1 with the basis left auto.
+
+Repro at b0964714b86f, test files: packages/ui/src/organisms/AuthSheet.behaviour.test.tsx; command: `pnpm exec vitest run --project ui packages/ui/src/organisms/AuthSheet.behaviour.test.tsx` exited 1
+
+```text
+
+ RUN  v4.1.12 /home/claude/grocs/.claude/worktrees/agent-a82aba97d6e181482
+
+ ❯ |ui| packages/ui/src/organisms/AuthSheet.behaviour.test.tsx (8 tests | 2 failed) 548ms
+     × does not set a flex basis of 0 on the sign-in sheet, which Yoga turns into a sheet of padding only under a content-sized parent 18ms
+     × does not set a flex basis of 0 on the primary action sheet, which Yoga turns into a sheet of padding only under a content-sized parent 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |ui| packages/ui/src/organisms/AuthSheet.behaviour.test.tsx > AuthSheet > does not set a flex basis of 0 on the sign-in sheet, which Yoga turns into a sheet of padding only under a content-sized parent
+ FAIL  |ui| packages/ui/src/organisms/AuthSheet.behaviour.test.tsx > AuthSheet > does not set a flex basis of 0 on the primary action sheet, which Yoga turns into a sheet of padding only under a content-sized parent
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/ui/src/organisms/AuthSheet.behaviour.test.tsx:80:76
+     78|     const root = AuthSheet(element.props) as { props: { style: unknown…
+     79|     const sheet = StyleSheet.flatten(root.props.style as never) as { f…
+     80|     expect(sheet.flex === undefined || sheet.flex === 0 || sheet.flex …
+       |                                                                            ^
+     81|     expect(sheet.flexBasis === undefined || sheet.flexBasis === 'auto'…
+     82|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 passed (8)
+   Start at  20:56:24
+   Duration  3.12s (transform 721ms, setup 29ms, import 1.69s, tests 548ms, environment 585ms)
+```
+
+Stage 3 (builder-ui, plan then report). Plan: AuthSheet's sheet style flex: 1 -> flexGrow: 1 (basis left auto), sheetCentred/sheetTop untouched; add a style test that fails on flex: 1; audit flex: 1 in packages/ui; record the repro against the reverted style.
+Done: AuthSheet.tsx sheet style is now flexGrow: 1. It sizes to its content under StageLayout's content-sized sheet and still grows to fill a parent that has a height. Test: AuthSheet.behaviour.test.tsx 'does not set a flex basis of 0 on the %s sheet, which Yoga turns into a sheet of padding only under a content-sized parent' (both the sign-in and primary-action sheets). It calls AuthSheet (a plain function component), flattens the root View's style and asserts flex is unset/0/negative and flexBasis is unset or auto. Repro recorded with record-check --repro against flex: 1 (2 of 8 fail), fix restored afterwards. The test and fix are one commit, not test-first, because the pre-commit hook runs the full unit tests and rejects a commit with a failing test.
+Audit of flex: 1 in packages/ui/src (same pattern = a flex: 1 column child whose parent is content-sized): none other found on the Welcome screen. StageLayout screen/stage/scene and KitchenScene window have definite-height parents (screen flex 1 under the router; stage flex 1 minHeight 0). Others are in row parents where flex: 1 shares width (TextField, PreferencesTemplate switchLabel, SectionHeader title, SuggestionRow/ItemRow/DayMeal/DayRow/RailRow/StatusBanner/StatusRow/MainHeader/SubHeader/RecipeSummary/CelebrationBanner text, InviteCard button, MealFilterLine, RailLink, TabItem) which have a definite width, or are layouts' screen/scroll under a screen with a height (TaskLayout, MainLayout, InnerLayout, MealRail scroll). I did not trace every one to its parent's height; none is on this screen, so none was changed. SignInTemplate.stories.tsx has a flex: 1 decorator (story-only).
+Baselines: none changed (visual: 398 story views, 398 images match). pnpm check, pnpm typecheck and full unit tests passed (in the pre-commit hook). Not run: pnpm test:emulator. AC1 needs a device: not met by me.
 <!-- SECTION:NOTES:END -->
