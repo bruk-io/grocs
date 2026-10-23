@@ -69,7 +69,8 @@ export function AuthSheet(props: AuthSheetProps) {
 
 const styles = StyleSheet.create({
   sheet: {
-    flex: 1,
+    // flexGrow, not flex: 1. flex: 1 is a flex basis of 0 on Yoga, which leaves a content-sized parent only this sheet's padding (TASK-36).
+    flexGrow: 1,
     gap: tokens.space[8],
     paddingTop: tokens.space[24],
     paddingHorizontal: tokens.space[24],

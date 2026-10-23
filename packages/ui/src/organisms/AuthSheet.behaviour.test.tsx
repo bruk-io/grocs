@@ -1,9 +1,11 @@
 // Level 2 of decision-11 (behaviour) for AuthSheet; see atoms/Button.behaviour.test.tsx for the pattern.
 import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
+import { StyleSheet } from 'react-native';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Text } from '../atoms/Text.tsx';
+import { AuthSheet } from './AuthSheet.tsx';
 import * as stories from './AuthSheet.stories.tsx';
 
 const { Rest, SigningIn, Disabled, PrimaryAction } = composeStories(stories);
@@ -65,5 +67,17 @@ describe('AuthSheet', () => {
     render(<PrimaryAction footer={<Text>Sign in as Bruk (test)</Text>} />);
     expect(screen.getByRole('button', { name: 'Try the demo' })).toBeTruthy();
     expect(screen.getByText('Sign in as Bruk (test)')).toBeTruthy();
+  });
+
+  // The browser sizes a flex: 1 child of a content-sized column to its content; Yoga (Android) gives it a basis of 0, so only its padding is left and the button overflows (TASK-36). The browser cannot show that, so the style is asserted.
+  it.each([
+    ['sign-in', <AuthSheet key="a" />],
+    ['primary action', <AuthSheet key="b" primaryLabel="Try the demo" onPrimary={() => {}} />],
+  ])('does not set a flex basis of 0 on the %s sheet, which Yoga turns into a sheet of padding only under a content-sized parent', (_name, element) => {
+    // AuthSheet is a plain function component, so calling it gives its root View element and the style it sets.
+    const root = AuthSheet(element.props) as { props: { style: unknown } };
+    const sheet = StyleSheet.flatten(root.props.style as never) as { flex?: number; flexBasis?: unknown };
+    expect(sheet.flex === undefined || sheet.flex === 0 || sheet.flex < 0).toBe(true);
+    expect(sheet.flexBasis === undefined || sheet.flexBasis === 'auto').toBe(true);
   });
 });
