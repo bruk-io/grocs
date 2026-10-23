@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-10-21 05:17'
-updated_date: '2026-10-22 23:14'
+updated_date: '2026-10-23 00:44'
 labels:
   - size-2
   - layer-ui
@@ -113,4 +113,6 @@ Device check, finally (orchestrator + a reviewer dispatched for TASK-45, indepen
 All four combinations (2 builds x 2 API levels) show the identical overlap: the "Try the demo" TextView label at bounds [408,2321][672,2374]; its clickable Button ancestor (found by bounds containment, since the label itself is not clickable) at [63,2274][1017,2400] - bottom flush with the screen's edge; adb shell dumpsys window displays reports the navigationBars inset at frame=[0,2337][1080,2400]. The button's clickable area is fully behind the 63px-tall nav bar on every build and API level tried, including CI's own target (pixel_6, API 34). Screenshots from both API levels visually confirm the same clipping the original demo APK smoke screenshot showed.
 
 So: the KitchenScene rework (this task's actual code change) did not fix AC1, whatever its effect on the scene's own layout. The inset audit already on this task's notes named three real candidates (DeviceSafeArea's redundant second SafeAreaProvider, app.config.ts stating no explicit edge-to-edge setting, StageLayout's inset.bottom spacer) but did not test which (if any) is the actual cause - that's still open. Leaving this task open (AC1 unmet, AC2's cause still unconfirmed); it is layer-ui and out of this session's boundary to fix. A corresponding check now exists (TASK-45, demo-smoke.sh) that will fail CI's demo-apk smoke job the next time it runs against a build with this bug, rather than relying on a human noticing a screenshot.
+
+Cause, from the other session's emulator numbers (orchestrator, 2026-10-22): AuthSheet's style is flex: 1, which on Yoga is flexGrow 1 with flexBasis 0. Since TASK-31, StageLayout's sheet is content-sized, so on Android AuthSheet's height comes from its basis (0) plus its padding: 24 + 24 dp = 126 px, and the 126 px button overflows it. Arithmetic at 1080 x 2400 (2.625 px/dp): sheet = AuthSheet 126 + inset spacer 63 = 189, pulled up 10.5 by the sheet's -4 dp margin, so the sheet's top is at 2211, the button's top is at 2211 + 63 = 2274, and its bottom is at 2400. That matches the emulator's [2274,2400] exactly, on both builds, which is also why the KitchenScene rework changed nothing. The browser's flexbox sizes a flex: 1 1 0% child of an auto-height column to its content, so Storybook never showed it. Before TASK-31 the sheet itself was flex: 1 and filled the space. Fix: flexGrow 1 with the basis left auto.
 <!-- SECTION:NOTES:END -->
