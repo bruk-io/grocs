@@ -1,6 +1,7 @@
+import type { Ref } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '../atoms/Text.tsx';
-import { TextField } from '../atoms/TextField.tsx';
+import { TextField, type TextFieldHandle } from '../atoms/TextField.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
 /** The states of LabelledField (field.labelled rest and error, plus the filled, focus and disabled looks of its field); each has a story (R61, R63). */
@@ -27,10 +28,12 @@ export interface LabelledFieldProps {
   display?: boolean;
   disabled?: boolean;
   forceState?: 'focus';
+  /** Gives the parent the input, so it can take focus back. */
+  inputRef?: Ref<TextFieldHandle>;
 }
 
 /** A label over a text field, with an optional action inside it and a hint or error under it (text.body, input.text, button.soft, text.small). */
-export function LabelledField({ label, optional = false, value, onChangeText, placeholder, hint, errorMessage, actionLabel, onAction, onSubmit, display = false, disabled = false, forceState }: LabelledFieldProps) {
+export function LabelledField({ label, optional = false, value, onChangeText, placeholder, hint, errorMessage, actionLabel, onAction, onSubmit, display = false, disabled = false, forceState, inputRef }: LabelledFieldProps) {
   return (
     <View style={styles.wrap}>
       <Text variant="label" aria-hidden>
@@ -49,6 +52,7 @@ export function LabelledField({ label, optional = false, value, onChangeText, pl
         {...(onSubmit ? { onSubmit } : {})}
         {...(display ? { display } : {})}
         {...(forceState ? { forceState } : {})}
+        {...(inputRef ? { inputRef } : {})}
       />
       {hint && errorMessage === undefined ? <Text variant="muted">{hint}</Text> : null}
     </View>

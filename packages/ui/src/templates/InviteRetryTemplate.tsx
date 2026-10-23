@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { Button } from '../atoms/Button.tsx';
 import { Text } from '../atoms/Text.tsx';
+import type { TextFieldHandle } from '../atoms/TextField.tsx';
 import { LabelledField } from '../molecules/LabelledField.tsx';
 import { SubHeader } from '../organisms/SubHeader.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
@@ -39,6 +41,13 @@ export type InviteRetryTemplateProps = InviteRetryTemplateFirstProps | InviteRet
 /** template.task filled for the invalid code: header.sub, field.labelled--error, button.primary, button.text. */
 export function InviteRetryTemplate(props: InviteRetryTemplateProps) {
   const { code, onCodeChange, onCheck, checking = false } = props;
+  const field = useRef<TextFieldHandle>(null);
+  const wasChecking = useRef(checking);
+  // Locking the field while a code is checked drops its focus (and a phone's keyboard); take it back when the check ends.
+  useEffect(() => {
+    if (wasChecking.current && !checking) field.current?.focus();
+    wasChecking.current = checking;
+  }, [checking]);
   return (
     <TaskLayout
       header={<SubHeader lead={{ kind: 'wordmark' }} tag="Invite code" title={props.attempt === 'first' ? 'Enter your invite code' : "Code didn't work"} mascot="chanty" />}
@@ -58,6 +67,7 @@ export function InviteRetryTemplate(props: InviteRetryTemplateProps) {
         value={code}
         onChangeText={onCodeChange}
         display
+        inputRef={field}
         disabled={checking}
         {...(props.attempt !== 'first' && props.errorMessage ? { errorMessage: props.errorMessage } : {})}
         {...(onCheck ? { onSubmit: onCheck } : {})}
