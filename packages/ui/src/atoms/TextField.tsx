@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type ComponentRef, type Ref, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { icons } from '../icons/index.ts';
 import { fontFace } from '../platform/font-face.ts';
@@ -8,6 +8,9 @@ import { Text } from './Text.tsx';
 
 /** The states of TextField; each has a story (R61, R63). */
 export const TEXTFIELD_STATES = ['rest', 'filled', 'pressed', 'focus', 'disabled', 'invalid'] as const;
+
+/** What a parent holds to give the field focus. */
+export type TextFieldHandle = ComponentRef<typeof TextInput>;
 
 export interface TextFieldProps {
   value: string;
@@ -29,9 +32,11 @@ export interface TextFieldProps {
   display?: boolean;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';
+  /** Gives the parent the input, so it can take focus back (for example after the field was locked while a value was checked). */
+  inputRef?: Ref<TextFieldHandle>;
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState, inputRef }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
   const lit = focused || forceState === 'focus';
@@ -51,6 +56,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
         ]}
       >
         <TextInput
+          ref={inputRef}
           aria-label={label}
           aria-invalid={invalid}
           placeholder={placeholder ?? label}

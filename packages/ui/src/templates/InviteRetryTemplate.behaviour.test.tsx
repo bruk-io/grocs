@@ -53,6 +53,15 @@ describe('InviteRetryTemplate', () => {
     expect((screen.getByRole('textbox', { name: 'Invite code from Bruk' }) as HTMLInputElement).readOnly).toBe(true);
   });
 
+  it('gives the code field focus back once a check ends, so a rejected code can be retyped at once', () => {
+    const { rerender } = render(<Invalid />);
+    const field = () => screen.getByRole('textbox', { name: 'Invite code from Bruk' });
+    rerender(<Invalid checking />);
+    expect(document.activeElement).not.toBe(field());
+    rerender(<Invalid checking={false} />);
+    expect(document.activeElement).toBe(field());
+  });
+
   it('on a retry keeps the footer for someone who did not expect the invite', () => {
     render(<Invalid />);
     expect(screen.getByText('Not expecting this? You can ignore it.')).toBeTruthy();
