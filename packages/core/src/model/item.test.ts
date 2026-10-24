@@ -3,7 +3,7 @@ import { mergeItem } from '../merge/item-merge.ts';
 import { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './item.ts';
 import type { Item } from './item.ts';
 
-const stamp = { at: 1000, by: 'bruk' };
+const stamp = { at: 1000, by: 'alex' };
 
 describe('normaliseName (R12)', () => {
   it('ignores case, accents, punctuation and repeated spaces', () => {
@@ -37,7 +37,7 @@ describe('createExtraItem (R10)', () => {
     expect(r.value.state.value).toBe('to-buy');
     expect(r.value.badges).toEqual([]);
     expect(r.value.deleted).toBeNull();
-    expect(r.value.addedBy).toBe('bruk');
+    expect(r.value.addedBy).toBe('alex');
     expect(r.value.createdAt).toBe(1000);
   });
 
@@ -54,11 +54,11 @@ describe('createExtraItem (R10)', () => {
 });
 
 describe('setItemState (R18)', () => {
-  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'bruk' });
+  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'alex' });
   if (!made.ok) throw new Error('fixture must be a valid item');
   const original: Item = { ...made.value, badges: ['m1'] };
   const tick = { at: 2, by: 'sam' };
-  const untick = { at: 3, by: 'bruk' };
+  const untick = { at: 3, by: 'alex' };
 
   it('restamps only the state; every other field is the same value', () => {
     const next = setItemState(original, 'in-cart', tick);
@@ -72,7 +72,7 @@ describe('setItemState (R18)', () => {
     expect(next.aisle).toBe(original.aisle);
     expect(next.badges).toBe(original.badges);
     expect(next.deleted).toBe(original.deleted);
-    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'bruk' } });
+    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'alex' } });
   });
 
   it('a tick merged with the original keeps the tick, in both orders', () => {
@@ -90,7 +90,7 @@ describe('setItemState (R18)', () => {
 });
 
 describe('clearFromCart (R14)', () => {
-  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'bruk' });
+  const made = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'alex' });
   if (!made.ok) throw new Error('fixture must be a valid item');
   const original: Item = { ...made.value, badges: ['m1'] };
   const clear = { at: 2, by: 'sam' };
@@ -107,6 +107,6 @@ describe('clearFromCart (R14)', () => {
     expect(next.aisle).toBe(original.aisle);
     expect(next.badges).toBe(original.badges);
     expect(next.deleted).toBe(original.deleted);
-    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'bruk' } });
+    expect(original.state).toEqual({ value: 'to-buy', stamp: { at: 1, by: 'alex' } });
   });
 });

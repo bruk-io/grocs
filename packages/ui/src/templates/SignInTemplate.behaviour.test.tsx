@@ -44,7 +44,7 @@ describe('SignInTemplate', () => {
   it('shows the development test sign-in in the footer, next to Continue with Google', () => {
     render(<WithFooter />);
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Sign in as Bruk (test)' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sign in as Alex (test)' })).toBeTruthy();
   });
 
   it('reports a tap on a host', async () => {

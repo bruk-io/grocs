@@ -5,7 +5,7 @@ import { PERSONAL_ATTRIBUTE_KEYS, redact, REDACTED } from './personal.ts';
 import { encodeItem } from './item-doc.ts';
 
 const item = (() => {
-  const r = createExtraItem({ id: 'i1', weekId: 'w', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'bruk' });
+  const r = createExtraItem({ id: 'i1', weekId: 'w', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'alex' });
   if (!r.ok) throw new Error('setup');
   return r.value;
 })();
@@ -49,7 +49,7 @@ describe('redact (R36)', () => {
   it('is idempotent and never leaks a name placed anywhere in an item', () => {
     fc.assert(
       fc.property(fc.string({ minLength: 3 }).filter((s) => s.trim().length >= 3), (name) => {
-        const r = createExtraItem({ id: 'i1', weekId: 'w', name: `zz${name}zz` }, { at: 1, by: 'bruk' });
+        const r = createExtraItem({ id: 'i1', weekId: 'w', name: `zz${name}zz` }, { at: 1, by: 'alex' });
         if (!r.ok) return;
         const once = redact({ deep: { item: r.value } });
         expect(redact(once)).toEqual(once);

@@ -3,6 +3,6 @@ import { kitchenGatewayContract } from './contract.ts';
 import { FakeKitchenGateway } from './fake.ts';
 
 kitchenGatewayContract({ describe, it, expect }, async () => {
-  const owner = new FakeKitchenGateway('bruk');
-  return { owner, partner: owner.asMember('shazya'), stranger: owner.asMember('carl') };
+  const owner = new FakeKitchenGateway('alex');
+  return { owner, partner: owner.asMember('sam'), stranger: owner.asMember('carl') };
 });

@@ -13,7 +13,7 @@ describe('InviteJoinTemplate', () => {
   it('says who invited you to what, and that an unexpected invite can be ignored', () => {
     render(<Rest />);
     expect(screen.getByRole('heading', { name: "You're invited" })).toBeTruthy();
-    expect(screen.getByText('Bruk invited you to')).toBeTruthy();
+    expect(screen.getByText('Alex invited you to')).toBeTruthy();
     expect(screen.getByText('Our kitchen')).toBeTruthy();
     expect(screen.getByText('Not expecting this? You can ignore it.')).toBeTruthy();
   });

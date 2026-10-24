@@ -70,7 +70,7 @@ export async function ensureSeeded(): Promise<void> {
 }
 
 export const seedAccount = {
-  bruk: { ...seedUsers[0] },
+  alex: { ...seedUsers[0] },
   sam: { ...seedUsers[1] },
 };
 

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { authContract, googleSignInContract, testSignInContract } from './contract.ts';
 import { FakeAuth } from './fake.ts';
 
-const account = { uid: 'u1', email: 'bruk@grocs.test', displayName: 'Bruk', password: 'pw-for-tests' };
-const googleAccount = { uid: 'g1', email: 'bruk@gmail.test', displayName: 'Bruk' };
+const account = { uid: 'u1', email: 'alex@grocs.test', displayName: 'Alex', password: 'pw-for-tests' };
+const googleAccount = { uid: 'g1', email: 'alex@gmail.test', displayName: 'Alex' };
 
 authContract({ describe, it, expect }, async () => {
   const auth = new FakeAuth([account]);

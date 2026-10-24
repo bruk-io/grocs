@@ -60,7 +60,7 @@ const SKIP_DIRS = new Set([
   'coverage',
   // expo prebuild output (apps/mobile/android, apps/mobile/ios): regenerated from
   // app.config.ts, gitignored, not in doc-1's repo layout, and always carries a real
-  // Firebase config locally once built - never reaches git or CI (Bruk, 2026-10-19).
+  // Firebase config locally once built - never reaches git or CI (verified 2026-10-19).
   'android',
   'ios',
 ]);

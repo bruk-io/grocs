@@ -16,7 +16,7 @@ async function signedInStore(): Promise<FirestoreSyncStore> {
   await ensureSeeded();
   const client = createEmulatorClient('sync');
   clients.push(client);
-  await client.authFns.signInWithEmailAndPassword(client.auth, seedAccount.bruk.email, seedAccount.bruk.password);
+  await client.authFns.signInWithEmailAndPassword(client.auth, seedAccount.alex.email, seedAccount.alex.password);
   return new FirestoreSyncStore(asSdk<FirestoreFns>(client.firestoreFns), client.db);
 }
 
@@ -29,7 +29,7 @@ syncStoreContract({ describe, it, expect }, async () => ({
 
 describe('Firestore sync store: stored shape (R30)', () => {
   const made = (() => {
-    const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk' }, { at: 100, by: 'seed-bruk' });
+    const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk' }, { at: 100, by: 'seed-alex' });
     if (!r.ok) throw new Error('setup');
     return r.value;
   })();
@@ -40,7 +40,7 @@ describe('Firestore sync store: stored shape (R30)', () => {
     await store.mergeItem(kitchenId, made);
     const raw = (await readRaw(`kitchens/${kitchenId}/items/i1`)) as Record<string, unknown>;
     expect(raw['schemaVersion']).toBe(1);
-    expect(raw['name']).toEqual({ v: 'Oat milk', at: 100, by: 'seed-bruk' });
+    expect(raw['name']).toEqual({ v: 'Oat milk', at: 100, by: 'seed-alex' });
   });
 
   it('refuses to read a document that does not match the schema', async () => {

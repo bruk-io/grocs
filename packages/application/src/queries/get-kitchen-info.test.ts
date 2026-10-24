@@ -13,27 +13,27 @@ const make = (kitchens: FakeKitchenGateway): Deps => ({
 
 describe('getKitchenInfo', () => {
   it('returns the name and the signed-in member marked as the caller', async () => {
-    const kitchens = new FakeKitchenGateway('u1', undefined, undefined, undefined, 'Bruk');
+    const kitchens = new FakeKitchenGateway('u1', undefined, undefined, undefined, 'Alex');
     const deps = make(kitchens);
     await (deps.auth as FakeAuth).signInWithTestAccount('a@grocs.test', 'pw');
     const created = await kitchens.createKitchen('Home', 'UTC');
 
     const info = await getKitchenInfo(deps, created.kitchenId);
     expect(info?.name).toBe('Home');
-    expect(info?.members).toEqual([{ uid: 'u1', name: 'Bruk', isCaller: true }]);
+    expect(info?.members).toEqual([{ uid: 'u1', name: 'Alex', isCaller: true }]);
   });
 
   it("marks the partner's row as not the caller", async () => {
-    const owner = new FakeKitchenGateway('u1', undefined, undefined, undefined, 'Bruk');
+    const owner = new FakeKitchenGateway('u1', undefined, undefined, undefined, 'Alex');
     const deps = make(owner);
     await (deps.auth as FakeAuth).signInWithTestAccount('a@grocs.test', 'pw');
     const created = await owner.createKitchen('Home', 'UTC');
-    await owner.asMember('u2', 'Shazya').joinKitchen(created.inviteCode);
+    await owner.asMember('u2', 'Sam').joinKitchen(created.inviteCode);
 
     const info = await getKitchenInfo(deps, created.kitchenId);
     expect(info?.members).toHaveLength(2);
     const partner = info?.members.find((m) => m.uid === 'u2');
-    expect(partner).toEqual({ uid: 'u2', name: 'Shazya', isCaller: false });
+    expect(partner).toEqual({ uid: 'u2', name: 'Sam', isCaller: false });
   });
 
   it('returns null for a kitchen the gateway has none for', async () => {

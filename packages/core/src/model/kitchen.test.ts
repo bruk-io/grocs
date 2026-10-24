@@ -6,8 +6,8 @@ const input = {
   id: 'k1',
   name: '  Our   kitchen ',
   timeZone: 'America/New_York',
-  ownerUid: 'bruk',
-  ownerName: 'Bruk',
+  ownerUid: 'alex',
+  ownerName: 'Alex',
   createdAt: 1000,
 };
 
@@ -20,16 +20,16 @@ describe('createKitchen (R2)', () => {
       id: 'k1',
       schemaVersion: KITCHEN_SCHEMA_VERSION,
       name: 'Our kitchen',
-      members: ['bruk'],
-      memberNames: { bruk: 'Bruk' },
+      members: ['alex'],
+      memberNames: { alex: 'Alex' },
       timeZone: 'America/New_York',
       createdAt: 1000,
     });
   });
 
   it('trims and collapses whitespace in the name', () => {
-    const r = createKitchen({ ...input, name: '  Casa   de   Bruk  ' });
-    expect(r.ok && r.value.name).toBe('Casa de Bruk');
+    const r = createKitchen({ ...input, name: '  Casa   de   Alex  ' });
+    expect(r.ok && r.value.name).toBe('Casa de Alex');
   });
 
   it('rejects a name with nothing in it', () => {
@@ -47,40 +47,40 @@ describe('isKitchenFull / addMember (R3)', () => {
     id: 'k1',
     schemaVersion: KITCHEN_SCHEMA_VERSION,
     name: 'Our kitchen',
-    members: ['bruk'],
-    memberNames: { bruk: 'Bruk' },
+    members: ['alex'],
+    memberNames: { alex: 'Alex' },
     timeZone: 'America/New_York',
     createdAt: 1000,
   };
 
   it('is not full with one member, and is full with two', () => {
     expect(isKitchenFull(kitchen)).toBe(false);
-    expect(isKitchenFull({ members: ['bruk', 'shazya'] })).toBe(true);
+    expect(isKitchenFull({ members: ['alex', 'sam'] })).toBe(true);
   });
 
   it('adds a second member', () => {
-    const r = addMember(kitchen, 'shazya', 'Shazya');
+    const r = addMember(kitchen, 'sam', 'Sam');
     expect(r.ok).toBe(true);
-    expect(r.ok && r.value.members).toEqual(['bruk', 'shazya']);
+    expect(r.ok && r.value.members).toEqual(['alex', 'sam']);
   });
 
   it('adds the joiner name to memberNames without disturbing the owner', () => {
-    const r = addMember(kitchen, 'shazya', 'Shazya');
-    expect(r.ok && r.value.memberNames).toEqual({ bruk: 'Bruk', shazya: 'Shazya' });
+    const r = addMember(kitchen, 'sam', 'Sam');
+    expect(r.ok && r.value.memberNames).toEqual({ alex: 'Alex', sam: 'Sam' });
   });
 
   it('never grows past the max', () => {
     expect(MAX_MEMBERS).toBe(2);
-    const full = { ...kitchen, members: ['bruk', 'shazya'] };
+    const full = { ...kitchen, members: ['alex', 'sam'] };
     expect(addMember(full, 'carl', 'Carl')).toEqual({ ok: false, error: 'full' });
   });
 
   it('rejects a member who already joined', () => {
-    expect(addMember(kitchen, 'bruk', 'Bruk')).toEqual({ ok: false, error: 'already-member' });
+    expect(addMember(kitchen, 'alex', 'Alex')).toEqual({ ok: false, error: 'already-member' });
   });
 
   it('checks already-member before full, so the message is specific', () => {
-    const full = { ...kitchen, members: ['bruk', 'shazya'] };
-    expect(addMember(full, 'shazya', 'Shazya')).toEqual({ ok: false, error: 'already-member' });
+    const full = { ...kitchen, members: ['alex', 'sam'] };
+    expect(addMember(full, 'sam', 'Sam')).toEqual({ ok: false, error: 'already-member' });
   });
 });

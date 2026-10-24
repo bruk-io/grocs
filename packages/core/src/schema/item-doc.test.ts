@@ -5,7 +5,7 @@ import { clearFromCart, createExtraItem } from '../model/item.ts';
 import { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './item-doc.ts';
 
 const make = (): Item => {
-  const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2' }, { at: 5, by: 'bruk' });
+  const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Oat milk', amount: '2' }, { at: 5, by: 'alex' });
   if (!r.ok) throw new Error('setup');
   return r.value;
 };

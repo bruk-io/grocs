@@ -15,7 +15,7 @@ type Story = StoryObj<typeof meta>;
 
 /** JoinInviteInvalid. */
 export const Invalid: Story = {
-  args: { inviter: 'Bruk', errorMessage: 'That code is not a match. Check it with Bruk, or ask for a fresh link.' },
+  args: { inviter: 'Alex', errorMessage: 'That code is not a match. Check it with Alex, or ask for a fresh link.' },
 };
 
 /** The typed code entry before any code was tried: neutral title and label, empty field showing the code's shape, no error, no way back, no footer. */

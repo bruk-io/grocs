@@ -12,11 +12,11 @@ authContract({ describe, it, expect }, async () => {
 });
 
 describe('MemoryAuth demo sign-in', () => {
-  it('signs in the fixed member, Bruk, with no credentials', async () => {
+  it('signs in the fixed member, Alex, with no credentials', async () => {
     const auth = new MemoryAuth();
     const user = await auth.signInAsDemoMember();
     expect(user).toEqual(DEMO_MEMBER);
-    expect(user.displayName).toBe('Bruk');
+    expect(user.displayName).toBe('Alex');
     expect(auth.currentUser()).toEqual(DEMO_MEMBER);
   });
 

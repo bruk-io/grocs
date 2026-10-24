@@ -9,12 +9,12 @@ const create = (name = 'Our kitchen') => ({ type: 'CreateKitchen' as const, name
 const join = (code: string) => ({ type: 'JoinKitchen' as const, code });
 
 /** Two phones talking to one shared fake server, on one clock. */
-async function twoPhones(): Promise<{ bruk: TestClient; sam: TestClient; clock: FakeClock }> {
+async function twoPhones(): Promise<{ alex: TestClient; sam: TestClient; clock: FakeClock }> {
   const clock = new FakeClock();
-  const server = new FakeKitchenGateway('bruk', undefined, clock);
-  const bruk = await createTestClient({ uid: 'bruk', kitchens: server, clock });
+  const server = new FakeKitchenGateway('alex', undefined, clock);
+  const alex = await createTestClient({ uid: 'alex', kitchens: server, clock });
   const sam = await createTestClient({ uid: 'sam', kitchens: server.asMember('sam'), clock });
-  return { bruk, sam, clock };
+  return { alex, sam, clock };
 }
 
 async function created(client: TestClient): Promise<{ kitchenId: string; inviteCode: string }> {
@@ -28,8 +28,8 @@ const rejected = (reason: JoinRejectedReason) => [{ type: 'KitchenJoinRejected',
 
 describe('JoinKitchen scenarios (R3)', () => {
   it('joins with the invite code and returns the kitchen id', async () => {
-    const { bruk, sam } = await twoPhones();
-    const { kitchenId, inviteCode } = await created(bruk);
+    const { alex, sam } = await twoPhones();
+    const { kitchenId, inviteCode } = await created(alex);
     const result = await sam.dispatcher.dispatch(join(inviteCode));
     expect(result.ok && result.value).toEqual([{ type: 'KitchenJoined', kitchenId }]);
   });
@@ -41,16 +41,16 @@ describe('JoinKitchen scenarios (R3)', () => {
   });
 
   it('reaches the gateway only through the instrumented port (R28, R31)', async () => {
-    const { bruk, sam } = await twoPhones();
-    const { inviteCode } = await created(bruk);
+    const { alex, sam } = await twoPhones();
+    const { inviteCode } = await created(alex);
     await sam.dispatcher.dispatch(join(inviteCode));
     const call = sam.logger.records().find((r) => r.attributes['method'] === 'joinKitchen');
     expect(call?.attributes).toMatchObject({ port: 'kitchens', method: 'joinKitchen', outcome: 'ok' });
   });
 
   it('joins even when the code has surrounding whitespace', async () => {
-    const { bruk, sam } = await twoPhones();
-    const { kitchenId, inviteCode } = await created(bruk);
+    const { alex, sam } = await twoPhones();
+    const { kitchenId, inviteCode } = await created(alex);
     const result = await sam.dispatcher.dispatch(join(`  ${inviteCode}  `));
     expect(result.ok && result.value).toEqual([{ type: 'KitchenJoined', kitchenId }]);
   });
@@ -63,25 +63,25 @@ describe('JoinKitchen scenarios (R3)', () => {
     });
 
     it('expired: a code used after its day is up', async () => {
-      const { bruk, sam, clock } = await twoPhones();
-      const { inviteCode } = await created(bruk);
+      const { alex, sam, clock } = await twoPhones();
+      const { inviteCode } = await created(alex);
       clock.set(clock.now() + 2 * DAY);
       const result = await sam.dispatcher.dispatch(join(inviteCode));
       expect(result.ok && result.value).toEqual(rejected('expired'));
     });
 
     it('used: a code someone has already joined with', async () => {
-      const { bruk, sam } = await twoPhones();
-      const { inviteCode } = await created(bruk);
+      const { alex, sam } = await twoPhones();
+      const { inviteCode } = await created(alex);
       await sam.dispatcher.dispatch(join(inviteCode));
       const result = await sam.dispatcher.dispatch(join(inviteCode));
       expect(result.ok && result.value).toEqual(rejected('used'));
     });
 
     it('already-member: the owner entering their own pending code', async () => {
-      const { bruk } = await twoPhones();
-      const { inviteCode } = await created(bruk);
-      const result = await bruk.dispatcher.dispatch(join(inviteCode));
+      const { alex } = await twoPhones();
+      const { inviteCode } = await created(alex);
+      const result = await alex.dispatcher.dispatch(join(inviteCode));
       expect(result.ok && result.value).toEqual(rejected('already-member'));
     });
 

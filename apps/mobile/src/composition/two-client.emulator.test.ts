@@ -36,7 +36,7 @@ class RawLogger implements Logger {
   }
 }
 
-async function signedInClient(who: 'bruk' | 'sam'): Promise<{ app: App; logger: RawLogger }> {
+async function signedInClient(who: 'alex' | 'sam'): Promise<{ app: App; logger: RawLogger }> {
   await ensureSeeded();
   const client = createEmulatorClient(who);
   clients.push(client);
@@ -61,7 +61,7 @@ async function signedInClient(who: 'bruk' | 'sam'): Promise<{ app: App; logger: 
 describe('two clients on one kitchen', () => {
   it('shows every item added on one phone on the other, and the first one within 3 seconds', async () => {
     const kitchenId = await createKitchen('two-client');
-    const a = await signedInClient('bruk');
+    const a = await signedInClient('alex');
     const b = await signedInClient('sam');
     const weekId = weekIdFor(a.app.now());
 
@@ -87,7 +87,7 @@ describe('two clients on one kitchen', () => {
 
   it('never writes an item name into a log record', async () => {
     const kitchenId = await createKitchen('log-redaction');
-    const a = await signedInClient('bruk');
+    const a = await signedInClient('alex');
     const weekId = weekIdFor(a.app.now());
     const name = 'Secret saffron 42';
     const command: AddItem = { type: 'AddItem', kitchenId, weekId, name };
@@ -106,7 +106,7 @@ testSignInContract({ describe, it, expect }, async () => {
   const client = createEmulatorClient('test-sign-in');
   clients.push(client);
   const fns = asSdk<AuthFns>(client.authFns);
-  const { email, password, uid } = seedAccount.bruk;
+  const { email, password, uid } = seedAccount.alex;
   return {
     testSignIn: new FirebaseTestSignIn(fns, client.auth),
     auth: new FirebaseAuth(fns, client.auth),

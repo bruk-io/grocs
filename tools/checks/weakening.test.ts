@@ -204,7 +204,7 @@ describe('weakening review (R57)', () => {
       file: '.github/workflows/ci.yml',
       beforeHash: hashContent(CI_YAML_BEFORE),
       afterHash: hashContent(CI_YAML_AFTER.replace('      - run: pnpm test\n', '      - run: pnpm test\n        continue-on-error: true\n')),
-      approvedBy: 'bruk',
+      approvedBy: 'alex',
       reason: 'test fixture',
       date: '2026-10-19',
     };

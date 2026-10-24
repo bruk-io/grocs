@@ -78,19 +78,19 @@ describe('FirebaseKitchenGateway: unauthenticated calls', () => {
 describe('FirebaseKitchenGateway: real display names (R4)', () => {
   it('getKitchen returns the signed-in members own names from their ID tokens, not a fallback', async () => {
     await ensureSeeded();
-    const bruk = createEmulatorClient('fkg-names-bruk');
+    const alex = createEmulatorClient('fkg-names-alex');
     const sam = createEmulatorClient('fkg-names-sam');
     try {
-      await bruk.authFns.signInWithEmailAndPassword(bruk.auth, seedAccount.bruk.email, seedAccount.bruk.password);
+      await alex.authFns.signInWithEmailAndPassword(alex.auth, seedAccount.alex.email, seedAccount.alex.password);
       await sam.authFns.signInWithEmailAndPassword(sam.auth, seedAccount.sam.email, seedAccount.sam.password);
-      const created = await gatewayFor(bruk).createKitchen('Our kitchen', 'America/New_York');
+      const created = await gatewayFor(alex).createKitchen('Our kitchen', 'America/New_York');
       await gatewayFor(sam).joinKitchen(created.inviteCode);
 
-      const details = await gatewayFor(bruk).getKitchen(created.kitchenId);
+      const details = await gatewayFor(alex).getKitchen(created.kitchenId);
       expect(details?.name).toBe('Our kitchen');
-      expect(details?.members.map((m) => m.name).sort()).toEqual(['Bruk', 'Sam']);
+      expect(details?.members.map((m) => m.name).sort()).toEqual(['Alex', 'Sam']);
     } finally {
-      await Promise.all([bruk.dispose(), sam.dispose()]);
+      await Promise.all([alex.dispose(), sam.dispose()]);
     }
   });
 });

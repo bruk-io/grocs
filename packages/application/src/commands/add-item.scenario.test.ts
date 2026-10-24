@@ -11,13 +11,13 @@ const add = (name: string, extra: { amount?: string } = {}) => ({ type: 'AddItem
 
 describe('AddItem scenarios (R47)', () => {
   it('adds the item to the store and returns an ItemAdded event', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch(add('Oat milk', { amount: '2 cartons' }));
     expect(result.ok).toBe(true);
     const items = await client.store.getItems(KITCHEN, WEEK);
     expect(items).toHaveLength(1);
     expect(items[0]?.name.value).toBe('Oat milk');
-    expect(items[0]?.addedBy).toBe('bruk');
+    expect(items[0]?.addedBy).toBe('alex');
     expect(items[0]?.badges).toEqual([]);
     expect(result.ok && result.value).toEqual([{ type: 'ItemAdded', itemId: items[0]?.id, weekId: WEEK }]);
   });
@@ -31,14 +31,14 @@ describe('AddItem scenarios (R47)', () => {
   });
 
   it('rejects an empty name and stores nothing', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch(add('  '));
     expect(result).toEqual({ ok: false, error: { code: 'empty-name', message: expect.any(String) } });
     expect(await client.store.getItems(KITCHEN, WEEK)).toEqual([]);
   });
 
   it('rejects the command when nobody is signed in', async () => {
-    const client = await createTestClient({ uid: 'bruk', signedIn: false });
+    const client = await createTestClient({ uid: 'alex', signedIn: false });
     const result = await client.dispatcher.dispatch(add('Eggs'));
     expect(!result.ok && result.error.code).toBe('not-signed-in');
   });
@@ -49,7 +49,7 @@ describe('AddItem scenarios (R47)', () => {
       getItems: () => Promise.resolve([]),
       watchItems: () => () => undefined,
     };
-    const client = await createTestClient({ uid: 'bruk', store: broken });
+    const client = await createTestClient({ uid: 'alex', store: broken });
     const result = await client.dispatcher.dispatch(add('Eggs'));
     expect(!result.ok && result.error.code).toBe('internal');
     const failed = client.logger.records().find((r) => r.attributes['outcome'] === 'error' && r.attributes['commandType'] === 'AddItem');
@@ -57,7 +57,7 @@ describe('AddItem scenarios (R47)', () => {
   });
 
   it('answers an unknown command with an error result', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch({ type: 'Nope' });
     expect(!result.ok && result.error.code).toBe('unknown-command');
   });
@@ -65,9 +65,9 @@ describe('AddItem scenarios (R47)', () => {
   describe('both members', () => {
     it('both adding at once keeps both items and never merges them silently (R19)', async () => {
       const store = new InMemorySyncStore();
-      const bruk = await createTestClient({ uid: 'bruk', store });
+      const alex = await createTestClient({ uid: 'alex', store });
       const sam = await createTestClient({ uid: 'sam', store });
-      await Promise.all([bruk.dispatcher.dispatch(add('Oat milk')), sam.dispatcher.dispatch(add('oat  MILK'))]);
+      await Promise.all([alex.dispatcher.dispatch(add('Oat milk')), sam.dispatcher.dispatch(add('oat  MILK'))]);
       const items = await store.getItems(KITCHEN, WEEK);
       expect(items).toHaveLength(2);
       expect(new Set(items.map((i) => i.id)).size).toBe(2);
@@ -86,25 +86,25 @@ describe('AddItem scenarios (R47)', () => {
         getItems: (k, w) => shared.getItems(k, w),
         watchItems: (k, w, cb, onError) => shared.watchItems(k, w, cb, onError),
       };
-      const bruk = await createTestClient({ uid: 'bruk', store: offlineStore });
+      const alex = await createTestClient({ uid: 'alex', store: offlineStore });
       const sam = await createTestClient({ uid: 'sam', store: shared });
 
-      await bruk.dispatcher.dispatch(add('Eggs'));
+      await alex.dispatcher.dispatch(add('Eggs'));
       await sam.dispatcher.dispatch(add('Eggs'));
       expect(await shared.getItems(KITCHEN, WEEK)).toHaveLength(1);
 
       online = true;
       for (const item of queue) await shared.mergeItem(KITCHEN, item);
       const after = await shared.getItems(KITCHEN, WEEK);
-      expect(after.map((i) => i.addedBy).sort()).toEqual(['bruk', 'sam']);
+      expect(after.map((i) => i.addedBy).sort()).toEqual(['alex', 'sam']);
     });
 
     it('a second client sees the first client\'s item through a watcher', async () => {
       const store = new InMemorySyncStore();
-      const bruk = await createTestClient({ uid: 'bruk', store });
+      const alex = await createTestClient({ uid: 'alex', store });
       const seen: string[][] = [];
       const stop = store.watchItems(KITCHEN, WEEK, (items) => seen.push(items.map((i) => i.name.value)));
-      await bruk.dispatcher.dispatch(add('Eggs'));
+      await alex.dispatcher.dispatch(add('Eggs'));
       await new Promise((r) => setTimeout(r, 10));
       stop();
       expect(seen[seen.length - 1]).toEqual(['Eggs']);
@@ -113,7 +113,7 @@ describe('AddItem scenarios (R47)', () => {
 
   describe('logging (R32)', () => {
     it('records type, duration, outcome and event types with one correlation id on every record', async () => {
-      const client = await createTestClient({ uid: 'bruk' });
+      const client = await createTestClient({ uid: 'alex' });
       client.clock.set(1_790_000_000_000);
       await client.dispatcher.dispatch(add('Oat milk'));
       const records = client.logger.records();
@@ -130,11 +130,11 @@ describe('AddItem scenarios (R47)', () => {
       expect(records.length).toBeGreaterThan(1);
       const ids = new Set(records.map((r) => r.correlationId));
       expect(ids.size).toBe(1);
-      expect([...ids][0]).toMatch(/^bruk-/);
+      expect([...ids][0]).toMatch(/^alex-/);
     });
 
     it('gives each command its own correlation id', async () => {
-      const client = await createTestClient({ uid: 'bruk' });
+      const client = await createTestClient({ uid: 'alex' });
       await client.dispatcher.dispatch(add('Eggs'));
       await client.dispatcher.dispatch(add('Milk'));
       const summaries = client.logger.records().filter((r) => r.attributes['commandType']);
@@ -142,7 +142,7 @@ describe('AddItem scenarios (R47)', () => {
     });
 
     it('logs each port call with port, method, duration and outcome', async () => {
-      const client = await createTestClient({ uid: 'bruk' });
+      const client = await createTestClient({ uid: 'alex' });
       await client.dispatcher.dispatch(add('Eggs'));
       const merge = client.logger.records().find((r) => r.attributes['method'] === 'mergeItem');
       expect(merge?.attributes).toMatchObject({ port: 'syncStore', method: 'mergeItem', outcome: 'ok' });
@@ -155,7 +155,7 @@ describe('AddItem scenarios (R47)', () => {
         getItems: () => Promise.resolve([]),
         watchItems: () => () => undefined,
       };
-      const client = await createTestClient({ uid: 'bruk', store: broken });
+      const client = await createTestClient({ uid: 'alex', store: broken });
       await client.dispatcher.dispatch(add('Eggs'));
       const failed = client.logger.records().find((r) => r.attributes['method'] === 'mergeItem');
       expect(failed?.severity).toBe('error');
@@ -163,7 +163,7 @@ describe('AddItem scenarios (R47)', () => {
     });
 
     it('never writes what the kitchen typed to a log record (R36)', async () => {
-      const client = await createTestClient({ uid: 'bruk' });
+      const client = await createTestClient({ uid: 'alex' });
       await client.dispatcher.dispatch(add('Oat milk', { amount: '2 cartons of 1L' }));
       await client.dispatcher.dispatch(add(' '));
       const text = JSON.stringify(client.logger.records());
