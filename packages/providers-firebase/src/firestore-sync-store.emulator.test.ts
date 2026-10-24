@@ -1,5 +1,5 @@
 import { createExtraItem } from '@grocs/core';
-import { syncStoreContract } from '@grocs/ports/testing';
+import { syncStoreContract, syncStoreMealContract } from '@grocs/ports/testing';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createEmulatorClient, createKitchen, ensureSeeded, readRaw, seedAccount, writeRaw } from '../../../firebase/emulator-client.ts';
 import type { EmulatorClient } from '../../../firebase/emulator-client.ts';
@@ -22,6 +22,12 @@ async function signedInStore(): Promise<FirestoreSyncStore> {
 
 // The same suite the in-memory fake passes (R29, R49), now against the Firestore emulator.
 syncStoreContract({ describe, it, expect }, async () => ({
+  store: await signedInStore(),
+  kitchenId: await createKitchen(),
+  otherKitchenId: await createKitchen('other'),
+}));
+
+syncStoreMealContract({ describe, it, expect }, async () => ({
   store: await signedInStore(),
   kitchenId: await createKitchen(),
   otherKitchenId: await createKitchen('other'),

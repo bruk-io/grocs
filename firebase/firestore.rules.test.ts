@@ -104,6 +104,22 @@ describe('kitchens/{kitchenId}/{document=**} (R4)', () => {
   });
 });
 
+describe('kitchens/{kitchenId}/meals/{mealId} (R4, same rule as items)', () => {
+  it('a member can read and write a meal in their kitchen', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(setDoc(doc(alex.firestore(), 'kitchens/k1/meals/m1'), { schemaVersion: 1, id: 'm1', name: { v: 'Tacos', at: 1, by: 'alex' } }));
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1/meals/m1')));
+  });
+
+  it('a non-member cannot read or write a meal in a kitchen they do not belong to', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/meals/m1')));
+    await assertFails(setDoc(doc(carl.firestore(), 'kitchens/k1/meals/m1'), { schemaVersion: 1, id: 'm1', name: { v: 'Intruding', at: 1, by: 'carl' } }));
+  });
+});
+
 describe('inviteCodes/{code} (R2, R3)', () => {
   it('no one can read an invite code directly - only the join function resolves one (default-deny, no match block)', async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
