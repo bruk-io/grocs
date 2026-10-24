@@ -7,16 +7,6 @@ import { needsBrowserPass, readPayload, repoRoot } from './lib.ts';
 
 const payload = await readPayload();
 
-// Runs through mise so this hook checks against the Node version mise.toml pins, not whatever
-// is ahead of mise's shims on this process's own PATH (TASK-44: the same ambient-PATH gap that
-// broke a layer builder's configured commands shows up here too, since this hook spawns pnpm
-// directly rather than through a shell that resolves mise's shims).
-const steps: { name: string; cmd: string; args: string[] }[] = [
-  { name: 'checks', cmd: 'mise', args: ['exec', '--', 'node', 'tools/checks/run.ts', '--mode', 'all'] },
-  { name: 'typecheck', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'typecheck'] },
-  { name: 'unit tests', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'test'] },
-];
-
 /** Files this change touches compared with main: committed, uncommitted and new. Null when that cannot be told. */
 function changedFiles(): string[] | null {
   const lines = (args: string[]): string[] | null => {
@@ -28,9 +18,25 @@ function changedFiles(): string[] | null {
   return tracked && untracked ? [...tracked, ...untracked] : null;
 }
 
+// Nothing to verify if nothing changed since main: whatever last checked this tree (CI, or this
+// hook on a prior turn) already holds, and re-running the full suite would re-verify unchanged
+// code at the cost of its full time on every single stop. Fails safe like the browser-pass skip
+// below: if the change cannot be listed, this does not skip.
+const changed = changedFiles();
+if (changed !== null && changed.length === 0) process.exit(0);
+
+// Runs through mise so this hook checks against the Node version mise.toml pins, not whatever
+// is ahead of mise's shims on this process's own PATH (TASK-44: the same ambient-PATH gap that
+// broke a layer builder's configured commands shows up here too, since this hook spawns pnpm
+// directly rather than through a shell that resolves mise's shims).
+const steps: { name: string; cmd: string; args: string[] }[] = [
+  { name: 'checks', cmd: 'mise', args: ['exec', '--', 'node', 'tools/checks/run.ts', '--mode', 'all'] },
+  { name: 'typecheck', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'typecheck'] },
+  { name: 'unit tests', cmd: 'mise', args: ['exec', '--', 'pnpm', '-s', 'test'] },
+];
+
 // The browser pass (accessibility scan, 44 x 44 targets, screenshot baselines) takes a minute, so it runs
 // only when the change can alter a story. If the change cannot be listed, it runs.
-const changed = changedFiles();
 if (changed === null || needsBrowserPass(changed)) {
   steps.push({ name: 'browser pass', cmd: 'pnpm', args: ['-s', '--filter', '@grocs/ui', 'visual'] });
 }
