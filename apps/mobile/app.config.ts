@@ -31,15 +31,21 @@ export default (): ExpoConfig => ({
         ['@react-native-firebase/app', { ios: { disableSPM: true } }],
         '@react-native-firebase/auth',
         ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
-        './plugins/withFirebaseConfigure.js',
+        './plugins/withFirebaseConfigure.cjs',
       ],
   ios: {
     bundleIdentifier: demo ? 'io.bruk.grocs.demo' : 'io.bruk.grocs.dev',
     ...(demo || !process.env['GOOGLE_SERVICE_INFO_PLIST_PATH'] ? {} : { googleServicesFile: process.env['GOOGLE_SERVICE_INFO_PLIST_PATH'] }),
+    // Neither variant does its own cryptography; Firebase's own use of standard, exempt
+    // encryption (TLS) is all either build ships. Declaring it here skips the App Store
+    // Connect/EAS export-compliance prompt on every submission.
+    infoPlist: { ITSAppUsesNonExemptEncryption: false },
   },
   android: {
     package: demo ? 'io.bruk.grocs.demo' : 'io.bruk.grocs.dev',
     ...(demo || !process.env['GOOGLE_SERVICES_JSON_PATH'] ? {} : { googleServicesFile: process.env['GOOGLE_SERVICES_JSON_PATH'] }),
   },
   web: { bundler: 'metro' },
+  owner: 'bruk.habtu',
+  ...(process.env['EAS_PROJECT_ID'] ? { extra: { eas: { projectId: process.env['EAS_PROJECT_ID'] } } } : {}),
 });
