@@ -32,6 +32,9 @@ export default (): ExpoConfig => ({
         '@react-native-firebase/auth',
         ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
         './plugins/withFirebaseConfigure.cjs',
+        // Reads the iOS URL scheme from GoogleService-Info.plist (the real build's own, injected at
+        // build time - R51, R52), no options needed (TASK-1.15).
+        '@react-native-google-signin/google-signin',
       ],
   ios: {
     bundleIdentifier: demo ? 'io.bruk.grocs.demo' : 'io.bruk.grocs.dev',

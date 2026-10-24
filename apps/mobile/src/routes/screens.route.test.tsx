@@ -130,7 +130,7 @@ describe('Groceries (live, at /)', () => {
 
 describe('Groceries samples (dev-only route)', () => {
   async function openSample(location: string) {
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, dev: true }), location });
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, isDevBuild: true }), location });
   }
 
   it('shows the list with the partner toast', async () => {

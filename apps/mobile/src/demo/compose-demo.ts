@@ -48,7 +48,7 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens }, logger, runtime, copyText });
   return {
     app,
-    dev: null,
+    isDevBuild: false,
     diagnostics: () => diagnosticsText({ appVersion: runtime.appVersion, platform: runtime.platform, build: 'demo' }, 'demo build: nothing is logged to the phone'),
     demo: {
       kitchenId: DEMO_KITCHEN_ID,

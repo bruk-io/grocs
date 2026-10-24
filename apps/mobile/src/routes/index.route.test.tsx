@@ -24,17 +24,25 @@ describe('index route', () => {
     expect(screen.getByRole('button', { name: 'Open it to join' })).toBeTruthy();
   });
 
-  it('does nothing yet when Continue with Google is pressed, and has no test sign-in in a release build', async () => {
+  it('shows the error and returns to Continue with Google when the Google picker is cancelled, with no test sign-in in any build', async () => {
     renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: false }) });
     fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
-    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
+    expect(await screen.findByText('auth/google-sign-in-cancelled')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeTruthy();
     expect(screen.queryByText(/\(test\)/)).toBeNull();
   });
 
-  it('leads to the list from the test sign-in in a development build (R53)', async () => {
-    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: false, dev: true }) });
-    fireEvent.click(await screen.findByRole('button', { name: 'Sign in as U1 (test)' }));
+  it('leads to the list when Google sign-in succeeds', async () => {
+    const googleAccount = { uid: 'u1', email: 'u1@grocs.test', displayName: 'U1' };
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: false, googleAccount }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
     await waitFor(() => expect(screen.getByText('Nothing on the list yet')).toBeTruthy());
+  });
+
+  it('never shows a test sign-in on Welcome, dev build or not - Google sign-in is the one way in everywhere', async () => {
+    renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: false, isDevBuild: true }) });
+    await screen.findByRole('button', { name: 'Continue with Google' });
+    expect(screen.queryByText(/\(test\)/)).toBeNull();
   });
 
   it("shows a mushroom's speech bubble and announces it when it is tapped (R40)", async () => {

@@ -22,14 +22,16 @@ import { FakeClipboard } from './fake-clipboard.ts';
 
 export async function appOnFakes({
   signedIn,
-  dev = false,
+  isDevBuild = false,
   syncStore = new InMemorySyncStore(),
   kitchen = true,
   clock = new FakeClock(),
   kitchens = new FakeKitchenGateway('u1', undefined, clock),
+  googleAccount = null,
 }: {
   signedIn: boolean;
-  dev?: boolean;
+  /** Gates dev-only routes like /groceries-samples (R53); carries no account or sign-in capability. */
+  isDevBuild?: boolean;
   /** Pass a store to put items in it before the app opens. */
   syncStore?: InMemorySyncStore;
   /** Whether the signed-in member (u1) already belongs to a kitchen. False gives the kitchen setup screen. */
@@ -38,8 +40,10 @@ export async function appOnFakes({
   kitchens?: FakeKitchenGateway;
   /** The clock the gateway and the app share, to move time past an invite's expiry. */
   clock?: FakeClock;
+  /** Stands in for a successful Google picker (FakeAuth's own doc): set to make Continue with Google succeed; null (the default) stands in for a cancelled or failed pick. */
+  googleAccount?: { uid: string; email: string; displayName: string | null } | null;
 }): Promise<NativeApp & { readonly clipboard: FakeClipboard }> {
-  const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
+  const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }], googleAccount);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
   const clipboard = new FakeClipboard();
@@ -51,17 +55,7 @@ export async function appOnFakes({
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     copyText: clipboard.copyText,
   });
-  // A development build has the seeded test accounts; a release build has none.
-  const devAccess = dev
-    ? {
-        kitchenId: 'k1',
-        accounts: [{ label: 'U1', email: 'u1@grocs.test', password: 'pw' }],
-        signIn: async (email: string, password: string) => {
-          await auth.signInWithTestAccount(email, password);
-        },
-      }
-    : null;
-  return { clipboard, app, dev: devAccess, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  return { clipboard, app, isDevBuild, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => auth.signInWithGoogle() };
 }
 
 /**

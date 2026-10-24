@@ -1,16 +1,33 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, SignInTemplate, Text } from '@grocs/ui';
-import type { DemoAccess, DevAccess } from '../composition/native.ts';
+import type { GoogleSignIn } from '@grocs/ports';
+import { SignInTemplate, Text } from '@grocs/ui';
+import type { DemoAccess } from '../composition/native.ts';
 import { useGo } from './navigate.ts';
 
 /**
- * The signed-out screen: the Welcome template, with no sign-in logic yet (Continue with Google and
- * the invite link do nothing). In development builds the seeded test accounts sign in against the
- * Auth emulator from the foot of the sheet (R53).
+ * The signed-out screen: Continue with Google signs in for real (TASK-1.15); the invite link opens
+ * the join screen. The same flow in every build, dev and release alike - no test sign-in, by design.
+ * A successful sign-in needs no screen-level follow-up: it updates Firebase Auth state, which Home's
+ * watchSession already observes.
  */
-export function WelcomeScreen({ dev, demo = null }: { dev: DevAccess | null; demo?: DemoAccess | null }) {
+export function WelcomeScreen({
+  signInWithGoogle,
+  demo = null,
+}: {
+  signInWithGoogle: GoogleSignIn['signInWithGoogle'];
+  demo?: DemoAccess | null;
+}) {
   const go = useGo();
+  const [signingIn, setSigningIn] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const onContinue = () => {
+    setProblem(null);
+    setSigningIn(true);
+    signInWithGoogle()
+      .catch((e: Error) => setProblem(e.message))
+      .finally(() => setSigningIn(false));
+  };
   return (
     <View style={styles.screen}>
       <SignInTemplate
@@ -18,34 +35,17 @@ export function WelcomeScreen({ dev, demo = null }: { dev: DevAccess | null; dem
         tagline="Plan the week. Shop together."
         {...(demo
           ? { primaryLabel: 'Try the demo', onPrimary: () => void demo.signIn() }
-          : { onOpenInvite: go.join, ...(dev ? { footer: <DevSignIn dev={dev} /> } : {}) })}
+          : {
+              onContinue,
+              onOpenInvite: go.join,
+              signingIn,
+              ...(problem ? { footer: <Text variant="muted">{problem}</Text> } : {}),
+            })}
       />
-    </View>
-  );
-}
-
-function DevSignIn({ dev }: { dev: DevAccess }) {
-  const [problem, setProblem] = useState<string | null>(null);
-  return (
-    <View style={styles.dev}>
-      {dev.accounts.map((account) => (
-        <Button
-          key={account.email}
-          variant="text"
-          size="s"
-          label={`Sign in as ${account.label} (test)`}
-          onPress={() => {
-            setProblem(null);
-            dev.signIn(account.email, account.password).catch((e: Error) => setProblem(e.message));
-          }}
-        />
-      ))}
-      {problem ? <Text variant="muted">{problem}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  dev: { alignItems: 'center' },
 });

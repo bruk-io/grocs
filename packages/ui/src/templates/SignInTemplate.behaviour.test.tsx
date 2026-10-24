@@ -41,10 +41,10 @@ describe('SignInTemplate', () => {
     expect(screen.getByRole('button', { name: 'Signing in' }).getAttribute('aria-busy')).toBe('true');
   });
 
-  it('shows the development test sign-in in the footer, next to Continue with Google', () => {
+  it('shows the footer text, next to Continue with Google', () => {
     render(<WithFooter />);
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Sign in as Alex (test)' })).toBeTruthy();
+    expect(screen.getByText('auth/google-sign-in-cancelled')).toBeTruthy();
   });
 
   it('reports a tap on a host', async () => {

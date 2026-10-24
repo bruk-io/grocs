@@ -5,9 +5,8 @@ import { connectAuthEmulator, getAuth } from '@react-native-firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from '@react-native-firebase/firestore';
 import { getFunctions, httpsCallableFromUrl } from '@react-native-firebase/functions';
 import { Platform } from 'react-native';
-import type { AuthFns, FunctionsFns } from '@grocs/providers-firebase';
-import { DEMO_PROJECT, seedKitchen, seedUsers } from '../../../../firebase/seed/data.ts';
-import { FirebaseTestSignIn } from './test-sign-in.ts';
+import type { FunctionsFns } from '@grocs/providers-firebase';
+import { DEMO_PROJECT } from '../../../../firebase/seed/data.ts';
 
 /** A string no release bundle may contain. */
 export const DEV_TOOLS_MARKER = 'grocs-dev-tools-marker';
@@ -19,8 +18,6 @@ function emulatorHost(): string {
 
 export const devTools = {
   marker: DEV_TOOLS_MARKER,
-  kitchenId: seedKitchen.id,
-  accounts: seedUsers.map((u) => ({ label: u.displayName, email: u.email, password: u.password })),
 
   /**
    * Point the native SDK at the local emulators. Call before the first read or write. Returns the
@@ -43,14 +40,6 @@ export const devTools = {
         const call = httpsCallableFromUrl<Req, Res>(instance, `http://${host}:5001/${DEMO_PROJECT}/us-central1/${name}`);
         return async (data: Req): Promise<{ readonly data: Res }> => call(data);
       },
-    };
-  },
-
-  /** A function that signs in a seeded account. Screens call this and never name the test sign-in port. */
-  signInFunction(fns: AuthFns, auth: unknown): (email: string, password: string) => Promise<void> {
-    const testSignIn = new FirebaseTestSignIn(fns, auth);
-    return async (email, password) => {
-      await testSignIn.signInWithTestAccount(email, password);
     };
   },
 };

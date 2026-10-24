@@ -3,6 +3,7 @@
 import * as nativeAuth from '@react-native-firebase/auth';
 import * as nativeFirestore from '@react-native-firebase/firestore';
 import * as nativeFunctions from '@react-native-firebase/functions';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setStringAsync } from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
@@ -16,12 +17,6 @@ import { diagnosticsText } from './diagnostics.ts';
 import { loadDevTools } from './load-dev.ts';
 import { installObservers } from './observe.ts';
 
-export interface DevAccess {
-  readonly kitchenId: string;
-  readonly accounts: readonly { label: string; email: string; password: string }[];
-  readonly signIn: (email: string, password: string) => Promise<void>;
-}
-
 /** What the demo variant adds: a way in with no account, and the kitchen it opens on (decision-12). */
 export interface DemoAccess {
   readonly kitchenId: string;
@@ -30,8 +25,12 @@ export interface DemoAccess {
 
 export interface NativeApp {
   readonly app: App;
-  /** Null in release builds. */
-  readonly dev: DevAccess | null;
+  /**
+   * True in a development build, false in release and in the demo variant. No account or sign-in
+   * capability rides on this - just the one thing it's for: gating dev-only routes like
+   * /groceries-samples out of anything that ships.
+   */
+  readonly isDevBuild: boolean;
   /** Null in every build but the demo variant. */
   readonly demo: DemoAccess | null;
   /**
@@ -44,16 +43,24 @@ export interface NativeApp {
 }
 
 /**
- * The native Google picker (@react-native-google-signin/google-signin) is not wired yet - that
- * library, its Expo config plugin, and any native build issues are TASK-1.15's job to find. This
- * stub keeps the port and provider plumbing real and testable now, without getting ahead of that
- * device spike.
+ * Read once, not per call: GoogleSignin.configure() only needs to run once, and an absent value
+ * (misconfigured build) should fail the first sign-in attempt with a clear native error rather than
+ * silently skip configure() and fail with a less obvious one.
  */
+const GOOGLE_WEB_CLIENT_ID = process.env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'];
+
+/** The real native Google picker (@react-native-google-signin/google-signin), TASK-1.15. */
 async function getGoogleIdToken(): Promise<string> {
-  throw new Error('not implemented - see TASK-1.15');
+  await GoogleSignin.hasPlayServices();
+  const response = await GoogleSignin.signIn();
+  if (response.type === 'cancelled') throw new Error('Google sign-in was cancelled');
+  const { idToken } = response.data;
+  if (!idToken) throw new Error('Google sign-in did not return an ID token');
+  return idToken;
 }
 
 export function createNativeApp(): NativeApp {
+  if (GOOGLE_WEB_CLIENT_ID) GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
   const dev = loadDevTools();
   // Whether this build is a dev build and whether it talks to local emulators are different
   // questions: __DEV__ only gates dev-only code out of release bundles (R53, R64). Default to
@@ -103,9 +110,7 @@ export function createNativeApp(): NativeApp {
 
   return {
     app,
-    dev: dev
-      ? { kitchenId: dev.kitchenId, accounts: dev.accounts, signIn: dev.signInFunction(authFns, authInstance) }
-      : null,
+    isDevBuild: dev !== null,
     demo: null,
     diagnostics: () => diagnosticsText(build, buffer ? buffer.dump() : 'development build: log records go to the console'),
     signInWithGoogle: () => googleAuth.signInWithGoogle(),
