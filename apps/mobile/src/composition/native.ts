@@ -55,7 +55,17 @@ async function getGoogleIdToken(): Promise<string> {
 
 export function createNativeApp(): NativeApp {
   const dev = loadDevTools();
-  dev?.connectEmulators();
+  // Whether this build is a dev build and whether it talks to local emulators are different
+  // questions: __DEV__ only gates dev-only code out of release bundles (R53, R64). Default to
+  // emulators (the documented `pnpm emulators` workflow) so existing dev builds are unaffected;
+  // EXPO_PUBLIC_USE_EMULATORS=false points a dev build at the live Firebase project instead, on
+  // either platform, to test real sign-in and sync without the local emulator stack.
+  // connectEmulators() returns the FunctionsFns to call through instead of the real module (DRAFT-21:
+  // a plain useEmulator() call is not enough for Functions, only for Auth/Firestore - see its own
+  // comment). The instance value accompanying it is unused by that FunctionsFns, which closes over
+  // its own; passing the real one through anyway keeps the field non-optional.
+  const useEmulators = process.env['EXPO_PUBLIC_USE_EMULATORS'] !== 'false';
+  const devFunctionsFns = useEmulators ? dev?.connectEmulators() : undefined;
 
   const authFns = asSdk<AuthFns>(nativeAuth);
   const authInstance = nativeAuth.getAuth();
@@ -76,7 +86,7 @@ export function createNativeApp(): NativeApp {
       auth: authFns,
       db: nativeFirestore.getFirestore(),
       authInstance,
-      functions: { fns: asSdk<FunctionsFns>(nativeFunctions), instance: nativeFunctions.getFunctions() },
+      functions: { fns: devFunctionsFns ?? asSdk<FunctionsFns>(nativeFunctions), instance: nativeFunctions.getFunctions() },
     },
     logger,
     copyText: async (text) => {

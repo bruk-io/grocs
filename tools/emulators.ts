@@ -1,10 +1,10 @@
-// `pnpm emulators`: start the Firestore and Auth emulators on the demo project, seed
+// `pnpm emulators`: start the Firestore, Auth and Functions emulators on the demo project, seed
 // them, and stay up until interrupted. Needs Java, not Docker (R52).
 import { spawn } from 'node:child_process';
 import { seed } from '../firebase/seed/seed.ts';
 
 const PROJECT = 'demo-grocs';
-const child = spawn('pnpm', ['exec', 'firebase', 'emulators:start', '--only', 'firestore,auth', '--project', PROJECT], {
+const child = spawn('pnpm', ['exec', 'firebase', 'emulators:start', '--only', 'firestore,auth,functions', '--project', PROJECT], {
   stdio: ['inherit', 'inherit', 'inherit'],
 });
 const stop = (): void => {
@@ -28,5 +28,6 @@ async function waitFor(url: string, tries = 120): Promise<void> {
 
 await waitFor('http://127.0.0.1:8080');
 await waitFor('http://127.0.0.1:9099');
+await waitFor('http://127.0.0.1:5001');
 await seed({ ...process.env, FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080', FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099' });
-console.log('\nEmulators are up and seeded. Sign in with bruk@grocs.test or sam@grocs.test (password: local-only-password). Ctrl-C to stop.');
+console.log('\nEmulators are up and seeded. Sign in with alex@grocs.test or sam@grocs.test (password: local-only-password). Ctrl-C to stop.');

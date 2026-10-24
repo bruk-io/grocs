@@ -6,8 +6,12 @@ title: >-
 status: Draft
 assignee: []
 created_date: '2026-10-23 03:52'
+updated_date: '2026-10-24 03:46'
 labels: []
 dependencies: []
+modified_files:
+  - apps/mobile/src/dev/index.ts
+  - apps/mobile/src/composition/native.ts
 type: bug
 ---
 
@@ -27,5 +31,25 @@ tools/emulators.ts, apps/mobile/src/dev/index.ts; anyone manually testing the re
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A dev build on an Android emulator or device can call createKitchen/joinKitchen/findMyKitchen against the local Functions emulator successfully
+- [x] #1 A dev build on an Android emulator or device can call createKitchen/joinKitchen/findMyKitchen against the local Functions emulator successfully
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Root-caused and fixed (2026-10-24, Claude, overnight while Bruk slept - he asked for this one fixed).
+
+Root cause: not a reachability/networking problem. The native app's Firebase config (google-services.json, project `io-bruk-grocs-dev`) is baked in at build time; @react-native-firebase has no runtime project override. `connectFunctionsEmulator(getFunctions(), host, port)` only redirects host:port - the callable URL's project-id segment still comes from the app's own config. The local Functions emulator serves only under `demo-grocs` (tools/emulators.ts's PROJECT constant, required by firebase-isolation R51/R52). Every call built a URL like `http://10.0.2.2:5001/io-bruk-grocs-dev/us-central1/createKitchen`, which the emulator 404s (confirmed empirically: curl'd the emulator directly with the real project id and a garbage one - both flat 404; `demo-grocs` returns 401 as expected for an unauthenticated call. `singleProjectMode: true` in firebase.json does not bypass this for Functions HTTP routing, firebase-tools 15.34.0). The emulator's own log shows zero lines for any of these calls (not even a 404 access log), which is why this looked like a pure connectivity/unreachable-host problem the first time around. Auth and Firestore emulators connect fine because those protocols don't require an exact project-id path match the way Functions' HTTP trigger router does.
+
+Ruled out before finding this: `expo run:android`'s official port-forwarding instead of manual `adb reverse` (draft's original suggestion) - made no difference, same "not-found" with zero emulator-side log lines. `getFunctions(undefined, customDomain)` (its documented fix on the web SDK) - the native Android module does not honor the customDomain argument the same way; still "not-found" after a fully clean Metro bundle (cache cleared, confirmed via a distinctive rebuild).
+
+Fix: `apps/mobile/src/dev/index.ts`'s `connectEmulators()` now returns a `FunctionsFns` (not a bare `Functions` instance) whose `httpsCallable` is built on `httpsCallableFromUrl(instance, \`http://${host}:5001/${DEMO_PROJECT}/us-central1/${name}\`)` instead of the project-id-derived default - DEMO_PROJECT imported from firebase/seed/data.ts, the same constant tools/emulators.ts already uses. `apps/mobile/src/composition/native.ts` swaps in this FunctionsFns in place of the real module when EXPO_PUBLIC_USE_EMULATORS is on (the default), alongside the real `instance` value (unused by this FunctionsFns, which closes over its own - kept only so the field stays non-optional). Zero changes to packages/providers-firebase or packages/ports - FirebaseKitchenGateway still just calls `this.#fns.httpsCallable(this.#functionsInstance, name)` generically, with no idea it's talking to an emulator (providers hold no rules).
+
+Verified end to end on a real Android emulator (the "fold" AVD) against `pnpm emulators`, built via `expo run:android` then iterated against a clean `expo start --dev-client --clear` Metro session (ruling out bundle-cache ambiguity): signed in via the dev test sign-in, `findMyKitchen` now returns `ok` (was `not-found`), then `createKitchen` succeeded end to end - got a real invite code (BIRCH-9389) and the "waiting for your partner to join" screen. Did not empirically test `joinKitchen` from a second client tonight (no second device driven), but it goes through the identical `FunctionsFns.httpsCallable` path as the other two, so the same fix applies by construction.
+
+Full suite green after the fix: pnpm check, pnpm typecheck, pnpm test (117 files, 1548 tests) all pass.
+
+One unrelated thing found and fixed along the way, same session: `expo run:android`/`expo start` auto-generates a local apps/mobile/tsconfig.json that's gitignored specifically because it's known to break vitest/typecheck (see the .gitignore comment right above that line) - hit this, deleted it (not edited it) each time it reappeared, matching what the comment already says to do.
+
+Not yet done: AC1 only covers Android (this session's device access). iOS wasn't re-tested against this fix. Nothing commits itself - all of this is still uncommitted locally, ready for review.
+<!-- SECTION:NOTES:END -->

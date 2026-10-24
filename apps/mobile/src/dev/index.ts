@@ -3,10 +3,10 @@
 // The check `release-bundle` fails the build if a release bundle still contains it.
 import { connectAuthEmulator, getAuth } from '@react-native-firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from '@react-native-firebase/firestore';
-import { connectFunctionsEmulator, getFunctions } from '@react-native-firebase/functions';
+import { getFunctions, httpsCallableFromUrl } from '@react-native-firebase/functions';
 import { Platform } from 'react-native';
-import type { AuthFns } from '@grocs/providers-firebase';
-import { seedKitchen, seedUsers } from '../../../../firebase/seed/data.ts';
+import type { AuthFns, FunctionsFns } from '@grocs/providers-firebase';
+import { DEMO_PROJECT, seedKitchen, seedUsers } from '../../../../firebase/seed/data.ts';
 import { FirebaseTestSignIn } from './test-sign-in.ts';
 
 /** A string no release bundle may contain. */
@@ -22,12 +22,28 @@ export const devTools = {
   kitchenId: seedKitchen.id,
   accounts: seedUsers.map((u) => ({ label: u.displayName, email: u.email, password: u.password })),
 
-  /** Point the native SDK at the local emulators. Call before the first read or write. */
-  connectEmulators(): void {
+  /**
+   * Point the native SDK at the local emulators. Call before the first read or write. Returns the
+   * FunctionsFns to use in place of the real module: useEmulator() alone is not enough for Functions,
+   * because its callable URLs are built from the app's real project id (from google-services.json,
+   * since RNFirebase has no runtime project override), which does not match the emulator's
+   * "demo-grocs" - every call fails with "not-found" and never reaches the emulator at all, even
+   * though Auth and Firestore (host:port only, no project id in the URL) connect fine (DRAFT-21).
+   * getFunctions()'s customDomain parameter looks like the fix on paper but the native Android module
+   * does not honor it (tried first; still "not-found"). httpsCallableFromUrl, which takes the literal
+   * URL, does work, so every call here is built against the emulator's own project id explicitly.
+   */
+  connectEmulators(): FunctionsFns {
     const host = emulatorHost();
     connectFirestoreEmulator(getFirestore(), host, 8080);
     connectAuthEmulator(getAuth(), `http://${host}:9099`);
-    connectFunctionsEmulator(getFunctions(), host, 5001);
+    const instance = getFunctions();
+    return {
+      httpsCallable: <Req, Res>(_instance: unknown, name: string) => {
+        const call = httpsCallableFromUrl<Req, Res>(instance, `http://${host}:5001/${DEMO_PROJECT}/us-central1/${name}`);
+        return async (data: Req): Promise<{ readonly data: Res }> => call(data);
+      },
+    };
   },
 
   /** A function that signs in a seeded account. Screens call this and never name the test sign-in port. */
