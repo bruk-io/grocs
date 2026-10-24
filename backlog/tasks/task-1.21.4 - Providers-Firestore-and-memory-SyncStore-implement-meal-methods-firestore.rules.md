@@ -3,11 +3,11 @@ id: TASK-1.21.4
 title: >-
   Providers: Firestore and memory SyncStore implement meal methods;
   firestore.rules
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 22:13'
+updated_date: '2026-10-24 22:48'
 labels:
   - layer-providers
   - size-3
@@ -30,10 +30,10 @@ Mirrors packages/providers-firebase/src/firestore-sync-store.ts's and packages/p
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 FirestoreSyncStore implements mergeMeal/getMeals/watchMeals at kitchens/{kitchenId}/meals/{mealId}, same transaction-based merge-on-write pattern as mergeItem
-- [ ] #2 MemorySyncStore implements the same methods in-memory, for the demo build and app-layer tests
-- [ ] #3 firebase/firestore.rules gains kitchens/{kitchenId}/meals/{mealId} rules mirroring items' member-only read/write, with allow/deny tests added to firestore.rules.test.ts
-- [ ] #4 Emulator tests cover the real Cloud Firestore round trip for every meal method, including a concurrent-write merge test
+- [x] #1 FirestoreSyncStore implements mergeMeal/getMeals/watchMeals at kitchens/{kitchenId}/meals/{mealId}, same transaction-based merge-on-write pattern as mergeItem
+- [x] #2 MemorySyncStore implements the same methods in-memory, for the demo build and app-layer tests
+- [x] #3 firebase/firestore.rules gains kitchens/{kitchenId}/meals/{mealId} rules mirroring items' member-only read/write, with allow/deny tests added to firestore.rules.test.ts
+- [x] #4 Emulator tests cover the real Cloud Firestore round trip for every meal method, including a concurrent-write merge test
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -65,4 +65,81 @@ Modified files: packages/providers-memory/src/memory-sync-store.ts(+test), packa
 Left acceptance criteria and status change to review per instructions.
 
 Addressed reviewer-providers' two findings: (1) corrected modified_files metadata to the five files actually touched (firestore-sync-store.ts, firestore-sync-store.emulator.test.ts, memory-sync-store.ts, memory-sync-store.test.ts, firestore.rules.test.ts) - firebase/firestore.rules itself was never touched and is removed from the list. (2) extended FirestoreSyncStore's class doc comment to name meals alongside items (path, shape-translation, and the transaction/offline caveat now cover both). No logic changes. Re-verified: pnpm exec vitest run --project unit packages/providers-memory packages/providers-firebase - 3 files, 39 tests pass. pnpm typecheck's only remaining error is in apps/mobile/src/screens/AddMealScreen.tsx (app/UI layer, TASK-1.21.5/.6 territory), unrelated to this task's layer.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+(52 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  125 passed (125)
+      Tests  1639 passed (1639)
+   Start at  18:36:39
+   Duration  8.32s (transform 38.07s, setup 3.33s, import 108.10s, tests 36.47s, environment 18.99s)
+
+$ firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-grocs", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  auth: Port 9099 is not open on 127.0.0.1, could not start Authentication Emulator.
+⚠  auth: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "auth": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  firestore: Port 8080 is not open on 127.0.0.1, could not start Firestore Emulator.
+⚠  firestore: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "firestore": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  hub: emulator hub unable to start on port 4400, starting on 4401 instead.
+⚠  logging: Logging Emulator unable to start on port 4500, starting on 4501 instead.
+i  emulators: Shutting down emulators.
+
+Error: Could not start Authentication Emulator, port taken.
+[ELIFECYCLE] Command failed with exit code 1.
+```
+
+Closed. All four criteria met; verified independently by reading the committed code (c4db885) rather than trusting the notes.
+
+AC1: FirestoreSyncStore.mergeMeal/getMeals/watchMeals at kitchens/{kitchenId}/meals/{mealId} (firestore-sync-store.ts:62-106) mirror mergeItem/getItems/watchItems line for line, including the runTransaction read-merge-write. The one divergence - the week query reads 'weekId.v' because Meal's stored weekId is a Stamped field, unlike Item's plain string - is correct and carries a comment saying why (line 103).
+AC2: MemorySyncStore gains #meals/#mealWatchers mirroring #items/#itemWatchers exactly, filtering on meal.weekId.value (memory-sync-store.ts:53-104).
+AC3: met by interpretation, not by a diff to firebase/firestore.rules. Read the rules myself: the existing match /kitchens/{kitchenId}/{collection}/{document=**} grants member-only read/write to every per-kitchen subcollection, meals included, and its comment already names meals. A meals-specific match would be dead duplication. The allow/deny tests the criterion asks for are there and real (firestore.rules.test.ts:107-119, a member succeeds, a non-member fails on both read and write), and they pass against the emulator. Recorded rather than filed: the criterion's wording ('firestore.rules gains ... rules') asks for a file change the correct implementation does not need, so it is a wording problem for whoever writes the next rules criterion, not a defect in this work.
+AC4: the Firestore emulator test calls syncStoreMealContract (firestore-sync-store.emulator.test.ts:30), which covers create, idempotence, cross-kitchen isolation, rename, relink, move between weeks, tombstone, the concurrent different-field merge (contract.ts:227) and the watcher - every meal method against real Cloud Firestore.
+
+Checks: pnpm check 14 checks pass; pnpm typecheck clean (the AddMealScreen.tsx error the worker saw is gone); unit tier 125 files / 1639 tests pass. The full tier's 'pnpm test:emulator' step fails in this session only because the shared emulators already hold ports 8080/9099, so emulators:exec cannot start its own - not a code finding. Run directly against the running emulators it is 8 files / 91 tests, three consecutive clean runs. One first-run failure in the kitchen-gateway contract (joinKitchen member count) did not reproduce and is in another layer with a cold functions emulator as the likely cause; mentioned here only so it is not lost.
+
+No findings filed as drafts.
 <!-- SECTION:NOTES:END -->
