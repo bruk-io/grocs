@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { Avatar } from './Avatar.tsx';
 
-const meta = { title: 'Atoms/Avatar', component: Avatar, args: { name: 'Bruk' } } satisfies Meta<typeof Avatar>;
+const meta = { title: 'Atoms/Avatar', component: Avatar, args: { name: 'Alex' } } satisfies Meta<typeof Avatar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

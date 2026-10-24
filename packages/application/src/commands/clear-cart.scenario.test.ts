@@ -8,7 +8,7 @@ const add = (name: string) => ({ type: 'AddItem' as const, kitchenId: KITCHEN, w
 const tick = (itemId: string, inCart: boolean) => ({ type: 'SetItemState' as const, kitchenId: KITCHEN, weekId: WEEK, itemId, inCart });
 const clear = () => ({ type: 'ClearCart' as const, kitchenId: KITCHEN, weekId: WEEK });
 
-async function withItems(names: readonly string[], uid = 'bruk', store = new InMemorySyncStore()) {
+async function withItems(names: readonly string[], uid = 'alex', store = new InMemorySyncStore()) {
   const client = await createTestClient({ uid, store });
   for (const name of names) {
     await client.dispatcher.dispatch(add(name));
@@ -40,7 +40,7 @@ describe('ClearCart scenarios (R47)', () => {
 
   it('stamps cleared items with the clock and the signed-in member', async () => {
     const store = new InMemorySyncStore();
-    const { items } = await withItems(['Eggs'], 'bruk', store);
+    const { items } = await withItems(['Eggs'], 'alex', store);
     const [eggs] = items;
     const sam = await createTestClient({ uid: 'sam', store });
     sam.clock.set(1_800_000_000_000);
@@ -59,24 +59,24 @@ describe('ClearCart scenarios (R47)', () => {
 
   it('rejects the command when nobody is signed in', async () => {
     await withItems(['Eggs']);
-    const out = await createTestClient({ uid: 'bruk', signedIn: false });
+    const out = await createTestClient({ uid: 'alex', signedIn: false });
     const result = await out.dispatcher.dispatch(clear());
     expect(!result.ok && result.error.code).toBe('not-signed-in');
   });
 
   it('leaves an item still in-cart out of itemIds when a same-instant tick wins the merge (DRAFT-14)', async () => {
     const store = new InMemorySyncStore();
-    const { items } = await withItems(['Eggs'], 'bruk', store);
+    const { items } = await withItems(['Eggs'], 'alex', store);
     const [eggs] = items;
     const sam = await createTestClient({ uid: 'sam', store });
-    const bruk = await createTestClient({ uid: 'bruk', store });
+    const alex = await createTestClient({ uid: 'alex', store });
 
-    // Same millisecond for both: compareStamps breaks the tie on `by`, and 'bruk' < 'sam', so the
+    // Same millisecond for both: compareStamps breaks the tie on `by`, and 'alex' < 'sam', so the
     // stored in-cart stamp sorts later and the merge keeps the item in-cart despite the clear.
     sam.clock.set(1_800_000_004_000);
-    bruk.clock.set(1_800_000_004_000);
+    alex.clock.set(1_800_000_004_000);
     await sam.dispatcher.dispatch(tick(eggs?.id ?? '', true));
-    const result = await bruk.dispatcher.dispatch(clear());
+    const result = await alex.dispatcher.dispatch(clear());
 
     expect(result).toEqual({ ok: true, value: [{ type: 'CartCleared', weekId: WEEK, itemIds: [] }] });
     const [after] = await store.getItems(KITCHEN, WEEK);

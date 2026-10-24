@@ -4,8 +4,8 @@ import type { ListItem } from '../organisms/ListSection.tsx';
 import type { RailMeal } from '../organisms/MealRail.tsx';
 import type { PlanDay } from '../organisms/WeekList.tsx';
 
-/** Bruk and Sam; Sam is in the app now. */
-export const household: readonly StackMember[] = [{ name: 'Bruk' }, { name: 'Sam', tone: 'chartreuse', online: true }];
+/** Alex and Sam; Sam is in the app now. */
+export const household: readonly StackMember[] = [{ name: 'Alex' }, { name: 'Sam', tone: 'chartreuse', online: true }];
 
 export const week: readonly PlanDay[] = [
   { id: '2026-10-19', weekday: 'Mon', day: 19, meals: [{ id: 'm1', name: 'Chana masala', tone: 'amber', link: 'example.com' }] },
@@ -42,23 +42,23 @@ export const meat: readonly ListItem[] = [{ id: 'i7', name: 'Chicken thighs', am
 
 /** The Offline screen: two items wait to be sent. */
 export const offlineProduce: readonly ListItem[] = [
-  { id: 'o1', name: 'Bananas', amount: '6', addedBy: 'Bruk', inCart: false },
-  { id: 'o2', name: 'Baby spinach', amount: '1 bag', addedBy: 'Bruk', inCart: false, waiting: true },
-  { id: 'o3', name: 'Limes', amount: '4', addedBy: 'Bruk', inCart: false, waiting: true },
+  { id: 'o1', name: 'Bananas', amount: '6', addedBy: 'Alex', inCart: false },
+  { id: 'o2', name: 'Baby spinach', amount: '1 bag', addedBy: 'Alex', inCart: false, waiting: true },
+  { id: 'o3', name: 'Limes', amount: '4', addedBy: 'Alex', inCart: false, waiting: true },
 ];
 export const offlineDairy: readonly ListItem[] = [
   { id: 'o4', name: 'Oat milk', amount: '1 carton', addedBy: 'Sam', inCart: false },
-  { id: 'o5', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Bruk', inCart: false },
+  { id: 'o5', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Alex', inCart: false },
 ];
 
 /** The Toast screen: Sam just added Oat milk. */
 export const toastDairy: readonly ListItem[] = [
   { id: 't1', name: 'Oat milk', amount: '1 carton', addedBy: 'Sam', inCart: false, isNew: true },
-  { id: 't2', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Bruk', inCart: false },
+  { id: 't2', name: 'Eggs', amount: '1 dozen', mealBadges: [pizza], addedBy: 'Alex', inCart: false },
 ];
 export const toastProduce: readonly ListItem[] = [
-  { id: 't3', name: 'Bananas', amount: '6', addedBy: 'Bruk', inCart: false },
-  { id: 't4', name: 'Baby spinach', amount: '1 bag', addedBy: 'Bruk', inCart: false },
+  { id: 't3', name: 'Bananas', amount: '6', addedBy: 'Alex', inCart: false },
+  { id: 't4', name: 'Baby spinach', amount: '1 bag', addedBy: 'Alex', inCart: false },
 ];
 
 export const cart: readonly ListItem[] = [

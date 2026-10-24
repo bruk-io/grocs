@@ -22,7 +22,7 @@ export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo', onPr
 
 /** Welcome in a development build: the test sign-in sits in the sheet's footer, below the invite row. */
 export const WithFooter: Story = {
-  args: { footer: <Button variant="text" size="s" label="Sign in as Bruk (test)" /> },
+  args: { footer: <Button variant="text" size="s" label="Sign in as Alex (test)" /> },
 };
 
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */

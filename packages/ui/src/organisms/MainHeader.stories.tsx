@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { tokens } from '../tokens/tokens.ts';
 import { MainHeader } from './MainHeader.tsx';
 
-const members = [{ name: 'Bruk' }, { name: 'Sam', tone: 'chartreuse', online: true }] as const;
+const members = [{ name: 'Alex' }, { name: 'Sam', tone: 'chartreuse', online: true }] as const;
 
 const meta = {
   title: 'Organisms/MainHeader',

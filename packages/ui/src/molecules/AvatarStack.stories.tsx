@@ -6,7 +6,7 @@ const meta = {
   component: AvatarStack,
   args: {
     members: [
-      { name: 'Bruk', tone: 'forest' },
+      { name: 'Alex', tone: 'forest' },
       { name: 'Sam', tone: 'chartreuse' },
     ],
   },
@@ -18,7 +18,7 @@ export const Away: Story = {};
 export const Online: Story = {
   args: {
     members: [
-      { name: 'Bruk', tone: 'forest' },
+      { name: 'Alex', tone: 'forest' },
       { name: 'Sam', tone: 'chartreuse', online: true },
     ],
   },

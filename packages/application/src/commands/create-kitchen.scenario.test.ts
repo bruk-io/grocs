@@ -7,7 +7,7 @@ const create = (name = 'Our kitchen') => ({ type: 'CreateKitchen' as const, name
 
 describe('CreateKitchen scenarios (R2)', () => {
   it('creates the kitchen and returns its id and invite code in a KitchenCreated event', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch(create());
     expect(result.ok && result.value).toEqual([
       { type: 'KitchenCreated', kitchenId: expect.any(String), inviteCode: expect.stringMatching(/^[A-Z]+-\d{4}$/) },
@@ -15,13 +15,13 @@ describe('CreateKitchen scenarios (R2)', () => {
   });
 
   it('needs a signed-in member', async () => {
-    const client = await createTestClient({ uid: 'bruk', signedIn: false });
+    const client = await createTestClient({ uid: 'alex', signedIn: false });
     const result = await client.dispatcher.dispatch(create());
     expect(!result.ok && result.error.code).toBe('not-signed-in');
   });
 
   it('rejects an empty name without calling the gateway', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch(create('  '));
     expect(!result.ok && result.error.code).toBe('empty-name');
     expect(client.logger.records().some((r) => r.attributes['port'] === 'kitchens')).toBe(false);
@@ -34,13 +34,13 @@ describe('CreateKitchen scenarios (R2)', () => {
       findMyKitchen: () => Promise.reject(new Error('functions are down')),
       getKitchen: () => Promise.reject(new Error('functions are down')),
     };
-    const client = await createTestClient({ uid: 'bruk', kitchens: broken });
+    const client = await createTestClient({ uid: 'alex', kitchens: broken });
     const result = await client.dispatcher.dispatch(create());
     expect(!result.ok && result.error.code).toBe('internal');
   });
 
   it('reaches the gateway only through the instrumented port (R28, R31)', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
+    const client = await createTestClient({ uid: 'alex' });
     await client.dispatcher.dispatch(create());
     const call = client.logger.records().find((r) => r.attributes['method'] === 'createKitchen');
     expect(call?.attributes).toMatchObject({ port: 'kitchens', method: 'createKitchen', outcome: 'ok' });
@@ -57,7 +57,7 @@ describe('CreateKitchen scenarios (R2)', () => {
       findMyKitchen: () => Promise.reject(new Error('unused')),
       getKitchen: () => Promise.reject(new Error('unused')),
     };
-    const client = await createTestClient({ uid: 'bruk', kitchens: stub });
+    const client = await createTestClient({ uid: 'alex', kitchens: stub });
     const timeZone = 'Pacific/Auckland';
     const cmd: CreateKitchen = { type: 'CreateKitchen', name: 'Home', timeZone };
     await client.dispatcher.dispatch(cmd);
@@ -65,8 +65,8 @@ describe('CreateKitchen scenarios (R2)', () => {
   });
 
   it('never writes the kitchen name to a log record (R36)', async () => {
-    const client = await createTestClient({ uid: 'bruk' });
-    await client.dispatcher.dispatch(create('Bruk and Shazya'));
-    expect(JSON.stringify(client.logger.records())).not.toContain('Shazya');
+    const client = await createTestClient({ uid: 'alex' });
+    await client.dispatcher.dispatch(create('Alex and Sam'));
+    expect(JSON.stringify(client.logger.records())).not.toContain('Sam');
   });
 });

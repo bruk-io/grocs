@@ -16,7 +16,7 @@ authContract({ describe, it, expect }, async () => {
   await ensureSeeded();
   const client = createEmulatorClient('auth');
   clients.push(client);
-  const { email, password, uid } = seedAccount.bruk;
+  const { email, password, uid } = seedAccount.alex;
   return {
     auth: new FirebaseAuth(asSdk<AuthFns>(client.authFns), client.auth),
     // The provider has no sign-in of its own, so the test signs in through the SDK, as the dev tools do.

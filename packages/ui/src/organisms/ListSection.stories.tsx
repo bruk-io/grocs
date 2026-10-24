@@ -23,9 +23,9 @@ export const Waiting: Story = {
     icon: 'produce',
     title: 'Produce',
     items: [
-      { id: 'a', name: 'Bananas', amount: '6', addedBy: 'Bruk', inCart: false },
-      { id: 'b', name: 'Baby spinach', amount: '1 bag', addedBy: 'Bruk', inCart: false, waiting: true },
-      { id: 'c', name: 'Limes', amount: '4', addedBy: 'Bruk', inCart: false, waiting: true },
+      { id: 'a', name: 'Bananas', amount: '6', addedBy: 'Alex', inCart: false },
+      { id: 'b', name: 'Baby spinach', amount: '1 bag', addedBy: 'Alex', inCart: false, waiting: true },
+      { id: 'c', name: 'Limes', amount: '4', addedBy: 'Alex', inCart: false, waiting: true },
     ],
   },
 };

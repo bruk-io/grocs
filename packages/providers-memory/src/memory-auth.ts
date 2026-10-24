@@ -1,7 +1,7 @@
 import type { AuthPort, Unsubscribe, User } from '@grocs/ports';
 
-/** The fixed member the demo signs in as: Bruk, of the sample household of Bruk and Sam. */
-export const DEMO_MEMBER: User = { uid: 'demo-bruk', email: 'bruk@demo.grocs.invalid', displayName: 'Bruk' };
+/** The fixed member the demo signs in as: Alex, of the sample household of Alex and Sam. */
+export const DEMO_MEMBER: User = { uid: 'demo-alex', email: 'alex@demo.grocs.invalid', displayName: 'Alex' };
 
 /**
  * Auth held in memory for the demo build. It touches no network and no disk. Beyond the AuthPort

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { Item } from '../model/item.ts';
 import { isDeleted, mergeItem } from './item-merge.ts';
 
-const members = fc.constantFrom('bruk', 'sam');
+const members = fc.constantFrom('alex', 'sam');
 const stamp = fc.record({ at: fc.integer({ min: 0, max: 12 }), by: members });
 const stampedOf = <T>(value: fc.Arbitrary<T>) => fc.record({ value, stamp });
 
@@ -27,18 +27,18 @@ describe('mergeItem examples (R17 to R20)', () => {
   const base: Item = {
     id: 'i1',
     weekId: 'w',
-    addedBy: 'bruk',
+    addedBy: 'alex',
     createdAt: 1,
-    name: { value: 'Milk', stamp: { at: 1, by: 'bruk' } },
-    amount: { value: null, stamp: { at: 1, by: 'bruk' } },
-    aisle: { value: 'dairy', stamp: { at: 1, by: 'bruk' } },
-    state: { value: 'to-buy', stamp: { at: 1, by: 'bruk' } },
+    name: { value: 'Milk', stamp: { at: 1, by: 'alex' } },
+    amount: { value: null, stamp: { at: 1, by: 'alex' } },
+    aisle: { value: 'dairy', stamp: { at: 1, by: 'alex' } },
+    state: { value: 'to-buy', stamp: { at: 1, by: 'alex' } },
     badges: [],
     deleted: null,
   };
 
   it('keeps both changes when members change different fields (R18)', () => {
-    const renamed = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'bruk' } } };
+    const renamed = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'alex' } } };
     const ticked = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'sam' } } };
     const merged = mergeItem(renamed, ticked);
     expect(merged.name.value).toBe('Oat milk');
@@ -46,14 +46,14 @@ describe('mergeItem examples (R17 to R20)', () => {
   });
 
   it('the later of a tick and an untick wins (R17, R18)', () => {
-    const tick = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'bruk' } } };
+    const tick = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'alex' } } };
     const untick = { ...base, state: { value: 'to-buy' as const, stamp: { at: 6, by: 'sam' } } };
     expect(mergeItem(tick, untick).state.value).toBe('to-buy');
     expect(mergeItem(untick, tick).state.value).toBe('to-buy');
   });
 
   it('two ticks end with the item in the cart (R17)', () => {
-    const a = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'bruk' } } };
+    const a = { ...base, state: { value: 'in-cart' as const, stamp: { at: 5, by: 'alex' } } };
     const b = { ...base, state: { value: 'in-cart' as const, stamp: { at: 6, by: 'sam' } } };
     expect(mergeItem(a, b).state.value).toBe('in-cart');
   });
@@ -64,7 +64,7 @@ describe('mergeItem examples (R17 to R20)', () => {
 
   it('a late change made before the delete does not bring the item back (R20)', () => {
     const deleted = { ...base, deleted: { at: 10, by: 'sam' } };
-    const lateEdit = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'bruk' } } };
+    const lateEdit = { ...base, name: { value: 'Oat milk', stamp: { at: 5, by: 'alex' } } };
     const merged = mergeItem(deleted, lateEdit);
     expect(isDeleted(merged)).toBe(true);
     expect(isDeleted(mergeItem(lateEdit, deleted))).toBe(true);
@@ -122,7 +122,7 @@ describe('mergeItem properties (R46)', () => {
   it('a delete is never undone, whatever arrives after it', () => {
     fc.assert(
       fc.property(itemCopy, fc.array(itemCopy, { maxLength: 5 }), (deleted, others) => {
-        const withDelete = { ...deleted, deleted: deleted.deleted ?? { at: 0, by: 'bruk' } };
+        const withDelete = { ...deleted, deleted: deleted.deleted ?? { at: 0, by: 'alex' } };
         for (const order of [[withDelete, ...others], [...others, withDelete]]) {
           expect(isDeleted(foldMerge(order))).toBe(true);
         }

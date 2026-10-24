@@ -8,10 +8,10 @@ export function JoinInviteInvalidScreen() {
   const [code, setCode] = useState('MOREL-42');
   return (
     <InviteRetryTemplate
-      inviter="Bruk"
+      inviter="Alex"
       code={code}
       onCodeChange={setCode}
-      errorMessage="That code is not a match. Check it with Bruk, or ask for a fresh link."
+      errorMessage="That code is not a match. Check it with Alex, or ask for a fresh link."
       onBack={go.join}
     />
   );

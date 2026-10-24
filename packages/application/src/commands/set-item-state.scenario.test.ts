@@ -7,7 +7,7 @@ const WEEK = '2026-W42';
 const add = (name: string) => ({ type: 'AddItem' as const, kitchenId: KITCHEN, weekId: WEEK, name });
 const tick = (itemId: string, inCart: boolean) => ({ type: 'SetItemState' as const, kitchenId: KITCHEN, weekId: WEEK, itemId, inCart });
 
-async function withItem(uid = 'bruk', store = new InMemorySyncStore()) {
+async function withItem(uid = 'alex', store = new InMemorySyncStore()) {
   const client = await createTestClient({ uid, store });
   await client.dispatcher.dispatch(add('Eggs'));
   const [item] = await store.getItems(KITCHEN, WEEK);
@@ -36,18 +36,18 @@ describe('SetItemState scenarios (R47)', () => {
 
   it('restamps only the state with the clock and the signed-in member', async () => {
     const store = new InMemorySyncStore();
-    const { id } = await withItem('bruk', store);
+    const { id } = await withItem('alex', store);
     const sam = await createTestClient({ uid: 'sam', store });
     sam.clock.set(1_800_000_000_000);
     await sam.dispatcher.dispatch(tick(id, true));
     const [item] = await store.getItems(KITCHEN, WEEK);
     expect(item?.state.stamp).toEqual({ at: 1_800_000_000_000, by: 'sam' });
-    expect(item?.name.stamp.by).toBe('bruk');
+    expect(item?.name.stamp.by).toBe('alex');
   });
 
   it('rejects the command when nobody is signed in', async () => {
     const { id } = await withItem();
-    const out = await createTestClient({ uid: 'bruk', signedIn: false });
+    const out = await createTestClient({ uid: 'alex', signedIn: false });
     const result = await out.dispatcher.dispatch(tick(id, true));
     expect(!result.ok && result.error.code).toBe('not-signed-in');
   });

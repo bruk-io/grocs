@@ -41,43 +41,43 @@ async function seedKitchen(kitchenId: string, members: readonly string[], member
 
 describe('kitchens/{kitchenId} (R4)', () => {
   it('a member can read their kitchen', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertSucceeds(getDoc(doc(bruk.firestore(), 'kitchens/k1')));
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1')));
   });
 
   it('a non-member cannot read someone else\'s kitchen', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
+    await seedKitchen('k1', ['alex', 'sam']);
     const carl = testEnv.authenticatedContext('carl');
     await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1')));
   });
 
   it('a signed-out request cannot read a kitchen', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
+    await seedKitchen('k1', ['alex', 'sam']);
     const anon = testEnv.unauthenticatedContext();
     await assertFails(getDoc(doc(anon.firestore(), 'kitchens/k1')));
   });
 
   it('a member cannot write their kitchen directly - creating and joining go through the functions (R2, R3)', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertFails(updateDoc(doc(bruk.firestore(), 'kitchens/k1'), { name: 'Renamed' }));
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertFails(updateDoc(doc(alex.firestore(), 'kitchens/k1'), { name: 'Renamed' }));
   });
 
   it('no one can create a kitchen document directly', async () => {
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertFails(setDoc(doc(bruk.firestore(), 'kitchens/k2'), { schemaVersion: 1, name: 'New', members: ['bruk'], timeZone: 'UTC', createdAt: 1 }));
+    const alex = testEnv.authenticatedContext('alex');
+    await assertFails(setDoc(doc(alex.firestore(), 'kitchens/k2'), { schemaVersion: 1, name: 'New', members: ['alex'], timeZone: 'UTC', createdAt: 1 }));
   });
 
   it('a member can read memberNames through the same rule - no new rule needed for TASK-27', async () => {
-    await seedKitchen('k1', ['bruk', 'sam'], { bruk: 'Bruk', sam: 'Sam' });
-    const bruk = testEnv.authenticatedContext('bruk');
-    const snap = await assertSucceeds(getDoc(doc(bruk.firestore(), 'kitchens/k1')));
-    expect(snap.data()?.['memberNames']).toEqual({ bruk: 'Bruk', sam: 'Sam' });
+    await seedKitchen('k1', ['alex', 'sam'], { alex: 'Alex', sam: 'Sam' });
+    const alex = testEnv.authenticatedContext('alex');
+    const snap = await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1')));
+    expect(snap.data()?.['memberNames']).toEqual({ alex: 'Alex', sam: 'Sam' });
   });
 
   it('a non-member cannot read memberNames either - the same read that is already denied', async () => {
-    await seedKitchen('k1', ['bruk', 'sam'], { bruk: 'Bruk', sam: 'Sam' });
+    await seedKitchen('k1', ['alex', 'sam'], { alex: 'Alex', sam: 'Sam' });
     const carl = testEnv.authenticatedContext('carl');
     await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1')));
   });
@@ -85,14 +85,14 @@ describe('kitchens/{kitchenId} (R4)', () => {
 
 describe('kitchens/{kitchenId}/{document=**} (R4)', () => {
   it('a member can read and write a document under their kitchen', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertSucceeds(setDoc(doc(bruk.firestore(), 'kitchens/k1/weeks/2026-W43'), { note: 'test' }));
-    await assertSucceeds(getDoc(doc(bruk.firestore(), 'kitchens/k1/weeks/2026-W43')));
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(setDoc(doc(alex.firestore(), 'kitchens/k1/weeks/2026-W43'), { note: 'test' }));
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1/weeks/2026-W43')));
   });
 
   it('a non-member cannot read or write under a kitchen they do not belong to', async () => {
-    await seedKitchen('k1', ['bruk', 'sam']);
+    await seedKitchen('k1', ['alex', 'sam']);
     const carl = testEnv.authenticatedContext('carl');
     await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/weeks/2026-W43')));
     await assertFails(setDoc(doc(carl.firestore(), 'kitchens/k1/weeks/2026-W43'), { note: 'intruding' }));
@@ -109,13 +109,13 @@ describe('inviteCodes/{code} (R2, R3)', () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' });
     });
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertFails(getDoc(doc(bruk.firestore(), 'inviteCodes/MOREL-0024')));
+    const alex = testEnv.authenticatedContext('alex');
+    await assertFails(getDoc(doc(alex.firestore(), 'inviteCodes/MOREL-0024')));
   });
 
   it('no one can write an invite code directly', async () => {
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertFails(setDoc(doc(bruk.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' }));
+    const alex = testEnv.authenticatedContext('alex');
+    await assertFails(setDoc(doc(alex.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' }));
   });
 });
 
@@ -127,25 +127,25 @@ describe('memberships/{uid} (TASK-14)', () => {
   }
 
   it('a member can read their own membership', async () => {
-    await seedMembership('bruk', 'k1');
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertSucceeds(getDoc(doc(bruk.firestore(), 'memberships/bruk')));
+    await seedMembership('alex', 'k1');
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'memberships/alex')));
   });
 
   it('a member cannot read someone else\'s membership', async () => {
-    await seedMembership('bruk', 'k1');
+    await seedMembership('alex', 'k1');
     const carl = testEnv.authenticatedContext('carl');
-    await assertFails(getDoc(doc(carl.firestore(), 'memberships/bruk')));
+    await assertFails(getDoc(doc(carl.firestore(), 'memberships/alex')));
   });
 
   it('a signed-out request cannot read a membership', async () => {
-    await seedMembership('bruk', 'k1');
+    await seedMembership('alex', 'k1');
     const anon = testEnv.unauthenticatedContext();
-    await assertFails(getDoc(doc(anon.firestore(), 'memberships/bruk')));
+    await assertFails(getDoc(doc(anon.firestore(), 'memberships/alex')));
   });
 
   it('no one can write a membership directly - only the server functions do', async () => {
-    const bruk = testEnv.authenticatedContext('bruk');
-    await assertFails(setDoc(doc(bruk.firestore(), 'memberships/bruk'), { kitchenId: 'k1' }));
+    const alex = testEnv.authenticatedContext('alex');
+    await assertFails(setDoc(doc(alex.firestore(), 'memberships/alex'), { kitchenId: 'k1' }));
   });
 });

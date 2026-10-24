@@ -47,7 +47,7 @@ export function loggerContract(t: TestApi, make: () => LoggerSubject): void {
 
     t.it('never writes a personal field: item names and amounts are removed (R36)', () => {
       const { logger, output } = make();
-      const item = { id: 'i1', weekId: '2026-W42', addedBy: 'bruk', name: { value: 'Oat milk', stamp: { at: 1, by: 'bruk' } }, amount: { v: '2 cartons', at: 1, by: 'bruk' } };
+      const item = { id: 'i1', weekId: '2026-W42', addedBy: 'alex', name: { value: 'Oat milk', stamp: { at: 1, by: 'alex' } }, amount: { v: '2 cartons', at: 1, by: 'alex' } };
       logger.log(record({ attributes: { item, itemName: 'Oat milk', nested: [{ mealLink: 'https://recipes.example/oat-milk' }] } }));
       const text = output().join('\n');
       t.expect(text).not.toContain('Oat milk');
