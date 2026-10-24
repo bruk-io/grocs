@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 21:40'
+updated_date: '2026-10-24 21:46'
 labels:
   - layer-core
   - size-2
@@ -28,9 +28,8 @@ The frozen contract for the meal-plan slice (TASK-1.21). Meals follow items' exi
 - [x] #4 Everything exported from packages/core/src/index.ts; unit tests cover every function including concurrent-merge and tombstone-permanence cases
 - [x] #5 Meal gains dayIndex: Stamped<number> (Monday = 0, matching R5's week and personal.ts's existing PERSONAL_FIELDS meal shape); moveMeal restamps both weekId and dayIndex together as the single move-between-weeks operation (AC3 names only cross-week moves, not a separate same-week day change)
 - [x] #6 createMeal and relinkMeal validate the link as an http or https URL when present (R6), returning Result<Meal, MealLinkError> with an 'invalid-link' member; decodeMeal stays permissive so already-stored data still reads
-- [ ] #7 redact(encodeMeal(...)) hides name and link and nothing else; personal.ts's item shape is made genuinely discriminating from meal's (not just reordered) so a MealDoc is never misclassified as an item, with a test mirroring personal.test.ts's existing item case
-- [x] #8 dayIndex is a total DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 type (not a runtime-validated number), so createMeal and moveMeal cannot construct an out-of-range value; decodeMeal's 0-6 check stays as the runtime gate for stored data and narrows to DayIndex. Exported from index.ts
-- [ ] #9 redact(encodeMeal(...)) hides name and link and nothing else, AND redact() on an item-shaped object that lacks a meal-exclusive field (e.g. packages/ports/src/logging/contract.ts's existing item fixture, which has no dayIndex and no aisle) still correctly redacts item's own personal fields - both directions covered by tests, with the full pnpm test suite (not just packages/core) run to prove the second direction, since that is exactly what broke silently last round
+- [x] #7 dayIndex is a total DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 type (not a runtime-validated number), so createMeal and moveMeal cannot construct an out-of-range value; decodeMeal's 0-6 check stays as the runtime gate for stored data and narrows to DayIndex. Exported from index.ts
+- [x] #8 redact(encodeMeal(...)) hides name and link and nothing else, AND redact() on an item-shaped object that lacks a meal-exclusive field (e.g. packages/ports/src/logging/contract.ts's existing item fixture, which has no dayIndex and no aisle) still correctly redacts item's own personal fields - both directions covered by tests, with the full pnpm test suite (not just packages/core) run to prove the second direction, since that is exactly what broke silently last round
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -196,4 +195,90 @@ Actual fix (per the lead's correction, AC7's 'not just reordered' wording in the
 Full-suite re-verification per the lead's explicit instruction: pnpm test (all four vitest projects: unit, ui, app, tools) - 120 files, 1584 tests, all pass. pnpm typecheck clean. pnpm check green (14 checks).
 
 File list for handoff unchanged at 9 files (still uncommitted in the shared main worktree): packages/core/src/model/meal.ts(+test), packages/core/src/merge/meal-merge.ts(+test), packages/core/src/schema/meal-doc.ts(+test), packages/core/src/schema/personal.ts(+test), packages/core/src/index.ts.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+(52 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  120 passed (120)
+      Tests  1584 passed (1584)
+   Start at  17:42:41
+   Duration  8.04s (transform 36.80s, setup 3.49s, import 103.67s, tests 35.16s, environment 18.10s)
+
+$ firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-grocs", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  auth: Port 9099 is not open on 127.0.0.1, could not start Authentication Emulator.
+⚠  auth: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "auth": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  firestore: Port 8080 is not open on 127.0.0.1, could not start Firestore Emulator.
+⚠  firestore: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "firestore": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  hub: emulator hub unable to start on port 4400, starting on 4401 instead.
+⚠  logging: Logging Emulator unable to start on port 4500, starting on 4501 instead.
+i  emulators: Shutting down emulators.
+
+Error: Could not start Authentication Emulator, port taken.
+[ELIFECYCLE] Command failed with exit code 1.
+```
+
+Oct 24, 2026 — second close review (philosophy:reviewer, did not do the work). Verdict: NOT CLOSED, but the work holds this time. The regression is genuinely fixed and eight of nine criteria are met; the single blocker is a finish-line defect the orchestrator owns, not another build round.
+
+BLOCKING (finish line, one command for the lead) — AC7 is still on the board in its retracted wording and is contradicted by the accepted design. AC7 reads 'personal.ts's item shape is made genuinely discriminating from meal's (not just reordered)'. The implemented fix is precisely a reorder: item's shape is back to its original ['weekId','addedBy'] untouched, and PERSONAL_FIELDS lists meal ['weekId','dayIndex'] first. AC7's text in the working tree is byte-identical to AC7 in commit 5a4687f, so 'AC7 was corrected on the board' did not happen — AC9 was added as the corrected restatement and AC7 was left in place; the retraction lives only in the notes, which are not the finish line. A reviewer may not reword a criterion, so #7 stays unticked and board-check close TASK-1.21.1 reports it unmet, which close-task refuses on. Fix: the orchestrator deletes AC7 as superseded by AC9 (or restates it in AC9's wording) and commits the board change — finish-moved is already on the labels — then the close is mechanical, with no change to the nine implementation files.
+
+AC9 ticked. Both directions are covered by committed tests and proved by the full suite: personal.test.ts's classification test asserts encodeMeal(meal) -> 'meal', encodeItem(item) -> 'item', and the exact partial item shape that broke last round ({id, weekId, addedBy, name, amount}, no aisle, no dayIndex) -> 'item'. The three Logger contract tests that failed last round (packages/ports/src/logging/fake.test.ts, packages/providers-device/src/console-logger.test.ts, buffer-logger.test.ts, all driven by packages/ports/src/logging/contract.ts:49) now pass. AC1-AC6 and AC8 were ticked in the previous close review and were re-read, not re-derived; the nine files are committed at 5a4687f and pushed to origin/feat/meal-core-domain-model, so BLOCKING 2 of the previous review is resolved.
+
+Evidence, with one caveat about the recorded full-tier check above: that record shows exit 1, and the failure is environmental, not this change. The chain aborted at pnpm test:emulator because the Firebase emulator ports were already held by another agent's session (lsof: node on 127.0.0.1:9099, java on 127.0.0.1:8080), so emulators:exec could not start its own. Verified independently instead:
+- pnpm test (unit + ui + app + tools): 120 files, 1584 passed, 0 failed (last round: 3 failed / 1581 passed).
+- vitest run --project emulator against the already-running emulators with FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 GCLOUD_PROJECT=demo-grocs: 8 files, 80 passed.
+- pnpm check:release: clean (2 bundles, 9 release-barred path patterns).
+- pnpm --filter @grocs/ui build-storybook: completed successfully.
+- pnpm --filter @grocs/ui visual not run: it is not the reference on this platform (CLAUDE.md: visual baselines are compared on Linux only, generated by the visual-baselines workflow), and the commit touches no UI file — git show --name-only 5a4687f is nine files all under packages/core/src/ plus board markdown. Stated rather than left implied, since 'a scoped run passed' is what cost this task three rounds.
+- No file was fixed or reformatted by the check as it ran (working tree unchanged apart from pre-existing unrelated modifications to .claude/settings.json, tools/hooks/launch-guard.*, and task-1.25's file).
+
+LOW, no draft filed — residual fail-open in redact's classification, accepted by design. Order, not structure, keeps a meal from matching item's shape: a partial payload carrying weekId and addedBy but no dayIndex still classifies as an item, so a trimmed meal logged that way would leak its link. Not reachable today — every Meal and MealDoc carries dayIndex by type, and no call site logs partial entities — and the previous review offered this reorder as its own option (a). EntityMarking.shape's doc comment states the ordering is load-bearing and names what leaks on misclassification, which is the right place for the warning. Reported for the record; not a reason to reopen the design.
+
+Confirmed correct on independent reading, not re-raised: meal.ts's five operations plus DayIndex/toDayIndex, meal-merge.ts's field-wise LWW with the createdAt/addedBy first-writer tie-break and permanent tombstone, meal-doc.ts's validation mirroring item-doc.ts with weekId.v non-empty and the deliberate dayIndex-strict/link-permissive asymmetry, and the barrel exports.
+
+Oct 24, 2026 (orchestrator): removed AC7 (its wrong, retracted wording was still sitting on the board unticked after I corrected the fix) - AC9 already supersedes it with the correct requirement. No code change, board-only.
 <!-- SECTION:NOTES:END -->
