@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-24 14:46'
+updated_date: '2026-10-24 17:19'
 labels:
   - size-2
   - architecture
@@ -23,7 +23,7 @@ Feeds the kitchen slice (R1, R53). Needs a device or simulator on Bruk's machine
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Answer written in the notes, with the steps that worked on each platform
+- [x] #1 Answer written in the notes, with the steps that worked on each platform
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -53,4 +53,8 @@ Also fixed, found only by actually testing on-device (never caught by jsdom/web 
 Full suite green throughout: pnpm check, pnpm typecheck, pnpm test (117 files, 1550 tests, two of them new - the Google sign-in success and cancelled-picker cases in apps/mobile/src/routes/index.route.test.tsx, exercising the real production code path through FakeAuth's existing googleAccount support, no UI or device needed for that half).
 
 Not yet done, left for follow-up: iOS device verification; EAS build SHA-1 registration; removing the dev test-sign-in UI now that real sign-in exists (deliberately out of scope here - a separate, bigger decision Bruk flagged earlier about a debug toolbar replacing it, not touched by this task).
+
+iOS verified too (2026-10-24), same session, iPhone 18 Pro Simulator (already set up as "grocs" in this environment, driven headlessly via idb since no Simulator.app GUI window exists here - installed idb-companion + fb-idb for this). Real native build via `expo run:ios`. Continue with Google reached the genuine iOS system consent dialog ("Grocs" Wants to Use "accounts.google.com" to Sign In), with the Signing in loading state shown correctly - not a stub. Cancelled rather than entering real credentials; recovered cleanly ("Google sign-in was cancelled", button usable again), same as Android.
+
+Confirms the task notes' earlier inference: iOS needed no extra setup beyond what was already in GoogleService-Info.plist (CLIENT_ID/REVERSED_CLIENT_ID) - no SHA-1-equivalent registration step the way Android needed. Both platforms now verified end to end; AC1 fully met.
 <!-- SECTION:NOTES:END -->
