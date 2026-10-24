@@ -1,11 +1,11 @@
 ---
 id: TASK-1.21.1
 title: 'Core: Meal domain model, merge rules and schema'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 21:46'
+updated_date: '2026-10-24 21:50'
 labels:
   - layer-core
   - size-2
@@ -281,4 +281,25 @@ LOW, no draft filed — residual fail-open in redact's classification, accepted 
 Confirmed correct on independent reading, not re-raised: meal.ts's five operations plus DayIndex/toDayIndex, meal-merge.ts's field-wise LWW with the createdAt/addedBy first-writer tie-break and permanent tombstone, meal-doc.ts's validation mirroring item-doc.ts with weekId.v non-empty and the deliberate dayIndex-strict/link-permissive asymmetry, and the barrel exports.
 
 Oct 24, 2026 (orchestrator): removed AC7 (its wrong, retracted wording was still sitting on the board unticked after I corrected the fix) - AC9 already supersedes it with the correct requirement. No code change, board-only.
+
+Oct 24, 2026 - third close review (philosophy:reviewer, did not do the work). Verdict: CLOSED. The single blocker from the second review is resolved and nothing new was found.
+
+The blocker: AC7's retracted 'not just reordered' wording is gone from the board at ebe9a88, and the AC block changed by exactly that one deletion - git show ebe9a88 on the task file, filtered to criterion lines, shows one removed line (old #7) and the two surviving criteria re-emitted with byte-identical text under their new numbers. No other criterion's wording moved, which is the one thing close-task cannot catch when the last commit is itself the AC edit. All eight criteria are ticked and the finish line matches the last commit; board-check close TASK-1.21.1 reports ok.
+
+Numbering note for future readers: removing old AC7 renumbered the rest, so the criterion the earlier notes call AC9 (redact's both directions) is now #8, and the one they call AC8 (the total DayIndex type) is now #7. Old AC7 was deleted, not renumbered into. References to 'AC7', 'AC8' and 'AC9' in the notes above all predate the renumbering and should be read against the text, not the number.
+
+Evidence. The code is untouched since the second review: git diff 5a4687f..HEAD over packages/, tools/, package.json and pnpm-lock.yaml is empty, so ebe9a88 is board-only and the previous pass's verification covers the current tree exactly. Re-verified independently anyway, because #8's own wording makes full-suite evidence part of the criterion:
+- pnpm test (unit + ui + app + tools): 120 files, 1584 passed, 0 failed. This is the run that matters - the three Logger contract tests (packages/ports/src/logging/fake.test.ts, packages/providers-device/src/console-logger.test.ts, buffer-logger.test.ts, driven by packages/ports/src/logging/contract.ts:49) are the ones that failed two rounds ago and they pass.
+- pnpm check: 14 checks green. pnpm typecheck: clean. No file was fixed or reformatted as the checks ran - the working tree is unchanged apart from the pre-existing unrelated edits to .claude/settings.json, tools/hooks/launch-guard.*, and task-1.25's file.
+- Emulator project not re-run: ports 8080 and 9099 are still held by another agent's emulators (lsof: java on 8080, node on 9099), so record-check --tier full would only collect the same environmental exit 1 the notes already carry. The second review verified that project directly against the running emulators (8 files, 80 passed) and the code has not changed by one byte since, and the commit touches only packages/core/src/. Stated rather than left implied.
+
+#8 re-read rather than taken on trust, since its tick was committed by the orchestrator: packages/core/src/schema/personal.test.ts:42-46 classifies encodeMeal(meal) as 'meal', encodeItem(item) as 'item', and the exact partial item shape that broke last round ({id, weekId, addedBy, name, amount}, no aisle, no dayIndex) as 'item' - both directions, by asserting on PERSONAL_FIELDS.find() itself and not only on redact's output. personal.ts:24-27 has item's shape back at its original ['weekId','addedBy'] with meal listed first, matching the accepted design.
+
+LOW, carried forward, no draft - the residual fail-open in redact's classification. Order, not structure, keeps a meal from matching item's shape: a partial payload with weekId and addedBy but no dayIndex classifies as an item, so a trimmed meal logged that way would leak its link. Not reachable today (every Meal and MealDoc carries dayIndex by type, no call site logs partial entities), accepted by design in the second review, and EntityMarking.shape's doc comment states the ordering is load-bearing and names what leaks on misclassification. Reported for the record, not a reason to hold the close.
+
+NO DRAFTS FILED.
+
+Process, for the record: this task took three builder rounds plus three close reviews because verification was scoped to packages/core while the file it changed, packages/core/src/schema/personal.ts, is depended on by the whole repo's logging. The lesson is already written into the notes above and into #8's own wording; it is the reason #8 names the full suite explicitly.
+
+Confirmed correct on independent reading across this and the previous pass, not re-raised: meal.ts's five operations plus DayIndex and toDayIndex, meal-merge.ts's field-wise LWW with the createdAt/addedBy first-writer tie-break and permanent tombstone, meal-doc.ts's validation mirroring item-doc.ts with weekId.v non-empty and the deliberate dayIndex-strict/link-permissive asymmetry, and the barrel exports. The forward notes for TASK-1.21.2 through .6 (nested weekId.v and dayIndex.v, moveMeal's four-argument signature, createMeal and relinkMeal returning Result) are on the task and are the handoff.
 <!-- SECTION:NOTES:END -->
