@@ -1,11 +1,11 @@
 ---
 id: TASK-49
 title: TextField's placeholder fails contrast against the disabled background
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-24 22:26'
-updated_date: '2026-10-24 23:34'
+updated_date: '2026-10-24 23:43'
 labels:
   - layer-ui
   - size-1
@@ -252,4 +252,18 @@ Filtered, not filed:
 Repro (recorded after the fact, from the pre-fix evidence already in these notes): pnpm -s --filter @grocs/ui visual failed with 'FAILED templates-meal-form--removing @ iphone/fold-outer/fold-inner: accessibility: color-contrast ... input[aria-label="What are you making?"]', the Removing story's disabled name/link fields rendering tokens.color.disabledInk (#7D877F) text on tokens.color.disabled (#E3E7DF) background, measured at 2.97:1 against WCAG AA's 4.5:1 threshold. AC5/AC6 were added after this task's initial acceptance (the first fix attempt's false green), hence finish-moved.
 
 No repro: the failing command (pnpm -s --filter @grocs/ui visual) now passes since the fix is already applied in this working tree, so it can't be re-run to produce a current failure. The repro before the fix is recorded above from the original review's evidence: FAILED templates-meal-form--removing @ iphone/fold-outer/fold-inner: accessibility: color-contrast, disabledInk #7D877F on disabled background #E3E7DF measured at 2.97:1 against the 4.5:1 threshold.
+
+### Review (close-task-49, 2026-10-24, second pass) — CLOSED
+
+Both board-level blockers from the first pass are cleared, verified in the commit rather than taken on report:
+- The finish-moved label and AC#5/AC#6 are committed in c8c892c (frontmatter labels: layer-ui, size-1, finish-moved), and the working tree holds no uncommitted edits to this task's file or to anything under packages/ui.
+- A `No repro:` note is recorded, saying the failing command (pnpm -s --filter @grocs/ui visual) cannot be re-run to produce a current failure because the fix is already applied, with the pre-fix evidence (color-contrast on templates-meal-form--removing, disabledInk #7D877F on disabled #E3E7DF at 2.97:1) preserved above it. This is the case the `No repro:` escape hatch exists for; board-check close is ok.
+
+The fix in the committed tree is the corrected colour approach, not the reverted placeholder suppression: TextField.tsx keeps `placeholder={placeholder ?? label}` and sets `placeholderTextColor={disabled ? tokens.color.inkMuted : tokens.color.inkHint}` with `inputDisabled: { color: tokens.color.inkMuted }`. The code, the full test run and the real axe browser pass (exit 0, 407 story views) are unchanged from the first pass's independent verification, and nothing under packages/ui is dirty, so they were not re-run.
+
+Minor findings, neither blocking:
+- `modified_files` omits packages/ui/src/stories.accessibility.test.tsx, which is AC#4's entire deliverable, is named in plan step 6, and is changed by c8c892c. The frontmatter should list the plan's files that change.
+- The notes carry both a prose "Repro (recorded after the fact…)" paragraph and the `No repro:` note. Both are true as written, but the pair reads as self-contradictory; the prose paragraph alone is the accurate record.
+
+Carried forward from the first pass: DRAFT-22 (Button.tsx and Chip.tsx still pair disabledInk on tokens.color.disabled, the same 2.97:1 failure, invisible to axe because its contrast rule exempts disabled controls). And a note, not a finding: both regression tests derive the expected colour from tokens.color.inkMuted, so they pin "the disabled state references inkMuted", not "the ratio passes" — a change to the token's own value would slip past them, with only the axe gate covering it in aggregate.
 <!-- SECTION:NOTES:END -->
