@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './MealFormTemplate.stories.tsx';
 
-const { Rest } = composeStories(stories);
+const { Rest, Editing, Removing, Invalid } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -17,6 +17,7 @@ describe('MealFormTemplate', () => {
     expect((screen.getByRole('textbox', { name: 'What are you making?' }) as HTMLInputElement).value).toBe('Fried rice');
     expect(screen.getByRole('textbox', { name: 'Recipe link (optional)' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Add to Thursday' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Remove meal' })).toBeNull();
   });
 
   it('reports changes to the name and the link', async () => {
@@ -50,5 +51,33 @@ describe('MealFormTemplate', () => {
     await user.click(busy);
     expect(onSubmit).not.toHaveBeenCalled();
     expect((screen.getByRole('textbox', { name: 'What are you making?' }) as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  it('when editing shows the remove meal button', async () => {
+    const onRemove = vi.fn();
+    render(<Editing onRemove={onRemove} />);
+    expect(screen.getByRole('button', { name: 'Remove meal' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Remove meal' }));
+    expect(onRemove).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('while removing disables the primary button but does not show it as busy', async () => {
+    const onSubmit = vi.fn();
+    render(<Removing onSubmit={onSubmit} />);
+    const primary = screen.getByRole('button', { name: 'Save changes' });
+    expect(primary.getAttribute('aria-busy')).not.toBe('true');
+    expect(primary.hasAttribute('disabled')).toBe(true);
+    expect((screen.getByRole('textbox', { name: 'What are you making?' }) as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  it('shows link hint when linkError is not set', () => {
+    render(<Rest />);
+    expect(screen.getByText('Saved with the meal, so the recipe is easy to find again.')).toBeTruthy();
+  });
+
+  it('hides link hint and shows error when linkError is set', () => {
+    render(<Invalid />);
+    expect(screen.getByText('Invalid recipe link')).toBeTruthy();
+    expect(screen.queryByText('Saved with the meal, so the recipe is easy to find again.')).toBeNull();
   });
 });

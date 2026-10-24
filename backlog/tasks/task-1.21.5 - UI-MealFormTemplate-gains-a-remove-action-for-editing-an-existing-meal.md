@@ -1,11 +1,11 @@
 ---
 id: TASK-1.21.5
 title: 'UI: MealFormTemplate gains a remove action for editing an existing meal'
-status: To Do
+status: In Progress
 assignee:
-  - '@claude'
+  - claude
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 21:27'
+updated_date: '2026-10-24 22:32'
 labels:
   - layer-ui
   - size-1
@@ -30,6 +30,8 @@ MealFormTemplate currently has no destructive action - it only supports adding a
 - [ ] #2 Storybook stories and behaviour tests cover both the add and edit/remove states
 - [ ] #3 Visual baselines regenerated via the visual-baselines workflow if the remove action changes rendered pixels
 - [ ] #4 MealFormTemplate gains a linkError prop (LabelledField already supports errorMessage) so the invalid-link result from createMeal/relinkMeal (R6 URL validation, added to TASK-1.21.1) has somewhere to surface
+- [ ] #5 title and submittingLabel are caller-supplied props (mirroring dateLabel/submitLabel), not hardcoded - the header always says 'Add a meal' and the busy action always says 'Adding' today, which makes the Editing story show a contradictory screen ('Add a meal' / 'Save changes' / 'Adding' together)
+- [ ] #6 removing disables both LabelledFields and the primary ActionBar, matching adding's existing behaviour, so a meal can't be edited or re-submitted while it's being removed
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -54,3 +56,60 @@ MealFormTemplate currently has no destructive action - it only supports adding a
 
 7. In packages/ui/src/templates/MealFormTemplate.tsx: add an optional `linkError?: string` prop to MealFormTemplateProps (one-line doc comment: "Shown under the link field when it fails R6 validation."). Pass it to the link LabelledField as `{...(linkError ? { errorMessage: linkError } : {})}`, mirroring how errorMessage is already used elsewhere in the UI package (e.g. InviteRetryTemplate). Add a story variant and a behaviour-test assertion that the error text renders when linkError is set and is absent when it is not.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Reviewer fixes completed (all 6 fixes implemented)
+
+1. ✓ Parameterized title and submittingLabel
+   - Added title and submittingLabel props to MealFormTemplateProps
+   - Rest story: title='Add a meal', submittingLabel='Adding'
+   - Editing story: title='Edit a meal', submittingLabel='Saving'
+   - Replaced hardcoded SubHeader title and ActionBar loadingLabel
+
+2. ✓ Removing disables the form
+   - Added disabled={adding || removing} to both LabelledFields
+   - Added disabled={adding || removing} to ActionBar
+   - Created Removing story with removing=true state
+   - Added behaviour test asserting fields are locked while removing
+
+3. ✓ Declared new states in MEALFORMTEMPLATE_STATES
+   - Updated from ['rest'] to ['rest', 'editing', 'removing', 'invalid']
+   - Renamed WithLinkError story to Invalid (matches state naming convention)
+
+4. ✓ Updated stale doc comments
+   - File-level comment: describes add/edit/remove and validation
+   - Component comment: lists all UI elements including remove button
+
+5. ✓ Fixed vacuous test
+   - Replaced invalid test with proper hint text visibility assertions
+   - Rest story shows hint, Invalid story hides it
+
+6. ✓ Noted baseline regeneration for later
+   - 3+ new baseline images needed via visual-baselines workflow
+
+Test results:
+- pnpm test: 1637 passing (UI tests all pass)
+- pnpm typecheck: passing
+- Fixed AddMealScreen to include new required props
+- All behaviour tests passing
+
+## Defect fix: ActionBar loading state while removing
+
+Fixed contradiction where both Remove button showed 'Removing' and primary button showed 'Saving' while removing.
+
+Change: ActionBar loading prop now `loading={adding}` only (not `loading={adding || removing}`)
+- Keeps `disabled={adding || removing}` - button still unclickable while removing
+- Remove button still shows "Removing" state correctly
+- Primary button shows no busy state while removing, just disabled
+
+Updated Removing behaviour test to verify:
+- Primary button is NOT aria-busy
+- Primary button IS disabled
+- Fields are locked
+
+Test results:
+- pnpm test: 1638 passing (all behaviour tests pass)
+- pnpm typecheck: passing
+<!-- SECTION:NOTES:END -->

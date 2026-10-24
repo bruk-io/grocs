@@ -3,12 +3,18 @@ import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { tokens } from '../tokens/tokens.ts';
 import * as stories from './TextField.stories.tsx';
 
 afterEach(cleanup);
 
 const { Rest, Filled, Disabled, Invalid, InlineRest, InlineDisabled, InlinePrimaryAction } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
+
+function hexToRgb(hex: string): string {
+  const n = hex.replace('#', '');
+  return `rgb(${parseInt(n.slice(0, 2), 16)}, ${parseInt(n.slice(2, 4), 16)}, ${parseInt(n.slice(4, 6), 16)})`;
+}
 
 describe('TextField', () => {
   it('reports each typed character through onChangeText', async () => {
@@ -74,5 +80,18 @@ describe('TextField', () => {
     expect(button.textContent).toBe('Add');
     await user.click(button);
     expect(onAction).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('uses inkMuted color for disabled value text (contrast regression)', () => {
+    render(<Disabled />);
+    const field = screen.getByRole('textbox', { name: 'Can not edit' }) as HTMLInputElement;
+    const computedColor = getComputedStyle(field).color;
+    expect(computedColor).toBe(hexToRgb(tokens.color.inkMuted));
+  });
+
+  it('uses inkMuted color for disabled placeholder (contrast regression)', () => {
+    render(<Disabled />);
+    const field = screen.getByRole('textbox', { name: 'Can not edit' }) as HTMLInputElement;
+    expect(field.style.getPropertyValue('--placeholderTextColor')).toBe(tokens.color.inkMuted);
   });
 });
