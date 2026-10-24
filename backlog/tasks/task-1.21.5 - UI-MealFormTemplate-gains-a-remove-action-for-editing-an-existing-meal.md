@@ -1,11 +1,11 @@
 ---
 id: TASK-1.21.5
 title: 'UI: MealFormTemplate gains a remove action for editing an existing meal'
-status: In Progress
+status: Done
 assignee:
   - claude
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 23:54'
+updated_date: '2026-10-24 23:58'
 labels:
   - layer-ui
   - size-1
@@ -210,4 +210,22 @@ Scope note for the orchestrator: c8c892c is on PR #9, "Ports, providers, applica
 Oct 24, 2026 (orchestrator): AC5 and AC6 were added after acceptance (reviewer-ui's first review round, mid-fix), hence finish-moved - already the case for this task, label was just never committed alongside the criteria. AC3 (visual baselines) remains genuinely unmet pending the GitHub Actions workflow run, next.
 
 Oct 24, 2026 (orchestrator): visual baselines regenerated via the visual-baselines GitHub Actions workflow (run 40144061265) and reviewed as images before committing - 4 changed disabled-state baselines (TASK-49's recolor), 9 new MealFormTemplate stories (Editing/Removing/Invalid x 3 viewports). All confirmed correct by inspection: Editing shows the right title/button labels, Removing shows the primary action disabled-but-not-busy next to the Removing spinner (no more Saving contradiction), Invalid shows the red-bordered field and error message. Committed in ec5d2f1, pushed.
+
+## Review (close-task-1-21-5, 2026-10-24) — CLOSED
+
+Verdict: closed. Both blockers from the prior pass are resolved, and the code under review is byte-identical to what that pass verified.
+
+Blocking 1 (finish line moved uncommitted) — cleared. The task now carries `finish-moved` alongside `layer-ui, size-1`, committed in 66113b3, with an orchestrator note in the implementation notes saying AC5 and AC6 were added mid-fix during reviewer-ui's first round and why. That is the label, the commit and the note the board rule asks for.
+
+Blocking 2 (AC3, visual baselines) — cleared, and verified against the workflow rather than against the claim that it ran. `gh run view 40144061265`: workflow name `visual baselines`, headBranch `feat/meal-ports-providers-application`, conclusion success, headSha 66113b3 — an ancestor of the baseline commit and already containing the Editing/Removing/Invalid stories, so the images came from where AC3 requires (Linux CI), not a local macOS render. `packages/ui/visual-baselines/manifest.json` in ec5d2f1 gained exactly the 9 new MealFormTemplate entries (Editing/Removing/Invalid x 3 viewports) and changed exactly 4 hashes (atoms-textfield--disabled, --inline-disabled, molecules-addbar--disabled, molecules-labelledfield--disabled, all TASK-49's recolor); no entries dropped. The 15 meal-form PNGs are on disk, 33-40k each, 393x852 RGB. AC3 ticked in a79a264. All six criteria are now ticked.
+
+No re-run of the full check tier: `git diff c8c892c..HEAD -- packages apps tools` is the binary baselines plus manifest.json only, so the implementation the prior pass verified (pnpm check, typecheck, 1640 tests, `pnpm --filter @grocs/ui visual` green on 407 story views) is unchanged. Nothing to re-prove.
+
+Carried forward from the prior pass, recorded and not filed:
+- AC6's test asserts `readOnly` on the name field only, not the link field, though the code sets `disabled` on both. Partial coverage of a criterion whose code is plainly correct and symmetrical.
+- The `[readonly]` exemption in `stories.accessibility.test.tsx` loosens an accessibility check. TASK-49's review judged it correct on WCAG 1.4.3 grounds and confirmed it is not what fixes the contrast bug. Agreed, no action; named only because 'fix the code, not the check' makes it worth naming.
+- Button and Chip carry the same failing disabledInk-on-disabled pair: already DRAFT-22, filed by TASK-49's review. No new draft from this review.
+- `apps/mobile/src/screens/AddMealScreen.tsx` is an app-layer file touched by a `layer-ui` task, outside the plan. Necessary (making title/submittingLabel required forces the sole caller to supply them) and explained in the commit; its real wiring is TASK-1.21.6.
+
+Orchestrator note, not a blocker and not an acceptance criterion: c8c892c sits on PR #9, 'Ports, providers, application: meal sync, commands and watchWeekMeals'. Neither this UI task nor TASK-49 appears in that PR's title or stated scope, so the UI and accessibility work is invisible to anyone reviewing #9 by its description. Retitle and restate #9, or move the UI commit to its own PR.
 <!-- SECTION:NOTES:END -->
