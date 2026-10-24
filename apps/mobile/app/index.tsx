@@ -10,7 +10,7 @@ import { WelcomeScreen } from '../src/screens/WelcomeScreen.tsx';
 type Kitchen = { kind: 'looking' } | { kind: 'none' } | { kind: 'found'; id: string } | { kind: 'failed' };
 
 export default function Home() {
-  const { app, dev, demo, signInWithGoogle } = useNativeApp();
+  const { app, demo, signInWithGoogle } = useNativeApp();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [kitchen, setKitchen] = useState<Kitchen>({ kind: 'looking' });
   useEffect(() => app.watchSession(setUser), [app]);
@@ -29,7 +29,7 @@ export default function Home() {
   }, [app, uid]);
 
   if (user === undefined) return null;
-  if (user === null) return <WelcomeScreen signInWithGoogle={signInWithGoogle} dev={dev} demo={demo} />;
+  if (user === null) return <WelcomeScreen signInWithGoogle={signInWithGoogle} demo={demo} />;
   if (kitchen.kind === 'looking') return null;
   if (kitchen.kind === 'failed') return <Text variant="muted">We could not find your kitchen. Check your connection and reopen the app.</Text>;
   if (kitchen.kind === 'none') {

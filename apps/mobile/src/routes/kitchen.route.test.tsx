@@ -36,8 +36,9 @@ describe('sign-in routing', () => {
   });
 
   it('lands on Groceries after signing in when the member already has a kitchen', async () => {
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false, dev: true }) });
-    fireEvent.click(await screen.findByRole('button', { name: 'Sign in as U1 (test)' }));
+    const googleAccount = { uid: 'u1', email: 'u1@grocs.test', displayName: 'U1' };
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false, googleAccount }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
     await screen.findByText('Nothing on the list yet');
   });
 });

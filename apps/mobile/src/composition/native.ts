@@ -17,12 +17,6 @@ import { diagnosticsText } from './diagnostics.ts';
 import { loadDevTools } from './load-dev.ts';
 import { installObservers } from './observe.ts';
 
-export interface DevAccess {
-  readonly kitchenId: string;
-  readonly accounts: readonly { label: string; email: string; password: string }[];
-  readonly signIn: (email: string, password: string) => Promise<void>;
-}
-
 /** What the demo variant adds: a way in with no account, and the kitchen it opens on (decision-12). */
 export interface DemoAccess {
   readonly kitchenId: string;
@@ -31,8 +25,12 @@ export interface DemoAccess {
 
 export interface NativeApp {
   readonly app: App;
-  /** Null in release builds. */
-  readonly dev: DevAccess | null;
+  /**
+   * True in a development build, false in release and in the demo variant. No account or sign-in
+   * capability rides on this - just the one thing it's for: gating dev-only routes like
+   * /groceries-samples out of anything that ships.
+   */
+  readonly isDevBuild: boolean;
   /** Null in every build but the demo variant. */
   readonly demo: DemoAccess | null;
   /**
@@ -112,9 +110,7 @@ export function createNativeApp(): NativeApp {
 
   return {
     app,
-    dev: dev
-      ? { kitchenId: dev.kitchenId, accounts: dev.accounts, signIn: dev.signInFunction(authFns, authInstance) }
-      : null,
+    isDevBuild: dev !== null,
     demo: null,
     diagnostics: () => diagnosticsText(build, buffer ? buffer.dump() : 'development build: log records go to the console'),
     signInWithGoogle: () => googleAuth.signInWithGoogle(),

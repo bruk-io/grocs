@@ -64,9 +64,9 @@ describe('AuthSheet', () => {
   });
 
   it('still shows the footer under the primary action', () => {
-    render(<PrimaryAction footer={<Text>Sign in as Alex (test)</Text>} />);
+    render(<PrimaryAction footer={<Text>A footer note</Text>} />);
     expect(screen.getByRole('button', { name: 'Try the demo' })).toBeTruthy();
-    expect(screen.getByText('Sign in as Alex (test)')).toBeTruthy();
+    expect(screen.getByText('A footer note')).toBeTruthy();
   });
 
   // The browser sizes a flex: 1 child of a content-sized column to its content; Yoga (Android) gives it a basis of 0, so only its padding is left and the button overflows (TASK-36). The browser cannot show that, so the style is asserted.
