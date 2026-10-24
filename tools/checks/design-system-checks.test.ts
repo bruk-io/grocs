@@ -203,6 +203,10 @@ describe('interactive states (R61)', () => {
     expect(missingInteractiveStates('<Text>hello</Text>', ['rest'])).toEqual([]);
   });
 
+  it('leaves an ARIA landmark role alone: it groups content, with no pressed, focus or disabled look of its own', () => {
+    expect(missingInteractiveStates('<View role="navigation" aria-label="Sections and meals" />', ['rest'])).toEqual([]);
+  });
+
   it('fails a declared list that leaves one out, and names the state', () => {
     const f = storyCoverage.run(
       fixture({

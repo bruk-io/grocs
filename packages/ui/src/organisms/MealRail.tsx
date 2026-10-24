@@ -39,7 +39,7 @@ export interface MealRailProps {
 /** The left rail of the Fold's inner screen: the two pages, then this week's meals as filters (rail.link x 2, rail.row x n, meal.empty). */
 export function MealRail({ activeSection, toGo, meals, selectedMealId, onSelectSection, onSelectMeal, onShowAll, onPlanMeal }: MealRailProps) {
   return (
-    <View accessibilityRole="navigation" aria-label="Sections and meals" style={styles.rail}>
+    <View role="navigation" aria-label="Sections and meals" style={styles.rail}>
       <View style={styles.sections}>
         <RailLink label="Meal plan" icon="calendar" active={activeSection === 'plan'} onPress={() => onSelectSection?.('plan')} />
         <RailLink

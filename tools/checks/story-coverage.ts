@@ -32,7 +32,10 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
 const LEVEL_DIR = /^packages\/ui\/src\/(atoms|molecules|organisms|templates)\/[^/]+\.tsx$/;
 const STATES = /export const \w+_STATES\s*=\s*\[([^\]]*)\]/;
 
-const INTERACTIVE = /<Pressable\b|<TextInput\b|\brole=/;
+// "navigation" is an ARIA landmark role (groups content, like HTML's <nav>), not a widget role: it
+// has no pressed, focus or disabled look of its own, unlike the roles this is meant to catch
+// (button, checkbox, link, switch, tab, ...).
+const INTERACTIVE = /<Pressable\b|<TextInput\b|\brole=(?!["']navigation["'])["']/;
 const CAN_LOAD = /\bloading\??\s*:/;
 const CAN_ERROR = /\b(error|errorMessage|invalid)\??\s*:/;
 

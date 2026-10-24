@@ -27,6 +27,7 @@ export async function appOnFakes({
   kitchen = true,
   clock = new FakeClock(),
   kitchens = new FakeKitchenGateway('u1', undefined, clock),
+  googleAccount = null,
 }: {
   signedIn: boolean;
   dev?: boolean;
@@ -38,8 +39,10 @@ export async function appOnFakes({
   kitchens?: FakeKitchenGateway;
   /** The clock the gateway and the app share, to move time past an invite's expiry. */
   clock?: FakeClock;
+  /** Stands in for a successful Google picker (FakeAuth's own doc): set to make Continue with Google succeed; null (the default) stands in for a cancelled or failed pick. */
+  googleAccount?: { uid: string; email: string; displayName: string | null } | null;
 }): Promise<NativeApp & { readonly clipboard: FakeClipboard }> {
-  const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }]);
+  const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }], googleAccount);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
   const clipboard = new FakeClipboard();
@@ -61,7 +64,7 @@ export async function appOnFakes({
         },
       }
     : null;
-  return { clipboard, app, dev: devAccess, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => Promise.reject(new Error('not used in route tests')) };
+  return { clipboard, app, dev: devAccess, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => auth.signInWithGoogle() };
 }
 
 /**
