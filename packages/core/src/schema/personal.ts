@@ -3,15 +3,27 @@
 
 interface EntityMarking {
   readonly entity: string;
-  /** Keys that together identify an object of this entity, so its personal fields can be found by shape. */
+  /**
+   * Keys that together identify an object of this entity, so its personal fields can be found by
+   * shape. Order in PERSONAL_FIELDS matters when one entity's shape is a subset of another's
+   * (item's ['weekId','addedBy'] is a subset of every meal doc too, which also has 'dayIndex'):
+   * list the more specific shape first, so it is checked before the subset can match and
+   * misclassify it, silently leaking whichever of its own personal fields the subset entity's
+   * list does not also cover (a meal misclassified as an item would leak its link, since item's
+   * personal list redacts name but has no entry for link).
+   */
   readonly shape: readonly string[];
   readonly personal: readonly string[];
 }
 
-/** Add an entry when a new stored entity gets a field the kitchen types. */
+/**
+ * Add an entry when a new stored entity gets a field the kitchen types. meal is listed before
+ * item: dayIndex is a true structural exclusive to meal, so checking it first means meal can only
+ * ever match an actual meal, and anything else falls through cleanly to item's unchanged check.
+ */
 export const PERSONAL_FIELDS: readonly EntityMarking[] = [
-  { entity: 'item', shape: ['weekId', 'addedBy'], personal: ['name', 'amount'] },
   { entity: 'meal', shape: ['weekId', 'dayIndex'], personal: ['name', 'link'] },
+  { entity: 'item', shape: ['weekId', 'addedBy'], personal: ['name', 'amount'] },
 ];
 
 export const REDACTED = '[redacted]';
