@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - claude
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-24 23:45'
+updated_date: '2026-10-24 23:54'
 labels:
   - layer-ui
   - size-1
@@ -29,7 +29,7 @@ MealFormTemplate currently has no destructive action - it only supports adding a
 <!-- AC:BEGIN -->
 - [x] #1 MealFormTemplate shows a 'Remove meal' destructive action when editing an existing meal, and never shows it when adding a new one
 - [x] #2 Storybook stories and behaviour tests cover both the add and edit/remove states
-- [ ] #3 Visual baselines regenerated via the visual-baselines workflow if the remove action changes rendered pixels
+- [x] #3 Visual baselines regenerated via the visual-baselines workflow if the remove action changes rendered pixels
 - [x] #4 MealFormTemplate gains a linkError prop (LabelledField already supports errorMessage) so the invalid-link result from createMeal/relinkMeal (R6 URL validation, added to TASK-1.21.1) has somewhere to surface
 - [x] #5 title and submittingLabel are caller-supplied props (mirroring dateLabel/submitLabel), not hardcoded - the header always says 'Add a meal' and the busy action always says 'Adding' today, which makes the Editing story show a contradictory screen ('Add a meal' / 'Save changes' / 'Adding' together)
 - [x] #6 removing disables both LabelledFields and the primary ActionBar, matching adding's existing behaviour, so a meal can't be edited or re-submitted while it's being removed
@@ -208,4 +208,6 @@ Notes, filtered and not filed:
 Scope note for the orchestrator: c8c892c is on PR #9, "Ports, providers, application: meal sync, commands and watchWeekMeals" (branch feat/meal-ports-providers-application). Neither this UI task nor TASK-49 is in that PR's title or stated scope, so the UI and accessibility work is invisible to anyone reviewing #9 by its description. Either retitle and restate #9 to cover all of it, or move the UI commit to its own PR.
 
 Oct 24, 2026 (orchestrator): AC5 and AC6 were added after acceptance (reviewer-ui's first review round, mid-fix), hence finish-moved - already the case for this task, label was just never committed alongside the criteria. AC3 (visual baselines) remains genuinely unmet pending the GitHub Actions workflow run, next.
+
+Oct 24, 2026 (orchestrator): visual baselines regenerated via the visual-baselines GitHub Actions workflow (run 40144061265) and reviewed as images before committing - 4 changed disabled-state baselines (TASK-49's recolor), 9 new MealFormTemplate stories (Editing/Removing/Invalid x 3 viewports). All confirmed correct by inspection: Editing shows the right title/button labels, Removing shows the primary action disabled-but-not-busy next to the Removing spinner (no more Saving contradiction), Invalid shows the red-bordered field and error message. Committed in ec5d2f1, pushed.
 <!-- SECTION:NOTES:END -->
