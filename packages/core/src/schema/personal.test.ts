@@ -1,11 +1,19 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { createExtraItem } from '../model/item.ts';
-import { PERSONAL_ATTRIBUTE_KEYS, redact, REDACTED } from './personal.ts';
+import { createMeal } from '../model/meal.ts';
+import { PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './personal.ts';
 import { encodeItem } from './item-doc.ts';
+import { encodeMeal } from './meal-doc.ts';
 
 const item = (() => {
   const r = createExtraItem({ id: 'i1', weekId: 'w', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'alex' });
+  if (!r.ok) throw new Error('setup');
+  return r.value;
+})();
+
+const meal = (() => {
+  const r = createMeal({ id: 'm1', weekId: 'w', dayIndex: 0, name: 'Tacos night', link: 'https://example.com/tacos' }, { at: 1, by: 'alex' });
   if (!r.ok) throw new Error('setup');
   return r.value;
 })();
@@ -19,6 +27,23 @@ describe('redact (R36)', () => {
       expect(text).toContain(REDACTED);
       expect(text).toContain('i1');
     }
+  });
+
+  it('removes the name and link from a meal, the domain form and the stored form, and nothing else', () => {
+    for (const shape of [meal, encodeMeal(meal)]) {
+      const text = JSON.stringify(redact({ event: 'x', meal: shape }));
+      expect(text).not.toContain('Tacos night');
+      expect(text).not.toContain('https://example.com/tacos');
+      expect(text).toContain(REDACTED);
+      expect(text).toContain('m1');
+    }
+  });
+
+  it('classifies a meal document as a meal, not an item, so its link is redacted too (R36)', () => {
+    const classify = (v: object) => PERSONAL_FIELDS.find((e) => e.shape.every((k) => k in v))?.entity;
+    expect(classify(encodeMeal(meal))).toBe('meal');
+    expect(classify(encodeItem(item))).toBe('item');
+    expect(classify({ id: 'i1', weekId: 'w', addedBy: 'alex', name: item.name, amount: item.amount })).toBe('item');
   });
 
   it('removes attributes named after a personal field', () => {
