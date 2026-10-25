@@ -38,5 +38,13 @@
     "approvedBy": "Bruk Habtu, in chat, 2026-10-21",
     "reason": "Same pin as the ci.yml override (TASK-24), for the one job that must share its runner image and Chromium with ci.yml's browser pass (R42, decision-11) - the two would silently drift apart otherwise.",
     "date": "2026-10-21"
+  },
+  {
+    "file": ".claude/settings.json",
+    "beforeHash": "4471da292e2b4e20acb1d5edf999df6dd52969d6eb8577f05a1aa31937ea4b25",
+    "afterHash": "d64fc8d0dd8aa9d1aca7c631c7238ba00008a045ed3304ac70fd0ef046ebd450",
+    "approvedBy": "Bruk Habtu, in chat, 2026-10-24",
+    "reason": "Removes the Stop hook (R56) entry. Bruk asked directly for this (it re-ran checks/typecheck/tests after every agent turn, slowing live device-testing iteration) - a deliberate, explicit removal of enforcement, not a loophole. tools/hooks/stop.ts stays in the repo, just unregistered, so it can be wired back in later without rewriting it.",
+    "date": "2026-10-24"
   }
 ]
