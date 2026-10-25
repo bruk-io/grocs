@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:22'
-updated_date: '2026-10-25 01:23'
+updated_date: '2026-10-25 12:46'
 labels:
   - layer-application
   - size-1
@@ -26,7 +26,7 @@ Depends on TASK-1.22.1 (core: createExtraItem/NewItemInput gain optional badges)
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 AddItem gains an optional mealId: string; when present, the created item's badges field is [mealId]; when absent, behavior is exactly today's (badges: [])
+- [x] #1 AddItem gains an optional mealId: string; when present, the created item's badges field is [mealId]; when absent, behavior is exactly today's (badges: [])
 <!-- AC:END -->
 
 ## Implementation Plan

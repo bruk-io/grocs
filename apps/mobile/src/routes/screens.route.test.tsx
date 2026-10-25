@@ -198,6 +198,50 @@ describe('QuickAdd', () => {
     press(/Groceries/);
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
+
+  it('tags the added item with the selected meal, visible on Groceries (R10)', async () => {
+    const app = await appOnFakes({ signedIn: true });
+    renderRoute(ROUTES, { app, location: '/add-meal?dayId=2026-10-19' });
+    await screen.findByText('Add a meal');
+    fireEvent.change(screen.getByLabelText('What are you making?'), { target: { value: 'Tacos' } });
+    press('Add to Monday');
+    await screen.findByText('This week');
+    cleanup();
+
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Tacos' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Add an item' }), { target: { value: 'Garlic' } });
+    press('Add');
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Add an item' })).toBeNull());
+    cleanup();
+
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
+    // The rail's meal list only draws at inner width (decision-14); at phone width, the one
+    // "Tacos" left on screen is the badge ItemRow draws beside Garlic (R10).
+    expect(screen.getByText('Tacos')).toBeTruthy();
+  });
+
+  it('adds with no meal selected unchanged: no badge on the item', async () => {
+    const app = await appOnFakes({ signedIn: true });
+    renderRoute(ROUTES, { app, location: '/add-meal?dayId=2026-10-19' });
+    await screen.findByText('Add a meal');
+    fireEvent.change(screen.getByLabelText('What are you making?'), { target: { value: 'Tacos' } });
+    press('Add to Monday');
+    await screen.findByText('This week');
+    cleanup();
+
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    await screen.findByRole('button', { name: 'Tacos' });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Add an item' }), { target: { value: 'Garlic' } });
+    press('Add');
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Add an item' })).toBeNull());
+    cleanup();
+
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
+    expect(screen.queryByText('Tacos')).toBeNull();
+  });
 });
 
 describe('Settings', () => {

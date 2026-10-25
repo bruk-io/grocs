@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:23'
-updated_date: '2026-10-25 01:23'
+updated_date: '2026-10-25 12:46'
 labels:
   - layer-app
   - size-1
@@ -26,8 +26,8 @@ Depends on TASK-1.22.2 (application: AddItem gains an optional mealId). QuickAdd
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Adding an item with a meal chip selected dispatches AddItem with that mealId; the resulting item shows the meal's badge on the Groceries screen
-- [ ] #2 Adding with no meal selected is unchanged (no mealId in the command, item has no badges, same as today)
+- [x] #1 Adding an item with a meal chip selected dispatches AddItem with that mealId; the resulting item shows the meal's badge on the Groceries screen
+- [x] #2 Adding with no meal selected is unchanged (no mealId in the command, item has no badges, same as today)
 <!-- AC:END -->
 
 ## Implementation Plan

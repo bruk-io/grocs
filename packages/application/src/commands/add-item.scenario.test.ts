@@ -7,7 +7,7 @@ import { createTestClient } from '../testing/client.ts';
 
 const KITCHEN = 'k1';
 const WEEK = '2026-W42';
-const add = (name: string, extra: { amount?: string } = {}) => ({ type: 'AddItem' as const, kitchenId: KITCHEN, weekId: WEEK, name, ...extra });
+const add = (name: string, extra: { amount?: string; mealId?: string } = {}) => ({ type: 'AddItem' as const, kitchenId: KITCHEN, weekId: WEEK, name, ...extra });
 
 describe('AddItem scenarios (R47)', () => {
   it('adds the item to the store and returns an ItemAdded event', async () => {
@@ -20,6 +20,13 @@ describe('AddItem scenarios (R47)', () => {
     expect(items[0]?.addedBy).toBe('alex');
     expect(items[0]?.badges).toEqual([]);
     expect(result.ok && result.value).toEqual([{ type: 'ItemAdded', itemId: items[0]?.id, weekId: WEEK }]);
+  });
+
+  it('carries the mealId through as the item\'s badge', async () => {
+    const client = await createTestClient({ uid: 'alex' });
+    await client.dispatcher.dispatch(add('Garlic', { mealId: 'meal-1' }));
+    const [item] = await client.store.getItems(KITCHEN, WEEK);
+    expect(item?.badges).toEqual(['meal-1']);
   });
 
   it('stamps the item with the clock and the signed-in member', async () => {

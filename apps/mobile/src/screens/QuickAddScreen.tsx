@@ -37,7 +37,7 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
   const pickerMeals = meals.map((m) => ({ id: m.id, label: m.name.value, tone: mealTone(m.id) }));
 
   const add = async () => {
-    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: value };
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: value, ...(mealId ? { mealId } : {}) };
     const result = await app.dispatch(command);
     if (result.ok) go.groceries();
   };
