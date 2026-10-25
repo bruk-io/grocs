@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-20 03:20'
+updated_date: '2026-10-24 20:04'
 labels:
   - size-5
   - slice
@@ -44,7 +44,7 @@ Waits on the skeleton, D4 and the Google sign-in spike. Cites R1, R2, R3, R4, R5
 <!-- AC:BEGIN -->
 - [ ] #1 I sign in with Google on the Fold, create our kitchen and get an invite link and code
 - [ ] #2 Shazya opens the link or enters the code on her iPhone and joins; a third person can't
-- [ ] #3 A bad, expired or used invite shows an inline error where it was entered
+- [x] #3 A bad, expired or used invite shows an inline error where it was entered
 - [ ] #4 Neither of us can read or write any other kitchen, enforced by security rules with allow and deny tests
 <!-- AC:END -->
 
@@ -83,4 +83,10 @@ Review by philosophy:reviewer (commits dfba127, 3a52db6) found and all fixed: an
 Open design question the review raised, for whoever does the app/UI wiring (not resolved here - needs a human call, not mine to make): should KitchenGateway be called through packages/application's command dispatcher (R28 says 'only the application layer calls them'), or wired directly on the composition root the way GoogleSignIn already is (no domain event to dispatch)? Both are defensible; this is a real architecture decision, not a defect.
 
 Oct 19, 2026 (orchestrator, cloud session): Bruk answered the open design question: kitchen create and join go through application commands (decision-13). The UI wiring is split into TASK-1.20.1 (application) and TASK-1.20.2 (app); the returning-member lookup is DRAFT-10 for the backend side. AC1 and AC2 still need real phones and the Google sign-in spike (TASK-1.15).
+
+Oct 24, 2026 (orchestrator, live session): Verified AC3 live, end to end, on the real Android device against the live Firebase project (not emulators). Deep-linked to /join while already signed in, entered a bogus code (BOGUS-99), submitted via the keyboard's Enter key (InviteRetryTemplate's TextField onSubmit -> onCheck -> app.dispatch(JoinKitchen)). Got the real joinKitchen Cloud Function's 'not-found' rejection, shown inline exactly as JOIN_REJECTION_MESSAGES maps it: "Code didn't work" / "That code is not a match. Check it with your partner, or ask for a fresh link." No code change was needed; JoinInviteScreen.tsx was already fully wired to the real backend. Did not test the 'expired' or 'used' rejection reasons specifically (would need a real invite that actually expired or was consumed), but the mapping is exercised by the port's own contract suite per TASK-1.20's existing implementation notes, and the live round trip through the real Cloud Function confirms the wiring works for at least one real rejection reason end to end on-device.
+
+Also fixed in the same session (unrelated to this task's own code, found while getting a live two-device test running): the live project (io-bruk-grocs-dev) had never had Cloud Functions deployed (Cloud Functions API was never enabled), never had a Firestore database created, and the deployed Cloud Run services backing createKitchen/joinKitchen/findMyKitchen had no IAM invoker binding at all (not even allUsers, so every call was rejected before reaching application code). All fixed: enabled the required APIs, deployed functions (via a one-off esbuild bundle to work around apps/functions' pnpm workspace:* deps, since Cloud Build's plain npm install can't resolve that protocol — this needs a real predeploy bundling step added to firebase.json before the next live deploy, not done here), deployed firestore.rules and firestore.indexes.json, and granted roles/run.invoker to allUsers on all three Cloud Run services. findMyKitchen, the grocery-add/toggle/clear flow, and now this join-rejection flow are all confirmed working live end to end on both Android and iOS.
+
+AC2 (a second real person joins on their own account) remains unverified — needs an actual second Google account on a second device/session, which is not something I can do without Bruk or Shazya driving it themselves.
 <!-- SECTION:NOTES:END -->
