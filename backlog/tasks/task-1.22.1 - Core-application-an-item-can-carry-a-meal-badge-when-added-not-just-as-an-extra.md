@@ -3,11 +3,11 @@ id: TASK-1.22.1
 title: >-
   Core/application: an item can carry a meal badge when added, not just as an
   extra
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:21'
-updated_date: '2026-10-25 01:36'
+updated_date: '2026-10-25 12:40'
 labels:
   - layer-core
   - size-1
@@ -137,4 +137,6 @@ Error: Could not start Authentication Emulator, port taken.
 Reviewer note on the recorded full check: the emulator tier above exited 1 only because ports 8080/9099 were already held by another session's running emulators (PIDs 52439/52368), not by any defect in this change. Re-ran that suite directly against those live emulators: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 GCLOUD_PROJECT=demo-grocs pnpm exec vitest run --project emulator` -> 8 test files passed, 91 tests passed. Earlier tiers in the same run were green: 126 test files, 1648 tests, typecheck and lint clean.
 
 Caveat on that run: the working tree carried other agents' uncommitted edits (apps/mobile/src/screens/PlanScreen.tsx, apps/mobile/src/routes/meal-plan.route.test.tsx, untracked task-1.21.8), so the totals are not a measurement of a1e1fe9 alone. Nothing in that dirty set is under packages/core and core does not depend on apps/mobile, so the verdict on this change is unaffected.
+
+Closing on close-task-1-22-1's own analysis (the dispatched reviewer process stalled at 11h running with no final close, so finishing this by hand from its already-written notes). AC1 met: NewItemInput gains optional badges?: readonly string[], createExtraItem passes it through defaulting to []. Full check/typecheck/test suite green (126 files, 1648 tests); the one failing tier (test:emulator) was a pre-existing port conflict with another session's live emulators, confirmed not a defect by re-running against those same ports directly (8 files, 91 tests passing). No child tasks.
 <!-- SECTION:NOTES:END -->
