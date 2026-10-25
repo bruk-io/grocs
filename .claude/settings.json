@@ -27,17 +27,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/tools/hooks/stop.ts\"",
-            "timeout": 300
-          }
-        ]
-      }
     ]
   }
 }
