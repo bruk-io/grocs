@@ -1,11 +1,11 @@
 ---
 id: TASK-1.21.7
 title: 'Week navigation: PlanScreen can view and plan a future or past week'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:21'
-updated_date: '2026-10-25 03:32'
+updated_date: '2026-10-25 03:52'
 labels:
   - layer-app
   - size-2
@@ -52,4 +52,6 @@ Known, accepted behavior (task's own risk note): weekOffset resets to 0 on remou
 Follow-up for the orchestrator (packages/ui, outside this layer's write boundary): MealPlanTemplate hardcodes title="This week" regardless of which week is being viewed - worth a follow-up task so the header doesn't read 'This week' while showing a different week's label.
 
 pnpm test (full suite, 126 files / 1648 tests), pnpm check (14 checks), pnpm typecheck all green.
+
+Reviewed directly (the dispatched reviewer-app-1-21-7 went idle without ever filing a verdict). All 3 ACs verified: Previous/Next controls wired via weekOffset state; go.addMeal(dayId) already carries the viewed week's real date so a meal planned on a navigated week lands under that week's weekId, not the current one; the new route test proves this end-to-end (navigates to next week, adds 'Lasagna', confirms it persists under nextWeekId and not under the current weekId). pnpm test (1651 tests), pnpm check (14 checks) and pnpm typecheck all green. The documented quirk (view resets to 'This week' on remount from Add Meal) is accepted, not a defect.
 <!-- SECTION:NOTES:END -->
