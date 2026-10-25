@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:21'
-updated_date: '2026-10-25 01:25'
+updated_date: '2026-10-25 03:32'
 labels:
   - layer-app
   - size-2
@@ -26,9 +26,9 @@ TASK-1.21's own AC1 ('adds meals to any day of this week or a future one') is bl
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 PlanScreen shows Previous/Next week controls that change which week's meals are displayed
-- [ ] #2 Adding a meal from a non-current week's day plans it on that week, not the current one
-- [ ] #3 A route test proves navigating to next week and adding a meal there persists it under the correct weekId
+- [x] #1 PlanScreen shows Previous/Next week controls that change which week's meals are displayed
+- [x] #2 Adding a meal from a non-current week's day plans it on that week, not the current one
+- [x] #3 A route test proves navigating to next week and adding a meal there persists it under the correct weekId
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -39,3 +39,17 @@ TASK-1.21's own AC1 ('adds meals to any day of this week or a future one') is bl
 3. apps/mobile/src/routes/meal-plan.route.test.tsx: add a test that clicks 'Next week' (WeekNav's accessible button name, confirmed in packages/ui/src/molecules/WeekNav.tsx), plans a meal on the now-visible week, and asserts via syncStore.getMeals that the meal lands under the week-after weekId, not the original.
 4. Run pnpm test (full suite), pnpm check, pnpm typecheck.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented: PlanScreen holds weekOffset state (unbounded, no min/max), derives viewedAt = app.now() + weekOffset*7*86_400_000, feeds weekDays/weekLabelFor for the meals displayed/planned and wires MealPlanTemplate's onPreviousWeek/onNextWeek to it. go.addMeal(dayId) already carries the viewed week's real date, and AddMealScreen/dayFor already derive weekId from dayId, so no other app file needed a change.
+
+Decision: items/toBuy badge were kept on the CURRENT week (weekIdFor(app.now())), not the viewed week - GroceriesScreen (what onOpenGroceries opens) always shows app.now()'s week with no week param, so coupling the badge to the viewed week would show a count that doesn't match where tapping it lands. New currentWeekId binding added alongside the viewed weekId.
+
+Known, accepted behavior (task's own risk note): weekOffset resets to 0 on remount, so returning from AddMealScreen after planning a meal on a future week lands back on the current week and the just-added meal isn't visible until navigating forward again. The new route test exercises this explicitly (saves, confirms back on 'This week', clicks Next week again, then finds the meal). Not a bug to fix here.
+
+Follow-up for the orchestrator (packages/ui, outside this layer's write boundary): MealPlanTemplate hardcodes title="This week" regardless of which week is being viewed - worth a follow-up task so the header doesn't read 'This week' while showing a different week's label.
+
+pnpm test (full suite, 126 files / 1648 tests), pnpm check (14 checks), pnpm typecheck all green.
+<!-- SECTION:NOTES:END -->

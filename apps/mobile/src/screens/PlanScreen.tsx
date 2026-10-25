@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MealPlanTemplate, Text } from '@grocs/ui';
-import { visibleItems } from '@grocs/core';
+import { visibleItems, weekIdFor } from '@grocs/core';
 import type { Item, Meal } from '@grocs/core';
 import type { App } from '../composition/compose-app.ts';
 import { household } from '../sample/sample-data.ts';
@@ -16,7 +16,12 @@ export interface PlanScreenProps {
 /** The week's meals (R5-R8): MealPlanTemplate fed by watchWeekMeals. Household avatars stay sample for now (TASK-27's territory). */
 export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
   const go = useGo();
-  const { weekId, days } = weekDays(app.now());
+  const [weekOffset, setWeekOffset] = useState(0);
+  const viewedAt = app.now() + weekOffset * 7 * 86_400_000;
+  const { weekId, days } = weekDays(viewedAt);
+  // Items and the toBuy badge stay on the current week, not the one being viewed: GroceriesScreen
+  // (where onOpenGroceries lands) always shows app.now()'s week, so this mirrors that, not the nav.
+  const currentWeekId = weekIdFor(app.now());
   const [meals, setMeals] = useState<readonly Meal[]>([]);
   const [items, setItems] = useState<readonly Item[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -35,13 +40,13 @@ export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
     () =>
       app.watchWeekItems(
         kitchenId,
-        weekId,
+        currentWeekId,
         (next) => setItems(next),
         (error) => setLoadError(error.message),
       ),
-    [app, kitchenId, weekId],
+    [app, kitchenId, currentWeekId],
   );
-  const toBuy = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) }).filter((i) => i.state.value !== 'in-cart').length;
+  const toBuy = visibleItems({ weekId: currentWeekId, items: Object.fromEntries(items.map((i) => [i.id, i])) }).filter((i) => i.state.value !== 'in-cart').length;
 
   const planDays = days.map((day) => ({
     id: day.dayId,
@@ -55,11 +60,14 @@ export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
   return (
     <View style={styles.screen}>
       <MealPlanTemplate
-        weekLabel={weekLabelFor(app.now())}
+        title={weekOffset === 0 ? 'This week' : 'That week'}
+        weekLabel={weekLabelFor(viewedAt)}
         members={household}
         days={planDays}
         toBuy={toBuy}
         onSettings={go.settings}
+        onPreviousWeek={() => setWeekOffset((n) => n - 1)}
+        onNextWeek={() => setWeekOffset((n) => n + 1)}
         onPlan={(dayId) => go.addMeal(dayId)}
         onOpenMeal={(dayId, mealId) => go.addMeal(dayId, mealId)}
         onOpenGroceries={go.groceries}
