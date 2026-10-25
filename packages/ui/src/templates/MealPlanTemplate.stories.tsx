@@ -6,13 +6,16 @@ import { MealPlanTemplate } from './MealPlanTemplate.tsx';
 const meta = {
   title: 'Templates/Meal plan',
   component: MealPlanTemplate,
-  args: { weekLabel: 'Oct 19 - 25', members: household, days: week, toBuy: 14 },
+  args: { title: 'This week', weekLabel: 'Oct 19 - 25', members: household, days: week, toBuy: 14 },
 } satisfies Meta<typeof MealPlanTemplate>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 /** Plan. */
 export const Week: Story = {};
+
+/** Viewing a week that isn't the current one. */
+export const AnotherWeek: Story = { ...Week, args: { ...Week.args, title: 'That week', weekLabel: 'Oct 26 - Nov 1' } };
 
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Week, decorators: [withPhoneInsets] };

@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './MealPlanTemplate.stories.tsx';
 
-const { Week } = composeStories(stories);
+const { Week, AnotherWeek } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -56,5 +56,13 @@ describe('MealPlanTemplate', () => {
     expect(onOpenGroceries).not.toHaveBeenCalled();
     await user.click(screen.getByRole('tab', { name: /Groceries/ }));
     expect(onOpenGroceries).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('shows the correct title for current and different weeks', () => {
+    render(<Week />);
+    expect(screen.getByRole('heading', { name: 'This week' })).toBeTruthy();
+    cleanup();
+    render(<AnotherWeek />);
+    expect(screen.getByRole('heading', { name: 'That week' })).toBeTruthy();
   });
 });

@@ -9,6 +9,8 @@ import { MainLayout } from './layouts/MainLayout.tsx';
 export const MEALPLANTEMPLATE_STATES = ['week'] as const;
 
 export interface MealPlanTemplateProps {
+  /** Shown above the week nav, such as 'This week' or 'That week'. */
+  title: string;
   /** The week as it should read, such as "Oct 19 - 25". */
   weekLabel: string;
   onPreviousWeek?: () => void;
@@ -26,12 +28,12 @@ export interface MealPlanTemplateProps {
 }
 
 /** template.main filled for Meal plan: header.main (week.nav), week.list, nav.tabs. */
-export function MealPlanTemplate({ weekLabel, onPreviousWeek, onNextWeek, members, onSettings, days, onOpenMeal, onPlan, toBuy, onOpenGroceries }: MealPlanTemplateProps) {
+export function MealPlanTemplate({ title, weekLabel, onPreviousWeek, onNextWeek, members, onSettings, days, onOpenMeal, onPlan, toBuy, onOpenGroceries }: MealPlanTemplateProps) {
   return (
     <MainLayout
       header={
         <MainHeader
-          title="This week"
+          title={title}
           weekNav={{ label: weekLabel, ...(onPreviousWeek ? { onPrevious: onPreviousWeek } : {}), ...(onNextWeek ? { onNext: onNextWeek } : {}) }}
           members={members}
           mascot="shii"

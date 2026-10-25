@@ -43,11 +43,13 @@ export interface NewItemInput {
   readonly name: string;
   readonly amount?: string | null;
   readonly aisle?: string;
+  /** Meal ids this item is for; empty when it's an extra. */
+  readonly badges?: readonly string[];
 }
 
 export type NewItemError = 'empty-name';
 
-/** Make a new extra item (no meal badge), stamped with who added it and when. */
+/** Make a new item, stamped with who added it and when. No badges means an extra; one or more badges means it's for those meals. */
 export function createExtraItem(input: NewItemInput, stamp: Stamp): Result<Item, NewItemError> {
   const name = input.name.trim().replace(/\s+/g, ' ');
   if (normaliseName(name) === '') return err('empty-name');
@@ -61,7 +63,7 @@ export function createExtraItem(input: NewItemInput, stamp: Stamp): Result<Item,
     amount: stamped(amount, stamp),
     aisle: stamped(input.aisle?.trim() || DEFAULT_AISLE, stamp),
     state: stamped<ItemState>('to-buy', stamp),
-    badges: [],
+    badges: input.badges ?? [],
     deleted: null,
   });
 }
