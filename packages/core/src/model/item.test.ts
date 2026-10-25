@@ -51,6 +51,20 @@ describe('createExtraItem (R10)', () => {
     expect(createExtraItem({ id: 'i1', weekId: 'w', name: '   ' }, stamp)).toEqual({ ok: false, error: 'empty-name' });
     expect(createExtraItem({ id: 'i1', weekId: 'w', name: '!!' }, stamp)).toEqual({ ok: false, error: 'empty-name' });
   });
+
+  it('accepts an optional meal badge', () => {
+    const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Milk', badges: ['meal-1'] }, stamp);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.badges).toEqual(['meal-1']);
+  });
+
+  it('defaults to no badges when not specified', () => {
+    const r = createExtraItem({ id: 'i1', weekId: '2026-W42', name: 'Milk' }, stamp);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.badges).toEqual([]);
+  });
 });
 
 describe('setItemState (R18)', () => {
