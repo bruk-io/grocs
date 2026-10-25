@@ -10,7 +10,9 @@ export function AddMealScreen() {
   return (
     <MealFormTemplate
       dateLabel="Thursday, Oct 22"
+      title="Add a meal"
       submitLabel="Add to Thursday"
+      submittingLabel="Adding"
       name={name}
       onNameChange={setName}
       link={link}
