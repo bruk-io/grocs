@@ -114,15 +114,21 @@ export function decide(payload: HookPayload, root: string, deps: Deps = LIVE_DEP
     );
   }
 
-  const route = deps.readRoute(taskId, root);
-  if (!route) {
-    return deny(`launch-guard/unreadable-route: "board-check route ${taskId}" could not be read; refusing to launch ${subagentType as string} without confirming its model.`);
-  }
-  const expectedModel = ROLE_SPECS[agent.role].model;
-  if (route.model !== expectedModel) {
-    return deny(
-      `launch-guard/model-mismatch: board-check route gives ${taskId} to ${route.model}, but ${subagentType as string} is pinned to ${expectedModel}.`,
-    );
+  // board-check route only ever answers ORCHESTRATE, LEAF or SMALL_LEAF (a builder question);
+  // it has no notion of a reviewer role (ROLE_SPECS[reviewer].routeTableCovers is false, with the
+  // reason in tools/agents/roles.ts), so there is nothing for a reviewer's pinned model to agree
+  // or disagree with. Skip the comparison entirely rather than deny every reviewer launch.
+  if (ROLE_SPECS[agent.role].routeTableCovers) {
+    const route = deps.readRoute(taskId, root);
+    if (!route) {
+      return deny(`launch-guard/unreadable-route: "board-check route ${taskId}" could not be read; refusing to launch ${subagentType as string} without confirming its model.`);
+    }
+    const expectedModel = ROLE_SPECS[agent.role].model;
+    if (route.model !== expectedModel) {
+      return deny(
+        `launch-guard/model-mismatch: board-check route gives ${taskId} to ${route.model}, but ${subagentType as string} is pinned to ${expectedModel}.`,
+      );
+    }
   }
 
   if (task.labels.includes('size-1') && numberedSteps(task.plan) === 0) {

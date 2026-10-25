@@ -91,6 +91,26 @@ describe('launch guard: a gated launch (decision-3)', () => {
     const payload = { tool_name: 'Agent', tool_input: { subagent_type: 'builder-core', prompt: 'work on TASK-1.21' } };
     expect(decide(payload, ROOT, deps(coreLayerTask, 'sonnet')).decision).toBe('allow');
   });
+
+  it('allows a reviewer launch even when the route (a builder question) disagrees with the reviewer\'s pinned model', () => {
+    // board-check route only ever answers ORCHESTRATE/LEAF/SMALL_LEAF; it has no reviewer entry
+    // to agree or disagree with (ROLE_SPECS.reviewer.routeTableCovers is false), so a route that
+    // would fail a builder's model check must not fail a reviewer's launch.
+    const payload = { tool_name: 'Agent', tool_input: { subagent_type: 'reviewer-core', prompt: 'review TASK-1.21' } };
+    expect(decide(payload, ROOT, deps(coreLayerTask, 'sonnet')).decision).toBe('allow');
+  });
+
+  it('allows a reviewer launch even when the route cannot be read at all', () => {
+    const payload = { tool_name: 'Agent', tool_input: { subagent_type: 'reviewer-core', prompt: 'review TASK-1.21' } };
+    expect(decide(payload, ROOT, deps(coreLayerTask, null)).decision).toBe('allow');
+  });
+
+  it('still denies a reviewer launch on a layer mismatch', () => {
+    const payload = { tool_name: 'Agent', tool_input: { subagent_type: 'reviewer-ports', prompt: 'review TASK-1.21' } };
+    const r = decide(payload, ROOT, deps(coreLayerTask, null));
+    expect(r.decision).toBe('deny');
+    expect(r.reason).toContain('launch-guard/layer-mismatch');
+  });
 });
 
 describe('numberedSteps', () => {
