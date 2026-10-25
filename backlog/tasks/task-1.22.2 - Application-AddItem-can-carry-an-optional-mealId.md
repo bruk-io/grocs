@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.2
 title: 'Application: AddItem can carry an optional mealId'
-status: To Do
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:22'
-updated_date: '2026-10-25 01:23'
+updated_date: '2026-10-25 12:47'
 labels:
   - layer-application
   - size-1
@@ -26,7 +26,7 @@ Depends on TASK-1.22.1 (core: createExtraItem/NewItemInput gain optional badges)
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 AddItem gains an optional mealId: string; when present, the created item's badges field is [mealId]; when absent, behavior is exactly today's (badges: [])
+- [x] #1 AddItem gains an optional mealId: string; when present, the created item's badges field is [mealId]; when absent, behavior is exactly today's (badges: [])
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -48,3 +48,9 @@ Delivers R10 (an item can be added as an extra, or for a meal of that week, carr
 - pnpm exec vitest run --project unit packages/application passes, including the new scenario.
 - pnpm -s typecheck passes.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented directly (per the plan's own numbered steps, unchanged). AC1 met: AddItem gains an optional mealId: string; addItem passes badges: [mealId] to createExtraItem via the same conditional-spread pattern as amount/aisle, so the no-mealId case is byte-for-byte unchanged. New scenario test confirms a dispatched mealId lands as the item's badges. pnpm exec vitest run --project unit packages/application and pnpm typecheck both green; full pnpm test (1654 tests), pnpm check and pnpm typecheck also green.
+<!-- SECTION:NOTES:END -->

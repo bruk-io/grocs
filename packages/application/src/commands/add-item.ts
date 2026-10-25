@@ -1,7 +1,7 @@
 import { createExtraItem, err, ok } from '@grocs/core';
 import type { CommandContext, CommandResult, DomainEvent } from '../dispatch/types.ts';
 
-/** Add an extra item (no meal) to a week's grocery list (R10). */
+/** Add an item to a week's grocery list, as an extra or for a meal (R10). */
 export interface AddItem {
   readonly type: 'AddItem';
   readonly kitchenId: string;
@@ -9,6 +9,8 @@ export interface AddItem {
   readonly name: string;
   readonly amount?: string;
   readonly aisle?: string;
+  /** The meal this item is for, if any - absent means an extra. */
+  readonly mealId?: string;
 }
 
 export interface ItemAdded extends DomainEvent {
@@ -29,6 +31,7 @@ export async function addItem(command: AddItem, ctx: CommandContext): Promise<Co
       name: command.name,
       ...(command.amount !== undefined ? { amount: command.amount } : {}),
       ...(command.aisle !== undefined ? { aisle: command.aisle } : {}),
+      ...(command.mealId !== undefined ? { badges: [command.mealId] } : {}),
     },
     { at: clock.now(), by: user.uid },
   );

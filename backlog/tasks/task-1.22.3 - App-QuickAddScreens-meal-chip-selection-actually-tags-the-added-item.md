@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.3
 title: 'App: QuickAddScreen''s meal-chip selection actually tags the added item'
-status: To Do
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:23'
-updated_date: '2026-10-25 01:23'
+updated_date: '2026-10-25 12:47'
 labels:
   - layer-app
   - size-1
@@ -26,8 +26,8 @@ Depends on TASK-1.22.2 (application: AddItem gains an optional mealId). QuickAdd
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Adding an item with a meal chip selected dispatches AddItem with that mealId; the resulting item shows the meal's badge on the Groceries screen
-- [ ] #2 Adding with no meal selected is unchanged (no mealId in the command, item has no badges, same as today)
+- [x] #1 Adding an item with a meal chip selected dispatches AddItem with that mealId; the resulting item shows the meal's badge on the Groceries screen
+- [x] #2 Adding with no meal selected is unchanged (no mealId in the command, item has no badges, same as today)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -47,3 +47,9 @@ Delivers R10 (an item added for a meal carries that meal's badge) end to end - t
 - pnpm test (full suite) green, including the new badge-tagging test.
 - pnpm check, pnpm typecheck green.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented directly (per the plan's own numbered steps, unchanged). Both ACs met: QuickAddScreen's add() now includes the selected mealId in the dispatched AddItem command via the same conditional-spread pattern used elsewhere; with no meal selected the command is unchanged (no mealId key at all). Two new route tests prove it end to end through the real routes: one plans a meal, picks its chip on Quick add, adds an item, and confirms the item's badge shows on Groceries; the other confirms adding with no meal picked shows no badge. Full pnpm test (1654 tests), pnpm check and pnpm typecheck all green.
+<!-- SECTION:NOTES:END -->
