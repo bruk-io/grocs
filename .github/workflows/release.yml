@@ -1,0 +1,108 @@
+name: release
+
+# Builds the real app (Firebase, sign-in, shared kitchen) for both platforms and submits it to
+# TestFlight (iOS) and the Play Console internal testing track (Android) - R44, R45: private
+# channels only, no public store listing. Unlike demo-apk.yml, no binary is ever attached to a
+# GitHub Release: this repository is public, and the real build carries real Firebase config.
+#
+# TO CUT A RELEASE
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# Name the tag vX.Y.Z. The workflow builds both platforms, submits each to its store, then creates
+# a GitHub Release at the tag with notes only - a changelog marker, not a download. To rebuild and
+# submit without tagging, run the workflow by hand (gh workflow run release.yml --ref main).
+#
+# EAS owns versioning (eas.json's cli.appVersionSource: remote, build.production.autoIncrement):
+# this workflow never bumps a version itself.
+#
+# CREDENTIALS THIS WORKFLOW NEEDS (repository secrets, neither exists until you add it)
+#
+#   EXPO_TOKEN                      An Expo access token, so eas-cli can authenticate
+#                                    non-interactively. Generate at expo.dev -> account settings
+#                                    -> Access Tokens.
+#   GOOGLE_PLAY_SERVICE_ACCOUNT_KEY The Play Console service account's JSON key, as the literal
+#                                    file content (GitHub secrets hold multi-line text fine).
+#                                    Generate it in Google Cloud Console, as a service account
+#                                    linked to the Play Console account, granted Play Developer
+#                                    API access.
+#
+# iOS needs neither a new secret nor eas.json config: the App Store Connect API key is already
+# stored server-side on EAS's own credentials service, from the manual `eas submit` that first
+# created the TestFlight listing.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Not secret - the same id already appears in this project's Expo dashboard URL and build logs.
+  EAS_PROJECT_ID: 53720cb6-0ed4-4c98-a341-4ccd83bf0462
+
+jobs:
+  build-and-submit:
+    name: Build and submit to TestFlight and Play internal testing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: The real bundles hold no demo code or test fakes
+        run: pnpm check:release
+      - run: pnpm check && pnpm typecheck && pnpm test
+      - name: Write the Play Console service account key
+        working-directory: apps/mobile
+        env:
+          KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}
+        run: echo "$KEY" > google-play-service-account.json
+      - name: Build both platforms
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli build --platform all --profile production --non-interactive --wait
+      - name: Submit to TestFlight
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli submit --platform ios --latest --non-interactive
+      - name: Submit to Play internal testing
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli submit --platform android --latest --non-interactive
+      - name: Remove the service account key
+        if: always()
+        working-directory: apps/mobile
+        run: rm -f google-play-service-account.json
+
+  release:
+    name: Mark the tag as released (notes only, no binary - R45)
+    needs: build-and-submit
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Create the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "Grocs ${TAG}" \
+            --notes "Submitted to TestFlight and Play internal testing. No binary attached - this repository is public and the build is private (R45). Members: check TestFlight / the Play Store app for the update."
