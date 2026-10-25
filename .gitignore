@@ -13,6 +13,9 @@ apps/mobile/ios/
 # eas-cli's local working directory (eas env:pull, build:inspect): carries the same
 # google-services.json/GoogleService-Info.plist firebase-isolation forbids (R51, R52).
 apps/mobile/.eas/
+# The GoogleService-Info.plist release.yml's iOS job writes from a GH secret at build time
+# (see that workflow's header - EAS's own file env var for this doesn't resolve). Never committed.
+apps/mobile/GoogleService-Info.plist
 # expo CLI auto-generates this on every prebuild; the repo uses one root tsconfig.json
 # (include: apps, packages, tools, firebase) and never had a local one. The generated
 # version extends "expo/tsconfig.base", unresolvable from this hoisted layout's module

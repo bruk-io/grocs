@@ -22,13 +22,25 @@ name: release
 # EAS owns versioning (eas.json's cli.appVersionSource: remote, build.production.autoIncrement):
 # this workflow never bumps a version itself.
 #
-# CREDENTIALS THIS WORKFLOW NEEDS (repository secret, does not exist until you add it)
+# CREDENTIALS THIS WORKFLOW NEEDS (repository secrets, neither exists until you add it)
 #
-#   EXPO_TOKEN  An Expo access token, so eas-cli can authenticate non-interactively. Generate at
-#               expo.dev -> account settings -> Access Tokens.
+#   EXPO_TOKEN                An Expo access token, so eas-cli can authenticate non-interactively.
+#                              Generate at expo.dev -> account settings -> Access Tokens.
+#   GOOGLE_SERVICE_INFO_PLIST The real build's GoogleService-Info.plist, as literal file content.
+#                              EAS's own file-type environment variable for this (GOOGLE_SERVICE_
+#                              INFO_PLIST_PATH, sensitive visibility) does not actually resolve
+#                              during iOS config evaluation - confirmed by reproducing the exact
+#                              CI failure locally with `eas build:inspect -p ios -s pre-build` and
+#                              EAS's env vars as the only source (nothing in this repo's shell).
+#                              Android's equivalent (GOOGLE_SERVICES_JSON_PATH) resolves correctly
+#                              the same way, confirmed from a real build's decompiled resources -
+#                              this is a narrow, iOS-specific EAS bug, not a reason to distrust the
+#                              Android path too. Until EAS fixes this, the iOS job writes this
+#                              secret to a local file itself and points GOOGLE_SERVICE_INFO_PLIST_
+#                              PATH at it, bypassing EAS's own (broken) resolution entirely.
 #
-# iOS needs no secret of its own: the App Store Connect API key is already stored server-side on
-# EAS's own credentials service, from the manual `eas submit` that first created the TestFlight
+# iOS needs no credential beyond that: the App Store Connect API key is already stored server-side
+# on EAS's own credentials service, from the manual `eas submit` that first created the TestFlight
 # listing.
 
 on:
@@ -66,9 +78,20 @@ jobs:
       - name: The real bundles hold no demo code or test fakes
         run: pnpm check:release
       - run: pnpm check && pnpm typecheck && pnpm test
+      - name: Write GoogleService-Info.plist (see header - EAS's own file env var doesn't resolve for iOS)
+        working-directory: apps/mobile
+        env:
+          PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: echo "$PLIST" > GoogleService-Info.plist
       - name: Build
         working-directory: apps/mobile
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_PATH: ${{ github.workspace }}/apps/mobile/GoogleService-Info.plist
         run: npx eas-cli build --platform ios --profile production --non-interactive --wait
+      - name: Remove the plist
+        if: always()
+        working-directory: apps/mobile
+        run: rm -f GoogleService-Info.plist
       - name: Submit to TestFlight
         working-directory: apps/mobile
         run: npx eas-cli submit --platform ios --latest --non-interactive
