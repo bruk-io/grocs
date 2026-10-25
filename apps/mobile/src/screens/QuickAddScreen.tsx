@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ItemPickerTemplate, Text } from '@grocs/ui';
+import type { AddItem } from '@grocs/application';
 import { weekIdFor } from '@grocs/core';
 import type { Meal } from '@grocs/core';
 import type { App } from '../composition/compose-app.ts';
@@ -13,7 +14,7 @@ export interface QuickAddScreenProps {
   kitchenId: string;
 }
 
-/** Add an item. "For a meal" reads the same watchWeekMeals data as Groceries and Plan (AC4), so the chips never disagree with their badges. */
+/** Add an item to the real grocery list. "For a meal" reads the same watchWeekMeals data as Groceries and Plan (AC4), so the chips never disagree with their badges. */
 export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
   const go = useGo();
   const weekId = useMemo(() => weekIdFor(app.now()), [app]);
@@ -35,6 +36,12 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
 
   const pickerMeals = meals.map((m) => ({ id: m.id, label: m.name.value, tone: mealTone(m.id) }));
 
+  const add = async () => {
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: value };
+    const result = await app.dispatch(command);
+    if (result.ok) go.groceries();
+  };
+
   return (
     <View style={styles.screen}>
       <ItemPickerTemplate
@@ -46,6 +53,7 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
         onSelectMeal={setMealId}
         suggestions={suggestions}
         frequent={oftenBought}
+        onAdd={() => void add()}
         onBack={go.groceries}
       />
       {loadError ? <Text variant="muted">Could not load this week's meals: {loadError}</Text> : null}
