@@ -9,7 +9,7 @@ import { MainLayout } from './layouts/MainLayout.tsx';
 export const MEALPLANTEMPLATE_STATES = ['week'] as const;
 
 export interface MealPlanTemplateProps {
-  /** Shown above the week nav, such as 'This week' or 'That week'. */
+  /** The page name, such as "This week" or "That week". */
   title: string;
   /** The week as it should read, such as "Oct 19 - 25". */
   weekLabel: string;
