@@ -87,7 +87,7 @@ function opacityOf(el: Element): number {
   return o;
 }
 
-const inactive = (el: Element): boolean => el.closest('[aria-disabled="true"], [disabled], [aria-hidden="true"]') !== null;
+const inactive = (el: Element): boolean => el.closest('[aria-disabled="true"], [disabled], [aria-hidden="true"], [readonly]') !== null;
 
 function size(el: Element, axis: 'width' | 'height'): number {
   const cs = getComputedStyle(el);

@@ -1,5 +1,16 @@
-import { createExtraItem, isDeleted, mergeItem, stamped } from '@grocs/core';
-import type { Item } from '@grocs/core';
+import {
+  createExtraItem,
+  createMeal,
+  isDeleted,
+  isMealDeleted,
+  mergeItem,
+  moveMeal,
+  relinkMeal,
+  removeMeal,
+  renameMeal,
+  stamped,
+} from '@grocs/core';
+import type { DayIndex, Item, Meal } from '@grocs/core';
 import { eventually, sleep } from '../testing.ts';
 import type { TestApi } from '../testing.ts';
 import type { SyncStore } from './port.ts';
@@ -22,6 +33,14 @@ function item(id: string, name: string, at: number, by: string, weekId = WEEK): 
 }
 
 const byId = (items: readonly Item[]): Item[] => [...items].sort((a, b) => (a.id < b.id ? -1 : 1));
+
+function meal(id: string, name: string, dayIndex: DayIndex, at: number, by: string, weekId = WEEK): Meal {
+  const made = createMeal({ id, weekId, dayIndex, name }, { at, by });
+  if (!made.ok) throw new Error(`bad fixture ${id}`);
+  return made.value;
+}
+
+const byMealId = (meals: readonly Meal[]): Meal[] => [...meals].sort((a, b) => (a.id < b.id ? -1 : 1));
 
 /**
  * Every SyncStore provider passes this suite (R29, R49): the in-memory fake in unit tests and the
@@ -125,6 +144,109 @@ export function syncStoreContract(t: TestApi, make: () => Promise<SyncStoreSubje
       await store.mergeItem(kitchenId, item('i1', 'Milk', 100, 'alex'));
       await sleep(300);
       t.expect(seen.length).toBe(count);
+    }));
+  });
+}
+
+/**
+ * The meal half of the SyncStore contract (R29, R49), kept separate from syncStoreContract: a
+ * provider that has not yet implemented the meal methods can keep running the item suite without
+ * failing on methods it does not have. Call this once a provider (or the fake) implements meals.
+ */
+export function syncStoreMealContract(t: TestApi, make: () => Promise<SyncStoreSubject>): void {
+  const withStore = (body: (s: SyncStoreSubject) => Promise<void>) => async (): Promise<void> => {
+    const subject = await make();
+    try {
+      await body(subject);
+    } finally {
+      await subject.dispose?.();
+    }
+  };
+
+  t.describe('SyncStore meal contract', () => {
+    t.it('stores a merged meal and returns it unchanged', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      t.expect(await store.getMeals(kitchenId, WEEK)).toEqual([tacos]);
+    }));
+
+    t.it('merging the same copy of a meal twice changes nothing', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      await store.mergeMeal(kitchenId, tacos);
+      t.expect(await store.getMeals(kitchenId, WEEK)).toEqual([tacos]);
+    }));
+
+    t.it('does not mix the meals of two kitchens', withStore(async ({ store, kitchenId, otherKitchenId }) => {
+      if (!otherKitchenId) return;
+      await store.mergeMeal(kitchenId, meal('m1', 'Tacos', 0, 100, 'alex'));
+      await store.mergeMeal(otherKitchenId, meal('m2', 'Pasta', 1, 100, 'alex'));
+      t.expect((await store.getMeals(kitchenId, WEEK)).map((m) => m.id)).toEqual(['m1']);
+      t.expect((await store.getMeals(otherKitchenId, WEEK)).map((m) => m.id)).toEqual(['m2']);
+    }));
+
+    t.it('renaming a meal restamps only the name', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      const renamed = renameMeal(tacos, 'Tacos night', { at: 200, by: 'alex' });
+      if (!renamed.ok) throw new Error('bad rename');
+      await store.mergeMeal(kitchenId, renamed.value);
+      const [stored] = await store.getMeals(kitchenId, WEEK);
+      t.expect(stored?.name.value).toBe('Tacos night');
+    }));
+
+    t.it('relinking a meal restamps only the link', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      const relinked = relinkMeal(tacos, 'https://recipes.example/tacos', { at: 200, by: 'alex' });
+      if (!relinked.ok) throw new Error('bad relink');
+      await store.mergeMeal(kitchenId, relinked.value);
+      const [stored] = await store.getMeals(kitchenId, WEEK);
+      t.expect(stored?.link.value).toBe('https://recipes.example/tacos');
+    }));
+
+    t.it('moving a meal between weeks moves it out of the old week and into the new one', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      const moved = moveMeal(tacos, '2026-W43', 2, { at: 200, by: 'alex' });
+      await store.mergeMeal(kitchenId, moved);
+      t.expect(await store.getMeals(kitchenId, WEEK)).toEqual([]);
+      const [stored] = await store.getMeals(kitchenId, '2026-W43');
+      t.expect(stored?.weekId.value).toBe('2026-W43');
+      t.expect(stored?.dayIndex.value).toBe(2);
+    }));
+
+    t.it('removing a meal leaves a permanent tombstone (R20)', withStore(async ({ store, kitchenId }) => {
+      const tacos = meal('m1', 'Tacos', 0, 100, 'alex');
+      await store.mergeMeal(kitchenId, tacos);
+      await store.mergeMeal(kitchenId, removeMeal(tacos, { at: 200, by: 'sam' }));
+      const [stored] = await store.getMeals(kitchenId, WEEK);
+      t.expect(stored !== undefined && isMealDeleted(stored)).toBe(true);
+    }));
+
+    t.it('keeps both changes when two members edit different fields of a meal concurrently (R18)', withStore(async ({ store, kitchenId }) => {
+      const base = meal('m1', 'Tacos', 0, 100, 'alex');
+      const renamed = renameMeal(base, 'Tacos night', { at: 200, by: 'alex' });
+      const relinked = relinkMeal(base, 'https://recipes.example/tacos', { at: 300, by: 'sam' });
+      if (!renamed.ok || !relinked.ok) throw new Error('bad fixture');
+      await store.mergeMeal(kitchenId, relinked.value);
+      await store.mergeMeal(kitchenId, renamed.value);
+      const [stored] = await store.getMeals(kitchenId, WEEK);
+      t.expect(stored?.name.value).toBe('Tacos night');
+      t.expect(stored?.link.value).toBe('https://recipes.example/tacos');
+    }));
+
+    t.it('tells a watcher the current meals, then every change', withStore(async ({ store, kitchenId }) => {
+      await store.mergeMeal(kitchenId, meal('m1', 'Tacos', 0, 100, 'alex'));
+      const seen: Meal[][] = [];
+      const stop = store.watchMeals(kitchenId, WEEK, (meals) => seen.push(byMealId(meals)));
+      try {
+        await eventually(() => t.expect(seen[seen.length - 1]?.map((m) => m.id)).toEqual(['m1']));
+        await store.mergeMeal(kitchenId, meal('m2', 'Pasta', 1, 200, 'sam'));
+        await eventually(() => t.expect(seen[seen.length - 1]?.map((m) => m.id)).toEqual(['m1', 'm2']));
+      } finally {
+        stop();
+      }
     }));
   });
 }

@@ -48,6 +48,9 @@ describe('AddItem scenarios (R47)', () => {
       mergeItem: () => Promise.reject(new Error('store is down')),
       getItems: () => Promise.resolve([]),
       watchItems: () => () => undefined,
+      mergeMeal: () => Promise.reject(new Error('store is down')),
+      getMeals: () => Promise.resolve([]),
+      watchMeals: () => () => undefined,
     };
     const client = await createTestClient({ uid: 'alex', store: broken });
     const result = await client.dispatcher.dispatch(add('Eggs'));
@@ -85,6 +88,9 @@ describe('AddItem scenarios (R47)', () => {
         },
         getItems: (k, w) => shared.getItems(k, w),
         watchItems: (k, w, cb, onError) => shared.watchItems(k, w, cb, onError),
+        mergeMeal: (k, meal) => shared.mergeMeal(k, meal),
+        getMeals: (k, w) => shared.getMeals(k, w),
+        watchMeals: (k, w, cb, onError) => shared.watchMeals(k, w, cb, onError),
       };
       const alex = await createTestClient({ uid: 'alex', store: offlineStore });
       const sam = await createTestClient({ uid: 'sam', store: shared });
@@ -154,6 +160,9 @@ describe('AddItem scenarios (R47)', () => {
         mergeItem: () => Promise.reject(Object.assign(new Error('unavailable'), { code: 'unavailable' })),
         getItems: () => Promise.resolve([]),
         watchItems: () => () => undefined,
+        mergeMeal: () => Promise.reject(Object.assign(new Error('unavailable'), { code: 'unavailable' })),
+        getMeals: () => Promise.resolve([]),
+        watchMeals: () => () => undefined,
       };
       const client = await createTestClient({ uid: 'alex', store: broken });
       await client.dispatcher.dispatch(add('Eggs'));

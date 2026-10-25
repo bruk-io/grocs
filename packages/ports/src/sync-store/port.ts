@@ -1,4 +1,4 @@
-import type { Item } from '@grocs/core';
+import type { Item, Meal } from '@grocs/core';
 import type { Unsubscribe } from '../unsubscribe.ts';
 
 
@@ -20,6 +20,20 @@ export interface SyncStore {
     kitchenId: string,
     weekId: string,
     onItems: (items: readonly Item[]) => void,
+    onError?: (error: Error) => void,
+  ): Unsubscribe;
+  /** Merge this copy of a meal into the store. Merging the same copy twice changes nothing. */
+  mergeMeal(kitchenId: string, meal: Meal): Promise<void>;
+  /** Every meal of one week, deleted ones included (they are tombstones). */
+  getMeals(kitchenId: string, weekId: string): Promise<readonly Meal[]>;
+  /**
+   * Call `onMeals` with the week's meals soon after subscribing, and again whenever they change,
+   * on this phone or the other. Returns a function that stops the calls.
+   */
+  watchMeals(
+    kitchenId: string,
+    weekId: string,
+    onMeals: (meals: readonly Meal[]) => void,
     onError?: (error: Error) => void,
   ): Unsubscribe;
 }

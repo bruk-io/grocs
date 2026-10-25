@@ -60,7 +60,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           aria-label={label}
           aria-invalid={invalid}
           placeholder={placeholder ?? label}
-          placeholderTextColor={tokens.color.inkHint}
+          placeholderTextColor={disabled ? tokens.color.inkMuted : tokens.color.inkHint}
           value={value}
           editable={!disabled}
           onChangeText={onChangeText}
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   inputInline: { ...fontFace('body', tokens.font.weight.medium), height: tokens.size.target },
   inputDisplay: { ...fontFace('display', tokens.font.weight.bold) },
-  inputDisabled: { color: tokens.color.disabledInk },
+  inputDisabled: { color: tokens.color.inkMuted },
   pressed: { backgroundColor: tokens.color.surfaceTint },
   focused: { borderColor: tokens.color.forest },
   invalid: { borderColor: tokens.color.error },

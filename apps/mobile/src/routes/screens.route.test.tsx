@@ -45,7 +45,7 @@ describe('Welcome', () => {
 
 describe('Household', () => {
   it('shows the kitchen and invite code, and Start planning leads to Meal plan', async () => {
-    await open('/household');
+    await open('/household', true);
     expect(await screen.findByText('Your kitchen')).toBeTruthy();
     expect(screen.getByText('MOREL-24')).toBeTruthy();
     press('Start planning');
@@ -72,37 +72,50 @@ describe('JoinInviteInvalid (sample)', () => {
 });
 
 describe('Plan', () => {
-  it('shows the week, and the tab, settings and Plan a meal lead where the design shows', async () => {
+  it('shows the week blank for a new kitchen, and the tab and settings lead where the design shows', async () => {
     await open('/plan', true);
     expect(await screen.findByText('This week')).toBeTruthy();
-    expect(screen.getByText('Chana masala')).toBeTruthy();
+    expect(await screen.findAllByText('Plan a meal')).toHaveLength(7);
     go('Groceries');
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 
   it('opens Settings from the header', async () => {
-    await open('/plan');
+    await open('/plan', true);
+    await screen.findByText('This week');
     press('Settings');
     expect(await screen.findByText('Notifications')).toBeTruthy();
   });
 
   it('opens Add a meal from a day', async () => {
-    await open('/plan');
+    await open('/plan', true);
     fireEvent.click((await screen.findAllByText('Plan a meal'))[0]!);
     expect(await screen.findByText('Add a meal')).toBeTruthy();
+  });
+
+  it('shows Welcome, not a blank screen, for someone not signed in', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false }), location: '/plan' });
+    expect(await screen.findByText('Plan the week. Shop together.')).toBeTruthy();
+  });
+
+  it('shows kitchen setup, not a blank screen, for a signed-in member with no kitchen yet', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }), location: '/plan' });
+    expect(await screen.findByText('Your kitchen')).toBeTruthy();
   });
 });
 
 describe('AddMeal', () => {
-  it('shows the form and both Back and Add to Thursday lead to Meal plan', async () => {
-    await open('/add-meal');
+  it('shows the form and both Back and Add to Monday lead to Meal plan', async () => {
+    await open('/add-meal?dayId=2026-10-19', true);
     expect(await screen.findByText('Add a meal')).toBeTruthy();
-    press('Add to Thursday');
+    fireEvent.change(screen.getByLabelText('What are you making?'), { target: { value: 'Fried rice' } });
+    press('Add to Monday');
     expect(await screen.findByText('This week')).toBeTruthy();
   });
 
   it('goes back to Meal plan', async () => {
-    await open('/add-meal');
+    await open('/add-meal?dayId=2026-10-19', true);
+    await screen.findByText('Add a meal');
     press(/Meal plan/);
     expect(await screen.findByText('This week')).toBeTruthy();
   });
@@ -166,7 +179,7 @@ describe('Groceries samples (dev-only route)', () => {
 });
 
 describe('the mushroom host (R40)', () => {
-  const SCREENS = ['/', '/plan', '/add-meal', '/quick-add', '/settings', '/household', '/join', '/join-invalid'];
+  const SCREENS = ['/', '/plan', '/add-meal?dayId=2026-10-19', '/quick-add', '/settings', '/household', '/join', '/join-invalid'];
   it.each(SCREENS)('is on %s', async (location) => {
     await open(location, true);
     expect((await screen.findAllByRole('button', { name: /tap to hear a line/ })).length).toBeGreaterThan(0);
