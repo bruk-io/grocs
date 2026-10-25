@@ -13,9 +13,6 @@ apps/mobile/ios/
 # eas-cli's local working directory (eas env:pull, build:inspect): carries the same
 # google-services.json/GoogleService-Info.plist firebase-isolation forbids (R51, R52).
 apps/mobile/.eas/
-# The Play Console service-account key release.yml writes at submit time from a GH secret,
-# per eas.json's submit.production.android.serviceAccountKeyPath. Never committed.
-apps/mobile/google-play-service-account.json
 # expo CLI auto-generates this on every prebuild; the repo uses one root tsconfig.json
 # (include: apps, packages, tools, firebase) and never had a local one. The generated
 # version extends "expo/tsconfig.base", unresolvable from this hoisted layout's module
