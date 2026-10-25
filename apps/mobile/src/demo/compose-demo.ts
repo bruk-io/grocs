@@ -1,7 +1,7 @@
 // The demo composition (decision-12): the app on the in-memory provider, seeded from the sample
 // data. Nothing here touches a network or a disk. Only the demo variant's bundle reaches this folder.
 import type { RuntimeInfo } from '@grocs/application';
-import { createExtraItem, createKitchen, weekIdFor } from '@grocs/core';
+import { createExtraItem, createKitchen, createMeal, toDayIndex, weekIdFor } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
 import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
@@ -60,10 +60,22 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   };
 }
 
-/** This week's list, from the sample Groceries screen, added by the household of Alex and Sam. */
+/** This week's list and plan, from the sample Groceries and Plan screens, added by Alex and Sam. */
 function seed(syncStore: MemorySyncStore, clock: Clock): void {
   const at = clock.now();
   const weekId = weekIdFor(at);
+  // The sample week's days are already Monday-first (index 0) to Sunday (index 6), matching DayIndex.
+  for (const [index, plannedDay] of week.entries()) {
+    const dayIndex = toDayIndex(index);
+    if (dayIndex === null) throw new Error(`the sample week has more than seven days`);
+    for (const sampleMeal of plannedDay.meals) {
+      // The sample's own link ('example.com') has no protocol and fails createMeal's R6 validation; a real
+      // https URL keeps the demo showing the recipe-link affordance for the meals the sample gives one.
+      const made = createMeal({ id: sampleMeal.id, weekId, dayIndex, name: sampleMeal.name, ...(sampleMeal.link ? { link: 'https://example.com' } : {}) }, { at, by: 'demo-alex' });
+      if (!made.ok) throw new Error(`the demo sample meal ${sampleMeal.id} is not a valid meal`);
+      void syncStore.mergeMeal(DEMO_KITCHEN_ID, made.value);
+    }
+  }
   for (const [index, sample] of [...produce, ...meat].entries()) {
     const made = createExtraItem(
       { id: `demo-${sample.id}`, weekId, name: sample.name, ...(sample.amount ? { amount: sample.amount } : {}) },
