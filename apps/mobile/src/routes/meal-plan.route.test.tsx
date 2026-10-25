@@ -75,6 +75,7 @@ describe('the meal plan route wiring (R5-R8)', () => {
     const nextWeekId = weekIdFor(app.app.now() + 7 * 86_400_000);
 
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(await screen.findByText('Week of Oct 26')).toBeTruthy();
     fireEvent.click((await screen.findAllByText('Plan a meal'))[0]!);
     await screen.findByText('Add a meal');
     fireEvent.change(screen.getByRole('textbox', { name: 'What are you making?' }), { target: { value: 'Lasagna' } });
@@ -82,9 +83,10 @@ describe('the meal plan route wiring (R5-R8)', () => {
 
     // Saving returns to Plan, which always reopens on the current week (not a regression to guard
     // against - see the task's own risk note); navigating forward again shows the meal just added.
-    await screen.findByText('This week');
+    expect(await screen.findByText('Week of Oct 19')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
     expect(await screen.findByText('Lasagna')).toBeTruthy();
+    expect(screen.getByText('Week of Oct 26')).toBeTruthy();
 
     const nextWeekMeals = await syncStore.getMeals(kitchenId, nextWeekId);
     expect(nextWeekMeals).toHaveLength(1);
@@ -93,6 +95,12 @@ describe('the meal plan route wiring (R5-R8)', () => {
     expect(nextWeekMeals[0]?.weekId.value).not.toBe(weekId);
     const currentWeekMeals = await syncStore.getMeals(kitchenId, weekId);
     expect(currentWeekMeals).toHaveLength(0);
+  });
+
+  it('navigates to the previous week with Previous week', async () => {
+    await openPlan();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous week' }));
+    expect(await screen.findByText('Week of Oct 12')).toBeTruthy();
   });
 
   it('removes a meal already on the plan (RemoveMeal), without touching the grocery list', async () => {
