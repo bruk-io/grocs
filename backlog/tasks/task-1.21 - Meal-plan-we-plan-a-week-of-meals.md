@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-24 21:14'
+updated_date: '2026-10-25 01:14'
 labels:
   - size-3
   - slice
@@ -50,9 +50,9 @@ Waits on the kitchen slice. Cites R5, R6, R7, R8.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Either of us adds meals to any day of this week or a future one, more than one on a day, in the order added
-- [ ] #2 A meal is a name and an optional link, nothing else
+- [x] #2 A meal is a name and an optional link, nothing else
 - [ ] #3 We can rename, relink and remove meals, and move between weeks
-- [ ] #4 Removing a meal never deletes grocery items
+- [x] #4 Removing a meal never deletes grocery items
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -85,4 +85,10 @@ Meals follow the exact same shape as items (R18-R20: field-level LWW, permanent 
 
 <!-- SECTION:NOTES:BEGIN -->
 Oct 24, 2026 (orchestrator): TASK-1.21.1's original ACs omitted a per-day position on Meal, caught by reviewer-core before the contract froze - see TASK-1.21.1's notes for the full finding. Corrected shape for every downstream subtask: Meal.dayIndex: Stamped<number> (Monday = 0), moveMeal restamps weekId and dayIndex together. Also added: R6 link URL validation on createMeal/relinkMeal (Result<Meal, MealLinkError>, decodeMeal stays permissive), and a personal.ts redaction fix (item's shape needed a genuinely discriminating field, not just dayIndex's addition, since find() still matched item first otherwise).
+
+Reviewer (closing TASK-1.21.6, Oct 24 2026): ticked AC2 and AC4 from verified evidence, and the slice stays open on AC1 and AC3.
+
+AC2: packages/core/src/model/meal.ts:21-31 - a Meal carries name and an optional link as its only content; everything else is identity (id, addedBy, createdAt), placement (weekId, dayIndex) or the tombstone. AC4: proven end to end by apps/mobile/src/routes/meal-plan.route.test.tsx - removing a meal tombstones it and leaves the grocery list untouched.
+
+AC1 needs week navigation to reach "a future one": no UI affordance exists on any screen. AC3 needs moving a meal between weeks: the MoveMeal command is built and tested at the application layer (TASK-1.21.3), but it has no UI entry point (TASK-51). Both are user-facing gaps, so the slice is not done even though all six subtasks are.
 <!-- SECTION:NOTES:END -->
