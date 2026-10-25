@@ -1,11 +1,11 @@
 ---
 id: TASK-1.21.6
 title: 'App: PlanScreen and AddMealScreen wired to real meal data, end to end'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-24 20:09'
-updated_date: '2026-10-25 00:41'
+updated_date: '2026-10-25 01:12'
 labels:
   - layer-app
   - size-3
@@ -86,4 +86,16 @@ MEAL_TONES barrel duplication: left as a tiny follow-up per the reviewer's own f
 Re-verified: pnpm check (14 checks), pnpm typecheck, pnpm test (126 files, 1645 tests, up from 1643) all pass. Did not touch .claude/settings.json, tools/hooks/launch-guard.*, or task-1.25.md - those are unrelated in-flight changes already present in the worktree before this task started (confirmed against the session's initial git status).
 
 New files added in this round: apps/mobile/src/screens/KitchenGate.tsx.
+
+Closed. All five acceptance criteria verified independently against the code at 9122793, not against the builder's report.
+
+AC1: compose-app.ts gains watchWeekMeals on the App facade (lines 21, 51), delegating to the application query. AC2/AC4: PlanScreen, GroceriesScreen and QuickAddScreen each subscribe the same watchWeekMeals for the current week and colour via the shared mealTone(id), so the three can no longer show different meal lists; no screen reads sample-data.ts for meals (the remaining sample imports are PlanScreen's household avatars and QuickAdd's item suggestions, both out of this task's scope). AC3: AddMealScreen dispatches AddMeal, EditMeal or RemoveMeal off the route's mealId param. AC5: meal-plan.route.test.tsx drives add, rename+relink and remove through the real routes and reads the fake SyncStore afterward, with length assertions that cannot pass vacuously; move is correctly out of scope (no UI affordance exists, TASK-51).
+
+Both regressions from the reviewer round are fixed and now covered: KitchenGate.tsx gives all four signed-in routes the same four-way state render (two new screens.route.test.tsx cases prove /plan shows Welcome signed out and kitchen setup with no kitchen, instead of blank), and AddMealScreen maps every dispatch error code to a visible message with onError on all four subscriptions.
+
+Checks: pnpm check (14), pnpm typecheck and pnpm test (126 files / 1645 tests) all green. The full tier's test:emulator could not start its own emulators (ports 9099/8080 held by emulators another agent in this session is running); ran the suite against those instead - 8 files / 91 tests passed - so the emulator gap the builder left open is now closed rather than argued away.
+
+Findings, both low and neither blocking: week-days.ts keeps a local copy of MEAL_TONES that packages/ui already owns, which will drift when a tone is added - filed as DRAFT-23 (the app-layer builder could not fix it itself, as it may not write packages/ui). week-days.ts also re-derives Monday math that core owns, already filed as TASK-52. dayLabelFor has no guard for an unparseable dayId, but every caller rejects one first (app/add-meal.tsx renders null, AddMealScreen keeps a backstop), so the input is dead - left alone deliberately.
+
+The parent TASK-1.21 does not close with it: its AC3 requires moving meals between weeks, which has no UI entry point (TASK-51), and AC1's "this week or a future one" needs week navigation, which is absent. Both are real user-facing gaps, not bookkeeping, so the slice stays In Progress.
 <!-- SECTION:NOTES:END -->
