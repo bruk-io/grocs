@@ -5,8 +5,9 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-10-18 18:16'
-updated_date: '2026-10-19 12:50'
+updated_date: '2026-10-25 16:16'
 labels:
+  - finish-moved
   - size-2
   - architecture
 milestone: m-1
@@ -47,6 +48,8 @@ Point 1 (batch committed offline shows in onSnapshot at once, with hasPendingWri
 Point 3 (on reconnection the batch reaches the server and a second client sees it): confirmed on the mechanism. A second, independently-authenticated client did NOT see the change while the writer stayed offline (sawBeforeReconnect=false). After calling enableNetwork() on the writer, the change reached the server and the second client's listener fired 335ms later - well under the 3s budget (R15). This is localhost-emulator latency, not real network latency, so it does not stand in for the spike's own 'within 3 s' check on real devices over real networks - it only confirms the propagation mechanism itself works end-to-end with the unawaited-commit pattern.
 
 Not addressed by this probe, still needs the physical devices: process-kill persistence (#2), denied-write cleanup after a restart (#4), token-expiry recovery (#5), fromCache timing (#6), clock drift vs request.time (#7), and native-module call-shape parity (#8).
+
+finish-moved: the AC rewrite on 2026-10-19 (see comment #1) replaced the original single AC ('Answer written in the notes, for Android and iOS') with decision-7's own 8-point 'Before this is accepted' checklist, so this spike is a runnable script instead of a vague prompt. Adding the label and this note now, after board-check caught the missing formal record of that move.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
