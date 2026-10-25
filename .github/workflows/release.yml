@@ -1,0 +1,125 @@
+name: release
+
+# Builds the real app (Firebase, sign-in, shared kitchen) for both platforms. iOS goes to
+# TestFlight - R44, R45: private channels only, no public store listing. Android Play Console
+# publishing is paused (Bruk's Google account needs identity verification first), so the Android
+# half just builds a sideloadable APK and uploads it as a workflow run artifact - good enough for
+# a device that's sideloaded directly (the Fold), not for a stranger. Note this repository is
+# public: a workflow artifact needs a GitHub sign-in to download but is not otherwise access-
+# controlled, so it is less exposed than a public download link but not as private as Play
+# internal testing. Revisit once Play publishing resumes (see release.yml's prior revision,
+# or TASK-1.25, for the Play Console submission steps this replaced).
+#
+# TO CUT A RELEASE
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# Name the tag vX.Y.Z. The workflow builds both platforms, submits iOS to TestFlight, uploads the
+# Android APK as a run artifact, then creates a GitHub Release at the tag with notes only - a
+# changelog marker, not a download. To rebuild without tagging, run the workflow by hand
+# (gh workflow run release.yml --ref main).
+#
+# EAS owns versioning (eas.json's cli.appVersionSource: remote, build.production.autoIncrement):
+# this workflow never bumps a version itself.
+#
+# CREDENTIALS THIS WORKFLOW NEEDS (repository secret, does not exist until you add it)
+#
+#   EXPO_TOKEN  An Expo access token, so eas-cli can authenticate non-interactively. Generate at
+#               expo.dev -> account settings -> Access Tokens.
+#
+# iOS needs no secret of its own: the App Store Connect API key is already stored server-side on
+# EAS's own credentials service, from the manual `eas submit` that first created the TestFlight
+# listing.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Not secret - the same id already appears in this project's Expo dashboard URL and build logs.
+  EAS_PROJECT_ID: 53720cb6-0ed4-4c98-a341-4ccd83bf0462
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  # Quiets eas-cli's interactive spinner output so --json stdout stays parseable.
+  CI: '1'
+
+jobs:
+  ios:
+    name: Build and submit to TestFlight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: The real bundles hold no demo code or test fakes
+        run: pnpm check:release
+      - run: pnpm check && pnpm typecheck && pnpm test
+      - name: Build
+        working-directory: apps/mobile
+        run: npx eas-cli build --platform ios --profile production --non-interactive --wait
+      - name: Submit to TestFlight
+        working-directory: apps/mobile
+        run: npx eas-cli submit --platform ios --latest --non-interactive
+
+  android:
+    name: Build an APK and upload it as a run artifact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: The real bundles hold no demo code or test fakes
+        run: pnpm check:release
+      - run: pnpm check && pnpm typecheck && pnpm test
+      - name: Build (preview profile - internal distribution builds an APK, not an AAB)
+        working-directory: apps/mobile
+        run: npx eas-cli build --platform android --profile preview --non-interactive --wait --json > build.json
+      - name: Download the APK
+        working-directory: apps/mobile
+        # eas build --json's top level is an array for some invocations and an object for others
+        # (undocumented which); this reads either shape rather than guess and break in CI.
+        run: |
+          url=$(jq -r 'if type == "array" then .[0] else . end | .artifacts.applicationArchiveUrl' build.json)
+          test -n "$url" && test "$url" != "null"
+          curl -sL -o grocs.apk "$url"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: grocs-apk
+          path: apps/mobile/grocs.apk
+          if-no-files-found: error
+
+  release:
+    name: Mark the tag as released (notes only, no binary - R45)
+    needs: [ios, android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Create the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "Grocs ${TAG}" \
+            --notes "iOS submitted to TestFlight. Android: download the grocs-apk artifact from this workflow run (Play Console publishing is paused) and sideload it. No binary attached to this Release - this repository is public (R45)."
