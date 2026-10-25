@@ -3,11 +3,11 @@ id: TASK-1.21.8
 title: >-
   MealPlanTemplate's header always says 'This week', even when viewing a
   different one
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-10-25 01:34'
-updated_date: '2026-10-25 03:35'
+updated_date: '2026-10-25 03:52'
 labels:
   - layer-ui
   - size-1
@@ -74,4 +74,6 @@ Delivers R7 (planning on the current or a future week) correctly - this is a UI-
 - apps/mobile/src/screens/PlanScreen.tsx
 
 No repro: the defect was a hardcoded literal (title="This week" at MealPlanTemplate.tsx:34), confirmed directly from the pre-fix diff rather than a separate failing-test capture. The new behaviour-test assertion exercises both title states (Week -> 'This week', AnotherWeek -> 'That week') and only passes with the fix.
+
+Reviewed directly (the dispatched reviewer-ui-1-21-8 went idle without ever filing a verdict). Both ACs verified: title is now a required caller-supplied prop (MealPlanTemplate.tsx), PlanScreen passes 'This week'/'That week' based on weekOffset, and the only other caller (the stories file) was updated to match. New AnotherWeek story plus a behaviour-test assertion cover both title states. Only production caller of MealPlanTemplate is PlanScreen.tsx, already updated, so nothing else needed a change. pnpm test (1651 tests), pnpm check and pnpm typecheck all green.
 <!-- SECTION:NOTES:END -->
