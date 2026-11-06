@@ -5,6 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 19:55'
+updated_date: '2026-11-06 20:55'
 labels:
   - size-3
   - app
@@ -27,3 +28,11 @@ R51 (decision-9: Maestro) has never been built, so nothing exercises the app on 
 - [ ] #4 One command runs the flows against the emulators with seed data
 - [ ] #5 A check (R55) fails when a flow signs in any way but the dev link or names an app other than the development build
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-06 progress (branch feat/e2e-maestro-flows, 996cdcd). Two dev-environment defects found and fixed on the way: (1) the seed wrote kitchens/seed-kitchen but no memberships/{uid}, so findMyKitchen returned null and seed accounts landed on kitchen setup; the seed now builds the kitchen with core's createKitchen/addMember and writes each membership. (2) A dev build on device carries the real project id from google-services.json, so the Firestore emulator (single project mode, demo-grocs) served it an empty namespace and every kitchen read and write failed rules line 14 ('Null value error', surfaced as firestore/unknown); tools/emulator-config.ts derives demo-grocs copies of both config files for emulator builds. Flow fixes for Android: hideKeyboard is Back on Android (drops typed text, or leaves the screen), so item flows press Enter and the meal flow taps the heading. iOS: clearState does not clear the keychain, so the sign-in subflow signs out first if the app opens signed in. Found by the flows: TASK-63. Gotcha: starting Expo here writes apps/mobile/tsconfig.json (gitignored) extending expo/tsconfig.base, which breaks 15 vitest files until deleted. Results so far: pnpm e2e --android emulator-5554 passed all three single-device flows; both-device run passed the second-device pair (added on Android as Alex, seen, ticked and cleared on iOS as Sam) and the first iOS flow; the other two iOS flows failed before the keychain fix; rerun in progress.
+
+2026-11-06 pnpm e2e --android emulator-5554 --ios 9EB5207C-C6E9-4EF9-807C-D5519575A9DB (fold emulator; iPhone 18 Pro simulator; both development builds built from tools/emulator-config.ts's demo-grocs config): 'e2e: every flow passed'. Runs: add-and-tick-item, add-meal, sign-in on each device, then second-device-add on Android (Alex) and second-device-see on iOS (Sam).
+<!-- SECTION:NOTES:END -->
