@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 19:50'
-updated_date: '2026-11-06 21:12'
+updated_date: '2026-11-06 23:06'
 labels:
   - size-3
   - app
@@ -39,3 +39,9 @@ Finding: invites expire after a day (core INVITE_LIFETIME_MS), so the kitchen's 
 7. app: HouseholdScreen on real data behind KitchenGate; reached from the meal plan's member avatars and from Settings. Route tests.
 8. Verify: full check; pnpm e2e plus a household flow that reads the code as Alex on one device and joins with it as a new account on the other (AC3).
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-06 implementation (branch feat/household-invite). Invites last a day (core INVITE_LIFETIME_MS), so the kitchen's first code is dead for any kitchen older than that; asking for the invite now reuses the newest pending, unexpired one (core inviteToReuse), issues a fresh one, or answers 'full' (isKitchenFull), in one server transaction. Entry point: a Household button in Settings (the meal plan's avatars were tried first, but a Pressable there needs its own pressed/focus/disabled states (story-coverage R61) and there is no household icon, so the existing Button atom in Settings carries it). Also added: kitchen setup offers 'Got an invite? Open it to join' before a kitchen exists, so someone who signed in before opening their invite (Shazya, possibly) can enter the code instead of making a kitchen. App now exposes getKitchenInfo (TASK-27 built it, nothing wired it). Evidence: full check ('full' in .claude/checks.json) exit 0: 15 checks, 134/134 unit test files, 8/8 emulator files (103 tests incl. the new contract cases on the server store and the Firebase client through the Functions emulator, expiry renewal, concurrent askers get one invite, stranger refused), check:release clean, 425 story views. Devices: pnpm e2e --android emulator-5554 --ios 9EB5207C-C6E9-4EF9-807C-D5519575A9DB: 'e2e: every flow passed', including household-invite on Android (Jo gets a code from Settings > Household), household-join on iOS (Pat, signed in with no kitchen, taps Open it to join, enters that code, lands in Jo's kitchen and sees it full), household-full on Android (Jo sees Pat and no code). Found: TASK-66, TASK-67.
+<!-- SECTION:NOTES:END -->
