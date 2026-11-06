@@ -1,9 +1,11 @@
 ---
 id: TASK-58
 title: 'Meal plan header shows sample household avatars (A, S)'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 19:50'
+updated_date: '2026-11-06 23:18'
 labels:
   - size-1
   - app

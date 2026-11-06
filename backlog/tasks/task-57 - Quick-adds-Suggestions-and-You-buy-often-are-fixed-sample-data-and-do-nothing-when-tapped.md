@@ -3,9 +3,11 @@ id: TASK-57
 title: >-
   Quick add's Suggestions and You buy often are fixed sample data and do nothing
   when tapped
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 19:50'
+updated_date: '2026-11-06 23:18'
 labels:
   - size-2
   - app

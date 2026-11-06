@@ -1,9 +1,11 @@
 ---
 id: TASK-63
 title: Settings shows every kitchen as 'Our kitchen'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 20:06'
+updated_date: '2026-11-06 23:18'
 labels:
   - size-1
   - app
