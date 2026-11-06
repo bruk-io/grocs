@@ -39,13 +39,15 @@ export type PreferencesTemplateProps = NotificationsSwitch & {
   /** The partner, named in the notification line: "Tell me when Sam adds something". */
   partnerName: string;
   onCopyDiagnostics?: () => void;
+  /** Opens the household: its members, and the invite to send while there is room (TASK-56). */
+  onOpenHousehold?: () => void;
   onSignOut?: () => void;
   /** Goes back to Groceries. */
   onBack?: () => void;
 };
 
 /** template.task filled for Settings: header.sub, settings cards (switch, button.secondary--s), action.bar--secondary. */
-export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyDiagnostics, onSignOut, onBack, ...notifications }: PreferencesTemplateProps) {
+export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyDiagnostics, onOpenHousehold, onSignOut, onBack, ...notifications }: PreferencesTemplateProps) {
   const prompt = `Tell me when ${partnerName} adds something`;
   return (
     <TaskLayout
@@ -90,6 +92,7 @@ export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyD
             <Text variant="small" tone="muted">{`${email} · ${kitchen}`}</Text>
           </View>
         </View>
+        <Button variant="secondary" size="s" stretch label="Household" leadingIcon="share" {...(onOpenHousehold ? { onPress: onOpenHousehold } : {})} />
       </Card>
     </TaskLayout>
   );

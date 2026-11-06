@@ -1,4 +1,4 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId } from '@grocs/core';
+import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isKitchenFull } from '@grocs/core';
 import type { InviteCheckError, JoinKitchenError, Kitchen } from '@grocs/core';
 import type { Firestore } from 'firebase-admin/firestore';
 
@@ -10,6 +10,16 @@ export interface CreatedKitchen {
 export interface KitchenDetails {
   readonly name: string;
   readonly members: readonly { readonly uid: string; readonly name: string }[];
+}
+
+export type KitchenInvite = { readonly kind: 'open'; readonly code: string; readonly expiresAt: number } | { readonly kind: 'full' };
+
+/** Thrown when the caller asks for the invite of a kitchen they are not a member of. */
+export class NotAMemberError extends Error {
+  constructor() {
+    super('not a member of this kitchen');
+    this.name = 'NotAMemberError';
+  }
 }
 
 export type JoinKitchenResult =
@@ -107,6 +117,39 @@ export class KitchenStore {
     const snap = await this.#db.doc(`memberships/${uid}`).get();
     if (!snap.exists) return null;
     return (snap.data() as MembershipDoc).kitchenId;
+  }
+
+  /**
+   * The invite a member shares (TASK-56): the kitchen's newest pending, unexpired invite, or a fresh one
+   * when there is none, or 'full' once both members are in. Which invite to reuse, and whether the
+   * kitchen has room, are core's calls (inviteToReuse, isKitchenFull). The read and the write share one
+   * transaction, so two members asking at once get the same invite rather than one each. A new code
+   * that collides with an existing one fails create() and is retried, as in createKitchen.
+   */
+  async inviteForKitchen(kitchenId: string, callerUid: string): Promise<KitchenInvite> {
+    const attempts = 5;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.#db.runTransaction(async (tx) => {
+          const kitchenSnap = await tx.get(this.#db.doc(`kitchens/${kitchenId}`));
+          const kitchen = kitchenSnap.exists ? (kitchenSnap.data() as Kitchen) : null;
+          if (!kitchen || !kitchen.members.includes(callerUid)) throw new NotAMemberError();
+          if (isKitchenFull(kitchen)) return { kind: 'full' } as const;
+
+          const now = this.#now();
+          const existing = await tx.get(this.#db.collection('inviteCodes').where('kitchenId', '==', kitchenId));
+          const invites = existing.docs.map((d) => ({ code: d.id, ...(d.data() as InviteDoc) }));
+          const reused = inviteToReuse(invites, now);
+          if (reused) return { kind: 'open', code: reused.code, expiresAt: inviteExpiresAt(reused.createdAt) } as const;
+
+          const code = inviteCodeFromId(this.#ids());
+          tx.create(this.#db.doc(`inviteCodes/${code}`), { kitchenId, createdAt: now, status: 'pending' } satisfies InviteDoc);
+          return { kind: 'open', code, expiresAt: inviteExpiresAt(now) } as const;
+        });
+      } catch (error) {
+        if (error instanceof NotAMemberError || attempt === attempts) throw error;
+      }
+    }
   }
 
   /** A kitchen's name and members - or null for an id nobody created. */

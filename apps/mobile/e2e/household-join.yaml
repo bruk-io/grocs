@@ -1,0 +1,26 @@
+# TASK-56, step 2 of 3, on the other device: Pat signed in before opening the invite, so lands on kitchen
+# setup, and joins Jo's kitchen with the code from household-invite.yaml (${CODE}) instead of making one.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: pat
+---
+- runFlow: subflows/sign-in.yaml
+- assertVisible: "Your kitchen"
+- tapOn: "Open it to join"
+# The field, by its placeholder: "Invite code" also matches the label above it.
+- tapOn: "MOREL-42"
+- inputText: "${CODE}"
+# Close the keyboard by tapping the heading: hideKeyboard is Back on Android.
+- tapOn: "Enter your invite code"
+- tapOn: "Check code"
+- extendedWaitUntil:
+    visible: "Groceries"
+    timeout: 30000
+- tapOn: "Settings"
+- tapOn: "Household"
+- extendedWaitUntil:
+    visible: "Jo's kitchen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: ".*has both its members.*"
+    timeout: 15000

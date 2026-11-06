@@ -1,9 +1,9 @@
 // The composition root's wiring: ports in, an App for the screens out (R26). This is the one place
 // where providers meet the application layer, and the one place that instruments them (R31).
-import { commandHandlers, createDispatcher, findMyKitchen, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
-import type { Command, CommandResult, Deps, RuntimeInfo } from '@grocs/application';
+import { commandHandlers, createDispatcher, findMyKitchen, getKitchenInfo, getKitchenInvite, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
+import type { Command, CommandResult, Deps, KitchenInfo, RuntimeInfo } from '@grocs/application';
 import type { Item, Meal } from '@grocs/core';
-import type { Logger, Unsubscribe, User } from '@grocs/ports';
+import type { KitchenInvite, Logger, Unsubscribe, User } from '@grocs/ports';
 
 export interface AppOptions {
   /** The providers. In the real app these come from composeFirebaseApp; tests pass fakes. */
@@ -23,6 +23,10 @@ export interface App {
   signOut(): Promise<void>;
   /** The signed-in member's kitchen id, or null when they have none yet (or nobody is signed in). */
   findMyKitchen(): Promise<string | null>;
+  /** The kitchen's name and members, with the signed-in member marked (TASK-27), or null for an unknown kitchen. */
+  getKitchenInfo(kitchenId: string): Promise<KitchenInfo | null>;
+  /** The invite to share with the partner, or 'full' (TASK-56). */
+  getKitchenInvite(kitchenId: string): Promise<KitchenInvite>;
   /** Now, as the app's clock reads it, for choosing the current week. */
   now(): number;
   /** Copies text to the device clipboard. */
@@ -52,6 +56,8 @@ export function composeApp({ ports, logger, runtime, copyText }: AppOptions): Ap
     watchSession: (onUser) => watchSession(session, onUser),
     signOut: () => signOut(session),
     findMyKitchen: () => findMyKitchen(session),
+    getKitchenInfo: (kitchenId) => getKitchenInfo(session, kitchenId),
+    getKitchenInvite: (kitchenId) => getKitchenInvite(session, kitchenId),
     now: () => ports.clock.now(),
     copyText,
   };

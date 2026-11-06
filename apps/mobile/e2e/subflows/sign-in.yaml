@@ -1,24 +1,23 @@
-# Signs ${ACCOUNT} (alex or sam, the seed accounts) in to the Auth emulator through the development
-# build's grocs://dev-sign-in link (TASK-62). The only way a flow signs in: see the e2e-flows check.
+# Signs ${ACCOUNT} (alex, sam, jo or pat, the seed accounts) in to the Auth emulator through the
+# development build's grocs://dev-sign-in link (TASK-62). The only way a flow signs in: see the
+# e2e-flows check.
 appId: io.bruk.grocs.dev
 ---
-- launchApp:
-    clearState: true
-# clearState does not clear the iOS keychain, where Firebase Auth keeps its session, so the app can
-# open still signed in as whoever ran last. Sign out first, so every flow starts from Welcome.
-- extendedWaitUntil:
-    visible: "Continue with Google|Groceries"
-    timeout: 60000
+# clearState does not clear the iOS keychain, where Firebase Auth keeps its session, so the app could
+# open still signed in as whoever ran last, on any screen. Clearing the keychain starts every flow
+# signed out.
 - runFlow:
     when:
-      visible: "Groceries"
+      platform: iOS
     commands:
-      - tapOn: "Settings"
-      - tapOn: "Sign out"
+      - clearKeychain
+- launchApp:
+    clearState: true
 - extendedWaitUntil:
     visible: "Continue with Google"
-    timeout: 15000
+    timeout: 60000
 - openLink: "grocs://dev-sign-in?as=${ACCOUNT}"
+# A member lands on Groceries; Pat, who has no kitchen yet, on the kitchen setup screen.
 - extendedWaitUntil:
-    visible: "Groceries"
+    visible: "Groceries|Your kitchen"
     timeout: 30000

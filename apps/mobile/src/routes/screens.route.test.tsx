@@ -1,5 +1,6 @@
 // Level 4 of decision-11 for the screens that render a template with sample data: each route shows its
 // screen, and its links lead to the routes the design shows.
+import { FakeClock, FakeKitchenGateway } from '@grocs/ports/testing';
 import type { AddItem } from '@grocs/application';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -44,12 +45,34 @@ describe('Welcome', () => {
 });
 
 describe('Household', () => {
-  it('shows the kitchen and invite code, and Start planning leads to Meal plan', async () => {
+  it("shows the kitchen's real name, members and invite code, and Back leads to Settings (TASK-56)", async () => {
     await open('/household', true);
-    expect(await screen.findByText('Your kitchen')).toBeTruthy();
-    expect(screen.getByText('MOREL-24')).toBeTruthy();
-    press('Start planning');
-    expect(await screen.findByText('This week')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
+    expect(await screen.findByText('u1 (you)')).toBeTruthy();
+    expect(await screen.findByText(/^[A-Z]+-\d{4}$/)).toBeTruthy();
+    expect(screen.getByText(/^Waiting for your partner to join\. Works until /)).toBeTruthy();
+    expect(screen.queryByText('MOREL-24')).toBeNull();
+    press(/Settings/);
+    expect(await screen.findByRole('heading', { name: 'Settings' })).toBeTruthy();
+  });
+
+  it('opens from Settings', async () => {
+    await open('/settings', true);
+    fireEvent.click(await screen.findByRole('button', { name: 'Household' }));
+    expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
+  });
+
+  it('shows both members and no code once the partner has joined', async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway('u1', undefined, clock);
+    const app = await appOnFakes({ signedIn: true, kitchens, clock });
+    const invite = await kitchens.inviteForKitchen((await kitchens.findMyKitchen())!);
+    if (invite.kind !== 'open') throw new Error('expected an open invite');
+    await kitchens.asMember('u2', 'Shazya').joinKitchen(invite.code);
+    renderRoute(ROUTES, { app, location: '/household' });
+    expect(await screen.findByText('Shazya')).toBeTruthy();
+    expect(await screen.findByText(/has both its members/)).toBeTruthy();
+    expect(screen.queryByText(/^[A-Z]+-\d{4}$/)).toBeNull();
   });
 });
 

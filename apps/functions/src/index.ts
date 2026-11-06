@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
-import { KitchenStore } from '@grocs/providers-server';
+import { KitchenStore, NotAMemberError } from '@grocs/providers-server';
 import type { CallableRequest } from 'firebase-functions/v2/https';
 
 initializeApp();
@@ -52,4 +52,16 @@ export const joinKitchen = onCall(async (request) => {
 export const findMyKitchen = onCall(async (request) => {
   const uid = requireUid(request);
   return store().findKitchenForUid(uid);
+});
+
+/** The invite a member shares to bring their partner in, or 'full' (TASK-56). Only a member may ask. */
+export const inviteForKitchen = onCall(async (request) => {
+  const uid = requireUid(request);
+  const kitchenId = requireString(request.data, 'kitchenId');
+  try {
+    return await store().inviteForKitchen(kitchenId, uid);
+  } catch (error) {
+    if (error instanceof NotAMemberError) throw new HttpsError('permission-denied', 'not a member of this kitchen');
+    throw error;
+  }
 });

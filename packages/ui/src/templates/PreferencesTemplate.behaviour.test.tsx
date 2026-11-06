@@ -56,4 +56,11 @@ describe('PreferencesTemplate', () => {
     await user.click(screen.getByRole('button', { name: 'Groceries' }));
     expect(onBack).toHaveBeenCalledExactlyOnceWith();
   });
+
+  it('opens the household from the account card (TASK-56)', async () => {
+    const onOpenHousehold = vi.fn();
+    render(<Rest onOpenHousehold={onOpenHousehold} />);
+    await user.click(screen.getByRole('button', { name: 'Household' }));
+    expect(onOpenHousehold).toHaveBeenCalledExactlyOnceWith();
+  });
 });

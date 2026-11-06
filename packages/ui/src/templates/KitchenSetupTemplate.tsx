@@ -1,7 +1,11 @@
+import { StyleSheet, View } from 'react-native';
+import { Button } from '../atoms/Button.tsx';
+import { Text } from '../atoms/Text.tsx';
 import { LabelledField } from '../molecules/LabelledField.tsx';
 import type { StatusRowProps } from '../molecules/StatusRow.tsx';
 import { InviteCard } from '../organisms/InviteCard.tsx';
 import { SubHeader } from '../organisms/SubHeader.tsx';
+import { tokens } from '../tokens/tokens.ts';
 import { ActionBar } from './layouts/ActionBar.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
@@ -16,6 +20,12 @@ interface KitchenSetupTemplateBase {
   onStart?: () => void;
   /** The kitchen is being made. */
   starting?: boolean;
+  /**
+   * Someone with an invite who signed in before opening it lands here, not on the join screen: this
+   * offers the code entry instead of making a kitchen of their own (R3, TASK-56). Shown only before
+   * the kitchen exists.
+   */
+  onOpenInvite?: () => void;
 }
 
 /** The kitchen has an invite code and where it stands. Leave onShare or onCopy out and that button on the invite card is disabled. */
@@ -37,11 +47,23 @@ export interface KitchenSetupTemplateNoInviteProps extends KitchenSetupTemplateB
 export type KitchenSetupTemplateProps = KitchenSetupTemplateInviteProps | KitchenSetupTemplateNoInviteProps;
 
 /** template.task filled for Your kitchen: header.sub, field.labelled, invite.card, action.bar. */
-export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, inviteCode, inviteStatus, onShare, onCopy, onStart, starting = false }: KitchenSetupTemplateProps) {
+export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, inviteCode, inviteStatus, onShare, onCopy, onStart, starting = false, onOpenInvite }: KitchenSetupTemplateProps) {
   return (
     <TaskLayout
       header={<SubHeader lead={{ kind: 'line', text: `Signed in as ${email}` }} tag="Last step" title="Your kitchen" mascot="enoki" />}
       actionBar={<ActionBar label="Start planning" loading={starting} loadingLabel="Starting" {...(onStart ? { onPress: onStart } : {})} />}
+      {...(inviteCode === null && onOpenInvite
+        ? {
+            footer: (
+              <View style={styles.invite}>
+                <Text variant="small" tone="muted">
+                  Got an invite?
+                </Text>
+                <Button variant="text" size="s" label="Open it to join" disabled={starting} onPress={onOpenInvite} />
+              </View>
+            ),
+          }
+        : {})}
     >
       <LabelledField label="Name your kitchen" value={kitchenName} onChangeText={onKitchenNameChange} disabled={starting} />
       {inviteCode === null ? (
@@ -52,3 +74,7 @@ export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, 
     </TaskLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  invite: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: tokens.space[2] },
+});

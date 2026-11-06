@@ -164,5 +164,50 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
         t.expect(await stranger.getKitchen('no-such-kitchen')).toBeNull();
       }),
     );
+
+    t.it(
+      'gives a member the kitchen\'s working invite, the same one each time they ask (TASK-56)',
+      withGateways(async ({ owner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const first = await owner.inviteForKitchen(created.kitchenId);
+        const again = await owner.inviteForKitchen(created.kitchenId);
+        if (first.kind !== 'open') throw new Error(`expected an open invite, got ${first.kind}`);
+        t.expect(first.code).toBe(created.inviteCode);
+        t.expect(first.expiresAt).toBeGreaterThan(0);
+        t.expect(again).toEqual(first);
+      }),
+    );
+
+    t.it(
+      'lets a partner join with the invite a member asked for',
+      withGateways(async ({ owner, partner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const invite = await owner.inviteForKitchen(created.kitchenId);
+        if (invite.kind !== 'open') throw new Error(`expected an open invite, got ${invite.kind}`);
+        t.expect(await partner.joinKitchen(invite.code)).toEqual({ kind: 'joined', kitchenId: created.kitchenId });
+      }),
+    );
+
+    t.it(
+      'answers full, with no code, once both members are in (R3)',
+      withGateways(async ({ owner, partner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        await partner.joinKitchen(created.inviteCode);
+        t.expect(await owner.inviteForKitchen(created.kitchenId)).toEqual({ kind: 'full' });
+        t.expect(await partner.inviteForKitchen(created.kitchenId)).toEqual({ kind: 'full' });
+      }),
+    );
+
+    t.it(
+      'refuses an invite to someone who is not a member of the kitchen',
+      withGateways(async ({ owner, stranger }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const refused = await stranger.inviteForKitchen(created.kitchenId).then(
+          () => false,
+          () => true,
+        );
+        t.expect(refused).toBe(true);
+      }),
+    );
   });
 }

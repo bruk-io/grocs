@@ -5,7 +5,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { addMember, createKitchen } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
-import { DEMO_PROJECT, seedKitchen, seedUsers } from './data.ts';
+import { DEMO_PROJECT, inviteSeedUsers, seedAccounts, seedKitchen, seedOpenKitchen, seedUsers } from './data.ts';
 
 export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const firestoreHost = env['FIRESTORE_EMULATOR_HOST'];
@@ -19,22 +19,24 @@ export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> 
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  for (const u of seedUsers) {
+  for (const u of seedAccounts) {
     await createOrGetUser(auth, u);
   }
-  const kitchen = seedKitchenDoc();
-  await db.doc(`kitchens/${kitchen.id}`).set(kitchen);
-  // What findMyKitchen reads (providers-server's kitchen-store): without these the seed accounts sign in
-  // to the kitchen setup screen instead of their kitchen (found by the TASK-62 flows).
-  for (const uid of kitchen.members) {
-    await db.doc(`memberships/${uid}`).set({ kitchenId: kitchen.id });
+  // What findMyKitchen reads (providers-server's kitchen-store): without the memberships the seed
+  // accounts sign in to the kitchen setup screen instead of their kitchen (found by the TASK-62 flows).
+  for (const kitchen of [seedKitchenDoc(), seedOpenKitchenDoc()]) {
+    await db.doc(`kitchens/${kitchen.id}`).set(kitchen);
+    for (const uid of kitchen.members) await db.doc(`memberships/${uid}`).set({ kitchenId: kitchen.id });
   }
+  // Pat starts with no kitchen on every seed, so the invite flow can join Jo's kitchen again (TASK-56).
+  await db.doc(`memberships/${inviteSeedUsers[1].uid}`).delete();
 }
 
-/** The seed kitchen as the app itself writes one: core's createKitchen, then each other member added. */
-export function seedKitchenDoc(): Kitchen {
-  const [owner, ...others] = seedUsers;
-  const made = createKitchen({ id: seedKitchen.id, name: seedKitchen.name, timeZone: 'UTC', ownerUid: owner.uid, ownerName: owner.displayName, createdAt: 0 });
+/** A seed kitchen as the app itself writes one: core's createKitchen for the first member, then each other member added. */
+function kitchenDoc(id: string, name: string, people: readonly { readonly uid: string; readonly displayName: string }[]): Kitchen {
+  const [owner, ...others] = people;
+  if (!owner) throw new Error(`seed kitchen ${id} has no members`);
+  const made = createKitchen({ id, name, timeZone: 'UTC', ownerUid: owner.uid, ownerName: owner.displayName, createdAt: 0 });
   if (!made.ok) throw new Error(`seed kitchen is invalid: ${made.error}`);
   return others.reduce<Kitchen>((kitchen, u) => {
     const joined = addMember(kitchen, u.uid, u.displayName);
@@ -43,7 +45,17 @@ export function seedKitchenDoc(): Kitchen {
   }, made.value);
 }
 
-type SeedUser = (typeof seedUsers)[number];
+/** Alex and Sam's kitchen, full. */
+export function seedKitchenDoc(): Kitchen {
+  return kitchenDoc(seedKitchen.id, seedKitchen.name, seedUsers);
+}
+
+/** Jo's kitchen, with room for a partner. */
+export function seedOpenKitchenDoc(): Kitchen {
+  return kitchenDoc(seedOpenKitchen.id, seedOpenKitchen.name, inviteSeedUsers.filter((u) => (seedOpenKitchen.members as readonly string[]).includes(u.uid)));
+}
+
+type SeedUser = (typeof seedAccounts)[number];
 type Auth = ReturnType<typeof getAuth>;
 
 // Creates the user, or returns the one that already exists. Emulator test files

@@ -54,3 +54,18 @@ export function checkInvite(invite: InviteRecord | null, now: number): Result<In
   if (isInviteExpired(invite.createdAt, now)) return err('expired');
   return ok(invite);
 }
+
+/** When an invite made at `createdAt` stops working (R3). */
+export function inviteExpiresAt(createdAt: number): number {
+  return createdAt + INVITE_LIFETIME_MS;
+}
+
+/**
+ * The invite a member should share for their kitchen (TASK-56): the newest one still pending and
+ * unexpired, or null when there is none and a fresh one has to be issued. Reusing it means asking
+ * twice gives the partner one code, not two that both work.
+ */
+export function inviteToReuse(invites: readonly InviteRecord[], now: number): InviteRecord | null {
+  const usable = invites.filter((i) => checkInvite(i, now).ok);
+  return usable.reduce<InviteRecord | null>((newest, i) => (newest === null || i.createdAt > newest.createdAt ? i : newest), null);
+}

@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { checkInvite, INVITE_CODE_PATTERN, INVITE_LIFETIME_MS, inviteCodeFromId, isInviteExpired } from './invite.ts';
+import { checkInvite, INVITE_CODE_PATTERN, INVITE_LIFETIME_MS, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isInviteExpired } from './invite.ts';
 import type { InviteRecord } from './invite.ts';
 
 describe('inviteCodeFromId (R2)', () => {
@@ -52,5 +52,40 @@ describe('checkInvite (R3)', () => {
   it('checks used before expired, so a replayed stale join reports the more specific reason', () => {
     const usedAndOld: InviteRecord = { ...pending, status: 'used' };
     expect(checkInvite(usedAndOld, 1000 + INVITE_LIFETIME_MS + 1)).toEqual({ ok: false, error: 'used' });
+  });
+});
+
+describe('inviteExpiresAt (R3)', () => {
+  it('is one invite lifetime after the invite was made', () => {
+    expect(inviteExpiresAt(1000)).toBe(1000 + INVITE_LIFETIME_MS);
+  });
+
+  it('is the last moment the invite still works', () => {
+    expect(isInviteExpired(1000, inviteExpiresAt(1000))).toBe(false);
+    expect(isInviteExpired(1000, inviteExpiresAt(1000) + 1)).toBe(true);
+  });
+});
+
+describe('inviteToReuse (TASK-56)', () => {
+  const invite = (code: string, createdAt: number, status: InviteRecord['status'] = 'pending'): InviteRecord => ({ code, kitchenId: 'k1', createdAt, status });
+
+  it('is null when the kitchen has no invites', () => {
+    expect(inviteToReuse([], 0)).toBeNull();
+  });
+
+  it('reuses a pending invite that has not expired', () => {
+    expect(inviteToReuse([invite('MOREL-0001', 1000)], 2000)?.code).toBe('MOREL-0001');
+  });
+
+  it('does not reuse an expired invite, so a fresh one gets issued', () => {
+    expect(inviteToReuse([invite('MOREL-0001', 1000)], 1000 + INVITE_LIFETIME_MS + 1)).toBeNull();
+  });
+
+  it('does not reuse a used invite', () => {
+    expect(inviteToReuse([invite('MOREL-0001', 1000, 'used')], 2000)).toBeNull();
+  });
+
+  it('picks the newest of several usable invites', () => {
+    expect(inviteToReuse([invite('OLD-0001', 1000), invite('NEW-0002', 3000), invite('MID-0003', 2000)], 4000)?.code).toBe('NEW-0002');
   });
 });
