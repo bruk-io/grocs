@@ -3,11 +3,11 @@ id: TASK-53
 title: >-
   Release builds crash or fail on Continue with Google: GoogleSignin.configure()
   never runs
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-06 16:13'
-updated_date: '2026-11-06 17:42'
+updated_date: '2026-11-06 17:44'
 labels:
   - size-2
   - release
@@ -23,11 +23,11 @@ Testers on TestFlight build 8 (iOS) and the v0.1.0 APK (Android) report the app 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Both EAS environments the release workflow builds from (production for iOS, preview for Android) define EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
-- [ ] #2 A missing web client ID fails at sign-in with a readable message on both platforms instead of calling the native picker unconfigured
-- [ ] #3 A non-demo EAS build without EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID fails during config evaluation, with the reason in the error
-- [ ] #4 release.yml fails before submitting when the built bundle carries no Google web client ID
-- [ ] #5 The EAS Android signing certificate's SHA-1 and SHA-256 are registered on the Firebase Android app
+- [x] #1 Both EAS environments the release workflow builds from (production for iOS, preview for Android) define EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+- [x] #2 A missing web client ID fails at sign-in with a readable message on both platforms instead of calling the native picker unconfigured
+- [x] #3 A non-demo EAS build without EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID fails during config evaluation, with the reason in the error
+- [x] #4 release.yml fails before submitting when the built bundle carries no Google web client ID
+- [x] #5 The EAS Android signing certificate's SHA-1 and SHA-256 are registered on the Firebase Android app
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -49,4 +49,74 @@ Testers on TestFlight build 8 (iOS) and the v0.1.0 APK (Android) report the app 
 2026-11-06 end-to-end (Android): eas build --local --profile preview from 9ecf6db loaded EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID from the preview environment; the APK is signed by SHA-1 5d5160a9... (EAS keystore). node tools/built-sign-in.ts on it: exit 0, 'bundle carries Google client ID 950648718006-qf0blvdefh26l0sptdg2nqv2qbomt1it.apps.googleusercontent.com'. Installed on the fold emulator: Continue with Google opened the Google account picker; choosing the account logged 'signInWithCredential:onComplete:success' and the app reached the Groceries screen. iOS is not run on a device here: a store-signed IPA does not run on the simulator. Its evidence is the release.yml bundle check on the new TestFlight build.
 
 2026-11-06 release v0.1.1 (run 42257624472, all three jobs green). The new release.yml step ran in both jobs: 'apps/mobile/grocs.ipa: bundle carries Google client ID 950648718006-qf0blvdefh26l0sptdg2nqv2qbomt1it...' and the same for grocs.apk. iOS build 9 (commit 6bade98) submitted to TestFlight, EAS submission status finished; node tools/built-sign-in.ts on its IPA locally exits 0. grocs-apk artifact uploaded; GitHub Release https://github.com/bruk-io/grocs/releases/tag/v0.1.1. Not yet confirmed on a physical phone: Shazya needs to update to build 9 in TestFlight.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+(52 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  127 passed (127)
+      Tests  1663 passed (1663)
+   Start at  12:43:36
+   Duration  8.25s (transform 37.30s, setup 3.97s, import 105.05s, tests 38.54s, environment 19.45s)
+
+$ firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-grocs", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  auth: Port 9099 is not open on 127.0.0.1, could not start Authentication Emulator.
+⚠  auth: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "auth": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  firestore: Port 8080 is not open on 127.0.0.1, could not start Firestore Emulator.
+⚠  firestore: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "firestore": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  hub: emulator hub unable to start on port 4400, starting on 4401 instead.
+⚠  logging: Logging Emulator unable to start on port 4500, starting on 4501 instead.
+i  emulators: Shutting down emulators.
+
+Error: Could not start Authentication Emulator, port taken.
+[ELIFECYCLE] Command failed with exit code 1.
+```
+
+No repro: the bug lives in EAS's cloud bundling environment, not in a test the repo can run; the worker's recorded repro is tools/built-sign-in.ts exiting 1 on build 8's IPA and the v0.1.0 APK (pre-fix artifacts) and the 'apiClient is null' error on the fold emulator. The reviewer did not re-run it against those artifacts.
+
+Reviewed by philosophy:reviewer. All five criteria met: #1 eas env:list production and preview both define EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID; #2 native.ts throws a readable Error before any GoogleSignin call; #3 app.config.ts assertSignInConfigured throws on a non-demo EAS build without the ID, tested in app-config.test.ts; #4 release.yml runs tools/built-sign-in.ts before submit/upload, run 42257624472 shows it passing on grocs.ipa and grocs.apk; #5 Firebase lists SHA-1 5d5160a9...2c4c and SHA-256 2238a673...d523. Full-tier check exited 1 only because pnpm test:emulator could not bind port 9099 (held by another local node process), so check:release, storybook and visual did not run; pnpm check, typecheck, test passed. Findings, none filed: (low) bundle check matches any *.apps.googleusercontent.com ID, not specifically the web client; (low) iOS download relies on build:list --limit 1 plus the concurrency group; (info) not yet confirmed on a physical iPhone.
 <!-- SECTION:NOTES:END -->
