@@ -105,6 +105,11 @@ jobs:
           url=$(jq -r 'if type == "array" then .[0] else . end | .artifacts.applicationArchiveUrl' build.json)
           test -n "$url" && test "$url" != "null"
           curl -sL -o grocs.ipa "$url"
+      - name: The web client ID this build must carry (production EAS environment, TASK-54)
+        working-directory: apps/mobile
+        run: |
+          line=$(npx eas-cli env:get production --variable-name EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID --format short --non-interactive | grep '^EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=')
+          echo "EXPECTED_GOOGLE_WEB_CLIENT_ID=${line#*=}" >> "$GITHUB_ENV"
       - name: The built bundle carries the Google web client ID (TASK-53)
         run: node tools/built-sign-in.ts apps/mobile/grocs.ipa
       - name: Submit to TestFlight
@@ -137,6 +142,11 @@ jobs:
           url=$(jq -r 'if type == "array" then .[0] else . end | .artifacts.applicationArchiveUrl' build.json)
           test -n "$url" && test "$url" != "null"
           curl -sL -o grocs.apk "$url"
+      - name: The web client ID this build must carry (preview EAS environment, TASK-54)
+        working-directory: apps/mobile
+        run: |
+          line=$(npx eas-cli env:get preview --variable-name EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID --format short --non-interactive | grep '^EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=')
+          echo "EXPECTED_GOOGLE_WEB_CLIENT_ID=${line#*=}" >> "$GITHUB_ENV"
       - name: The built bundle carries the Google web client ID (TASK-53)
         run: node tools/built-sign-in.ts apps/mobile/grocs.apk
       - uses: actions/upload-artifact@v7
