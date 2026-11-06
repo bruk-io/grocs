@@ -1,0 +1,27 @@
+# R51: adding a meal. Alex plans a meal on the first open day of this week, then removes it again.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: alex
+  MEAL: "E2E lentil soup ${RUN_ID}"
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn: "Meal plan"
+- tapOn:
+    text: "Plan a meal"
+    index: 0
+- extendedWaitUntil:
+    visible: "Add a meal"
+    timeout: 10000
+- tapOn: "What are you making?"
+- inputText: "${MEAL}"
+# Close the keyboard by tapping the heading: hideKeyboard is Back on Android, which leaves the screen.
+- tapOn: "Add a meal"
+- tapOn: "Add to.*"
+- extendedWaitUntil:
+    visible: "${MEAL}"
+    timeout: 10000
+- tapOn: "${MEAL}"
+- tapOn: "Remove meal"
+- extendedWaitUntil:
+    notVisible: "${MEAL}"
+    timeout: 10000

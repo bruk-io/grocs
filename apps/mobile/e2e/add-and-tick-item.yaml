@@ -1,0 +1,26 @@
+# R51: adding an item and ticking it. Alex adds an item, ticks it into the cart, then clears the cart.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: alex
+  ITEM: "E2E oat milk ${RUN_ID}"
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn:
+    text: "Add an item"
+    index: 0
+- inputText: "${ITEM}"
+# Enter submits the field. hideKeyboard is Back on Android, which drops the typed text.
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "${ITEM}"
+    timeout: 10000
+- tapOn:
+    text: "${ITEM}"
+    index: 0
+- extendedWaitUntil:
+    visible: "In the cart"
+    timeout: 10000
+- tapOn: "Clear the cart"
+- extendedWaitUntil:
+    notVisible: "${ITEM}"
+    timeout: 10000

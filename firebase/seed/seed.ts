@@ -3,6 +3,8 @@
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { addMember, createKitchen } from '@grocs/core';
+import type { Kitchen } from '@grocs/core';
 import { DEMO_PROJECT, seedKitchen, seedUsers } from './data.ts';
 
 export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> {
@@ -20,7 +22,25 @@ export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> 
   for (const u of seedUsers) {
     await createOrGetUser(auth, u);
   }
-  await db.doc(`kitchens/${seedKitchen.id}`).set({ name: seedKitchen.name, members: [...seedKitchen.members] });
+  const kitchen = seedKitchenDoc();
+  await db.doc(`kitchens/${kitchen.id}`).set(kitchen);
+  // What findMyKitchen reads (providers-server's kitchen-store): without these the seed accounts sign in
+  // to the kitchen setup screen instead of their kitchen (found by the TASK-62 flows).
+  for (const uid of kitchen.members) {
+    await db.doc(`memberships/${uid}`).set({ kitchenId: kitchen.id });
+  }
+}
+
+/** The seed kitchen as the app itself writes one: core's createKitchen, then each other member added. */
+export function seedKitchenDoc(): Kitchen {
+  const [owner, ...others] = seedUsers;
+  const made = createKitchen({ id: seedKitchen.id, name: seedKitchen.name, timeZone: 'UTC', ownerUid: owner.uid, ownerName: owner.displayName, createdAt: 0 });
+  if (!made.ok) throw new Error(`seed kitchen is invalid: ${made.error}`);
+  return others.reduce<Kitchen>((kitchen, u) => {
+    const joined = addMember(kitchen, u.uid, u.displayName);
+    if (!joined.ok) throw new Error(`seed member ${u.uid} cannot join: ${joined.error}`);
+    return joined.value;
+  }, made.value);
 }
 
 type SeedUser = (typeof seedUsers)[number];

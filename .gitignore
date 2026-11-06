@@ -34,3 +34,4 @@ coverage/
 
 # Failed picture comparisons from `pnpm --filter @grocs/ui visual`
 .visual-diff/
+apps/mobile/.emulator-config/

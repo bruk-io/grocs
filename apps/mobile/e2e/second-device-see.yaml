@@ -1,0 +1,17 @@
+# R51: a change reaching a second device, second half. Sam, on the other device, sees ${ITEM}
+# that Alex added in second-device-add.yaml, ticks it, and clears it so the seed kitchen stays empty.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: sam
+---
+- runFlow: subflows/sign-in.yaml
+- extendedWaitUntil:
+    visible: "${ITEM}"
+    timeout: 20000
+- tapOn:
+    text: "${ITEM}"
+    index: 0
+- tapOn: "Clear the cart"
+- extendedWaitUntil:
+    notVisible: "${ITEM}"
+    timeout: 10000

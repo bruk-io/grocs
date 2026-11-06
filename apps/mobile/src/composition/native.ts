@@ -34,6 +34,12 @@ export interface NativeApp {
   /** Null in every build but the demo variant. */
   readonly demo: DemoAccess | null;
   /**
+   * Signs a seed account ('alex' or 'sam') in to the Auth emulator, for the end-to-end flows'
+   * grocs://dev-sign-in link (TASK-62, R51). Null in release and demo builds, and in a development
+   * build pointed at live Firebase, so it can only ever reach the emulators' seed data (R52, R53).
+   */
+  readonly devSignIn: ((name: string) => Promise<void>) | null;
+  /**
    * The text the diagnostics action copies (R35): a header line, then the on-phone buffer's records. Release
    * builds keep the buffer; development builds log to the console, so theirs is the header and a note.
    */
@@ -119,6 +125,7 @@ export function createNativeApp(): NativeApp {
     app,
     isDevBuild: dev !== null,
     demo: null,
+    devSignIn: dev && devFunctionsFns ? (name) => dev.signInAsSeedUser(authFns, authInstance, name) : null,
     diagnostics: () => diagnosticsText(build, buffer ? buffer.dump() : 'development build: log records go to the console'),
     signInWithGoogle: () => googleAuth.signInWithGoogle(),
   };
