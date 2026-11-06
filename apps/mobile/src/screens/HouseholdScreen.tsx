@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Share } from 'react-native';
 import { HouseholdTemplate } from '@grocs/ui';
 import type { HouseholdInvite, HouseholdMember } from '@grocs/ui';
+import type { KitchenInvite } from '@grocs/ports';
 import type { App } from '../composition/compose-app.ts';
 import { inviteMessage } from './invite.ts';
 import { localExpiryLabel } from './invite-expiry.ts';
 import { useGo } from './navigate.ts';
+import { useKitchenInfo } from './use-kitchen-info.ts';
 
 export interface HouseholdScreenProps {
   app: App;
@@ -21,41 +23,36 @@ const COULD_NOT_FETCH = 'check your connection and try again';
  */
 export function HouseholdScreen({ app, kitchenId }: HouseholdScreenProps) {
   const go = useGo();
-  const [name, setName] = useState('Your kitchen');
-  const [members, setMembers] = useState<readonly HouseholdMember[]>([]);
-  const [invite, setInvite] = useState<HouseholdInvite>({ kind: 'loading' });
+  const kitchen = useKitchenInfo(app, kitchenId);
+  const [got, setGot] = useState<KitchenInvite | 'loading' | 'failed'>('loading');
 
   useEffect(() => {
     let current = true;
-    app.getKitchenInfo(kitchenId).then(
-      (info) => {
-        if (!current || !info) return;
-        setName(info.name);
-        setMembers(info.members.map((m) => ({ name: m.name, isYou: m.isCaller })));
-      },
-      () => undefined,
-    );
     app.getKitchenInvite(kitchenId).then(
-      (got) => {
-        if (!current) return;
-        setInvite(
-          got.kind === 'full'
-            ? { kind: 'full' }
-            : {
-                kind: 'open',
-                code: got.code,
-                expires: localExpiryLabel(got.expiresAt, app.now()),
-                onShare: () => void Share.share({ message: inviteMessage(got.code) }),
-                onCopy: () => void app.copyText(got.code),
-              },
-        );
-      },
-      () => current && setInvite({ kind: 'failed', message: COULD_NOT_FETCH }),
+      (next) => current && setGot(next),
+      () => current && setGot('failed'),
     );
     return () => {
       current = false;
     };
   }, [app, kitchenId]);
 
-  return <HouseholdTemplate kitchenName={name} members={members} invite={invite} onBack={go.settings} />;
+  const you = kitchen?.members.find((m) => m.isCaller)?.name;
+  const sender = { ...(you ? { inviter: you } : {}), ...(kitchen ? { kitchen: kitchen.name } : {}) };
+  const invite: HouseholdInvite =
+    got === 'loading'
+      ? { kind: 'loading' }
+      : got === 'failed'
+        ? { kind: 'failed', message: COULD_NOT_FETCH }
+        : got.kind === 'full'
+          ? { kind: 'full' }
+          : {
+              kind: 'open',
+              code: got.code,
+              expires: localExpiryLabel(got.expiresAt, app.now()),
+              onShare: () => void Share.share({ message: inviteMessage(got.code, sender) }),
+              onCopy: () => void app.copyText(got.code),
+            };
+  const members: HouseholdMember[] = (kitchen?.members ?? []).map((m) => ({ name: m.name, isYou: m.isCaller }));
+  return <HouseholdTemplate kitchenName={kitchen?.name ?? ''} members={members} invite={invite} onBack={go.settings} />;
 }

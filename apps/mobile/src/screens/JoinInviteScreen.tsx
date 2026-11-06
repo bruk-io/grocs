@@ -24,7 +24,7 @@ const COULD_NOT_JOIN = 'We could not check that code. Check your connection and 
 export function JoinInviteScreen() {
   const { app, signInWithGoogle } = useNativeApp();
   const go = useGo();
-  const params = useLocalSearchParams<{ code?: string }>();
+  const params = useLocalSearchParams<{ code?: string; from?: string; kitchen?: string }>();
   const linked = typeof params.code === 'string' && params.code !== '' ? params.code : null;
 
   const [code, setCode] = useState(linked ?? '');
@@ -65,8 +65,9 @@ export function JoinInviteScreen() {
   if (linked !== null && !showEntry) {
     return (
       <InviteJoinTemplate
-        inviter="Your partner"
-        kitchen="Our kitchen"
+        // From the sender's link (TASK-68); a link without them names nobody rather than a made-up kitchen.
+        inviter={typeof params.from === 'string' && params.from !== '' ? params.from : 'Your partner'}
+        kitchen={typeof params.kitchen === 'string' && params.kitchen !== '' ? params.kitchen : 'their kitchen'}
         description="Plan the week's meals together and shop from one shared list, live on both phones."
         joining={busy}
         onJoin={() => void join(linked)}

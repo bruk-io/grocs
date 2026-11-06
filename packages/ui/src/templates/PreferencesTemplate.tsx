@@ -34,7 +34,7 @@ export type PreferencesTemplateProps = NotificationsSwitch & {
   /** The signed-in person. */
   name: string;
   email: string;
-  /** The kitchen they belong to. */
+  /** The kitchen they belong to; empty while it loads, when only the email shows. */
   kitchen: string;
   /** The partner, named in the notification line: "Tell me when Sam adds something". */
   partnerName: string;
@@ -89,7 +89,7 @@ export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyD
           <Avatar name={name} />
           <View style={styles.words}>
             <Text variant="label">{name}</Text>
-            <Text variant="small" tone="muted">{`${email} · ${kitchen}`}</Text>
+            <Text variant="small" tone="muted">{kitchen ? `${email} · ${kitchen}` : email}</Text>
           </View>
         </View>
         <Button variant="secondary" size="s" stretch label="Household" leadingIcon="share" {...(onOpenHousehold ? { onPress: onOpenHousehold } : {})} />

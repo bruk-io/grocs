@@ -6,7 +6,7 @@ env:
 - runFlow: subflows/sign-in.yaml
 - assertVisible: "Meal plan"
 - tapOn: "Settings"
-- assertVisible: "alex@grocs.test · .*"
+- assertVisible: "alex@grocs.test · Home"
 - tapOn: "Sign out"
 - extendedWaitUntil:
     visible: "Continue with Google"

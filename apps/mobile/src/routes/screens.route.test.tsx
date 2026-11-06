@@ -9,7 +9,6 @@ import AddMeal from '../../app/add-meal.tsx';
 import GroceriesSamples from '../../app/groceries-samples.tsx';
 import Household from '../../app/household.tsx';
 import Join from '../../app/join.tsx';
-import JoinInvalid from '../../app/join-invalid.tsx';
 import Plan from '../../app/plan.tsx';
 import QuickAdd from '../../app/quick-add.tsx';
 import Settings from '../../app/settings.tsx';
@@ -19,7 +18,6 @@ const ROUTES = {
   index: Home,
   household: Household,
   join: Join,
-  'join-invalid': JoinInvalid,
   plan: Plan,
   'add-meal': AddMeal,
   'groceries-samples': GroceriesSamples,
@@ -77,6 +75,19 @@ describe('Household', () => {
 });
 
 describe('JoinInvite', () => {
+  it("names who sent the link and their kitchen, from the sender's link (TASK-68)", async () => {
+    await open('/join?code=MOREL-0042&from=Bruk&kitchen=Our%20place');
+    expect(await screen.findByText('Bruk invited you to')).toBeTruthy();
+    expect(screen.getByText('Our place')).toBeTruthy();
+  });
+
+  it('names nobody, rather than a made-up kitchen, from a link without the sender', async () => {
+    await open('/join?code=MOREL-0042');
+    expect(await screen.findByText('Your partner invited you to')).toBeTruthy();
+    expect(screen.getByText('their kitchen')).toBeTruthy();
+    expect(screen.queryByText('Our kitchen')).toBeNull();
+  });
+
   it('shows the invite from a link, and the code entry from /join', async () => {
     await open('/join?code=MOREL-0042');
     expect(await screen.findByText("You're invited")).toBeTruthy();
@@ -84,13 +95,34 @@ describe('JoinInvite', () => {
   });
 });
 
-describe('JoinInviteInvalid (sample)', () => {
-  it('shows the error and Back to my invite leads to the join screen', async () => {
-    await open('/join-invalid');
+describe('JoinInvite after a wrong code', () => {
+  it('shows the error on the real route with no sample data, and Back to my invite leaves it (TASK-68)', async () => {
+    await open('/join', true);
+    fireEvent.change(await screen.findByRole('textbox'), { target: { value: 'NOPE-0000' } });
+    press('Check code');
     expect(await screen.findByText("Code didn't work")).toBeTruthy();
     expect(screen.getByText(/That code is not a match/)).toBeTruthy();
+    expect(screen.queryByText(/Alex/)).toBeNull();
     press('Back to my invite');
-    expect(await screen.findByRole('button', { name: 'Check code' })).toBeTruthy();
+    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
+  });
+});
+
+describe('real kitchen data, no samples (TASK-58, TASK-63)', () => {
+  it("draws the kitchen's own members on Meal plan, not the sample A and S", async () => {
+    await open('/plan', true);
+    expect(await screen.findByText('This week')).toBeTruthy();
+    expect(await screen.findByText('U')).toBeTruthy();
+    expect(screen.queryByText('Alex')).toBeNull();
+    expect(screen.queryByText('Sam')).toBeNull();
+  });
+
+  it("shows the kitchen's real name in Settings", async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway('u1', undefined, clock);
+    await kitchens.createKitchen('Home', 'UTC');
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens, clock }), location: '/settings' });
+    expect(await screen.findByText('u1@grocs.test · Home')).toBeTruthy();
   });
 });
 
@@ -160,7 +192,7 @@ describe('Groceries (live, at /)', () => {
     await open('/', true);
     await screen.findByText('Nothing on the list yet');
     press('Add an item');
-    expect(await screen.findByText('Eggplant')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Add an item' })).toBeTruthy();
   });
 });
 
@@ -202,7 +234,7 @@ describe('Groceries samples (dev-only route)', () => {
 });
 
 describe('the mushroom host (R40)', () => {
-  const SCREENS = ['/', '/plan', '/add-meal?dayId=2026-10-19', '/quick-add', '/settings', '/household', '/join', '/join-invalid'];
+  const SCREENS = ['/', '/plan', '/add-meal?dayId=2026-10-19', '/quick-add', '/settings', '/household', '/join', '/join?code=MOREL-0042'];
   it.each(SCREENS)('is on %s', async (location) => {
     await open(location, true);
     expect((await screen.findAllByRole('button', { name: /tap to hear a line/ })).length).toBeGreaterThan(0);
@@ -215,9 +247,12 @@ describe('the mushroom host (R40)', () => {
 });
 
 describe('QuickAdd', () => {
-  it('shows suggestions and Back leads to Groceries', async () => {
+  it('shows no sample suggestions, and Back leads to Groceries (TASK-57)', async () => {
     await open('/quick-add', true);
-    expect(await screen.findByText('Eggplant')).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Add an item' })).toBeTruthy();
+    expect(screen.queryByText('Eggplant')).toBeNull();
+    expect(screen.queryByText('Suggestions')).toBeNull();
+    expect(screen.queryByText('You buy often')).toBeNull();
     press(/Groceries/);
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });

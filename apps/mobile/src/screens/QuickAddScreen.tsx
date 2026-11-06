@@ -5,7 +5,6 @@ import type { AddItem } from '@grocs/application';
 import { weekIdFor } from '@grocs/core';
 import type { Meal } from '@grocs/core';
 import type { App } from '../composition/compose-app.ts';
-import { oftenBought, suggestions } from '../sample/sample-data.ts';
 import { useGo } from './navigate.ts';
 import { mealTone, weekLabelFor } from './week-days.ts';
 
@@ -51,8 +50,9 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
         meals={pickerMeals}
         {...(mealId ? { selectedMealId: mealId } : {})}
         onSelectMeal={setMealId}
-        suggestions={suggestions}
-        frequent={oftenBought}
+        // No suggestions yet: there is nothing real to suggest from (TASK-57). The picker hides both sections when empty.
+        suggestions={[]}
+        frequent={[]}
         onAdd={() => void add()}
         onBack={go.groceries}
       />
