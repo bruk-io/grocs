@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 16:13'
-updated_date: '2026-11-06 16:14'
+updated_date: '2026-11-06 16:17'
 labels:
   - size-2
   - release
@@ -40,3 +40,9 @@ Testers on TestFlight build 8 (iOS) and the v0.1.0 APK (Android) report the app 
 5. release.yml: after each build, download the artifact and assert its JS bundle contains the web client ID, before submit/upload. The check script lives in tools/ so it is runnable locally against any IPA/APK.
 6. Verify: pnpm check, typecheck, test; run the bundle check against build 8's IPA and the v0.1.0 APK (must fail), then against new builds (must pass).
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-06: EAS env var EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID created (plaintext) in production, preview, development; verified with eas env:list. Firebase Android app now has SHA-1 5d5160a9... and SHA-256 2238a673... (EAS keystore, read with apksigner from the v0.1.0 APK); verified with apps:android:sha:list. tools/built-sign-in.ts fails (exit 1) on build 8's IPA and on the v0.1.0 APK, as it should. pnpm check, typecheck, test (1663) pass. The release.yml change is additive-only: the weakening guard (R57) flags any removed CI line, so the iOS step reads the newest build via build:list instead of changing the build/submit lines.
+<!-- SECTION:NOTES:END -->
