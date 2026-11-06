@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 16:13'
-updated_date: '2026-11-06 16:17'
+updated_date: '2026-11-06 16:53'
 labels:
   - size-2
   - release
@@ -45,4 +45,6 @@ Testers on TestFlight build 8 (iOS) and the v0.1.0 APK (Android) report the app 
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-11-06: EAS env var EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID created (plaintext) in production, preview, development; verified with eas env:list. Firebase Android app now has SHA-1 5d5160a9... and SHA-256 2238a673... (EAS keystore, read with apksigner from the v0.1.0 APK); verified with apps:android:sha:list. tools/built-sign-in.ts fails (exit 1) on build 8's IPA and on the v0.1.0 APK, as it should. pnpm check, typecheck, test (1663) pass. The release.yml change is additive-only: the weakening guard (R57) flags any removed CI line, so the iOS step reads the newest build via build:list instead of changing the build/submit lines.
+
+2026-11-06 end-to-end (Android): eas build --local --profile preview from 9ecf6db loaded EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID from the preview environment; the APK is signed by SHA-1 5d5160a9... (EAS keystore). node tools/built-sign-in.ts on it: exit 0, 'bundle carries Google client ID 950648718006-qf0blvdefh26l0sptdg2nqv2qbomt1it.apps.googleusercontent.com'. Installed on the fold emulator: Continue with Google opened the Google account picker; choosing the account logged 'signInWithCredential:onComplete:success' and the app reached the Groceries screen. iOS is not run on a device here: a store-signed IPA does not run on the simulator. Its evidence is the release.yml bundle check on the new TestFlight build.
 <!-- SECTION:NOTES:END -->
