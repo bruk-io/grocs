@@ -17,7 +17,27 @@ const demo = process.env['APP_VARIANT'] === 'demo';
  * not setting it, and app-config.test.ts fails if `edgeToEdgeEnabled` is added.
  */
 
-export default (): ExpoConfig => ({
+/**
+ * The real build's Google sign-in needs EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID inlined into its bundle, and an
+ * EAS build bundles on EAS's worker, so the value has to be in the build profile's EAS environment
+ * (`eas env:list <environment>`), not in a local shell. Build 8 shipped without it and crashed on
+ * Continue with Google (TASK-53), so an EAS build of the real variant stops here instead.
+ */
+export function assertSignInConfigured(env: Readonly<Record<string, string | undefined>>): void {
+  if (env['APP_VARIANT'] === 'demo' || env['EAS_BUILD'] !== 'true' || env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID']) return;
+  throw new Error(
+    'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is not set for this EAS build. Without it GoogleSignin.configure() never runs and ' +
+      'Continue with Google crashes the iOS app (TASK-53). Set it in the build profile\'s EAS environment: ' +
+      'eas env:create --name EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID --visibility plaintext --environment <env> --value <the client_type 3 web client from google-services.json>.',
+  );
+}
+
+export default (): ExpoConfig => {
+  assertSignInConfigured(process.env);
+  return config();
+};
+
+const config = (): ExpoConfig => ({
   name: demo ? 'Grocs Demo' : 'Grocs',
   slug: 'grocs',
   version: '0.0.1',

@@ -43,14 +43,21 @@ export interface NativeApp {
 }
 
 /**
- * Read once, not per call: GoogleSignin.configure() only needs to run once, and an absent value
- * (misconfigured build) should fail the first sign-in attempt with a clear native error rather than
- * silently skip configure() and fail with a less obvious one.
+ * Read once, not per call: GoogleSignin.configure() only needs to run once. Metro inlines this at
+ * bundle time, so a cloud build reads it from the EAS environment, not from anyone's shell (TASK-53).
  */
 const GOOGLE_WEB_CLIENT_ID = process.env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'];
 
+/**
+ * Shown when a build was bundled without the web client ID. The native picker must never be called
+ * unconfigured: on iOS release builds GIDSignIn throws an NSException that the library catches only
+ * in DEBUG, so the app dies instead of reporting anything (TASK-53).
+ */
+const MISSING_WEB_CLIENT_ID = 'Google sign-in is not set up in this build (no web client ID). Please report this.';
+
 /** The real native Google picker (@react-native-google-signin/google-signin), TASK-1.15. */
 async function getGoogleIdToken(): Promise<string> {
+  if (!GOOGLE_WEB_CLIENT_ID) throw new Error(MISSING_WEB_CLIENT_ID);
   await GoogleSignin.hasPlayServices();
   const response = await GoogleSignin.signIn();
   if (response.type === 'cancelled') throw new Error('Google sign-in was cancelled');

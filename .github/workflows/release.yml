@@ -39,6 +39,10 @@ name: release
 #                              secret to a local file itself and points GOOGLE_SERVICE_INFO_PLIST_
 #                              PATH at it, bypassing EAS's own (broken) resolution entirely.
 #
+# EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is not a repository secret: Metro inlines it while bundling on
+# EAS's worker, so it lives in the EAS environments (production for iOS, preview for Android - see
+# `eas env:list <environment>`). Each job checks the built bundle carries it before shipping (TASK-53).
+#
 # iOS needs no credential beyond that: the App Store Connect API key is already stored server-side
 # on EAS's own credentials service, from the manual `eas submit` that first created the TestFlight
 # listing.
@@ -92,6 +96,17 @@ jobs:
         if: always()
         working-directory: apps/mobile
         run: rm -f GoogleService-Info.plist
+      - name: Download the IPA
+        working-directory: apps/mobile
+        # The newest iOS build, the same one `submit --latest` below picks; the concurrency group keeps
+        # a second release from slipping in between. Same either-shape read as the Android job's.
+        run: |
+          npx eas-cli build:list --platform ios --limit 1 --json --non-interactive > build.json
+          url=$(jq -r 'if type == "array" then .[0] else . end | .artifacts.applicationArchiveUrl' build.json)
+          test -n "$url" && test "$url" != "null"
+          curl -sL -o grocs.ipa "$url"
+      - name: The built bundle carries the Google web client ID (TASK-53)
+        run: node tools/built-sign-in.ts apps/mobile/grocs.ipa
       - name: Submit to TestFlight
         working-directory: apps/mobile
         run: npx eas-cli submit --platform ios --latest --non-interactive
@@ -122,6 +137,8 @@ jobs:
           url=$(jq -r 'if type == "array" then .[0] else . end | .artifacts.applicationArchiveUrl' build.json)
           test -n "$url" && test "$url" != "null"
           curl -sL -o grocs.apk "$url"
+      - name: The built bundle carries the Google web client ID (TASK-53)
+        run: node tools/built-sign-in.ts apps/mobile/grocs.apk
       - uses: actions/upload-artifact@v7
         with:
           name: grocs-apk
