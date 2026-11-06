@@ -1,0 +1,12 @@
+# TASK-56, step 3 of 3, back on Jo's device: Pat is in the household, and there is no code to send.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: jo
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn: "Settings"
+- tapOn: "Household"
+- extendedWaitUntil:
+    visible: "Pat"
+    timeout: 15000
+- assertVisible: ".*has both its members.*"

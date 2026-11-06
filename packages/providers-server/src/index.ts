@@ -1,2 +1,2 @@
-export { KitchenStore } from './kitchen-store.ts';
-export type { CreatedKitchen, JoinKitchenResult } from './kitchen-store.ts';
+export { KitchenStore, NotAMemberError } from './kitchen-store.ts';
+export type { CreatedKitchen, JoinKitchenResult, KitchenInvite } from './kitchen-store.ts';

@@ -23,19 +23,32 @@ export interface Run {
   readonly device: string;
   readonly flow: string;
   readonly env: Readonly<Record<string, string>>;
+  /** Set CODE to Jo's pending invite, read from the emulator, before this run (TASK-56). */
+  readonly needsInviteCode?: boolean;
 }
 
 const PAIR_ADD = 'second-device-add.yaml';
 const PAIR_SEE = 'second-device-see.yaml';
+const HOUSEHOLD = ['household-invite.yaml', 'household-join.yaml', 'household-full.yaml'] as const;
+const TWO_DEVICE: readonly string[] = [PAIR_ADD, PAIR_SEE, ...HOUSEHOLD];
 
 /** Which flow runs on which device, in order. `flows` are the top-level flow file names. */
 export function planRuns(devices: Devices, flows: readonly string[], runId: string): Run[] {
-  const single = flows.filter((f) => f !== PAIR_ADD && f !== PAIR_SEE).sort();
+  const single = flows.filter((f) => !TWO_DEVICE.includes(f)).sort();
   const targets = [devices.android, devices.ios].filter((d): d is string => Boolean(d));
   const runs: Run[] = targets.flatMap((device) => single.map((flow) => ({ device, flow, env: { RUN_ID: runId } })));
   if (devices.android && devices.ios && flows.includes(PAIR_ADD) && flows.includes(PAIR_SEE)) {
     const env = { RUN_ID: runId, ITEM: `E2E from Alex ${runId}` };
     runs.push({ device: devices.android, flow: PAIR_ADD, env }, { device: devices.ios, flow: PAIR_SEE, env });
+  }
+  // Jo invites on one device, Pat joins with that code on the other, then Jo sees the kitchen full.
+  if (devices.android && devices.ios && HOUSEHOLD.every((f) => flows.includes(f))) {
+    const env = { RUN_ID: runId };
+    runs.push(
+      { device: devices.android, flow: HOUSEHOLD[0], env },
+      { device: devices.ios, flow: HOUSEHOLD[1], env, needsInviteCode: true },
+      { device: devices.android, flow: HOUSEHOLD[2], env },
+    );
   }
   return runs;
 }
@@ -54,6 +67,19 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const appDir = join(root, 'apps', 'mobile');
 const adb = join(process.env['ANDROID_HOME'] ?? join(homedir(), 'Library/Android/sdk'), 'platform-tools/adb');
 const configDir = join(root, 'apps/mobile/.emulator-config');
+
+/** Jo's kitchen's newest pending invite code, straight from the Firestore emulator. */
+function pendingInviteCode(): string {
+  const script = `
+    import('firebase-admin/app').then(async ({ initializeApp }) => {
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const db = getFirestore(initializeApp({ projectId: 'demo-grocs' }));
+      const snap = await db.collection('inviteCodes').where('kitchenId', '==', 'seed-open-kitchen').where('status', '==', 'pending').get();
+      const newest = snap.docs.sort((a, b) => b.data().createdAt - a.data().createdAt)[0];
+      process.stdout.write(newest ? newest.id : '');
+    });`;
+  return execFileSync('node', ['-e', script], { cwd: root, encoding: 'utf8', env: { ...process.env, FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' } }).trim();
+}
 
 const up = (port: number) => spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN'], { encoding: 'utf8' }).stdout.trim() !== '';
 const sh = (cmd: string, args: readonly string[], env: Readonly<Record<string, string>> = {}, cwd = root) =>
@@ -80,7 +106,12 @@ function runFlows(devices: Devices): number {
   const failed: string[] = [];
   for (const run of planRuns(devices, flows, runId)) {
     console.log(`\n== ${run.flow} on ${run.device}`);
-    const env = Object.entries(run.env).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
+    const code = run.needsInviteCode ? pendingInviteCode() : '';
+    if (run.needsInviteCode && !code) {
+      failed.push(`${run.flow} on ${run.device} (no pending invite for Jo's kitchen to join with)`);
+      continue;
+    }
+    const env = Object.entries({ ...run.env, ...(code ? { CODE: code } : {}) }).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
     if (sh('maestro', ['--device', run.device, 'test', ...env, `e2e/${run.flow}`], {}, appDir) !== 0) failed.push(`${run.flow} on ${run.device}`);
   }
   console.log(failed.length === 0 ? '\ne2e: every flow passed' : `\ne2e: FAILED ${failed.join('; ')}`);

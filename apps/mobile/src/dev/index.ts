@@ -6,7 +6,7 @@ import { connectFirestoreEmulator, getFirestore } from '@react-native-firebase/f
 import { getFunctions, httpsCallableFromUrl } from '@react-native-firebase/functions';
 import { Platform } from 'react-native';
 import type { AuthFns, FunctionsFns } from '@grocs/providers-firebase';
-import { DEMO_PROJECT, seedUsers } from '../../../../firebase/seed/data.ts';
+import { DEMO_PROJECT, seedAccounts } from '../../../../firebase/seed/data.ts';
 import { FirebaseTestSignIn } from './test-sign-in.ts';
 
 /** A string no release bundle may contain. */
@@ -49,13 +49,13 @@ export const devTools = {
 export type DevTools = typeof devTools;
 
 /**
- * Signs a seed account (seedUsers, by its lowercase display name: 'alex' or 'sam') in to the Auth
+ * Signs a seed account (seedAccounts, by its lowercase display name: 'alex', 'sam', 'jo' or 'pat') in to the Auth
  * emulator, for the end-to-end flows' grocs://dev-sign-in link (TASK-62). Not a way in for people:
  * there is no button for it, release builds do not contain this file (R53), and native.ts offers it
  * only while the build is connected to the emulators, so it never touches live data (R52).
  */
 export async function signInAsSeedUser(fns: AuthFns, auth: unknown, name: string): Promise<void> {
-  const account = seedUsers.find((u) => u.displayName.toLowerCase() === name.toLowerCase());
-  if (!account) throw new Error(`No seed account named "${name}" (expected ${seedUsers.map((u) => u.displayName.toLowerCase()).join(' or ')})`);
+  const account = seedAccounts.find((u) => u.displayName.toLowerCase() === name.toLowerCase());
+  if (!account) throw new Error(`No seed account named "${name}" (expected ${seedAccounts.map((u) => u.displayName.toLowerCase()).join(' or ')})`);
   await new FirebaseTestSignIn(fns, auth).signInWithTestAccount(account.email, account.password);
 }

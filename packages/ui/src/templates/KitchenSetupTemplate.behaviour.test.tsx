@@ -68,4 +68,16 @@ describe('KitchenSetupTemplate', () => {
     expect(screen.queryByText(/MOREL/)).toBeNull();
     expect(screen.getByRole('button', { name: 'Start planning' })).toBeTruthy();
   });
+
+  it('offers the code entry before the kitchen exists, for someone who already has an invite (TASK-56)', async () => {
+    const onOpenInvite = vi.fn();
+    render(<NoInviteYet onOpenInvite={onOpenInvite} />);
+    await user.click(screen.getByRole('button', { name: 'Open it to join' }));
+    expect(onOpenInvite).toHaveBeenCalledOnce();
+  });
+
+  it('does not offer it once the kitchen has its own invite', () => {
+    render(<Rest onOpenInvite={() => undefined} />);
+    expect(screen.queryByRole('button', { name: 'Open it to join' })).toBeNull();
+  });
 });

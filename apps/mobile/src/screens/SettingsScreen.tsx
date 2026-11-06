@@ -32,6 +32,7 @@ export function SettingsScreen() {
       notificationsUnavailable="Coming soon" // push opt-in is TASK-1.29, which wires the real toggle
       onBack={go.groceries}
       onCopyDiagnostics={copyDiagnostics}
+      onOpenHousehold={go.household}
       onSignOut={signOut}
     />
   );

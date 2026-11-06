@@ -1,0 +1,15 @@
+# TASK-56, step 1 of 3: Jo, whose kitchen has room, opens the household from Settings and gets an
+# invite code. tools/e2e.ts reads that code from the emulator and hands it to household-join.yaml.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: jo
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn: "Settings"
+- tapOn: "Household"
+- extendedWaitUntil:
+    visible: "Jo's kitchen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: "Waiting for your partner to join.*"
+    timeout: 20000

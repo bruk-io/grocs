@@ -39,4 +39,5 @@ export { watchWeekMeals } from './queries/watch-week-meals.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';
 export { findMyKitchen } from './queries/find-my-kitchen.ts';
 export { getKitchenInfo } from './queries/get-kitchen-info.ts';
+export { getKitchenInvite } from './queries/get-kitchen-invite.ts';
 export type { KitchenInfo, KitchenInfoMember } from './queries/get-kitchen-info.ts';

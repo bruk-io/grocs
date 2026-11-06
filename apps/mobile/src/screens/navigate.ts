@@ -12,5 +12,6 @@ export function useGo() {
     groceries: () => router.navigate('/'),
     quickAdd: () => router.navigate('/quick-add'),
     settings: () => router.navigate('/settings'),
+    household: () => router.navigate('/household'),
   };
 }

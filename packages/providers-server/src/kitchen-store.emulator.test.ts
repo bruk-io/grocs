@@ -27,6 +27,9 @@ function gatewayFor(store: KitchenStore, uid: string, displayName: string = uid)
     async getKitchen(kitchenId) {
       return store.getKitchen(kitchenId);
     },
+    async inviteForKitchen(kitchenId) {
+      return store.inviteForKitchen(kitchenId, uid);
+    },
   };
 }
 
@@ -92,5 +95,35 @@ describe('KitchenStore: stored shape and races', () => {
     const snap = await db.doc('memberships/partner-uid').get();
     expect(snap.exists).toBe(true);
     expect(snap.data()).toEqual({ kitchenId: created.kitchenId });
+  });
+
+  it('issues a fresh invite once the kitchen\'s last one has expired, and a partner can join with it (TASK-56)', async () => {
+    const store = storeFor();
+    const db = adminFirestore();
+    const owner = `owner-${newId()}`;
+    const created = await store.createKitchen('Our kitchen', 'UTC', owner, 'Owner');
+    await db.doc(`inviteCodes/${created.inviteCode}`).update({ createdAt: 0 }); // long past the 1-day lifetime
+    const fresh = await store.inviteForKitchen(created.kitchenId, owner);
+    if (fresh.kind !== 'open') throw new Error(`expected an open invite, got ${fresh.kind}`);
+    expect(fresh.code).not.toBe(created.inviteCode);
+    expect(await store.joinKitchen(fresh.code, `partner-${newId()}`, 'Partner')).toEqual({ kind: 'joined', kitchenId: created.kitchenId });
+  });
+
+  it('gives two members asking at once the same invite, not one each', async () => {
+    const store = storeFor();
+    const db = adminFirestore();
+    const owner = `owner-${newId()}`;
+    const created = await store.createKitchen('Our kitchen', 'UTC', owner, 'Owner');
+    await db.doc(`inviteCodes/${created.inviteCode}`).update({ createdAt: 0 });
+    const [a, b] = await Promise.all([store.inviteForKitchen(created.kitchenId, owner), store.inviteForKitchen(created.kitchenId, owner)]);
+    expect(a).toEqual(b);
+    const pending = await db.collection('inviteCodes').where('kitchenId', '==', created.kitchenId).where('status', '==', 'pending').get();
+    expect(pending.docs.filter((d) => (d.data()['createdAt'] as number) > 0)).toHaveLength(1);
+  });
+
+  it('refuses the invite to someone who is not a member', async () => {
+    const store = storeFor();
+    const created = await store.createKitchen('Our kitchen', 'UTC', `owner-${newId()}`, 'Owner');
+    await expect(store.inviteForKitchen(created.kitchenId, `stranger-${newId()}`)).rejects.toThrow('not a member');
   });
 });

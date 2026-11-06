@@ -12,7 +12,15 @@ export interface KitchenGateway {
   findMyKitchen(): Promise<string | null>;
   /** A kitchen's name and members, for a kitchen the caller belongs to - or null for an id nobody has. */
   getKitchen(kitchenId: string): Promise<KitchenDetails | null>;
+  /**
+   * The invite a member shares to bring their partner in (TASK-56): the kitchen's pending invite if it
+   * still works, or a fresh one when the last expired or was used - or 'full' once the kitchen has
+   * both its members (R3). Rejects when the caller is not a member of the kitchen.
+   */
+  inviteForKitchen(kitchenId: string): Promise<KitchenInvite>;
 }
+
+export type KitchenInvite = { readonly kind: 'open'; readonly code: string; readonly expiresAt: number } | { readonly kind: 'full' };
 
 export interface CreatedKitchen {
   readonly kitchenId: string;

@@ -92,6 +92,16 @@ describe('creating a kitchen', () => {
 });
 
 describe('joining a kitchen', () => {
+  it('joins from kitchen setup, for someone who signed in before opening their invite (TASK-56)', async () => {
+    const { mine, clock, inviteCode, kitchenId } = await partnerWithKitchen();
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Open it to join' }));
+    fireEvent.change(await screen.findByRole('textbox'), { target: { value: inviteCode } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+    await screen.findByText('Nothing on the list yet');
+    expect(await mine.findMyKitchen()).toBe(kitchenId);
+  });
+
   it('joins from the invite link and lands on Groceries', async () => {
     const { mine, clock, inviteCode, kitchenId } = await partnerWithKitchen();
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: `/join?code=${inviteCode}` });

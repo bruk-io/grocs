@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 /** Household. */
 export const Rest: Story = { args: { inviteCode: 'MOREL-24', onShare: () => undefined, onCopy: () => undefined } };
 /** Before Start planning there is no code: the card shows a hint and no Share link or Copy code. */
-export const NoInviteYet: Story = { args: { inviteCode: null } };
+export const NoInviteYet: Story = { args: { inviteCode: null, onOpenInvite: () => undefined } };
 
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Rest, decorators: [withPhoneInsets] };

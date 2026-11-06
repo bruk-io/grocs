@@ -1,10 +1,10 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId } from '@grocs/core';
+import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isKitchenFull } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
 import { FakeClock } from '../clock/fake.ts';
 import type { Clock } from '../clock/port.ts';
 import { SequentialIds } from '../ids/fake.ts';
 import type { IdGenerator } from '../ids/port.ts';
-import type { CreatedKitchen, JoinOutcome, KitchenDetails, KitchenGateway } from './port.ts';
+import type { CreatedKitchen, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from './port.ts';
 
 interface Invite {
   readonly code: string;
@@ -84,5 +84,17 @@ export class FakeKitchenGateway implements KitchenGateway {
     const kitchen = this.#kitchens.get(kitchenId);
     if (!kitchen) return null;
     return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames[uid] ?? uid })) };
+  }
+
+  async inviteForKitchen(kitchenId: string): Promise<KitchenInvite> {
+    const kitchen = this.#kitchens.get(kitchenId);
+    if (!kitchen || !kitchen.members.includes(this.#callerUid)) throw new Error('permission-denied: not a member of this kitchen');
+    if (isKitchenFull(kitchen)) return { kind: 'full' };
+    const now = this.#clock.now();
+    const reused = inviteToReuse([...this.#invites.values()].filter((i) => i.kitchenId === kitchenId), now);
+    if (reused) return { kind: 'open', code: reused.code, expiresAt: inviteExpiresAt(reused.createdAt) };
+    const code = inviteCodeFromId(this.#ids.newId());
+    this.#invites.set(code, { code, kitchenId, createdAt: now, status: 'pending' });
+    return { kind: 'open', code, expiresAt: inviteExpiresAt(now) };
   }
 }

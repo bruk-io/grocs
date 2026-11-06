@@ -127,6 +127,8 @@ export { SignInTemplate } from './templates/SignInTemplate.tsx';
 export type { SignInTemplateProps } from './templates/SignInTemplate.tsx';
 export { KitchenSetupTemplate } from './templates/KitchenSetupTemplate.tsx';
 export type { KitchenSetupTemplateProps } from './templates/KitchenSetupTemplate.tsx';
+export { HouseholdTemplate } from './templates/HouseholdTemplate.tsx';
+export type { HouseholdInvite, HouseholdMember, HouseholdTemplateProps } from './templates/HouseholdTemplate.tsx';
 export { InviteJoinTemplate } from './templates/InviteJoinTemplate.tsx';
 export type { InviteJoinTemplateProps } from './templates/InviteJoinTemplate.tsx';
 export { InviteRetryTemplate } from './templates/InviteRetryTemplate.tsx';
