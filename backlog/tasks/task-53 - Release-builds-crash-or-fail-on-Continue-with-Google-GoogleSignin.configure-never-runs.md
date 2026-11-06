@@ -7,7 +7,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-06 16:13'
-updated_date: '2026-11-06 17:44'
+updated_date: '2026-11-06 18:40'
 labels:
   - size-2
   - release
@@ -119,4 +119,6 @@ Error: Could not start Authentication Emulator, port taken.
 No repro: the bug lives in EAS's cloud bundling environment, not in a test the repo can run; the worker's recorded repro is tools/built-sign-in.ts exiting 1 on build 8's IPA and the v0.1.0 APK (pre-fix artifacts) and the 'apiClient is null' error on the fold emulator. The reviewer did not re-run it against those artifacts.
 
 Reviewed by philosophy:reviewer. All five criteria met: #1 eas env:list production and preview both define EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID; #2 native.ts throws a readable Error before any GoogleSignin call; #3 app.config.ts assertSignInConfigured throws on a non-demo EAS build without the ID, tested in app-config.test.ts; #4 release.yml runs tools/built-sign-in.ts before submit/upload, run 42257624472 shows it passing on grocs.ipa and grocs.apk; #5 Firebase lists SHA-1 5d5160a9...2c4c and SHA-256 2238a673...d523. Full-tier check exited 1 only because pnpm test:emulator could not bind port 9099 (held by another local node process), so check:release, storybook and visual did not run; pnpm check, typecheck, test passed. Findings, none filed: (low) bundle check matches any *.apps.googleusercontent.com ID, not specifically the web client; (low) iOS download relies on build:list --limit 1 plus the concurrency group; (info) not yet confirmed on a physical iPhone.
+
+2026-11-06 full check re-run on main (0a03a15) after stopping a stale 13-day-old local Firebase emulator (PID 52368) that held port 9099: .claude/checks.json 'full' exits 0. test:emulator 91/91, check:release 'release bundles clean (2 bundles, 9 release-barred path patterns)', Storybook built, visual 410 story views checked (axe, 44x44; images compared on Linux only).
 <!-- SECTION:NOTES:END -->
