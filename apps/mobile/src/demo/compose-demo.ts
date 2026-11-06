@@ -49,6 +49,7 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   return {
     app,
     isDevBuild: false,
+    devSignIn: null,
     diagnostics: () => diagnosticsText({ appVersion: runtime.appVersion, platform: runtime.platform, build: 'demo' }, 'demo build: nothing is logged to the phone'),
     demo: {
       kitchenId: DEMO_KITCHEN_ID,

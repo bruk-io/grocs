@@ -28,6 +28,7 @@ export async function appOnFakes({
   clock = new FakeClock(),
   kitchens = new FakeKitchenGateway('u1', undefined, clock),
   googleAccount = null,
+  devSignIn = null,
 }: {
   signedIn: boolean;
   /** Gates dev-only routes like /groceries-samples (R53); carries no account or sign-in capability. */
@@ -42,6 +43,8 @@ export async function appOnFakes({
   clock?: FakeClock;
   /** Stands in for a successful Google picker (FakeAuth's own doc): set to make Continue with Google succeed; null (the default) stands in for a cancelled or failed pick. */
   googleAccount?: { uid: string; email: string; displayName: string | null } | null;
+  /** Stands in for the development build's seed-account sign-in (TASK-62); null, the default, is a release build or one on live Firebase. */
+  devSignIn?: ((auth: FakeAuth, name: string) => Promise<void>) | null;
 }): Promise<NativeApp & { readonly clipboard: FakeClipboard }> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }], googleAccount);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
@@ -55,7 +58,7 @@ export async function appOnFakes({
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     copyText: clipboard.copyText,
   });
-  return { clipboard, app, isDevBuild, demo: null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => auth.signInWithGoogle() };
+  return { clipboard, app, isDevBuild, demo: null, devSignIn: devSignIn ? (name) => devSignIn(auth, name) : null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => auth.signInWithGoogle() };
 }
 
 /**

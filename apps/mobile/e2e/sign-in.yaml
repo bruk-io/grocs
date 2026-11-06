@@ -1,0 +1,13 @@
+# R51: signing in. Alex lands on the seed kitchen's Groceries, and Settings shows who is signed in.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: alex
+---
+- runFlow: subflows/sign-in.yaml
+- assertVisible: "Meal plan"
+- tapOn: "Settings"
+- assertVisible: "alex@grocs.test · .*"
+- tapOn: "Sign out"
+- extendedWaitUntil:
+    visible: "Continue with Google"
+    timeout: 15000

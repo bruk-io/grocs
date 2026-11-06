@@ -1,0 +1,16 @@
+# R51: a change reaching a second device, first half. Alex adds ${ITEM} on this device;
+# second-device-see.yaml, run on the other device as Sam, waits for it. tools/e2e.ts runs the pair.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: alex
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn:
+    text: "Add an item"
+    index: 0
+- inputText: "${ITEM}"
+# Enter submits the field. hideKeyboard is Back on Android, which drops the typed text.
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "${ITEM}"
+    timeout: 10000

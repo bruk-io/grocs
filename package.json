@@ -11,6 +11,7 @@
     "test": "vitest run --project unit --project ui --project app --project tools",
     "test:emulator": "firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'",
     "emulators": "node tools/emulators.ts",
+    "e2e": "node tools/e2e.ts",
     "typecheck": "tsc --noEmit",
     "check": "node tools/checks/run.ts --mode all",
     "check:edit": "node tools/checks/run.ts --mode files",

@@ -5,6 +5,7 @@ import { check as agentDefinitions } from './agent-definitions.ts';
 import { check as consoleUse } from './console-use.ts';
 import { check as corePurity } from './core-purity.ts';
 import { check as designTokens } from './design-tokens.ts';
+import { check as e2eFlows } from './e2e-flows.ts';
 import { check as firebaseIsolation } from './firebase-isolation.ts';
 import { check as importLayers } from './import-layers.ts';
 import { check as mergeConflictMarkers } from './merge-conflict-markers.ts';
@@ -31,4 +32,5 @@ export const checks: readonly Check[] = [
   referenceBuilt,
   uiLibrary,
   visualBaselines,
+  e2eFlows,
 ];
