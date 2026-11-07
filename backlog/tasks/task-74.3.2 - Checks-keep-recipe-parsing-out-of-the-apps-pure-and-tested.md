@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:34'
+updated_date: '2026-11-07 02:37'
 labels:
   - size-3
   - orchestrator
@@ -69,3 +69,20 @@ Split key: orch-pure-boundary. Layer: orchestrator. Contract: TASK-74's plan.
 - AC#6: `pnpm check` exits 0 with no weakening finding; the pre-commit hook passes.
 - AC#7: the rule file text.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Worker report (2026-11-06, commit 753f1c3 on branch worktree-wf_ff6cb6f7-7f6-2).
+
+Base: the worktree was cut from origin/main (9e3739c, TASK-67), which local main (b3168d7, board split) had not merged, so `git merge --ff-only main` failed; I merged local main in (4b3e3ea) to get this task file. Whoever lands this branch on main gets 9e3739c's TASK-67 commits with it.
+
+Per AC:
+- AC#1: tools/checks/import-layers.ts exports APP_PROVIDERS { mobile: [providers-firebase, providers-device, providers-memory], functions: [providers-server] }; rule import-layers/app-providers (req 'R26, R27'). An app with no table entry fails ('no entry in APP_PROVIDERS'); no test-file exemption (a.test.ts case in the tests). The existing 'every rule has a requirement, a reason and a fix' test covers the why/fix lengths.
+- AC#2: rule import-layers/pure-folder. Non-test files under packages/providers-server/src/recipe/pure/ may import '@grocs/core' or a relative spec whose normalised path stays under pure/; anything else fails. Runs before the existing branches, so the other rules still apply.
+- AC#3: core-purity uses PURE_ROOTS = ['packages/core/src/', PURE_ROOT]; summary and why name both folders.
+- AC#4: test-presence/domain-unit-test covers pure/ except pure/fixtures/; summary names both folders.
+- AC#5/#6: `mise exec -- pnpm exec vitest run --project tools tools/checks` -> Test Files 11 passed (11), Tests 165 passed (165). Verbose run of the two files: Tests 54 passed, including 'accepts imports that follow the layer table' (first test, unchanged), the 5 app-providers cases (mobile->firebase/device/memory and functions->server accepted; mobile->server, from shipped and test files; functions->firebase; apps/other->each provider; message case), the 5 pure-folder cases (node:crypto, ../fetch-page.ts, cheerio, @grocs/ports rejected; @grocs/core and inside-pure relatives accepted; pure/ tests may use node:fs), core-purity pure/ Date.now() fails and recipe/fetch-page.ts passes, test-presence pure/ module with no test fails (fixtures/ and recipe/fetch-page.ts exempt).
+- AC#6: `pnpm check` -> 'checks passed (16 checks, all mode, 972 ms)', exit 0. `node tools/checks/run.ts --mode staged` (the weakening review over the staged diff) -> 'checks passed (16 checks, staged mode, 1121 ms)', with no weakening finding. Check-code diff is net-additive. Pre-commit hook: checks, typecheck, unit-tests all passed (138 files, 1765 tests).
+- AC#7: .claude/rules/providers-hold-no-rules.md gains the section 'The one exception: packages/providers-server/src/recipe/pure/ (decision-15)', saying the parsing is server-only, held to core-purity, pure-folder and test-presence, so R25's drift reason does not apply.
+<!-- SECTION:NOTES:END -->
