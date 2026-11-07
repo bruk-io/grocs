@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.7
 title: decodeEntities resolves names like '&constructor;' through Object's prototype
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 03:45'
-updated_date: '2026-11-07 03:46'
+updated_date: '2026-11-07 03:50'
 labels:
   - size-1
   - layer-providers
@@ -53,3 +53,24 @@ If the regex in decodeEntities does not match '__proto__' (underscores), the tes
 ### Proof
 The new test passes and the existing entity tests still pass.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Notes
+
+### Changes Made
+1. Fixed line 40 in packages/providers-server/src/recipe/pure/recipe-schema.ts:
+   - Changed from: `return NAMED_ENTITIES[body.toLowerCase()] ?? match;`
+   - Changed to: `const key = body.toLowerCase(); return Object.hasOwn(NAMED_ENTITIES, key) ? NAMED_ENTITIES[key]! : match;`
+   - This ensures inherited properties like 'constructor', 'toString', and '__proto__' are not resolved and are left unchanged
+
+2. Added test case in packages/providers-server/src/recipe/pure/recipe-schema.test.ts:
+   - Test verifies that inherited property names are left unchanged in the parsed recipe
+   - Specifically tests: '&constructor;', '&toString;', and '&__proto__;'
+
+### Test Results
+- Unit tests: ✓ All 191 tests passed (7 test files)
+- Typecheck: ✓ Passed (no TypeScript errors)
+- The new test specifically validates that these inherited names are not decoded and pass through as literals
+<!-- SECTION:NOTES:END -->

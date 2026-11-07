@@ -137,6 +137,14 @@ describe('parseRecipePage', () => {
     expect(result.value.content.steps[0]).toBe('Boil the macaroni & drain it.');
   });
 
+  it('leaves names that are not in the entity table unchanged, including inherited ones', () => {
+    const html = `<script type="application/ld+json">{"@type": "Recipe", "name": "A &constructor; B &toString; C &__proto__;", "recipeIngredient": ["1 egg"], "recipeInstructions": ["Cook."]}</script>`;
+    const result = parseRecipePage(html);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.value.content.title).toBe('A &constructor; B &toString; C &__proto__;');
+  });
+
   it('strips literal HTML tags from the title, steps and ingredient lines', () => {
     const html = `<script type="application/ld+json">{
       "@type": "Recipe",
