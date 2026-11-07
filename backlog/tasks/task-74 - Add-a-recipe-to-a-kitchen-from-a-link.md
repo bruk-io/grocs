@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 03:45'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-8
   - core
@@ -532,4 +532,6 @@ Split on 2026-11-06 into TASK-74.1 to TASK-74.5, following the proposed split ab
 Split into 40 leaf tasks on 2026-11-07 (orchestrator, from a map, draft, three-critic and revise workflow). The slice contract is this task's plan and is frozen once reviewed. Bruk's calls on 2026-11-07: (1) integration groups A (SyncStore widening, TASK-74.7.4-74.7.8) and B (Deps widening, TASK-74.5.10-74.5.12) are built in one shared worktree without builder commits, and the orchestrator commits once green - a recorded deviation from decision-3 and CLAUDE.md, precedent c4db885; (2) a delete wins over re-import (R20): importing a deleted recipe's link returns recipe-deleted, overriding decision-16's restore consequence; (3) commit locally only, no pushes or CI runs - TASK-74.5.8 (visual baselines) waits for Bruk to push; (4) run to a checkpoint after the server side and recipe storage, then the app side.
 
 Contract amended 2026-11-07 (orchestrator, decision-3 mediation): section 9 step 4 strips every trailing slash, not one, so normaliseRecipeUrl stays idempotent for paths like '//'. The code fix is the size-1 bug under TASK-74.4.
+
+2026-11-07 (orchestrator): after wave 3, pnpm test:emulator has 4 expected failures in packages/providers-firebase/src/recipe-importer.emulator.test.ts. That suite runs FirebaseRecipeImporter through the real importRecipe callable, which TASK-74.4.7 adds; TASK-74.5.9 runs it green. Not skipped (tests are never weakened).
 <!-- SECTION:NOTES:END -->
