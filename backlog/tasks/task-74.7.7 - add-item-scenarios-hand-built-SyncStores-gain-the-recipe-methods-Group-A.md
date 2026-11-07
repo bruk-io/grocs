@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.7
 title: add-item scenario's hand-built SyncStores gain the recipe methods - Group A
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:49'
 labels:
   - size-1
   - layer-application
@@ -50,3 +50,28 @@ Each acceptance criterion is shown by a test or command output recorded in the n
 Files expected to change:
 - packages/application/src/commands/add-item.scenario.test.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Complete
+
+Added recipe methods (mergeRecipe, getRecipes, watchRecipes) to all three hand-built SyncStore literals in add-item.scenario.test.ts:
+
+1. Line 54 (broken store): Added methods with rejecting implementations
+2. Line 91 (offlineStore): Added methods delegating to shared store  
+3. Line 166 (second broken store): Added methods with unavailable error responses
+
+### Test Results
+All acceptance criteria met:
+- AC#1: All three SyncStore literals now declare mergeRecipe, getRecipes and watchRecipes methods
+- AC#2: vitest --project unit packages/application passes with 17 test files, 94 tests passing
+
+```
+Test Files  17 passed (17)
+Tests  94 passed (94)
+Duration  347ms (transform 2.18s, setup 0ms, import 3.13s, tests 129ms, environment 1ms)
+```
+
+Group A application literals done. No commit made as per task instructions.
+<!-- SECTION:NOTES:END -->

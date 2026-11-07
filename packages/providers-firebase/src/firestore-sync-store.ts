@@ -1,17 +1,28 @@
-import { decodeItem, decodeMeal, encodeItem, encodeMeal, mergeItem, mergeMeal } from '@grocs/core';
-import type { Item, Meal } from '@grocs/core';
+import {
+  decodeItem,
+  decodeMeal,
+  decodeRecipe,
+  encodeItem,
+  encodeMeal,
+  encodeRecipe,
+  mergeItem,
+  mergeMeal,
+  mergeRecipe,
+} from '@grocs/core';
+import type { Item, Meal, Recipe } from '@grocs/core';
 import type { SyncStore, Unsubscribe } from '@grocs/ports';
 import type { FirestoreFns, QuerySnapshotLike } from './sdk.ts';
 
 /**
- * The kitchen's items and meals in Firestore: `kitchens/{kitchenId}/items/{itemId}` and
- * `kitchens/{kitchenId}/meals/{mealId}`, one document per item or meal in the shape core defines
- * (R30). It translates; the merge rules are core's (field-level last-write-wins, permanent
- * deletes).
+ * The kitchen's items, meals and recipes in Firestore: `kitchens/{kitchenId}/items/{itemId}`,
+ * `kitchens/{kitchenId}/meals/{mealId}` and `kitchens/{kitchenId}/recipes/{recipeId}`, one
+ * document per item, meal or recipe in the shape core defines (R30, decision-16). It translates;
+ * the merge rules are core's (field-level last-write-wins, permanent deletes).
  *
- * mergeItem and mergeMeal read, merge and write in a transaction so two phones changing different
- * fields at the same moment keep both changes. A Firestore transaction needs a connection, so a
- * merge made offline fails instead of queueing; making R16 work is part of design question D4.
+ * mergeItem, mergeMeal and mergeRecipe read, merge and write in a transaction so two phones
+ * changing different fields at the same moment keep both changes. A Firestore transaction needs
+ * a connection, so a merge made offline fails instead of queueing; making R16 work is part of
+ * design question D4.
  */
 export class FirestoreSyncStore implements SyncStore {
   readonly #fs: FirestoreFns;
@@ -96,6 +107,42 @@ export class FirestoreSyncStore implements SyncStore {
     });
   }
 
+  async mergeRecipe(kitchenId: string, recipe: Recipe): Promise<void> {
+    const ref = this.#fs.doc(this.#db, 'kitchens', kitchenId, 'recipes', recipe.id);
+    await this.#fs.runTransaction(this.#db, async (tx) => {
+      const snapshot = await tx.get(ref);
+      let merged = recipe;
+      if (snapshot.exists()) {
+        const stored = decodeRecipe(snapshot.data());
+        if (!stored.ok) throw new Error(`invalid recipe document ${recipe.id}: ${stored.error.path} ${stored.error.message}`);
+        merged = mergeRecipe(stored.value, recipe);
+      }
+      tx.set(ref, encodeRecipe(merged));
+    });
+  }
+
+  async getRecipes(kitchenId: string): Promise<readonly Recipe[]> {
+    const snapshot = await this.#fs.getDocs(this.#recipesQuery(kitchenId));
+    const { recipes, problems } = decodeAllRecipes(snapshot);
+    if (problems.length > 0) throw new Error(problems.join('; '));
+    return recipes;
+  }
+
+  watchRecipes(
+    kitchenId: string,
+    onRecipes: (recipes: readonly Recipe[]) => void,
+    onError?: (error: Error) => void,
+  ): Unsubscribe {
+    return this.#fs.onSnapshot(this.#recipesQuery(kitchenId), {
+      next: (snapshot) => {
+        const { recipes, problems } = decodeAllRecipes(snapshot);
+        for (const problem of problems) onError?.(new Error(problem));
+        onRecipes(recipes);
+      },
+      error: (error) => onError?.(error),
+    });
+  }
+
   #weekQuery(kitchenId: string, weekId: string): unknown {
     return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'items'), this.#fs.where('weekId', '==', weekId));
   }
@@ -103,6 +150,11 @@ export class FirestoreSyncStore implements SyncStore {
   /** Meal's stored weekId is a Stamped field (StoredField), unlike Item's plain string, so the query reads weekId.v. */
   #mealWeekQuery(kitchenId: string, weekId: string): unknown {
     return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'meals'), this.#fs.where('weekId.v', '==', weekId));
+  }
+
+  /** Recipes are kitchen-wide (no weekId), so the whole collection is read with no where clause. */
+  #recipesQuery(kitchenId: string): unknown {
+    return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'recipes'));
   }
 }
 
@@ -126,4 +178,15 @@ function decodeAllMeals(snapshot: QuerySnapshotLike): { meals: Meal[]; problems:
     else problems.push(`invalid meal document ${doc.id}: ${decoded.error.path} ${decoded.error.message}`);
   }
   return { meals, problems };
+}
+
+function decodeAllRecipes(snapshot: QuerySnapshotLike): { recipes: Recipe[]; problems: string[] } {
+  const recipes: Recipe[] = [];
+  const problems: string[] = [];
+  for (const doc of snapshot.docs) {
+    const decoded = decodeRecipe(doc.data());
+    if (decoded.ok) recipes.push(decoded.value);
+    else problems.push(`invalid recipe document ${doc.id}: ${decoded.error.path} ${decoded.error.message}`);
+  }
+  return { recipes, problems };
 }
