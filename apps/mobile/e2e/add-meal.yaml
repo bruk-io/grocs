@@ -14,9 +14,9 @@ env:
     timeout: 10000
 - tapOn: "What are you making?"
 - inputText: "${MEAL}"
-# Close the keyboard by tapping the heading: hideKeyboard is Back on Android, which leaves the screen.
-- tapOn: "Add a meal"
-- tapOn: "Add to.*"
+# The keyboard's return key submits, as a person would. On iOS the keyboard covers the Add button
+# (TASK-73), and hideKeyboard is Back on Android, which leaves the screen.
+- pressKey: Enter
 - extendedWaitUntil:
     visible: "${MEAL}"
     timeout: 10000
