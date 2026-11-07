@@ -41,6 +41,7 @@ describe('parseRecipePage', () => {
     'hand-main-entity.html',
     'hand-yield-number.html',
     'hand-image-bare-id.html',
+    'hand-malformed-then-valid.html',
   ])('%s: re-parsing the raw jsonLd gives the same content', (file) => {
     const result = parseRecipePage(fixture(file));
     expect(result.ok).toBe(true);
@@ -103,8 +104,8 @@ describe('parseRecipePage', () => {
     expect(result.value.content.yield).toBe('4');
   });
 
-  // AC#4: HTML entities in steps and ingredient lines are decoded (recipetineats' JSON-LD carries
-  // literal &gt; and &#39; in its recipeInstructions text).
+  // AC#4: HTML entities in steps are decoded (recipetineats' JSON-LD carries literal &gt; and
+  // &#39; in its recipeInstructions text).
   it('decodes HTML entities in steps', () => {
     const result = parseRecipePage(fixture('recipetineats.html'));
     expect(result.ok).toBe(true);
@@ -114,6 +115,26 @@ describe('parseRecipePage', () => {
     expect(joined).toContain("doesn't need to dry fully");
     expect(joined).not.toContain('&gt;');
     expect(joined).not.toContain('&#39;');
+  });
+
+  // AC#4: HTML entities in the title, each ingredient line and each step are decoded. Uses the
+  // numeric entity &#189; rather than the named &frac12;: NAMED_ENTITIES only covers
+  // amp/lt/gt/quot/apos/nbsp, so &frac12; would pass through undecoded, which is a
+  // narrower-than-ideal table but not this task's finding to fix.
+  it('decodes HTML entities in the title, ingredient lines and steps', () => {
+    const html = `<script type="application/ld+json">{
+      "@type": "Recipe",
+      "name": "Mac &amp; Cheese",
+      "recipeIngredient": ["1 &#189; cups macaroni", "2 &#39;heaping&#39; cups cheese"],
+      "recipeInstructions": ["Boil the macaroni &amp; drain it."]
+    }</script>`;
+    const result = parseRecipePage(html);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.value.content.title).toBe('Mac & Cheese');
+    expect(result.value.content.ingredients[0]!.line).toBe('1 ½ cups macaroni');
+    expect(result.value.content.ingredients[1]!.line).toBe("2 'heaping' cups cheese");
+    expect(result.value.content.steps[0]).toBe('Boil the macaroni & drain it.');
   });
 
   it('strips literal HTML tags from the title, steps and ingredient lines', () => {
@@ -179,6 +200,19 @@ describe('parseRecipeJsonLd', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.value.yield).toBe('4');
+  });
+
+  // §9/AC#2: ingredient lines that are empty after cleanText (blank or whitespace-only) are
+  // dropped, the same way blank steps are, so a Recipe with only such lines gives
+  // incomplete-recipe rather than ingredients with a blank line.
+  it('gives incomplete-recipe when every recipeIngredient entry is blank', () => {
+    const result = parseRecipeJsonLd({
+      '@type': 'Recipe',
+      name: 'Blank Ingredients',
+      recipeIngredient: ['', '  '],
+      recipeInstructions: ['Cook it.'],
+    });
+    expect(result).toEqual({ ok: false, error: 'incomplete-recipe' });
   });
 
   it('gives a null yield when recipeYield is absent', () => {

@@ -41,7 +41,10 @@ function decodeEntities(text: string): string {
   });
 }
 
-/** Strips literal HTML tags, then decodes entities, for the title, each step and each ingredient line. */
+/** Strips literal HTML tags, then decodes entities, for the title, each step and each ingredient
+ * line. Kept in this order (not strip-decode-strip): a second strip after decoding cannot tell an
+ * entity-decoded `<` apart from a literal one, so text like 'Reduce to &lt;1 cup&gt; of liquid'
+ * would lose its '<1 cup>' to a post-decode strip. */
 function cleanText(text: string): string {
   return decodeEntities(text.replace(/<[^>]*>/g, '')).trim();
 }
@@ -115,8 +118,13 @@ export function parseRecipeJsonLd(node: RecipeJsonLd): Result<RecipeContent, 'in
   const title = typeof rawTitle === 'string' ? cleanText(rawTitle) : '';
 
   const rawIngredients = node['recipeIngredient'];
-  const ingredientLines = Array.isArray(rawIngredients) ? rawIngredients.filter((entry): entry is string => typeof entry === 'string') : [];
-  const ingredients = ingredientLines.map((line) => parseIngredientLine(cleanText(line)));
+  const ingredientLines = Array.isArray(rawIngredients)
+    ? rawIngredients
+        .filter((entry): entry is string => typeof entry === 'string')
+        .map((line) => cleanText(line))
+        .filter((line) => line !== '')
+    : [];
+  const ingredients = ingredientLines.map((line) => parseIngredientLine(line));
 
   const steps = resolveInstructions(node['recipeInstructions'])
     .map((step) => cleanText(step))

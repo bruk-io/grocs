@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:32'
+updated_date: '2026-11-07 03:41'
 labels:
   - size-3
   - layer-providers
@@ -68,4 +68,16 @@ AC#2: hand-no-json-ld -> not-a-recipe; hand-no-instructions (no steps) and two s
 AC#3: parseRecipeJsonLd(result.jsonLd) deep-equals result.content asserted for all five real fixtures plus hand-main-entity, hand-yield-number and hand-image-bare-id.
 AC#4: hand-main-entity (mainEntity), hand-image-bare-id (bare @id -> null), hand-malformed-then-valid (malformed block skipped, not thrown), hand-yield-number (bare number -> string), entity decoding asserted via recipetineats' literal &gt;/&#39; in its ld+json, plus a synthetic literal-tag-stripping test.
 AC#5: no branch anywhere reads a hostname, URL or site name; the five differently-shaped real fixtures are found and parsed by the same code paths. core-purity, import-layers/pure-folder and test-presence all pass (part of `pnpm check` above); typecheck passes repo-wide.
+
+Review findings addressed (TASK-74.3.6):
+
+1. Added `decodes HTML entities in the title, ingredient lines and steps` test (recipe-schema.test.ts), with a synthetic Recipe whose name, recipeIngredient and recipeInstructions all carry entities. Uses `&#189;` rather than the review's example `&frac12;`: NAMED_ENTITIES only covers amp/lt/gt/quot/apos/nbsp, so `&frac12;` passes through undecoded (confirmed by probe) - this is a narrower-than-ideal table, flagged in the test comment but not changed, since widening NAMED_ENTITIES wasn't asked for. Also fixed the stale comment above the recipetineats steps-only entity test (was "steps and ingredient lines").
+2. parseRecipeJsonLd now runs cleanText + a blank filter over recipeIngredient the same way steps are filtered, before the completeness check. Added `gives incomplete-recipe when every recipeIngredient entry is blank` test for `recipeIngredient: ['', '  ']`.
+3. Added 'hand-malformed-then-valid.html' to the AC#3 round-trip it.each list.
+4. Did NOT take the optional cleanText reorder (strip, decode, strip). Probed it first: `cleanText("Reduce to &lt;1 cup&gt; of liquid")` under strip-decode-strip loses "<1 cup>" entirely, because the second strip can't tell an entity-decoded '<' from a literal one. Left cleanText as strip-then-decode (single strip) and added a comment explaining why, since the reviewer's own note said leaving it as is meets the contract's wording.
+5. Carrying forward unchanged, for the orchestrator (not mine to resolve in this layer): a relative `image` string such as '/rel.jpg' passes through parseRecipeJsonLd unchanged. Core ParsedRecipe.image is documented as an 'Absolute URL', but contract §9 fixes parseRecipeJsonLd/parseRecipePage's signatures without a page URL to resolve against, so this layer cannot resolve a relative image itself. Needs a contract decision: return null when the image isn't an absolute http(s) URL, or resolve it in §10/§11 against sourceUrl.
+
+Proof:
+- `mise exec -- pnpm exec vitest run --project unit packages/providers-`: 13 test files, 225 tests, all passed.
+- `mise exec -- pnpm -s typecheck`: clean, no output (passes repo-wide).
 <!-- SECTION:NOTES:END -->
