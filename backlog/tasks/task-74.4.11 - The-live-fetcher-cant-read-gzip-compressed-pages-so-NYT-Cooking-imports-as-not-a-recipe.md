@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 05:06'
-updated_date: '2026-11-07 05:20'
+updated_date: '2026-11-07 05:27'
 labels:
   - size-2
   - layer-providers
@@ -81,4 +81,55 @@ Checks after the fixes (this layer only, per the agent's narrowed Bash):
 Correction to the earlier implementation notes: the claim that the gzip-bomb case "proves the cap fires early because fewer than half the chunks are pulled" was wrong - that fixture's compressed size (20406 bytes) was small enough to fit entirely in the pipeline's stream buffers before either cap could fire, so the old assertion passed on buffering alone, not on early abort. Each cap (raw-bytes and decoded-size) is now proven by its own isolated test, each confirmed by deleting its branch in readDecodedBody and seeing the matching test go red; the early-abort/laziness property (not fully inflating a bomb) is proven separately by a lazily-generated source large enough that internal stream buffering cannot account for the small fraction pulled.
 
 Left to the orchestrator (not blocking, carried from the prior notes): (1) contract §10 amendment for the Accept-Encoding header and the decompressed-size cap, following the TASK-74.4.1/74.4.6 precedent; (2) the raw-DEFLATE (RFC 1951) limitation and the refusal of multi-value Content-Encoding (e.g. 'br, gzip') as unreachable remain acceptable under AC#1's wording and could be filed as follow-up drafts if a real site needs them.
+
+Second round of review-requested fixes applied to fetch-page.test.ts (providers layer, bug follow-up):
+
+1. The 'caps a gzip bomb early' test was itself a raw-cap test, not a decoded-cap one. With its
+   committed parameters (10 KiB members, maxBytes: 1000), each member gzips to ~46 bytes, so the
+   raw-bytes counter trips at member 22 (22 x 46 = 1012 > 1000) before the decoded counter ever
+   reaches 1000 decoded bytes - the same arithmetic on every run, not fixture noise. A scratch
+   reproduction of readDecodedBody's exact pipeline confirmed pulled=22 and 'refused: raw' both
+   with the `decodedTotal > maxBytes` branch present and with it deleted, so the test passed
+   either way and proved nothing about the decoded cap specifically.
+
+   Re-parameterized to 1 MiB members (gzip to ~1052 compressed bytes each) and maxBytes: 1_000_000,
+   renamed to 'caps a gzip bomb early via the decoded-size cap, isolated from the raw-bytes cap'.
+   Measured directly against this codebase's readDecodedBody (not a reimplementation): with the
+   `decodedTotal > maxBytes` branch present, pulled=64; with it deleted, pulled=951 (the raw cap
+   alone, tripping once rawTotal, ~1052 bytes/member, exceeds 1,000,000 around member 951). Three
+   runs gave the same two numbers. The test now asserts
+   `pulled * memberCompressedBytes < maxBytes / 4`, i.e. the compressed bytes actually pulled so
+   far are nowhere near maxBytes, which is only true when the decoded cap (not the raw cap) is
+   what stopped it. Deleting the `decodedTotal > maxBytes` branch makes this assertion fail
+   (verified: pulled rises to 951, failing the bound) - confirming the test now depends on that
+   branch specifically.
+
+2. Fixed the inverted comments on two other isolation tests ('gives unreachable for a gzip body
+   that decompresses past maxBytes...' and 'gives unreachable when the compressed (raw) body
+   itself exceeds maxBytes...'), both of which said deleting their guarded branch makes the test
+   'go green'. The opposite is true: deleting either branch makes its test fail (go red), which is
+   what the earlier notes' own verification runs actually showed. Comments now say 'fails'/'red'
+   and describe what the broken pipeline produces instead (a page, not the expected refusal).
+
+Checks after these fixes (this layer only, per the agent's narrowed Bash):
+- mise exec -- pnpm exec vitest run --project unit packages/providers-server/src/recipe/fetch-page.test.ts -> Test Files 1 passed (1), Tests 32 passed (32)
+- mise exec -- pnpm exec vitest run --project unit packages/providers- -> Test Files 17 passed (17), Tests 301 passed (301)
+- mise exec -- pnpm -s typecheck -> tsc --noEmit, exit 0
+- Deleting the `decodedTotal > maxBytes` branch: both decoded-cap tests ('gives unreachable for a
+  gzip body that decompresses past maxBytes...' and 'caps a gzip bomb early via the decoded-size
+  cap...') fail; all other 30 tests still pass.
+- Deleting the `rawTotal > maxBytes` throw: only 'gives unreachable when the compressed (raw) body
+  itself exceeds maxBytes...' fails; all other 31 tests (including both decoded-cap tests) still
+  pass - confirming the decoded-cap tests do not depend on the raw cap.
+- Both branches restored afterward; `git diff --stat` on fetch-page.ts shows no changes from this
+  investigation.
+
+Correction (supersedes the 'Correction' paragraph in the prior round): that paragraph said the
+lazy-source gzip-bomb test was 'a true early-abort proof' of the property generally. With the
+parameters committed at the time, it was specifically a proof of the raw cap's early abort, not
+the decoded cap's - the notes' own '22-1426 depending on which cap fires first' range was always
+22 (the raw cap) under those parameters, since the raw cap could not help but fire first given a
+10 KiB member and maxBytes: 1000. After the re-parameterization above (1 MiB members, maxBytes:
+1_000_000), this same test is now a true early-abort proof of the decoded cap specifically,
+isolated from the raw cap: deleting `decodedTotal > maxBytes` makes it fail as recorded above.
 <!-- SECTION:NOTES:END -->

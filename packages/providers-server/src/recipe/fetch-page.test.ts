@@ -201,8 +201,9 @@ describe('createLiveFetchPage', () => {
     // compressed size and well below the 20 MB decompressed size, so only the decoded-size cap
     // can refuse this body - the raw-bytes counter can never reach maxBytes no matter how much of
     // the compressed body is read. Confirmed by deleting the `decodedTotal > maxBytes` branch in
-    // readDecodedBody: this test then goes green (the pipeline pulls everything, decodes cleanly,
-    // and gives a page), proving the assertion below only holds because of that branch.
+    // readDecodedBody: this test then fails (the pipeline pulls everything, decodes cleanly, and
+    // gives a page instead of the refusal asserted below), proving the assertion below only holds
+    // because of that branch.
     const huge = Buffer.alloc(20 * 1024 * 1024, 0x61);
     const compressed = gzipSync(huge);
     const maxBytes = 100_000;
@@ -218,19 +219,31 @@ describe('createLiveFetchPage', () => {
     expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
   });
 
-  it('caps a gzip bomb early: does not pull anywhere near every compressed chunk before refusing it', async () => {
+  it('caps a gzip bomb early via the decoded-size cap, isolated from the raw-bytes cap: does not pull anywhere near every compressed chunk before refusing it', async () => {
     // A finite, already-materialised compressed buffer is small enough (tens of KB) to fit
     // entirely inside the stream buffers the fetcher's pipeline uses (Readable.from's internal
     // readahead plus zlib's own buffering) before the cap ever gets a chance to fire - so a test
     // built that way would pass even if the cap were checked only after every chunk was pulled.
     // This source is instead produced lazily, one independently-gzipped member at a time, each
-    // decompressing to 10 KB of repeated bytes; the generator can represent an arbitrarily large
-    // decompressed total (here, 2 GB - hundreds of thousands of members) because nothing past the
-    // cap is ever actually gzipped. `pulled` counts how many members the fetcher actually asked
-    // for, so a broken cap that read everything would drive it up toward `totalMembers`.
-    const totalDecodedBytes = 2 * 1024 * 1024 * 1024;
-    const memberDecodedBytes = 10 * 1024;
-    const totalMembers = Math.ceil(totalDecodedBytes / memberDecodedBytes);
+    // decompressing to 1 MiB of repeated bytes; the generator can represent an arbitrarily large
+    // decompressed total because nothing past the cap is ever actually gzipped. `pulled` counts
+    // how many members the fetcher actually asked for, so a broken cap that read everything would
+    // drive it up toward `totalMembers`.
+    //
+    // The parameters matter: each 1 MiB member gzips to ~1052 bytes (highly compressible, all one
+    // byte value), and maxBytes is 1_000_000. That gap between compressed and decoded member size
+    // is what isolates the two caps - with a 10 KiB member and maxBytes 1000 (the previous
+    // parameters here), the raw-bytes cap trips at member 22 (22 x 46 compressed bytes > 1000)
+    // before the decoded cap ever sees 1000 decoded bytes, so that version of this test passed
+    // even with the `decodedTotal > maxBytes` branch in readDecodedBody deleted - it was proving
+    // the raw cap, not the decoded one. With these parameters the decoded cap fires after ~64
+    // members (confirmed empirically: pulled=64 with the branch, pulled=951 without it - the raw
+    // cap only reaches maxBytes once rawTotal, the compressed bytes pulled so far, exceeds it,
+    // which needs ~951 members at ~1052 compressed bytes each).
+    const memberDecodedBytes = 1024 * 1024;
+    const maxBytes = 1_000_000;
+    const totalMembers = 100_000; // far more than either cap could ever let through
+    const memberCompressedBytes = gzipSync(Buffer.alloc(memberDecodedBytes, 0x61)).byteLength;
     let pulled = 0;
     const lazyGzipBomb: AsyncIterable<Uint8Array> = {
       async *[Symbol.asyncIterator]() {
@@ -243,11 +256,14 @@ describe('createLiveFetchPage', () => {
       },
     };
     const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, lazyGzipBomb));
-    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes: 1000 });
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
     const result = await fetchPage('https://example.com/recipe');
     expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
-    // Capped early: only a tiny fraction of the (hundreds of thousands of) members was ever pulled.
-    expect(pulled).toBeLessThan(totalMembers / 1000);
+    // Proof that the raw-bytes cap could not have been what stopped this: the compressed bytes
+    // actually pulled so far are nowhere near maxBytes, so only the decoded-size cap explains an
+    // abort this early. Deleting the `decodedTotal > maxBytes` branch in readDecodedBody makes
+    // this fail (pulled rises to ~951, tripping the raw cap instead, which this assertion rejects).
+    expect(pulled * memberCompressedBytes).toBeLessThan(maxBytes / 4);
   });
 
   it('gives unreachable when the compressed (raw) body itself exceeds maxBytes, isolated from the decoded-size cap', async () => {
@@ -255,7 +271,9 @@ describe('createLiveFetchPage', () => {
     // level: 0 (no compression) so the gzip framing overhead makes the compressed form bigger
     // than the decoded form; maxBytes sits between the two, so only the raw-bytes counter can
     // refuse this body - the decoded-size counter never reaches maxBytes. Confirmed by deleting
-    // the `rawTotal > maxBytes` throw in readDecodedBody: this test then goes green.
+    // the `rawTotal > maxBytes` throw in readDecodedBody: this test then fails (with no raw cap
+    // left, the decoded bytes stay under maxBytes by construction too, so the body decodes
+    // cleanly and gives a page instead of the refusal asserted below).
     const compressed = gzipSync(Buffer.from(html, 'utf-8'), { level: 0 });
     expect(compressed.byteLength).toBeGreaterThan(Buffer.byteLength(html));
     const maxBytes = 160;
