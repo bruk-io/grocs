@@ -32,6 +32,21 @@ const ALLOWED_PROJECT: Readonly<Record<Layer, readonly Layer[]>> = {
   app: ['core', 'ports', 'application', 'providers', 'ui'],
 };
 
+/**
+ * Which provider packages each app may import (R26, R27). A phone app never loads server code and the
+ * server never loads phone code. An app missing from this table may import no provider (fails closed).
+ */
+export const APP_PROVIDERS: Readonly<Record<string, readonly string[]>> = {
+  mobile: ['providers-firebase', 'providers-device', 'providers-memory'],
+  functions: ['providers-server'],
+};
+
+/**
+ * Server-only recipe parsing (decision-15). Its non-test files may import only @grocs/core and files
+ * inside this folder, so it stays as pure as the domain while living in a provider package.
+ */
+export const PURE_ROOT = 'packages/providers-server/src/recipe/pure/';
+
 /** Third-party packages a layer may import. null means anything. Tests and stories also get TEST_TOOLING. */
 const ALLOWED_THIRD_PARTY: Readonly<Record<Layer, readonly RegExp[] | null>> = {
   core: [],
@@ -124,6 +139,18 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     why: 'The index is for other packages. Going through it hides which design level a file reaches, so an upward import looks like a sideways one and is reported as a cycle instead of as the broken level rule.',
     fix: 'Import the file that holds the thing, by its relative path.',
   },
+  'import-layers/app-providers': {
+    req: 'R26, R27',
+    summary: 'Each app imports only the provider packages listed for it',
+    why: 'Providers are split by platform: the phone app must never bundle the server provider (it holds the recipe fetcher and Admin SDK code), and the server must never load phone SDKs. An app nobody listed gets no provider until someone decides which ones it may use.',
+    fix: 'Import a provider listed for this app in APP_PROVIDERS (tools/checks/import-layers.ts), or reach the capability through a port. Adding an app or a provider to the table is a protected edit.',
+  },
+  'import-layers/pure-folder': {
+    req: 'R25, R26',
+    summary: 'Recipe parsing under providers-server/src/recipe/pure/ imports only @grocs/core and files inside pure/',
+    why: 'decision-15 lets the recipe parsing live in a provider package only on the condition that it stays pure: no network, clock, file system, node built-ins or third-party packages. core-purity catches ambient globals; this catches imports, which a provider is otherwise free to make.',
+    fix: 'Take what you need as a parameter, or move the impure part (fetching, caching, hashing) to packages/providers-server/src/recipe/ outside pure/. Import only "@grocs/core" and relative files that stay inside pure/.',
+  },
   'import-layers/design-levels': {
     req: 'R60',
     summary: 'Each design level imports only from the levels below it',
@@ -195,8 +222,17 @@ export function run(ctx: CheckContext): Finding[] {
     graph.set(file, edges);
     if (!unit && !/^packages\//.test(file) && !/^apps\//.test(file)) continue;
 
+    const inPure = file.startsWith(PURE_ROOT) && !isTestFile(file);
+
     for (const { spec, line } of parseImports(ctx.readSource(file))) {
       const add = (rule: string, detail: string) => findings.push({ rule, file, line, detail });
+
+      if (inPure) {
+        const staysInside = spec.startsWith('.') && posix.normalize(posix.join(posix.dirname(file), spec)).startsWith(PURE_ROOT);
+        if (spec !== '@grocs/core' && !staysInside) {
+          add('import-layers/pure-folder', `"${spec}" is not @grocs/core or a file inside ${PURE_ROOT}`);
+        }
+      }
 
       if (spec.startsWith('.')) {
         const target = resolveRelative(file, spec, fileSet);
@@ -247,6 +283,14 @@ export function run(ctx: CheckContext): Finding[] {
                 : 'import-layers/allowed-imports';
           const allowed = ALLOWED_PROJECT[unit.layer].join(', ') || 'nothing from the project';
           add(rule, `${unit.name} (${unit.layer} layer) imports ${spec} (${targetUnit.layer} layer); ${unit.layer} may import ${allowed}`);
+        }
+        if (unit.layer === 'app' && targetUnit.layer === 'providers') {
+          const listed = APP_PROVIDERS[unit.name];
+          if (!listed) {
+            add('import-layers/app-providers', `apps/${unit.name} imports ${spec}, but apps/${unit.name} has no entry in APP_PROVIDERS, so it may import no provider`);
+          } else if (!listed.includes(targetUnit.name)) {
+            add('import-layers/app-providers', `apps/${unit.name} imports ${spec}; apps/${unit.name} may import ${listed.join(', ')}`);
+          }
         }
         continue;
       }

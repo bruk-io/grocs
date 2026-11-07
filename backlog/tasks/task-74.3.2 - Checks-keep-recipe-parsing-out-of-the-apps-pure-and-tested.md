@@ -1,15 +1,22 @@
 ---
 id: TASK-74.3.2
 title: 'Checks keep recipe parsing out of the apps, pure and tested'
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:34'
 labels:
   - size-3
   - orchestrator
 dependencies: []
+modified_files:
+  - tools/checks/import-layers.ts
+  - tools/checks/import-layers.test.ts
+  - tools/checks/core-purity.ts
+  - tools/checks/test-presence.ts
+  - tools/checks/repo-checks.test.ts
+  - .claude/rules/providers-hold-no-rules.md
 parent_task_id: TASK-74.3
 type: task
 ---
@@ -43,24 +50,22 @@ Split key: orch-pure-boundary. Layer: orchestrator. Contract: TASK-74's plan.
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Add APP_PROVIDERS and an app-providers branch inside the '@grocs/' block after the layer check, plus its RuleInfo entry.
-2. Add the pure-folder rule: for non-test files under the pure root, allow only @grocs/core and relative specifiers that resolve inside pure/.
-3. Replace core-purity's single startsWith with a PURE_ROOTS list and widen its rule text.
-4. Widen test-presence's domain-unit-test scope the same way, excluding pure/fixtures/.
-5. Add the tests listed in the ACs and run `mise exec -- pnpm exec vitest run --project tools tools/checks`.
-6. Amend the rule file, run `pnpm check`, confirm there is no weakening finding, and commit on main.
+1. tools/checks/import-layers.ts: export APP_PROVIDERS { mobile: [providers-firebase, providers-device, providers-memory], functions: [providers-server] }. Inside the '@grocs/' branch, after the existing ALLOWED_PROJECT check, when unit.layer === 'app' and targetUnit.layer === 'providers': no table entry for unit.name -> fail closed; target not in the list -> fail. No test-file exemption. Add the RuleInfo 'import-layers/app-providers' (req 'R26, R27').
+2. Same file: PURE_ROOT = 'packages/providers-server/src/recipe/pure/'. At the top of the per-import loop (before the branches that `continue`, so the existing rules still run), for a non-test file under PURE_ROOT: allowed iff spec === '@grocs/core', or spec starts with '.' and posix.normalize(join(dirname(file), spec)) starts with PURE_ROOT. Anything else (node built-in, third-party, another @grocs package, a ../ that leaves pure/) -> 'import-layers/pure-folder' (req 'R25, R26'), with RuleInfo naming decision-15.
+3. tools/checks/core-purity.ts: PURE_ROOTS = ['packages/core/src/', the pure root]; run() scans non-test files under either root; the rule text names both folders.
+4. tools/checks/test-presence.ts: the same two roots for domain-unit-test, same exported-function and index.ts rules, excluding paths under pure/fixtures/. Rule text names both.
+5. Tests: import-layers.test.ts accept, reject and message cases per AC#5; repo-checks.test.ts: pure/ Date.now() fails core-purity, recipe/fetch-page.ts with Date.now() passes, a pure/ module without a test fails test-presence (pure/fixtures/ exempt). Run `mise exec -- pnpm exec vitest run --project tools tools/checks`.
+6. .claude/rules/providers-hold-no-rules.md: add the decision-15 exception paragraph. Run `pnpm check`; commit through the hooks.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+- The weakening review (loosen-check-config, 'ask') fires when check code loses more non-comment lines than it gains: only widen or append, so every replaced line is matched by at least as many added lines.
+- app-providers must not break the current tree: apps/mobile imports only providers-device/-firebase/-memory and apps/functions only providers-server (searched), so it passes today.
+- pure-folder must not replace the existing rules for those files: it adds a finding before the existing branches and does not `continue`.
+- The contract is frozen; a needed change goes to the notes and the work stops.
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- tools/checks/import-layers.ts
-- tools/checks/import-layers.test.ts
-- tools/checks/core-purity.ts
-- tools/checks/test-presence.ts
-- tools/checks/repo-checks.test.ts
-- .claude/rules/providers-hold-no-rules.md
+- AC#1, #2, #5, #6: the tools vitest project (import-layers.test.ts, including 'every rule has a requirement, a reason and a fix' and the unchanged first accept test).
+- AC#3, #4: repo-checks.test.ts cases and the rule text.
+- AC#6: `pnpm check` exits 0 with no weakening finding; the pre-commit hook passes.
+- AC#7: the rule file text.
 <!-- SECTION:PLAN:END -->
