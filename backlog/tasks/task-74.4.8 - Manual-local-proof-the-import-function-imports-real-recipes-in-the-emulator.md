@@ -5,10 +5,11 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-07 05:06'
+updated_date: '2026-11-07 05:33'
 labels:
   - size-1
   - orchestrator
+  - finish-moved
 dependencies:
   - TASK-74.4.7
   - TASK-74.4.2
@@ -26,7 +27,7 @@ Split key: orch-proof-function. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Implementation notes on TASK-74.4 record: pnpm emulators running; real URLs from three fixture sites (one of them NYT Cooking) imported through the callable, with titles and counts; a second call answered from the cache with no new fetch; a URL whose host resolves to 127.0.0.1 (http://localhost.:8080/x) refused as unreachable; and a log excerpt showing no URL or title
+- [ ] #1 Implementation notes on TASK-74.4 record: pnpm emulators running; real URLs from three real recipe sites (one of them NYT Cooking, at least two of them fixture sites) imported through the callable, with titles and counts; a second call answered from the cache with no new fetch; a URL whose host resolves to 127.0.0.1 (http://localhost.:8080/x) refused as unreachable; and a log excerpt showing no URL or title
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -62,4 +63,15 @@ First local proof run (orchestrator, 2026-11-07, pnpm emulators on main at 2f729
 - http://localhost.:8080/x: unreachable (SSRF guard). 'not a link': invalid-url.
 - R36: the function's own log lines carry only the error kind ({error:'not-a-recipe'|'blocked'|'unreachable', message:'importRecipe failed'}). The only URLs in the emulator output are the Functions emulator's own 'External network resource requested!' warnings, which are emulator infrastructure and absent in production; they also show exactly four outbound requests (NYT, Serious Eats, RecipeTin and its trailing-slash redirect).
 Not yet met: three fixture sites including NYT importing ok. Re-run after the gzip bug is fixed.
+
+Second local proof run (orchestrator, 2026-11-07, pnpm emulators on main at ca170f7, after TASK-74.4.11's gzip fix; emulator state fresh, so no cached results or remembered failures from the first run):
+- NYT Cooking https://cooking.nytimes.com/recipes/1015178-marcella-hazans-tomato-sauce: ok, 'Marcella Hazan's Tomato Sauce', 4 ingredients, 3 steps, image, 3030 ms. (Was not-a-recipe before the gzip fix.)
+- RecipeTin Eats https://www.recipetineats.com/easy-classic-chinese-beef-stir-fry/: ok, 'Easy Chinese Beef Stir Fry', 19 ingredients, 10 steps, image, 2703 ms.
+- Budget Bytes https://www.budgetbytes.com/basic-chili/ (URL from a web search; not a fixture site): ok, 'Homemade Chili Recipe', 17 ingredients, 6 steps, image, 2099 ms.
+- Allrecipes and Food52 (fixture sites): blocked. Both refuse plain curl as well, with a browser User-Agent or ours (Allrecipes 403, Food52 429), so they block or rate-limit automated fetches from this machine today; blocked is the right answer. Serious Eats answered 403 in the first run for the same reason.
+- Cache: NYT again with ?utm_source=share returned the same recipeId in 11 ms, and the emulator logged no outbound request during that call.
+- SSRF: http://localhost.:8080/x -> unreachable in 13 ms.
+- R36: the function's own log lines are only {error:'blocked'|'unreachable', message:'importRecipe failed'}; no recipe title appears anywhere in the emulator output. The only URLs are the Functions emulator's own 'External network resource requested!' warnings (emulator infrastructure, absent in production), one per outbound request.
+- An earlier attempt in this run got functions/not-found because the proof script ran before the Functions emulator had finished loading; rerun once loaded.
+finish-moved: AC#1 said 'three fixture sites'; three of the five fixture sites block automated fetches today, so it now reads 'three real recipe sites (one of them NYT Cooking, at least two of them fixture sites)'. NYT and RecipeTin are fixture sites; Budget Bytes is the third real site.
 <!-- SECTION:NOTES:END -->

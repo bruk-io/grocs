@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 05:04'
+updated_date: '2026-11-07 05:33'
 labels:
   - size-5
   - providers
@@ -43,4 +43,6 @@ finish-moved (TASK-74.4.1, 2026-11-07): AC#5 changed from 'Firestore rules stop 
 TASK-74.4.6 (providers): FirestoreRecipeCache stores recipeSources/{key}.jsonLd as a JSON string (JSON.stringify of the raw Recipe node), not the raw object decision-15 describes ('the raw Recipe JSON-LD object'). Reason: Firestore documents cannot hold arrays nested inside arrays, and recipeInstructions sections (HowToSection.itemListElement) nest them, so the raw node cannot always be written as-is. getSource reverses it with JSON.parse before returning CachedSource.jsonLd, so every other layer still sees the raw RecipeJsonLd object; only the Firestore document on disk differs from decision-15's wording. Matches contract §11's own note recording this deviation.
 
 TASK-74.5.9 (orchestrator, 2026-11-07) on main at 7fccb40: pnpm test:emulator exit 0, 11 files and 148 tests passed. A verbose rerun shows the named suites passing: firestore-sync-store.emulator.test.ts (34 test lines), recipe-cache.emulator.test.ts (12), recipe-importer.emulator.test.ts (5), import-recipe.emulator.test.ts (4); 0 failures. The only http(s) host in either run's output is the local Functions emulator, http://127.0.0.1:5001: no outbound request to any real site (test URLs use recipe.invalid). pnpm check: 16 checks passed. Unit tests 2065 passed, typecheck clean. Logs: scratchpad emu-suite.log and emu-verbose.log.
+
+TASK-74.4.8 live proof (orchestrator, 2026-11-07, see that task's notes): through the real importRecipe callable in pnpm emulators, NYT Cooking, RecipeTin Eats and Budget Bytes import ok; a utm-tagged repeat is a cache hit with no fetch; localhost. is refused as unreachable; Allrecipes, Food52 and Serious Eats answer blocked because they refuse automated fetches (curl too); log lines carry only the error kind.
 <!-- SECTION:NOTES:END -->
