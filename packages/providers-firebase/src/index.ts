@@ -2,6 +2,7 @@ export { FirebaseAuth } from './firebase-auth.ts';
 export { GoogleAuth } from './google-auth.ts';
 export { FirestoreSyncStore } from './firestore-sync-store.ts';
 export { FirebaseKitchenGateway } from './kitchen-gateway.ts';
+export { FirebaseRecipeImporter } from './recipe-importer.ts';
 export { asSdk } from './sdk.ts';
 export type {
   AuthFns,
