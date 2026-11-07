@@ -1,3 +1,4 @@
+import { gzipSync, deflateSync, brotliCompressSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import type { RawResponse, ResolveHost, Transport } from './fetch-page.ts';
 import { createGuardedLookup, createLiveFetchPage } from './fetch-page.ts';
@@ -162,6 +163,129 @@ describe('createLiveFetchPage', () => {
     expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html: 'café' });
   });
 
+  it('decodes a gzip-compressed body (Content-Encoding: gzip)', async () => {
+    const html = '<html><body>NYT sends this gzipped even with no Accept-Encoding</body></html>';
+    const compressed = gzipSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('decodes a deflate-compressed body (Content-Encoding: deflate)', async () => {
+    const html = '<html><body>deflated</body></html>';
+    const compressed = deflateSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'deflate' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('decodes a brotli-compressed body (Content-Encoding: br)', async () => {
+    const html = '<html><body>brotli</body></html>';
+    const compressed = brotliCompressSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'br' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('gives unreachable for an unknown Content-Encoding, without reading the body', async () => {
+    const { body, wasIterated } = trackedBody('whatever this is');
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'compress' }, body));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+    expect(wasIterated()).toBe(false);
+  });
+
+  it('gives unreachable for a gzip body that decompresses past maxBytes, isolated from the raw-bytes cap', async () => {
+    // 20 MB of a single repeated byte compresses to ~20 KB; maxBytes (100_000) sits above that
+    // compressed size and well below the 20 MB decompressed size, so only the decoded-size cap
+    // can refuse this body - the raw-bytes counter can never reach maxBytes no matter how much of
+    // the compressed body is read. Confirmed by deleting the `decodedTotal > maxBytes` branch in
+    // readDecodedBody: this test then fails (the pipeline pulls everything, decodes cleanly, and
+    // gives a page instead of the refusal asserted below), proving the assertion below only holds
+    // because of that branch.
+    const huge = Buffer.alloc(20 * 1024 * 1024, 0x61);
+    const compressed = gzipSync(huge);
+    const maxBytes = 100_000;
+    expect(compressed.byteLength).toBeLessThan(maxBytes);
+    const chunkSize = 64;
+    const chunks: Uint8Array[] = [];
+    for (let offset = 0; offset < compressed.byteLength; offset += chunkSize) {
+      chunks.push(compressed.subarray(offset, offset + chunkSize));
+    }
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody(chunks)));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+  });
+
+  it('caps a gzip bomb early via the decoded-size cap, isolated from the raw-bytes cap: does not pull anywhere near every compressed chunk before refusing it', async () => {
+    // A finite, already-materialised compressed buffer is small enough (tens of KB) to fit
+    // entirely inside the stream buffers the fetcher's pipeline uses (Readable.from's internal
+    // readahead plus zlib's own buffering) before the cap ever gets a chance to fire - so a test
+    // built that way would pass even if the cap were checked only after every chunk was pulled.
+    // This source is instead produced lazily, one independently-gzipped member at a time, each
+    // decompressing to 1 MiB of repeated bytes; the generator can represent an arbitrarily large
+    // decompressed total because nothing past the cap is ever actually gzipped. `pulled` counts
+    // how many members the fetcher actually asked for, so a broken cap that read everything would
+    // drive it up toward `totalMembers`.
+    //
+    // The parameters matter: each 1 MiB member gzips to ~1052 bytes (highly compressible, all one
+    // byte value), and maxBytes is 1_000_000. That gap between compressed and decoded member size
+    // is what isolates the two caps - with a 10 KiB member and maxBytes 1000 (the previous
+    // parameters here), the raw-bytes cap trips at member 22 (22 x 46 compressed bytes > 1000)
+    // before the decoded cap ever sees 1000 decoded bytes, so that version of this test passed
+    // even with the `decodedTotal > maxBytes` branch in readDecodedBody deleted - it was proving
+    // the raw cap, not the decoded one. With these parameters the decoded cap fires after ~64
+    // members (confirmed empirically: pulled=64 with the branch, pulled=951 without it - the raw
+    // cap only reaches maxBytes once rawTotal, the compressed bytes pulled so far, exceeds it,
+    // which needs ~951 members at ~1052 compressed bytes each).
+    const memberDecodedBytes = 1024 * 1024;
+    const maxBytes = 1_000_000;
+    const totalMembers = 100_000; // far more than either cap could ever let through
+    const memberCompressedBytes = gzipSync(Buffer.alloc(memberDecodedBytes, 0x61)).byteLength;
+    let pulled = 0;
+    const lazyGzipBomb: AsyncIterable<Uint8Array> = {
+      async *[Symbol.asyncIterator]() {
+        for (let member = 0; member < totalMembers; member += 1) {
+          pulled += 1;
+          // Concatenated gzip members decode as one continuous stream (RFC 1952); node's
+          // createGunzip handles this by default.
+          yield gzipSync(Buffer.alloc(memberDecodedBytes, 0x61));
+        }
+      },
+    };
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, lazyGzipBomb));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+    // Proof that the raw-bytes cap could not have been what stopped this: the compressed bytes
+    // actually pulled so far are nowhere near maxBytes, so only the decoded-size cap explains an
+    // abort this early. Deleting the `decodedTotal > maxBytes` branch in readDecodedBody makes
+    // this fail (pulled rises to ~951, tripping the raw cap instead, which this assertion rejects).
+    expect(pulled * memberCompressedBytes).toBeLessThan(maxBytes / 4);
+  });
+
+  it('gives unreachable when the compressed (raw) body itself exceeds maxBytes, isolated from the decoded-size cap', async () => {
+    const html = '<html><body>small</body></html>'.repeat(5);
+    // level: 0 (no compression) so the gzip framing overhead makes the compressed form bigger
+    // than the decoded form; maxBytes sits between the two, so only the raw-bytes counter can
+    // refuse this body - the decoded-size counter never reaches maxBytes. Confirmed by deleting
+    // the `rawTotal > maxBytes` throw in readDecodedBody: this test then fails (with no raw cap
+    // left, the decoded bytes stay under maxBytes by construction too, so the body decodes
+    // cleanly and gives a page instead of the refusal asserted below).
+    const compressed = gzipSync(Buffer.from(html, 'utf-8'), { level: 0 });
+    expect(compressed.byteLength).toBeGreaterThan(Buffer.byteLength(html));
+    const maxBytes = 160;
+    expect(Buffer.byteLength(html)).toBeLessThan(maxBytes);
+    expect(compressed.byteLength).toBeGreaterThan(maxBytes);
+    const chunks = [compressed.subarray(0, 4), compressed.subarray(4, 8), compressed.subarray(8)];
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody(chunks)));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+  });
+
   it('refuses a redirect to a private IPv4 literal as unreachable', async () => {
     const { transport, calls } = stubTransport(async (url) =>
       url.hostname === 'example.com'
@@ -279,10 +403,11 @@ describe('createLiveFetchPage', () => {
     const [, init] = calls[0]!;
     // The exact key set, not just that Cookie/Authorization happen to be absent: a header this
     // fetcher never sets at all should not silently start appearing here unreviewed.
-    expect(Object.keys(init.headers).sort()).toEqual(['Accept', 'Accept-Language', 'User-Agent']);
+    expect(Object.keys(init.headers).sort()).toEqual(['Accept', 'Accept-Encoding', 'Accept-Language', 'User-Agent']);
     expect(init.headers['User-Agent']).toBeTruthy();
     expect(init.headers['Accept']).toBeTruthy();
     expect(init.headers['Accept-Language']).toBeTruthy();
+    expect(init.headers['Accept-Encoding']).toBe('gzip, deflate, br');
 
     // Proves init.lookup really is the guarded lookup (not just any function): with a resolve
     // stub queued to answer private, the lookup it was handed refuses.
