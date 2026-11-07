@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.6
 title: 'Pure JSON-LD reader: page HTML to recipe content and raw Recipe object'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:41'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-3
   - layer-providers
@@ -27,11 +27,11 @@ Split key: providers-recipe-schema. Layer: providers. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 parseRecipePage returns ok {content, jsonLd} with a non-empty title, at least one ingredient and at least one step for every real fixture. Per-fixture tests assert the title, ingredient count, step count and yield
-- [ ] #2 A page with no Recipe JSON-LD gives 'not-a-recipe'. A Recipe with no ingredients, no steps or no title gives 'incomplete-recipe'
-- [ ] #3 parseRecipeJsonLd(result.jsonLd) deep-equals result.content for every fixture (74.3 AC#3)
-- [ ] #4 Hand-made fixtures prove: Recipe under mainEntity is found; an image that is only an @id reference gives null; a malformed ld+json block is skipped, not thrown; HTML entities in the title, steps and lines are decoded
-- [ ] #5 No branch tests a hostname or site name. Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
+- [x] #1 parseRecipePage returns ok {content, jsonLd} with a non-empty title, at least one ingredient and at least one step for every real fixture. Per-fixture tests assert the title, ingredient count, step count and yield
+- [x] #2 A page with no Recipe JSON-LD gives 'not-a-recipe'. A Recipe with no ingredients, no steps or no title gives 'incomplete-recipe'
+- [x] #3 parseRecipeJsonLd(result.jsonLd) deep-equals result.content for every fixture (74.3 AC#3)
+- [x] #4 Hand-made fixtures prove: Recipe under mainEntity is found; an image that is only an @id reference gives null; a malformed ld+json block is skipped, not thrown; HTML entities in the title, steps and lines are decoded
+- [x] #5 No branch tests a hostname or site name. Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -80,4 +80,6 @@ Review findings addressed (TASK-74.3.6):
 Proof:
 - `mise exec -- pnpm exec vitest run --project unit packages/providers-`: 13 test files, 225 tests, all passed.
 - `mise exec -- pnpm -s typecheck`: clean, no output (passes repo-wide).
+
+Closed by reviewer. All 5 ACs met: per-fixture title/ingredient/step/yield tests and parseRecipeJsonLd round-trip for all five real fixtures; not-a-recipe and incomplete-recipe cases; hand fixtures for mainEntity, bare @id image, malformed block, entity decoding; no hostname/site branches (grep clean); pnpm check, typecheck and 2018 unit tests green on main at 6b10c7c; pure suite re-run 165/165. Findings (no drafts): (low) NAMED_ENTITIES covers only amp/lt/gt/quot/apos/nbsp, so named entities like &frac12; pass through undecoded; numeric forms decode; acceptable per plan scope, no task. (info) relative image strings pass through unchanged; carried to the contract owner and addressed by the image-URL contract amendment in 05d4685.
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.9
 title: normaliseRecipeUrl is not idempotent for a path of '//'
-status: To Do
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 03:20'
-updated_date: '2026-11-07 03:25'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-1
   - layer-providers
@@ -25,8 +25,8 @@ Contract section 9 step 4 (amended 2026-11-07) strips every trailing slash. The 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 normaliseRecipeUrl strips every trailing slash from the path: https://x.com// and https://x.com/ give https://x.com, and https://x.com/a// gives https://x.com/a
-- [ ] #2 normalise-url.test.ts has those cases in its golden table and an idempotence test over the whole table, and the providers unit tests and typecheck pass
+- [x] #1 normaliseRecipeUrl strips every trailing slash from the path: https://x.com// and https://x.com/ give https://x.com, and https://x.com/a// gives https://x.com/a
+- [x] #2 normalise-url.test.ts has those cases in its golden table and an idempotence test over the whole table, and the providers unit tests and typecheck pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -49,3 +49,11 @@ None beyond the contract: section 9 step 4 (amended 2026-11-07) says every trail
 ### Proof
 The three new golden rows and the idempotence test pass.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+No repro: the fix merged before review, so a failing run can't be recorded on main. The repro is the golden row 'double slash path collapses to no path' (https://x.com// -> https://x.com) in normalise-url.test.ts, which the pre-fix line in e3b7a6d^ (strip one slash) would fail with https://x.com/.
+
+Closed by reviewer. AC1: e3b7a6d changes path to url.pathname.replace(/\/+$/, ''), so x.com// and x.com/ give x.com and x.com/a// gives x.com/a, matching contract section 9 step 4 as amended. AC2: three golden rows added; the idempotence test loops over the whole table; vitest run of normalise-url.test.ts: 21 passed; orchestrator evidence on 6b10c7c: pnpm test 2018 passed, typecheck clean, pnpm check 16 passed. Together with TASK-74.4.3 this closes the idempotence gap. No findings.
+<!-- SECTION:NOTES:END -->

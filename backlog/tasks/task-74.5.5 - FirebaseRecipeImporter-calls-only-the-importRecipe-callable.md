@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.5
 title: FirebaseRecipeImporter calls only the importRecipe callable
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:35'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-2
   - layer-providers
@@ -25,10 +25,10 @@ Split key: providers-firebase-recipe-importer. Layer: providers. Contract: TASK-
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 providers-firebase/src/recipe-importer.ts implements RecipeImporter with httpsCallable(instance, 'importRecipe') and nothing else, and is exported from index.ts
-- [ ] #2 recipe-importer.emulator.test.ts runs recipeImporterContract against cache docs seeded through Admin writeRaw. The shapes come from contract §11, with schemaVersion 1 and failedAt Date.now(), and each key is the sha256 of the URL computed with node:crypto in the test. It adds an unauthenticated-rejects test
-- [ ] #3 Every seeded or requested URL in the test uses host recipe.invalid, with no query, fragment or trailing slash, and no real domain appears in the file
-- [ ] #4 The test imports nothing from providers-server. At this commit, pnpm -s typecheck passes repo-wide, and the orchestrator confirms pnpm check port-contracts
+- [x] #1 providers-firebase/src/recipe-importer.ts implements RecipeImporter with httpsCallable(instance, 'importRecipe') and nothing else, and is exported from index.ts
+- [x] #2 recipe-importer.emulator.test.ts runs recipeImporterContract against cache docs seeded through Admin writeRaw. The shapes come from contract §11, with schemaVersion 1 and failedAt Date.now(), and each key is the sha256 of the URL computed with node:crypto in the test. It adds an unauthenticated-rejects test
+- [x] #3 Every seeded or requested URL in the test uses host recipe.invalid, with no query, fragment or trailing slash, and no real domain appears in the file
+- [x] #4 The test imports nothing from providers-server. At this commit, pnpm -s typecheck passes repo-wide, and the orchestrator confirms pnpm check port-contracts
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -66,4 +66,6 @@ $ tsc --noEmit
 (no errors)
 
 Note: the importRecipe Cloud Function itself (TASK-74.4.7) is not yet built, so this emulator test cannot actually run end-to-end yet; per the task description the orchestrator runs it after app-functions-callable (orch-emulator-suite, TASK-74.5.9). providers-firebase has no unit-test project match for this file (it's *.emulator.test.ts, excluded from the `unit` vitest project by design), so `pnpm exec vitest run --project unit packages/providers-firebase` reports no test files - expected, not a failure. The orchestrator still needs to run `pnpm check port-contracts` repo-wide (outside this layer's narrowed Bash) to confirm AC#4's second half.
+
+Closed by philosophy:reviewer. AC#1: recipe-importer.ts has only a constructor and one httpsCallable(instance,'importRecipe') call; exported from index.ts. AC#2: test runs recipeImporterContract over recipes/{key} and recipeFailures/{key} seeded via writeRaw, schemaVersion 1, failedAt Date.now(), keys sha256 via node:crypto; separate unauthenticated-rejects describe. AC#3: only https://recipe.invalid/pancakes and /blocked-page appear; no query, fragment, trailing slash or real domain. AC#4: no providers-server import; orchestrator on 6b10c7c: pnpm typecheck clean, pnpm check (incl. port-contracts) passed. No criterion requires the emulator suite to pass now; its 4 failures need the importRecipe callable (TASK-74.4.7), and running it green is TASK-74.5.9's criterion. Findings: none filed. Low: the test's behavioural correctness is unproven until TASK-74.5.9 runs it.
 <!-- SECTION:NOTES:END -->
