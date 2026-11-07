@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-19 15:53'
+updated_date: '2026-11-07 17:57'
 ---
 Intent: TASK-1
 
@@ -14,8 +14,8 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 ### Accounts and the kitchen
 
 - R1 Sign-in is Google only, on both apps. No other sign-in method is offered.
-- R2 A signed-in person who has no kitchen can create one by giving it a name, and receives a shareable invite link and a short invite code.
-- R3 Opening the invite link, or entering the code, makes that person a member of the kitchen. A kitchen holds at most two members. An invalid, expired or already-used invite shows an inline error on the screen where it was entered.
+- R2 A signed-in person who has no kitchen can create one by giving it a name. A member invites their partner by adding the email the partner signs in to Google with; the kitchen holds one invite at a time, which a member can take back. Adding an email never reveals whether it has a Grocs account. (Invite links and codes were replaced by this in TASK-78.)
+- R3 A signed-in person whose verified Google email matches an invite is offered it on opening the app, naming who sent it and the kitchen, and joins only by confirming. Someone who already belongs to a kitchen leaves it on joining, and is told first that its list stays behind. A kitchen holds at most two members. An invite that was taken back or no longer fits shows an inline error where Join was pressed.
 - R4 A member can read and write only their own kitchen's data. This is enforced on the server, not only in the app.
 
 ### Meal plan

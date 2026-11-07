@@ -7,6 +7,7 @@ const both = {
     { uid: 'u2', name: 'Shazya', isCaller: false },
     { uid: 'u1', name: 'Bruk', isCaller: true },
   ],
+  invitedEmail: null,
 };
 
 describe('avatarsFor', () => {
@@ -22,7 +23,7 @@ describe('avatarsFor', () => {
 describe('partnerNameOf', () => {
   it("names the partner, or nobody while the kitchen has one member", () => {
     expect(partnerNameOf(both)).toBe('Shazya');
-    expect(partnerNameOf({ name: 'Mine', members: [{ uid: 'u1', name: 'Bruk', isCaller: true }] })).toBeNull();
+    expect(partnerNameOf({ name: 'Mine', members: [{ uid: 'u1', name: 'Bruk', isCaller: true }], invitedEmail: null })).toBeNull();
     expect(partnerNameOf(null)).toBeNull();
   });
 });

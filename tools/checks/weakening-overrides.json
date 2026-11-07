@@ -46,5 +46,109 @@
     "approvedBy": "Bruk Habtu, in chat, 2026-10-24",
     "reason": "Removes the Stop hook (R56) entry. Bruk asked directly for this (it re-ran checks/typecheck/tests after every agent turn, slowing live device-testing iteration) - a deliberate, explicit removal of enforcement, not a loophole. tools/hooks/stop.ts stays in the repo, just unregistered, so it can be wired back in later without rewriting it.",
     "date": "2026-10-24"
+  },
+  {
+    "file": "apps/mobile/src/routes/kitchen.route.test.tsx",
+    "beforeHash": "777f9beec373b43509155b785271461590d5b816374a84dda861f1e12010639a",
+    "afterHash": "ef2401b02856503f3421a84595dbdfeb2476f378bfe187603b239ee9ef096dc9",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code-entry and link tests in this file are removed with that behaviour, and the file now tests the email flow instead.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "apps/mobile/src/routes/screens.route.test.tsx",
+    "beforeHash": "15e5d95d7aa8591c0656d4c7c656d9a6fd17ab3f96c83306021bcebfe5abe51a",
+    "afterHash": "a350fa52439d89390fae62d3976f132e955a7f0c0200895abc2b42eb9e90d8d8",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code-entry and link tests in this file are removed with that behaviour, and the file now tests the email flow instead.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "apps/mobile/src/screens/invite-expiry.test.ts",
+    "beforeHash": "62a935eb6b064f84cd4b39015e2e98312d8452a21bea5a3e5e66e7b53297fce6",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "apps/mobile/src/screens/invite-message.test.tsx",
+    "beforeHash": "fe7336756c5d18d6c270ff6bcf935250a3ec0340e7d41f1ed46eef77904ca75a",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/application/src/commands/join-kitchen.scenario.test.ts",
+    "beforeHash": "0f7f55c693a2512828bd9b222f74d7c3dd303d4436c8ff29d775c43a0d8c0f4e",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/application/src/queries/get-invite-preview.test.ts",
+    "beforeHash": "ed6fbfad2ed93fc1a0ed36d171499773bc195aaef087a8fd7e627a3d3c0e3cd9",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/application/src/queries/get-kitchen-invite.test.ts",
+    "beforeHash": "b87050c41f88c25740144addcdecfab78277cbeca9febeef9e538d14bafc2191",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/core/src/model/invite.test.ts",
+    "beforeHash": "04a15a330012a8e5867b0830a94787b63a99c495ae12fd1de655d471c638c5bc",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/providers-server/src/kitchen-store.emulator.test.ts",
+    "beforeHash": "0b477265a4817306c11786d9d7ddcb38eec089fead3d8f0cd49c2503041bdfe9",
+    "afterHash": "2a1fd8ce26b3aacaee5c98a8bc1d0acf17e3f0955502eab2ecb91d54493cc6a1",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code-entry and link tests in this file are removed with that behaviour, and the file now tests the email flow instead.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/atoms/InviteCode.stories.tsx",
+    "beforeHash": "7cdd3826366d500399bfc12d5d53a0b8d2f1c8acf203339ba3bb0c859fd5960a",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/templates/InviteRetryTemplate.behaviour.test.tsx",
+    "beforeHash": "8115960c082a01fdc7023601a3c3ac085ebd3d1dd56082c30da5639f6f37b6bb",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/templates/InviteRetryTemplate.stories.tsx",
+    "beforeHash": "a5211b3c482c8d8ba63240a2b4be65f99925f3aaf88482101870e6d712353dca",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code this file tested (invite codes, the /join code entry, code expiry or the invite preview) is deleted, and its replacement is tested in the new email-invite tests.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/templates/KitchenSetupTemplate.behaviour.test.tsx",
+    "beforeHash": "36ce65024a12a3d1c3becf7ad1b0cc426f6b35c88d10f6d9eef6de7512025f93",
+    "afterHash": "b34bef7b0f94e50805ebd84a2310e19ba047866ea9baa06d915979966f5c9bf2",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
+    "reason": "TASK-78 replaces invite codes with sharing by email; the code-entry and link tests in this file are removed with that behaviour, and the file now tests the email flow instead.",
+    "date": "2026-11-07"
   }
 ]

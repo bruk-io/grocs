@@ -26,7 +26,7 @@ export const rules: Readonly<Record<string, RuleInfo>> = {
     req: 'R57',
     summary: 'Do not delete a test or shrink a test file',
     why: 'Deleting a failing test is the quickest way to make a build pass and the easiest way to lose a guarantee. R46 to R49 need tests to exist for every domain function, command, port and rule.',
-    fix: 'Make the test pass. If the behaviour was removed on purpose, ask the person who owns the spec to confirm, and replace the test with one for the new behaviour.',
+    fix: "Make the test pass. If the behaviour was removed on purpose, ask the person who owns the spec to confirm, replace the test with one for the new behaviour, and record their approval for that one file in tools/checks/weakening-overrides.json, keyed to its exact before/after content (after is empty for a deleted file) - never only in a commit message.",
   },
   'weakening/loosen-check-config': {
     req: 'R57',
@@ -137,7 +137,11 @@ function excludeVersionBumps(removed: readonly string[], added: readonly string[
   return { removed: remainingRemoved, added: remainingAdded };
 }
 
-/** A human-recorded, single-diff exception to weakening/loosen-check-config (R57 fix). */
+/**
+ * A human-recorded, single-diff exception (R57 fix) to weakening/loosen-check-config, or to
+ * weakening/delete-test when the behaviour a test covered was removed on purpose (TASK-78). Never
+ * to focus-test or skip-test.
+ */
 export interface WeakeningOverride {
   readonly file: string;
   /** sha256 of the file's content before the change (hash of "" when the file is new). */
@@ -175,8 +179,9 @@ export function loadOverrides(root: string): readonly WeakeningOverride[] {
 
 /**
  * Review one file's change. `before` or `after` is null when the file did not exist or was deleted.
- * `overrides` is a human-recorded exception list (loadOverrides); it is checked only against
- * weakening/loosen-check-config, never against the test-weakening rules. Returns the weakenings
+ * `overrides` is a human-recorded exception list (loadOverrides); it is checked against
+ * weakening/loosen-check-config and weakening/delete-test, never against focus-test or skip-test,
+ * which no approval can make right. Returns the weakenings
  * found; an empty list means the change may go ahead.
  */
 export function reviewChange(file: string, before: string | null, after: string | null, overrides: readonly WeakeningOverride[] = []): Weakening[] {
@@ -186,8 +191,11 @@ export function reviewChange(file: string, before: string | null, after: string 
   };
 
   if (isTestFile(file) || isStoryFile(file)) {
+    // A deletion or shrink the spec owner approved for exactly this content (the behaviour it tested
+    // was removed on purpose); any other change to the file brings the finding back.
+    const approved = isOverridden(file, before, after, overrides);
     if (before !== null && after === null) {
-      add('weakening/delete-test', 'deny', `the test file ${file} is deleted`);
+      if (!approved) add('weakening/delete-test', 'deny', `the test file ${file} is deleted`);
       return out;
     }
     if (after !== null) {
@@ -198,7 +206,7 @@ export function reviewChange(file: string, before: string | null, after: string 
         if (FOCUS.test(l)) add('weakening/focus-test', 'deny', `adds a focused test: ${l.trim()}`, where);
         else if (SKIP.test(l)) add('weakening/skip-test', 'deny', `adds a skipped or todo test: ${l.trim()}`, where);
       }
-      if (before !== null && isTestFile(file) && countTests(after) < countTests(before)) {
+      if (before !== null && isTestFile(file) && countTests(after) < countTests(before) && !approved) {
         add('weakening/delete-test', 'deny', `the file has ${countTests(after)} tests, down from ${countTests(before)}`);
       }
     }

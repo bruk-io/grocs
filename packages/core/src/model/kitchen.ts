@@ -13,6 +13,16 @@ export interface Kitchen {
   readonly memberNames: Readonly<Record<string, string>>;
   readonly timeZone: string;
   readonly createdAt: number;
+  /** The partner invited by email and not yet joined (TASK-78), or absent. Written by the server only. */
+  readonly invite?: KitchenInvite;
+}
+
+/** An invite to the kitchen's open place, for whoever signs in with `email` (stored lower case). */
+export interface KitchenInvite {
+  readonly email: string;
+  /** The uid of the member who sent it. */
+  readonly invitedBy: string;
+  readonly createdAt: number;
 }
 
 export interface NewKitchenInput {

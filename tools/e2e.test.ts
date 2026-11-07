@@ -28,7 +28,6 @@ describe('planRuns', () => {
   it('with both devices, invites on Android, joins on iOS with the code, then sees the kitchen full on Android (TASK-56)', () => {
     const trio = planRuns({ android: 'emu', ios: 'sim' }, flows, '1').filter((r) => r.flow.startsWith('household'));
     expect(trio.map((r) => `${r.flow}@${r.device}`)).toEqual(['household-invite.yaml@emu', 'household-join.yaml@sim', 'household-full.yaml@emu']);
-    expect(trio.map((r) => r.needsInviteCode ?? false)).toEqual([false, true, false]);
   });
 });
 

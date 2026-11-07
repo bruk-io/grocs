@@ -17,7 +17,8 @@ appId: io.bruk.grocs.dev
     visible: "Continue with Google"
     timeout: 60000
 - openLink: "grocs://dev-sign-in?as=${ACCOUNT}"
-# A member lands on Groceries; Pat, who has no kitchen yet, on the kitchen setup screen.
+# A member lands on Groceries; Pat, who has no kitchen yet, on the kitchen setup screen, or on the
+# invite Jo sent once household-invite.yaml has run (TASK-78).
 - extendedWaitUntil:
-    visible: "Groceries|Your kitchen"
+    visible: "Groceries|Your kitchen|You're invited"
     timeout: 30000

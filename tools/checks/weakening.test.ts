@@ -229,6 +229,27 @@ describe('weakening review (R57)', () => {
     });
   });
 
+  describe('a recorded approval for removing a test (TASK-78)', () => {
+    const file = 'packages/core/src/a.test.ts';
+    const approval = (after: string | null) => ({ file, beforeHash: hashContent(base), afterHash: hashContent(after), approvedBy: 'alex', reason: 'test fixture', date: '2026-11-07' });
+
+    it('lets a deleted test file through when its deletion was approved', () => {
+      expect(reviewChange(file, base, null, [approval(null)])).toEqual([]);
+    });
+
+    it('lets a shrunk test file through for the exact content approved, and not once it changes again', () => {
+      const shrunk = base.replace("it('b', () => {});\n", '');
+      expect(reviewChange(file, base, shrunk, [approval(shrunk)])).toEqual([]);
+      expect(reviewChange(file, base, `${shrunk}\n`, [approval(shrunk)]).map((w) => w.rule)).toEqual(['weakening/delete-test']);
+    });
+
+    it('still denies a focused or skipped test, approval or not', () => {
+      // Spelt in two parts so this fixture line is not itself read as a focused test by the staged review.
+      const focused = base.replace("it('a'", 'it.on' + "ly('a'");
+      expect(reviewChange(file, base, focused, [approval(focused)]).map((w) => w.rule)).toEqual(['weakening/focus-test']);
+    });
+  });
+
   it('names the rule, the reason and the fix', () => {
     const [w] = reviewChange('packages/core/src/a.test.ts', base, base.replace("it('a'", "it.only('a'"));
     const text = formatFinding(check, w!);

@@ -5,38 +5,49 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './InviteJoinTemplate.stories.tsx';
 
-const { Rest } = composeStories(stories);
+const { Rest, Leaving, Joining, Error: Failed } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-describe('InviteJoinTemplate', () => {
-  it('says who invited you to what, and that an unexpected invite can be ignored', () => {
+describe('InviteJoinTemplate (TASK-78)', () => {
+  it('says who invited you to what', () => {
     render(<Rest />);
     expect(screen.getByRole('heading', { name: "You're invited" })).toBeTruthy();
-    expect(screen.getByText('Alex invited you to')).toBeTruthy();
+    expect(screen.getByText('Shazya invited you to')).toBeTruthy();
     expect(screen.getByText('Our kitchen')).toBeTruthy();
-    expect(screen.getByText('Not expecting this? You can ignore it.')).toBeTruthy();
   });
 
-  it('has the wordmark, not a back link, and no action bar: one Google button', () => {
+  it('joins, or puts it aside, each to its own callback', async () => {
+    const onJoin = vi.fn();
+    const onNotNow = vi.fn();
+    render(<Rest onJoin={onJoin} onNotNow={onNotNow} />);
+    await user.click(screen.getByRole('button', { name: 'Join Our kitchen' }));
+    await user.click(screen.getByRole('button', { name: 'Not now' }));
+    expect(onJoin).toHaveBeenCalledOnce();
+    expect(onNotNow).toHaveBeenCalledOnce();
+  });
+
+  it('says nothing about leaving for someone with no kitchen', () => {
     render(<Rest />);
-    expect(screen.getByText('Grocs')).toBeTruthy();
-    expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual(['Chanty the chanterelle, tap to hear a line', 'Join with Google']);
+    expect(screen.queryByText(/takes you out of/)).toBeNull();
   });
 
-  it('joins with Google', async () => {
-    const onJoin = vi.fn();
-    render(<Rest onJoin={onJoin} />);
-    await user.click(screen.getByRole('button', { name: 'Join with Google' }));
-    expect(onJoin).toHaveBeenCalledExactlyOnceWith();
+  it('says which kitchen joining leaves, and that its list stays there', () => {
+    render(<Leaving />);
+    expect(screen.getByText('Joining takes you out of My kitchen. Its list and meals stay there.')).toBeTruthy();
   });
 
-  it('shows the button busy while Google is open, and does not press twice', async () => {
-    const onJoin = vi.fn();
-    render(<Rest joining onJoin={onJoin} />);
-    const busy = screen.getByRole('button', { name: 'Joining' });
-    expect(busy.getAttribute('aria-busy')).toBe('true');
-    await user.click(busy);
-    expect(onJoin).not.toHaveBeenCalled();
+  it('while joining, shows it busy and cannot be put aside', async () => {
+    const onNotNow = vi.fn();
+    render(<Joining onNotNow={onNotNow} />);
+    expect(screen.getByRole('button', { name: 'Joining' }).getAttribute('aria-busy')).toBe('true');
+    await user.click(screen.getByRole('button', { name: 'Not now' }));
+    expect(onNotNow).not.toHaveBeenCalled();
+  });
+
+  it('shows why the join did not go through', () => {
+    render(<Failed />);
+    const message = screen.getByText('That invite was taken back. Ask your partner to add you again.');
+    expect(message.closest('[aria-live="polite"]')).toBeTruthy();
   });
 });

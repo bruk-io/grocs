@@ -2,12 +2,13 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '../atoms/Text.tsx';
 import { StatusRow } from '../molecules/StatusRow.tsx';
 import { InviteCard } from '../organisms/InviteCard.tsx';
+import type { InviteCardComposeProps, InviteCardInvitedProps } from '../organisms/InviteCard.tsx';
 import { SubHeader } from '../organisms/SubHeader.tsx';
 import { tokens } from '../tokens/tokens.ts';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
-/** The household screen (TASK-56): an invite to send while the kitchen waits for its partner, both members once it is full, and while the invite is being fetched or could not be. */
-export const HOUSEHOLDTEMPLATE_STATES = ['waiting', 'full', 'loading', 'failed'] as const;
+/** The household screen (TASK-56, TASK-78): the partner's email to add while the kitchen has room, once they are invited, both members once it is full, and while the kitchen is being read or could not be. */
+export const HOUSEHOLDTEMPLATE_STATES = ['rest', 'invited', 'full', 'loading', 'failed'] as const;
 
 export interface HouseholdMember {
   readonly name: string;
@@ -15,8 +16,10 @@ export interface HouseholdMember {
   readonly isYou: boolean;
 }
 
+/** The invite card while there is room (compose or invited), or what shows in its place. */
 export type HouseholdInvite =
-  | { readonly kind: 'open'; readonly code: string; /** When the code stops working, as the phone says it ("Works until 3:40 PM tomorrow"). */ readonly expires: string; readonly onShare?: () => void; readonly onCopy?: () => void }
+  | InviteCardComposeProps
+  | InviteCardInvitedProps
   | { readonly kind: 'full' }
   | { readonly kind: 'loading' }
   | { readonly kind: 'failed'; readonly message: string };
@@ -39,19 +42,14 @@ export function HouseholdTemplate({ kitchenName, members, invite, backLabel = 'S
           <StatusRow key={m.name} kind="joined" name={m.name} message={m.isYou ? `${m.name} (you)` : m.name} />
         ))}
       </View>
-      {invite.kind === 'open' ? (
-        <InviteCard
-          code={invite.code}
-          status={{ kind: 'waiting', message: `Waiting for your partner to join. ${invite.expires}.` }}
-          {...(invite.onShare ? { onShare: invite.onShare } : {})}
-          {...(invite.onCopy ? { onCopy: invite.onCopy } : {})}
-        />
+      {invite.kind === 'compose' || invite.kind === 'invited' ? (
+        <InviteCard {...invite} />
       ) : invite.kind === 'full' ? (
         <Text variant="muted">Your kitchen has both its members. They share the plan and the list, live on each phone.</Text>
       ) : invite.kind === 'loading' ? (
-        <Text variant="muted">Getting your invite code</Text>
+        <Text variant="muted">Checking your kitchen</Text>
       ) : (
-        <Text variant="muted">{`Could not get an invite code: ${invite.message}`}</Text>
+        <Text variant="muted">{`Could not check your kitchen: ${invite.message}`}</Text>
       )}
     </TaskLayout>
   );

@@ -9,6 +9,8 @@ export interface KitchenInfoMember {
 export interface KitchenInfo {
   readonly name: string;
   readonly members: readonly KitchenInfoMember[];
+  /** The email invited and not yet joined, or null (TASK-78). */
+  readonly invitedEmail: string | null;
 }
 
 /**
@@ -20,5 +22,5 @@ export async function getKitchenInfo(deps: Deps, kitchenId: string): Promise<Kit
   const details = await deps.kitchens.getKitchen(kitchenId);
   if (!details) return null;
   const callerUid = deps.auth.currentUser()?.uid;
-  return { name: details.name, members: details.members.map((m) => ({ ...m, isCaller: m.uid === callerUid })) };
+  return { name: details.name, members: details.members.map((m) => ({ ...m, isCaller: m.uid === callerUid })), invitedEmail: details.invitedEmail };
 }

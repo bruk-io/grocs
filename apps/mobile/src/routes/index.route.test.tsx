@@ -21,7 +21,7 @@ describe('index route', () => {
     expect(await screen.findByText('Grocs')).toBeTruthy();
     expect(screen.getByText('Plan the week. Shop together.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Open it to join' })).toBeTruthy();
+    expect(screen.getByText('Got an invite? Continue with the Google account it was sent to.')).toBeTruthy();
   });
 
   it('shows the error and returns to Continue with Google when the Google picker is cancelled, with no test sign-in in any build', async () => {

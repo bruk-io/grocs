@@ -13,22 +13,18 @@ afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
 describe('AuthSheet', () => {
-  it('offers Google as the one way to sign in, and a way in for an invite', () => {
+  it('offers Google as the one way to sign in, and tells someone with an invite which account to use (TASK-78)', () => {
     render(<Rest />);
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
-    expect(screen.getByText('Got an invite?')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Open it to join' })).toBeTruthy();
+    expect(screen.getByText('Got an invite? Continue with the Google account it was sent to.')).toBeTruthy();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
   });
 
-  it('continues with Google and opens the invite, each to its own callback', async () => {
+  it('continues with Google', async () => {
     const onContinue = vi.fn();
-    const onOpenInvite = vi.fn();
-    render(<Rest onContinue={onContinue} onOpenInvite={onOpenInvite} />);
+    render(<Rest onContinue={onContinue} />);
     await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
     expect(onContinue).toHaveBeenCalledExactlyOnceWith();
-    expect(onOpenInvite).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Open it to join' }));
-    expect(onOpenInvite).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('shows the button busy while Google is open, and does not press twice', async () => {
@@ -40,24 +36,20 @@ describe('AuthSheet', () => {
     expect(onContinue).not.toHaveBeenCalled();
   });
 
-  it('turns both buttons off when disabled', async () => {
+  it('turns the button off when disabled', async () => {
     const onContinue = vi.fn();
-    const onOpenInvite = vi.fn();
-    render(<Disabled onContinue={onContinue} onOpenInvite={onOpenInvite} />);
-    for (const name of ['Continue with Google', 'Open it to join']) {
-      const button = screen.getByRole('button', { name });
-      expect(button.getAttribute('aria-disabled')).toBe('true');
-      await user.click(button);
-    }
+    render(<Disabled onContinue={onContinue} />);
+    const button = screen.getByRole('button', { name: 'Continue with Google' });
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    await user.click(button);
     expect(onContinue).not.toHaveBeenCalled();
-    expect(onOpenInvite).not.toHaveBeenCalled();
   });
 
   it('can lead with one primary action in place of Google and the invite row', async () => {
     const onPrimary = vi.fn();
     render(<PrimaryAction onPrimary={onPrimary} />);
     expect(screen.queryByRole('button', { name: 'Continue with Google' })).toBeNull();
-    expect(screen.queryByText('Got an invite?')).toBeNull();
+    expect(screen.queryByText(/Got an invite/)).toBeNull();
     expect(screen.getAllByRole('button')).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: 'Try the demo' }));
     expect(onPrimary).toHaveBeenCalledExactlyOnceWith();

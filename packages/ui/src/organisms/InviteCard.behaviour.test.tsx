@@ -6,59 +6,48 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InviteCard } from './InviteCard.tsx';
 import * as stories from './InviteCard.stories.tsx';
 
-const { Waiting, Joined, Unsent, NoCode } = composeStories(stories);
+const { Filled, Invalid, Sending, Invited, NoKitchen } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
-describe('InviteCard', () => {
-  it('shows the code and the two ways to send it', () => {
-    render(<Waiting />);
-    expect(screen.getByText('MOREL-24')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Share link' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Copy code' })).toBeTruthy();
+describe('InviteCard (TASK-78)', () => {
+  it('passes what is typed to onEmailChange', async () => {
+    const onEmailChange = vi.fn();
+    render(<InviteCard kind="compose" email="" onEmailChange={onEmailChange} onInvite={() => undefined} />);
+    await user.type(screen.getByRole('textbox', { name: 'Their email' }), 's');
+    expect(onEmailChange).toHaveBeenCalledWith('s');
   });
 
-  it('shares and copies, each to its own callback', async () => {
-    const onShare = vi.fn();
-    const onCopy = vi.fn();
-    render(<Waiting onShare={onShare} onCopy={onCopy} />);
-    await user.click(screen.getByRole('button', { name: 'Share link' }));
-    expect(onShare).toHaveBeenCalledExactlyOnceWith();
-    expect(onCopy).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Copy code' }));
-    expect(onCopy).toHaveBeenCalledExactlyOnceWith();
+  it('invites from the button', async () => {
+    const onInvite = vi.fn();
+    render(<Filled onInvite={onInvite} />);
+    await user.click(screen.getByRole('button', { name: 'Invite' }));
+    expect(onInvite).toHaveBeenCalledOnce();
   });
 
-  it('says it is waiting for the partner, then that they joined', () => {
-    render(<Waiting />);
-    expect(screen.getByText('Link sent. Waiting for them to join…')).toBeTruthy();
-    cleanup();
-    render(<Joined />);
-    expect(screen.getByText('Sam joined your kitchen!')).toBeTruthy();
+  it('shows why the last try did not work, and marks the field invalid', () => {
+    render(<Invalid />);
+    expect(screen.getByRole('alert').textContent).toContain('not an email address');
+    expect(screen.getByRole('textbox', { name: 'Their email' }).getAttribute('aria-invalid')).toBe('true');
   });
 
-  it('has no status line before the link is shared', () => {
-    const { container } = render(<Unsent />);
-    expect(container.querySelector('[aria-live="polite"]')).toBeNull();
+  it('locks the field and the button while sending', () => {
+    render(<Sending />);
+    expect((screen.getByRole('textbox', { name: 'Their email' }) as HTMLInputElement).readOnly).toBe(true);
+    expect(screen.getByRole('button', { name: 'Inviting' }).getAttribute('aria-disabled')).toBe('true');
   });
 
-  it('disables the button whose handler is missing, never leaves it dead', () => {
-    const disabled = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-disabled') === 'true';
-    render(<InviteCard code="MOREL-24" onShare={() => undefined} />);
-    expect(disabled('Share link')).toBe(false);
-    expect(disabled('Copy code')).toBe(true);
-    cleanup();
-    render(<InviteCard code="MOREL-24" onCopy={() => undefined} />);
-    expect(disabled('Share link')).toBe(true);
-    expect(disabled('Copy code')).toBe(false);
+  it('once invited, names the address and cancels from its button', async () => {
+    const onCancel = vi.fn();
+    render(<Invited onCancel={onCancel} />);
+    expect(screen.getByText('Invited shazya@gmail.com. Waiting for them to join.')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Cancel invite' }));
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it('before there is a code shows a hint, no sample code and no buttons', () => {
-    render(<NoCode />);
-    expect(screen.getByText('Your code appears after Start planning.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Share link' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
-    expect(screen.queryByRole('button')).toBeNull();
-    expect(screen.queryByText(/[A-Z]+-\d+/)).toBeNull();
+  it('before the kitchen exists, says when inviting becomes possible and cannot be used', () => {
+    render(<NoKitchen />);
+    expect(screen.getByText('You can invite them once your kitchen is made.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Invite' }).getAttribute('aria-disabled')).toBe('true');
   });
 });

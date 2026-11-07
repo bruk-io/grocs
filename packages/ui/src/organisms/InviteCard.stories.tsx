@@ -4,15 +4,20 @@ import { InviteCard } from './InviteCard.tsx';
 const meta = {
   title: 'Organisms/InviteCard',
   component: InviteCard,
-  args: {},
+  args: { kind: 'compose', email: '', onEmailChange: () => undefined, onInvite: () => undefined },
 } satisfies Meta<typeof InviteCard>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-const sendable = { onShare: () => undefined, onCopy: () => undefined };
 
-export const Waiting: Story = { args: { code: 'MOREL-24', ...sendable, status: { message: 'Link sent. Waiting for them to join…' } } };
-export const Joined: Story = { args: { code: 'MOREL-24', ...sendable, status: { kind: 'joined', name: 'Sam', message: 'Sam joined your kitchen!' } } };
-/** Before the link is shared there is no status line yet. */
-export const Unsent: Story = { args: { code: 'MOREL-24', ...sendable } };
-/** Before there is a code (no kitchen yet): a hint where the code will be, and no Share link or Copy code at all. */
-export const NoCode: Story = { args: { code: null } };
+/** Nothing typed yet. */
+export const Rest: Story = {};
+/** An address typed, ready to invite. */
+export const Filled: Story = { args: { kind: 'compose', email: 'shazya@gmail.com', onEmailChange: () => undefined, onInvite: () => undefined } };
+/** The address was refused, with why under the field. */
+export const Invalid: Story = { args: { kind: 'compose', email: 'shazya@', onEmailChange: () => undefined, onInvite: () => undefined, errorMessage: 'That is not an email address. Check it and try again.' } };
+/** The invite is on its way. */
+export const Sending: Story = { args: { kind: 'compose', email: 'shazya@gmail.com', onEmailChange: () => undefined, onInvite: () => undefined, sending: true } };
+/** Invited, waiting for them to open Grocs and join. */
+export const Invited: Story = { args: { kind: 'invited', email: 'shazya@gmail.com', onCancel: () => undefined } };
+/** Before the kitchen exists: the field is there, but there is nothing to invite to yet. */
+export const NoKitchen: Story = { args: { kind: 'noKitchen' } };

@@ -6,12 +6,10 @@ import { createTestClient } from '../testing/client.ts';
 const create = (name = 'Our kitchen') => ({ type: 'CreateKitchen' as const, name, timeZone: 'America/Toronto' });
 
 describe('CreateKitchen scenarios (R2)', () => {
-  it('creates the kitchen and returns its id and invite code in a KitchenCreated event', async () => {
+  it('creates the kitchen and returns its id in a KitchenCreated event', async () => {
     const client = await createTestClient({ uid: 'alex' });
     const result = await client.dispatcher.dispatch(create());
-    expect(result.ok && result.value).toEqual([
-      { type: 'KitchenCreated', kitchenId: expect.any(String), inviteCode: expect.stringMatching(/^[A-Z]+-\d{4}$/) },
-    ]);
+    expect(result.ok && result.value).toEqual([{ type: 'KitchenCreated', kitchenId: expect.any(String) }]);
   });
 
   it('needs a signed-in member', async () => {
@@ -30,11 +28,12 @@ describe('CreateKitchen scenarios (R2)', () => {
   it('turns a failing gateway into an internal error result, not an exception', async () => {
     const broken: KitchenGateway = {
       createKitchen: () => Promise.reject(new Error('functions are down')),
-      joinKitchen: () => Promise.reject(new Error('functions are down')),
+      inviteByEmail: () => Promise.reject(new Error('functions are down')),
+      cancelInvite: () => Promise.reject(new Error('functions are down')),
+      invitesForMe: () => Promise.reject(new Error('functions are down')),
+      acceptInvite: () => Promise.reject(new Error('functions are down')),
       findMyKitchen: () => Promise.reject(new Error('functions are down')),
       getKitchen: () => Promise.reject(new Error('functions are down')),
-      inviteForKitchen: () => Promise.reject(new Error('functions are down')),
-      previewInvite: () => Promise.reject(new Error('functions are down')),
     };
     const client = await createTestClient({ uid: 'alex', kitchens: broken });
     const result = await client.dispatcher.dispatch(create());
@@ -53,13 +52,14 @@ describe('CreateKitchen scenarios (R2)', () => {
     const stub: KitchenGateway = {
       createKitchen: (name: string, timeZone: string) => {
         capturedArgs.push([name, timeZone]);
-        return Promise.resolve({ kitchenId: 'k1', inviteCode: 'TEST-0001' });
+        return Promise.resolve({ kitchenId: 'k1' });
       },
-      joinKitchen: () => Promise.reject(new Error('unused')),
+      inviteByEmail: () => Promise.reject(new Error('unused')),
+      cancelInvite: () => Promise.reject(new Error('unused')),
+      invitesForMe: () => Promise.reject(new Error('unused')),
+      acceptInvite: () => Promise.reject(new Error('unused')),
       findMyKitchen: () => Promise.reject(new Error('unused')),
       getKitchen: () => Promise.reject(new Error('unused')),
-      inviteForKitchen: () => Promise.reject(new Error('unused')),
-      previewInvite: () => Promise.reject(new Error('unused')),
     };
     const client = await createTestClient({ uid: 'alex', kitchens: stub });
     const timeZone = 'Pacific/Auckland';

@@ -1,56 +1,91 @@
 import { StyleSheet, View } from 'react-native';
 import { Button } from '../atoms/Button.tsx';
-import { InviteCode } from '../atoms/InviteCode.tsx';
 import { Text } from '../atoms/Text.tsx';
+import { TextField } from '../atoms/TextField.tsx';
 import { StatusRow } from '../molecules/StatusRow.tsx';
-import type { StatusRowProps } from '../molecules/StatusRow.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
-/** invite.card: before it is shared, waiting for the partner to join, joined, and before any code exists (noCode: a hint, and no buttons at all). */
-export const INVITECARD_STATES = ['waiting', 'joined', 'unsent', 'noCode'] as const;
+/**
+ * invite.card (TASK-78): typing the partner's email (rest, filled, invalid, sending), once they are
+ * invited, and before the kitchen exists (noKitchen: the field is shown but cannot be used yet).
+ */
+export const INVITECARD_STATES = ['rest', 'filled', 'invalid', 'sending', 'invited', 'noKitchen'] as const;
 
-/** There is a code to share. */
-export interface InviteCardCodeProps {
-  code: string;
-  /** The line at the foot: waiting for them, or who joined. Left out before the invite is sent. */
-  status?: StatusRowProps;
-  /** A button whose handler is left out renders disabled, never dead. */
-  onShare?: () => void;
-  onCopy?: () => void;
+/** The partner's email is being typed. Leave onInvite out and the Invite button is disabled, never dead. */
+export interface InviteCardComposeProps {
+  readonly kind: 'compose';
+  readonly email: string;
+  readonly onEmailChange: (email: string) => void;
+  readonly onInvite?: () => void;
+  /** The invite is on its way to the server. */
+  readonly sending?: boolean;
+  /** Why the last try did not work, shown under the field. */
+  readonly errorMessage?: string;
 }
 
-/** No code yet (no kitchen): the card says when it will appear, and Share link and Copy code are not shown, so no handler or status is accepted. */
-export interface InviteCardNoCodeProps {
-  code: null;
-  status?: never;
-  onShare?: never;
-  onCopy?: never;
+/** Invited and not yet joined. */
+export interface InviteCardInvitedProps {
+  readonly kind: 'invited';
+  /** The address invited, as stored. */
+  readonly email: string;
+  /** Takes the invite back. Left out, the button is disabled. */
+  readonly onCancel?: () => void;
+  readonly cancelling?: boolean;
 }
 
-export type InviteCardProps = InviteCardCodeProps | InviteCardNoCodeProps;
+/** There is no kitchen to invite to yet. */
+export interface InviteCardNoKitchenProps {
+  readonly kind: 'noKitchen';
+}
 
-/** Invites the partner: the code, the two ways to send it and where it stands (text.heading, invite.code, button x 2, status.row). */
-export function InviteCard({ code, status, onShare, onCopy }: InviteCardProps) {
+export type InviteCardProps = InviteCardComposeProps | InviteCardInvitedProps | InviteCardNoKitchenProps;
+
+const FIELD_LABEL = 'Their email';
+
+/** Invites the partner by the email they sign in to Google with (text.heading, text.body, input.text--inline or status.row with a text button). */
+export function InviteCard(props: InviteCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.words}>
         <Text variant="heading">Invite your partner</Text>
         <Text variant="body" tone="muted">
-          They get the same plan and list, live on their phone.
+          Add the email they use with Google. They see your invite the next time they open Grocs, and get the same plan and list.
         </Text>
       </View>
-      {code === null ? <InviteCode hint="Your code appears after Start planning." /> : <InviteCode code={code} />}
-      {code === null ? null : (
-        <View style={styles.buttons}>
-          <View style={styles.button}>
-            <Button stretch size="s" variant="primary" label="Share link" leadingIcon="share" disabled={!onShare} {...(onShare ? { onPress: onShare } : {})} />
-          </View>
-          <View style={styles.button}>
-            <Button stretch size="s" variant="secondary" label="Copy code" disabled={!onCopy} {...(onCopy ? { onPress: onCopy } : {})} />
-          </View>
+      {props.kind === 'invited' ? (
+        <View style={styles.invited}>
+          <StatusRow kind="waiting" message={`Invited ${props.email}. Waiting for them to join.`} />
+          <Button
+            variant="text"
+            size="s"
+            label="Cancel invite"
+            loading={props.cancelling ?? false}
+            loadingLabel="Cancelling"
+            disabled={!props.onCancel}
+            {...(props.onCancel ? { onPress: props.onCancel } : {})}
+          />
         </View>
+      ) : props.kind === 'noKitchen' ? (
+        <>
+          <TextField value="" onChangeText={() => undefined} label={FIELD_LABEL} placeholder="name@gmail.com" email disabled actionLabel="Invite" actionKind="primary" />
+          <Text variant="small" tone="muted">
+            You can invite them once your kitchen is made.
+          </Text>
+        </>
+      ) : (
+        <TextField
+          value={props.email}
+          onChangeText={props.onEmailChange}
+          label={FIELD_LABEL}
+          placeholder="name@gmail.com"
+          email
+          disabled={props.sending ?? false}
+          actionLabel={props.sending ? 'Inviting' : 'Invite'}
+          actionKind="primary"
+          {...(props.onInvite && !props.sending ? { onAction: props.onInvite, onSubmit: props.onInvite } : {})}
+          {...(props.errorMessage !== undefined ? { errorMessage: props.errorMessage } : {})}
+        />
       )}
-      {code === null || !status ? null : <StatusRow {...status} />}
     </View>
   );
 }
@@ -65,6 +100,5 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.surfaceCard,
   },
   words: { gap: tokens.space[4] },
-  buttons: { flexDirection: 'row', gap: tokens.space[8] },
-  button: { flex: 1 },
+  invited: { gap: tokens.space[6], alignItems: 'flex-start' },
 });

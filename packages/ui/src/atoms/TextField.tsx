@@ -34,9 +34,11 @@ export interface TextFieldProps {
   forceState?: 'pressed' | 'focus';
   /** Gives the parent the input, so it can take focus back (for example after the field was locked while a value was checked). */
   inputRef?: Ref<TextFieldHandle>;
+  /** An email address: the email keyboard, and no capitals or autocorrect. */
+  email?: boolean;
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState, inputRef }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState, inputRef, email = false }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
   const lit = focused || forceState === 'focus';
@@ -68,6 +70,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           returnKeyType="done"
+          {...(email ? { keyboardType: 'email-address' as const, autoCapitalize: 'none' as const, autoCorrect: false, autoComplete: 'email' as const } : {})}
           style={[styles.input, actionLabel !== undefined && styles.inputInline, display && styles.inputDisplay, disabled && styles.inputDisabled]}
         />
         {actionLabel !== undefined ? (
