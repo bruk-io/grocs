@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.6
 title: 'FirestoreSyncStore stores and watches kitchens/{k}/recipes - Group A'
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:49'
 labels:
   - size-3
   - layer-providers
@@ -37,15 +37,32 @@ Split key: providers-firestore-recipes. Layer: providers. Contract: TASK-74's pl
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Add a decodeAllRecipes helper, then the three methods, then the contract call and the stored-shape tests.
+1. Add mergeRecipe/getRecipes/watchRecipes to FirestoreSyncStore, mirroring the existing mergeMeal/getMeals/watchMeals pattern: transaction with decodeRecipe/mergeRecipe/encodeRecipe for writes, a no-where-clause collection query and a decodeAllRecipes helper for reads/watches.
+2. Update the class doc comment to mention recipes alongside items and meals (AC#4).
+3. Wire syncStoreRecipeContract into firestore-sync-store.emulator.test.ts (AC#2), and add stored-shape tests: readRaw shows schemaVersion 1 and plain content fields, a bad/future-version doc via writeRaw makes getRecipes reject, and the watcher reports the invalid doc while still delivering the valid one (AC#3).
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+Follow TASK-74's slice contract (§15) exactly; a needed contract change goes in this task's notes and work stops (decision-3 mediation). No contract change was needed: ports (TASK-74.7.4) and core (decodeRecipe/encodeRecipe/mergeRecipe) were already in the shared worktree.
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/providers-firebase/src/firestore-sync-store.ts
-- packages/providers-firebase/src/firestore-sync-store.emulator.test.ts
+Each acceptance criterion is shown by the vitest run below (emulator suite itself is run by orch-emulator-suite, not this builder) and by typecheck.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation: packages/providers-firebase/src/firestore-sync-store.ts gains mergeRecipe/getRecipes/watchRecipes at kitchens/{k}/recipes/{id}, using decodeRecipe/mergeRecipe/encodeRecipe in a transaction for writes and a no-where-clause collection query + decodeAllRecipes helper for getRecipes/watchRecipes (AC#1). The class doc comment now covers items, meals and recipes, including the offline-transaction note (AC#4). No commit made (Group A integration, orchestrator commits).
+
+packages/providers-firebase/src/firestore-sync-store.emulator.test.ts now also runs syncStoreRecipeContract (AC#2) and adds a 'Firestore sync store: recipe stored shape' describe block: writes schemaVersion 1 + plain content fields, a bad/future-version doc via writeRaw makes getRecipes reject, and the watcher reports the invalid doc while still delivering the valid one (AC#3). Per task description, builders cannot run emulator tests; orch-emulator-suite runs this file.
+
+Checks run (this layer only, per task scope):
+$ mise exec -- pnpm exec vitest run --project unit packages/providers-
+ Test Files  15 passed (15)
+      Tests  265 passed (265)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no errors; repo-wide typecheck is clean at this point in the group)
+
+Files changed: packages/providers-firebase/src/firestore-sync-store.ts, packages/providers-firebase/src/firestore-sync-store.emulator.test.ts.
+<!-- SECTION:NOTES:END -->

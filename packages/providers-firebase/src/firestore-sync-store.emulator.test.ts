@@ -1,5 +1,5 @@
 import { createExtraItem } from '@grocs/core';
-import { syncStoreContract, syncStoreMealContract } from '@grocs/ports/testing';
+import { syncStoreContract, syncStoreMealContract, syncStoreRecipeContract } from '@grocs/ports/testing';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createEmulatorClient, createKitchen, ensureSeeded, readRaw, seedAccount, writeRaw } from '../../../firebase/emulator-client.ts';
 import type { EmulatorClient } from '../../../firebase/emulator-client.ts';
@@ -28,6 +28,12 @@ syncStoreContract({ describe, it, expect }, async () => ({
 }));
 
 syncStoreMealContract({ describe, it, expect }, async () => ({
+  store: await signedInStore(),
+  kitchenId: await createKitchen(),
+  otherKitchenId: await createKitchen('other'),
+}));
+
+syncStoreRecipeContract({ describe, it, expect }, async () => ({
   store: await signedInStore(),
   kitchenId: await createKitchen(),
   otherKitchenId: await createKitchen('other'),
@@ -82,5 +88,66 @@ describe('Firestore sync store: stored shape (R30)', () => {
     }
     expect(seen[0]).toEqual(['i1']);
     expect(errors[0]).toMatch(/invalid item document bad/);
+  });
+});
+
+describe('Firestore sync store: recipe stored shape (R30, decision-16)', () => {
+  const recipe = {
+    id: 'r1',
+    addedBy: 'seed-alex',
+    createdAt: 100,
+    sourceUrl: 'https://recipe.invalid/tacos',
+    title: 'Tacos',
+    yield: '4 servings',
+    steps: ['Step one'],
+    ingredients: [{ line: '1 cup flour', quantity: '1', unit: 'cup', item: 'flour' }],
+    image: null,
+    deleted: null,
+  };
+
+  it('writes a document with a schema version and plain content fields', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await store.mergeRecipe(kitchenId, recipe);
+    const raw = (await readRaw(`kitchens/${kitchenId}/recipes/r1`)) as Record<string, unknown>;
+    expect(raw['schemaVersion']).toBe(1);
+    expect(raw['title']).toBe('Tacos');
+    expect(raw['sourceUrl']).toBe('https://recipe.invalid/tacos');
+    expect(raw['ingredients']).toEqual([{ line: '1 cup flour', quantity: '1', unit: 'cup', item: 'flour' }]);
+  });
+
+  it('refuses to read a document that does not match the schema', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await writeRaw(`kitchens/${kitchenId}/recipes/bad`, { schemaVersion: 1, id: 'bad' });
+    await expect(store.getRecipes(kitchenId)).rejects.toThrow(/invalid recipe document bad/);
+  });
+
+  it('refuses to read a document written by a newer schema version', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await writeRaw(`kitchens/${kitchenId}/recipes/future`, { schemaVersion: 2, id: 'future' });
+    await expect(store.getRecipes(kitchenId)).rejects.toThrow(/unsupported|schemaVersion/);
+  });
+
+  it('tells the watcher about an invalid recipe document and still delivers the valid ones', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await store.mergeRecipe(kitchenId, recipe);
+    await writeRaw(`kitchens/${kitchenId}/recipes/bad`, { schemaVersion: 1, id: 'bad' });
+    const errors: string[] = [];
+    const seen: string[][] = [];
+    const stop = store.watchRecipes(kitchenId, (recipes) => seen.push(recipes.map((r) => r.id)), (e) => errors.push(e.message));
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const started = Date.now();
+        const tick = () => (seen.length > 0 ? resolve() : Date.now() - started > 5000 ? reject(new Error('no snapshot')) : setTimeout(tick, 25));
+        tick();
+      });
+    } finally {
+      stop();
+    }
+    expect(seen[0]).toEqual(['r1']);
+    expect(errors[0]).toMatch(/invalid recipe document bad/);
   });
 });

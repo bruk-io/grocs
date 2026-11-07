@@ -22,6 +22,7 @@ export type { AuthSubject, GoogleSignInSubject, TestSignInSubject } from './auth
 export { InMemorySyncStore } from './sync-store/fake.ts';
 export { syncStoreContract } from './sync-store/contract.ts';
 export { syncStoreMealContract } from './sync-store/contract.ts';
+export { syncStoreRecipeContract } from './sync-store/contract.ts';
 export type { SyncStoreSubject } from './sync-store/contract.ts';
 
 export { FakeKitchenGateway } from './kitchen-gateway/fake.ts';

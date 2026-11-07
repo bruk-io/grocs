@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { syncStoreContract, syncStoreMealContract } from './contract.ts';
+import { syncStoreContract, syncStoreMealContract, syncStoreRecipeContract } from './contract.ts';
 import { InMemorySyncStore } from './fake.ts';
 
 const make = async () => ({
@@ -10,3 +10,4 @@ const make = async () => ({
 
 syncStoreContract({ describe, it, expect }, make);
 syncStoreMealContract({ describe, it, expect }, make);
+syncStoreRecipeContract({ describe, it, expect }, make);
