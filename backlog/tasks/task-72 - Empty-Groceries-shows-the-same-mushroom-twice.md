@@ -1,11 +1,11 @@
 ---
 id: TASK-72
 title: Empty Groceries shows the same mushroom twice
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 00:25'
-updated_date: '2026-11-07 14:09'
+updated_date: '2026-11-07 14:11'
 labels:
   - size-1
   - ui
@@ -144,4 +144,6 @@ AssertionError: expected [ <button …(5)>…(1)</button>, …(1) ] to have a le
 ```
 
 Repro recorded above: the GroceryListTemplate behaviour test, run with the fix line reverted in the working tree (header given the mascot again), failed with 2 mushrooms.
+
+Re-reviewed by philosophy:reviewer: closed. AC #1 met (behaviour test, baseline run 42376447534, simulator shot). Repro recorded at 8c8b471: the behaviour test fails with 2 mushrooms with the fix reverted. Full check (recorded on TASK-61): check, typecheck and unit tests pass; test:emulator could not start because this session's emulators hold 8080/9099, the same environment failure as the earlier run, not a code failure; CI 42377775413 passed on 0b0d46b and later commits add only e2e flows and notes. Low finding, not filed: MainHeader.mascot is now optional for every caller; no caller drops it by accident today.
 <!-- SECTION:NOTES:END -->
