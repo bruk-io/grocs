@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 02:28'
+updated_date: '2026-11-07 03:20'
 labels:
   - size-8
   - core
@@ -298,7 +298,7 @@ Exact algorithm for `normaliseRecipeUrl`:
 1. Trim the input and parse it with `new URL`. A throw → `invalid-url`.
 2. If `protocol` is not `http:` or `https:` → `invalid-url`. A non-empty `username` or `password` → `invalid-url`.
 3. `host` = `url.host`. WHATWG lowercases it and drops the default port.
-4. `path` = `url.pathname`, with one trailing `/` stripped. A pathname of `/` gives `''`.
+4. `path` = `url.pathname`, with every trailing `/` stripped, so `/` and `//` give `''` and `/a//` gives `/a`. (Amended 2026-11-07 by the orchestrator: stripping only one slash made `https://x.com//` normalise to `https://x.com/` and then to `https://x.com`, breaking idempotence; found by reviewer-providers on TASK-74.4.3.)
 5. `query` = the raw `url.search` without its leading `?`, split on `&`. Drop empty parts, any key matching `/^utm_/i`, and the keys `fbclid` and `gclid` (case-insensitive). Stable-sort by the raw key, then by the raw value. Rejoin with `&`, keeping the original encoding with no re-encoding and no URLSearchParams. If nothing is left, there is no `?`.
 6. The fragment is always dropped.
 7. Result: `${protocol}//${host}${path}${query ? '?' + query : ''}`.
@@ -526,4 +526,6 @@ Order (Bruk, 2026-11-06): prove it locally first - parsing, the import function 
 Split on 2026-11-06 into TASK-74.1 to TASK-74.5, following the proposed split above. TASK-74.1 and TASK-74.2 can start now; TASK-74.3 waits on 74.1, TASK-74.4 on 74.1 and 74.3, TASK-74.5 on 74.2 and 74.4.
 
 Split into 40 leaf tasks on 2026-11-07 (orchestrator, from a map, draft, three-critic and revise workflow). The slice contract is this task's plan and is frozen once reviewed. Bruk's calls on 2026-11-07: (1) integration groups A (SyncStore widening, TASK-74.7.4-74.7.8) and B (Deps widening, TASK-74.5.10-74.5.12) are built in one shared worktree without builder commits, and the orchestrator commits once green - a recorded deviation from decision-3 and CLAUDE.md, precedent c4db885; (2) a delete wins over re-import (R20): importing a deleted recipe's link returns recipe-deleted, overriding decision-16's restore consequence; (3) commit locally only, no pushes or CI runs - TASK-74.5.8 (visual baselines) waits for Bruk to push; (4) run to a checkpoint after the server side and recipe storage, then the app side.
+
+Contract amended 2026-11-07 (orchestrator, decision-3 mediation): section 9 step 4 strips every trailing slash, not one, so normaliseRecipeUrl stays idempotent for paths like '//'. The code fix is the size-1 bug under TASK-74.4.
 <!-- SECTION:NOTES:END -->
