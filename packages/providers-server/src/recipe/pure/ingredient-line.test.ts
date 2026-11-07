@@ -16,6 +16,10 @@ describe('parseIngredientLine', () => {
     // Ranges
     ['2-3 cloves garlic', '2-3 cloves garlic', '2-3', 'cloves', 'garlic'],
     ['2 to 3 cups water', '2 to 3 cups water', '2 to 3', 'cups', 'water'],
+    ['1-2 tablespoons olive oil', '1-2 tablespoons olive oil', '1-2', 'tablespoons', 'olive oil'],
+    ['¼-½ teaspoon salt', '¼-½ teaspoon salt', '¼-½', 'teaspoon', 'salt'],
+    ['2 to 3 cloves garlic, minced', '2 to 3 cloves garlic, minced', '2 to 3', 'cloves', 'garlic'],
+    ['1 1/2 to 2 cups flour', '1 1/2 to 2 cups flour', '1 1/2 to 2', 'cups', 'flour'],
 
     // Bracketed sizes
     ['1 (14-ounce) can chickpeas', '1 (14-ounce) can chickpeas', '1', '(14-ounce) can', 'chickpeas'],

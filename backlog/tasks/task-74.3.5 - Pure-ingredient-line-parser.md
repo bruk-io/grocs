@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:58'
+updated_date: '2026-11-07 02:59'
 labels:
   - size-2
   - layer-providers
@@ -72,4 +72,22 @@ $ tsc --noEmit
 
 $ node tools/checks/run.ts --mode all
 checks passed (16 checks, all mode, 522 ms)
+
+## Follow-up check (advisor-prompted)
+
+Added table rows for range + long-form-unit, a range of two vulgar fractions, a 'to' range with
+a trailing note, and a mixed-number-to-plain-number range, to probe the quantity/range regex
+beyond the AC#2 examples:
+'1-2 tablespoons olive oil', '¼-½ teaspoon salt', '2 to 3 cloves garlic, minced',
+'1 1/2 to 2 cups flour'. All parse correctly with no code change.
+
+$ mise exec -- pnpm exec vitest run --project unit packages/providers-
+ Test Files  8 passed (8)
+      Tests  91 passed (91)
+
+Noted boundary: the unit set is exactly AC#2's list (cup, tbsp, tsp, g, kg, ml, oz, lb, clove,
+pinch) plus their long forms/plurals, not a general units dictionary. 'can', 'package', etc. are
+not units here (e.g. '1 can tomatoes' parses as quantity '1', unit null, item 'can tomatoes'),
+only the explicit bracketed-size form ('1 (14-ounce) can chickpeas') gets a unit. TASK-74.3.6's
+fixtures should expect that boundary.
 <!-- SECTION:NOTES:END -->
