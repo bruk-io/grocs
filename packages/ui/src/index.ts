@@ -143,3 +143,5 @@ export { ItemPickerTemplate } from './templates/ItemPickerTemplate.tsx';
 export type { ItemPickerTemplateProps, PickerMeal, PickerSuggestion, PickerFrequent } from './templates/ItemPickerTemplate.tsx';
 export { PreferencesTemplate } from './templates/PreferencesTemplate.tsx';
 export type { PreferencesTemplateProps } from './templates/PreferencesTemplate.tsx';
+export { RecipeTemplate } from './templates/RecipeTemplate.tsx';
+export type { RecipeTemplateProps } from './templates/RecipeTemplate.tsx';
