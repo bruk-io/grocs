@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.1
 title: 'Rules tests: members read and write kitchen recipes, non-members cannot'
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:37'
 labels:
   - size-1
   - orchestrator
@@ -46,3 +46,15 @@ Each acceptance criterion is shown by a test or command output recorded in the n
 Files expected to change:
 - firebase/firestore.rules.test.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Worker report (TASK-74.7.1).
+- Worktree was branched from origin/main (has TASK-67) while local main had the TASK-74 board split; ff-only failed, so I merged main (merge commit) before starting.
+- Added describe('kitchens/{k}/recipes (decision-16, R49)') to firebase/firestore.rules.test.ts, copied from the meals describe: path kitchens/k1/recipes/r1, data a minimal RecipeDoc-shaped object per the plan. Member alex setDoc+getDoc assertSucceeds; non-member carl getDoc+setDoc assertFails.
+- AC#1 evidence (vitest --reporter verbose under emulators:exec):
+  ✓ firebase/firestore.rules.test.ts > kitchens/{k}/recipes (decision-16, R49) > a member can read and write a recipe in their kitchen
+  ✓ firebase/firestore.rules.test.ts > kitchens/{k}/recipes (decision-16, R49) > a non-member cannot read or write a recipe in a kitchen they do not belong to
+- AC#2 evidence: diff against main for firebase/firestore.rules is empty. pnpm test:emulator: Test Files 8 passed (8), Tests 110 passed (110), Script exited successfully (code 0).
+<!-- SECTION:NOTES:END -->
