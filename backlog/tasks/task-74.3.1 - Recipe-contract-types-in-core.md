@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.1
 title: Recipe contract types in core
-status: To Do
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:46'
 labels:
   - size-1
   - layer-core
@@ -24,9 +24,9 @@ Split key: core-recipe-contract. Layer: core. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/core/src/model/recipe.ts exports exactly the types ParsedIngredient, ParsedRecipe, RecipeImportError and Recipe, with the fields and doc comments in contract §1, and no functions, consts or other values
-- [ ] #2 packages/core/src/index.ts re-exports the four with `export type`
-- [ ] #3 At this commit, mise exec -- pnpm -s typecheck passes repo-wide and mise exec -- pnpm exec vitest run --project unit packages/core passes
+- [x] #1 packages/core/src/model/recipe.ts exports exactly the types ParsedIngredient, ParsedRecipe, RecipeImportError and Recipe, with the fields and doc comments in contract §1, and no functions, consts or other values
+- [x] #2 packages/core/src/index.ts re-exports the four with `export type`
+- [x] #3 At this commit, mise exec -- pnpm -s typecheck passes repo-wide and mise exec -- pnpm exec vitest run --project unit packages/core passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -53,3 +53,75 @@ Files expected to change:
 - packages/core/src/model/recipe.ts
 - packages/core/src/index.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+(40 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeModulesProxy.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/worklets/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/serverContext.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.fx.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  138 passed (138)
+      Tests  1765 passed (1765)
+   Start at  21:46:10
+   Duration  18.50s (transform 187.27s, setup 7.83s, import 305.71s, tests 62.77s, environment 40.50s)
+
+$ firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-grocs", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  firestore: Port 8080 is not open on 127.0.0.1, could not start Firestore Emulator.
+⚠  firestore: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "firestore": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  hub: emulator hub unable to start on port 4400, starting on 4401 instead.
+i  emulators: Shutting down emulators.
+
+Error: Could not start Firestore Emulator, port taken.
+[ELIFECYCLE] Command failed with exit code 1.
+```
+
+Closed by philosophy:reviewer. AC1: packages/core/src/model/recipe.ts (1e54f29) is whitespace-identical to TASK-74 contract section 1 (diff -w empty); four exported types, one type-only import, no values. AC2: index.ts line 11 re-exports the four with export type. AC3: orchestrator's merged-main e4de89f evidence: pnpm typecheck clean, pnpm test 1765 passed; reviewer reran vitest --project unit packages/core: 114 passed. Findings: (low, process) record-check --tier full starts the Firebase emulators and failed on a taken port because parallel reviewers hold them; its failure is environmental, not the work's, and the orchestrator's emulator run (110 passed) stands. No drafts filed.
+<!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.4
-title: 'Scrub and commit the six captured recipe pages, plus edge-case pages'
+title: 'Commit the five captured recipe pages'' JSON-LD, plus edge-case pages'
 status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:44'
+updated_date: '2026-11-07 02:51'
 labels:
   - size-2
   - layer-providers
@@ -60,4 +60,6 @@ finish-moved 2026-11-07 (orchestrator): AC #1 and #3 changed from committing scr
 Raw captures from TASK-74.3.3 (orchestrator, 2026-11-07): /private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/52850201-1584-4979-8b13-ca0cc6779c1a/scratchpad/recipe-fixtures/ holds raw/ (nyt-cooking.html, serious-eats.html, allrecipes.html, recipetineats.html, food52.html), capture-notes.md (source URL, capture date, exact headers per file) and capture-log.json. The scratchpad is session-scoped: run this task while it still exists. BBC Good Food is not yet captured (no search returned a bbcgoodfood.com URL); see TASK-74.3.3 notes.
 
 finish-moved 2026-11-07 (orchestrator): five sites instead of six. No web search returned a bbcgoodfood.com recipe URL (its domain is blocked to the search crawler), so BBC Good Food is dropped. Five real sites including NYT Cooking still meet TASK-74.3's 'at least five sites'.
+
+Correction 2026-11-07 (orchestrator): BBC Good Food is dropped, not pending. The five captured sites are NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52 (see TASK-74.3.3). Don't wait for a sixth page.
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.3
-title: 'Capture six real recipe pages once, into the scratchpad'
-status: In Progress
+title: 'Capture five real recipe pages once, into the scratchpad'
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:44'
+updated_date: '2026-11-07 02:51'
 labels:
   - size-2
   - orchestrator
@@ -32,9 +32,9 @@ Split key: orch-capture-fixtures. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Five raw .html pages are saved in the scratchpad under recipe-fixtures/raw/, one each from NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52, each containing schema.org Recipe JSON-LD
-- [ ] #2 recipe-fixtures/capture-notes.md records, for each file, the source URL (taken from a web search result), the capture date and the exact headers sent
-- [ ] #3 Nothing is committed by this task. The scratchpad path is written into providers-recipe-fixtures' notes
+- [x] #1 Five raw .html pages are saved in the scratchpad under recipe-fixtures/raw/, one each from NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52, each containing schema.org Recipe JSON-LD
+- [x] #2 recipe-fixtures/capture-notes.md records, for each file, the source URL (taken from a web search result), the capture date and the exact headers sent
+- [x] #3 Nothing is committed by this task. The scratchpad path is written into providers-recipe-fixtures' notes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -83,4 +83,6 @@ AC#2: capture-notes.md records per file the source URL, the query and verbatim s
 AC#3: the scratchpad is outside the repository; only board files (this task, TASK-74.3.4) are committed. Path appended to TASK-74.3.4 notes.
 
 finish-moved 2026-11-07 (orchestrator): five sites instead of six. No web search returned a bbcgoodfood.com recipe URL (its domain is blocked to the search crawler), so BBC Good Food is dropped. Five real sites including NYT Cooking still meet TASK-74.3's 'at least five sites'.
+
+Closed by philosophy:reviewer. AC#1: raw/ holds five .html files (nyt-cooking, serious-eats, allrecipes, recipetineats, food52); each re-grepped with ld+json blocks and a Recipe @type (string or list). AC#2: capture-notes.md has source URL, search provenance, capture time 2026-11-07T02:40:55-58Z and exact sent headers per file. AC#3: no fixture tracked in git (only board files); path is in TASK-74.3.4 notes. Full check tier not rerun here (emulator ports shared with parallel reviewers); relied on orchestrator's e4de89f evidence, and this task changes board files only. Findings (low, no drafts): task title and TASK-74.3.4's title still say 'six'; TASK-74.3.4 notes say BBC Good Food 'not yet captured', which is stale after the finish-moved drop - orchestrator may tidy wording. Scratchpad is session-scoped, so TASK-74.3.4 must run this session (already a recorded risk).
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.1
 title: Reword children's ACs and annotate decision-16 to match what is built
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:44'
+updated_date: '2026-11-07 02:46'
 labels:
   - size-1
   - orchestrator
@@ -25,11 +25,11 @@ Split key: orch-ac-rewording. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TASK-74.4 AC#5 reads as deny-only for app clients, proven by deny tests against Firestore's default deny
-- [ ] #2 TASK-74.4 AC#7 and TASK-74.5 AC#6 say they are manual local verification by the orchestrator
-- [ ] #3 TASK-74.5 AC#2 notes that R12's combine prompt is not built, so duplicates are added as separate items, and it references a follow-up task for R12
-- [ ] #4 decision-16 has an appended note (written into the file by the orchestrator, since the backlog CLI cannot write a decision's body) recording: R20 wins over the 'importing again restores' consequence, so a re-import of a deleted recipe is refused with 'recipe-deleted'; and R12's prompt is not built yet
-- [ ] #5 Each edited task gets the finish-moved label and a note saying why
+- [x] #1 TASK-74.4 AC#5 reads as deny-only for app clients, proven by deny tests against Firestore's default deny
+- [x] #2 TASK-74.4 AC#7 and TASK-74.5 AC#6 say they are manual local verification by the orchestrator
+- [x] #3 TASK-74.5 AC#2 notes that R12's combine prompt is not built, so duplicates are added as separate items, and it references a follow-up task for R12
+- [x] #4 decision-16 has an appended note (written into the file by the orchestrator, since the backlog CLI cannot write a decision's body) recording: R20 wins over the 'importing again restores' consequence, so a re-import of a deleted recipe is refused with 'recipe-deleted'; and R12's prompt is not built yet
+- [x] #5 Each edited task gets the finish-moved label and a note saying why
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -78,4 +78,6 @@ Request to the orchestrator/Bruk: choose one of (a) Bruk appends the note below 
 "Amended 2026-11 during TASK-74 split: recipeId is deterministic and R20 says a delete always wins, so a re-imported copy cannot clear a tombstone; ImportRecipe refuses with recipe-deleted. The consequence "importing again restores the recipe" does not hold. R12's combine prompt is not built yet; until it is, imported duplicates are separate items."
 
 finish-moved 2026-11-07 (orchestrator): AC#4 now says the decision-16 note is written into the file by the orchestrator, because the backlog CLI cannot write a decision's body (this task's blocker). The note is appended under decision-16's new '## Amendments' section.
+
+Review (philosophy:reviewer): closed. AC#1 TASK-74.4 AC#5 reads deny-only. AC#2 TASK-74.4 AC#7 and TASK-74.5 AC#6 say manual local run by the orchestrator. AC#3 TASK-74.5 AC#2 notes R12 not built, follow-up TASK-1.26 (existing open task, so no new draft). AC#4 decision-16 has an '## Amendments' entry with the R20/recipe-deleted and R12 text, committed in e4de89f. AC#5 TASK-74.4 and TASK-74.5 both carry finish-moved and a note saying why. Full-tier record-check not run (orchestrator asked reviewers not to start emulators); relied on orchestrator's merged-main evidence at e4de89f (pnpm check, typecheck, test, test:emulator all green). Findings: none filed. Minor: the amendment text differs slightly from the plan's wording (adds date, Bruk's agreement, TASK-1.26) - substance unchanged.
 <!-- SECTION:NOTES:END -->

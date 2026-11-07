@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.1
 title: 'Rules tests: members read and write kitchen recipes, non-members cannot'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:37'
+updated_date: '2026-11-07 02:46'
 labels:
   - size-1
   - orchestrator
@@ -24,8 +24,8 @@ Split key: orch-kitchen-recipe-rules. Layer: orchestrator. Contract: TASK-74's p
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 firestore.rules.test.ts has a kitchens/{k}/recipes describe: member setDoc and getDoc succeed, while non-member carl's getDoc and setDoc fail
-- [ ] #2 firestore.rules is unchanged, and pnpm test:emulator passes
+- [x] #1 firestore.rules.test.ts has a kitchens/{k}/recipes describe: member setDoc and getDoc succeed, while non-member carl's getDoc and setDoc fail
+- [x] #2 firestore.rules is unchanged, and pnpm test:emulator passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -57,4 +57,6 @@ Worker report (TASK-74.7.1).
   ✓ firebase/firestore.rules.test.ts > kitchens/{k}/recipes (decision-16, R49) > a member can read and write a recipe in their kitchen
   ✓ firebase/firestore.rules.test.ts > kitchens/{k}/recipes (decision-16, R49) > a non-member cannot read or write a recipe in a kitchen they do not belong to
 - AC#2 evidence: diff against main for firebase/firestore.rules is empty. pnpm test:emulator: Test Files 8 passed (8), Tests 110 passed (110), Script exited successfully (code 0).
+
+Reviewer verdict: closed. AC#1: firebase/firestore.rules.test.ts:123-151 adds the kitchens/{k}/recipes describe (alex setDoc+getDoc assertSucceeds; carl getDoc+setDoc assertFails), commit 10954a5. AC#2: firestore.rules last changed in 38ff51c (TASK-14), untouched here; orchestrator's run on merged main e4de89f: pnpm test:emulator 8 files/110 tests passed, pnpm check/typecheck/test clean. Full-tier record-check not run, because it would start emulators that collide with parallel reviewers; the orchestrator's logs are the evidence. Findings: minor only. Carl's getDoc runs against a doc that the member test in a separate case may not have written (each case reseeds), so the deny shows membership gating, not cross-member denial of existing data. That matches the meals pattern, so no draft.
 <!-- SECTION:NOTES:END -->
