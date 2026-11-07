@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@bruk'
 created_date: '2026-11-07 17:36'
-updated_date: '2026-11-07 17:39'
+updated_date: '2026-11-07 18:25'
 labels:
   - area-kitchen
   - size-5
@@ -56,4 +56,6 @@ Decided with Bruk on 2026-11-07 (chat), before this was written down:
 
 <!-- SECTION:NOTES:BEGIN -->
 Sized 5 (2026-11-07): high complexity (every layer, plus rules, functions and a large deletion of the code path), few unknowns (one: whether a callable's ID token carries email and email_verified for a Google sign-in, checked first against the Auth emulator), moderate risk (membership moves between kitchens in one transaction). Not split into layer-* tasks: the layers depend on each other in order, so layer agents would add no parallelism; built bottom-up in one worktree by the orchestrator. Spec change (R2, R3) is part of the work (AC #6); Bruk approved the design in chat on 2026-11-07: "Let's go ahead and build".
+
+Review (philosophy:reviewer, 2026-11-07): left open. TASK-78.1 is closed and ACs #1-#7 hold on its evidence, but the shipped code contradicts this intent's settled open question ('it stays in the database with no members; nothing reads it'): a kitchen left by someone who had invited from it keeps that invite, and invitesFor still offers it, so Shaz could be offered Bruk's empty old kitchen after he joins hers and leave their shared kitchen by tapping Join. Filed as DRAFT-31. Close this intent once DRAFT-31 is promoted and fixed (or Bruk accepts it as is). Android remains unrun on this machine (as in TASK-76).
 <!-- SECTION:NOTES:END -->
