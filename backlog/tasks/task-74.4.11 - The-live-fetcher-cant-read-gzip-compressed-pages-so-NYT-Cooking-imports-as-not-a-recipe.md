@@ -3,11 +3,11 @@ id: TASK-74.4.11
 title: >-
   The live fetcher can't read gzip-compressed pages, so NYT Cooking imports as
   not-a-recipe
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 05:06'
-updated_date: '2026-11-07 05:27'
+updated_date: '2026-11-07 05:34'
 labels:
   - size-2
   - layer-providers
@@ -24,10 +24,10 @@ Found in TASK-74.4.8's local proof (2026-11-07): importing https://cooking.nytim
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The live fetcher sends Accept-Encoding: gzip, deflate, br and decodes the body according to Content-Encoding (gzip, deflate, br, or none) before charset decoding; an unknown encoding is unreachable
-- [ ] #2 The 5 MB body limit applies to the decompressed size as well as the bytes read, so a small compressed body that inflates past the limit is refused (unreachable) without being fully inflated
-- [ ] #3 fetch-page.test.ts covers gzip, deflate and br bodies, an unknown encoding, and a compressed body that inflates past the limit, through the stub transport
-- [ ] #4 The providers unit tests and typecheck pass
+- [x] #1 The live fetcher sends Accept-Encoding: gzip, deflate, br and decodes the body according to Content-Encoding (gzip, deflate, br, or none) before charset decoding; an unknown encoding is unreachable
+- [x] #2 The 5 MB body limit applies to the decompressed size as well as the bytes read, so a small compressed body that inflates past the limit is refused (unreachable) without being fully inflated
+- [x] #3 fetch-page.test.ts covers gzip, deflate and br bodies, an unknown encoding, and a compressed body that inflates past the limit, through the stub transport
+- [x] #4 The providers unit tests and typecheck pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -132,4 +132,8 @@ the decoded cap's - the notes' own '22-1426 depending on which cap fires first' 
 10 KiB member and maxBytes: 1000. After the re-parameterization above (1 MiB members, maxBytes:
 1_000_000), this same test is now a true early-abort proof of the decoded cap specifically,
 isolated from the raw cap: deleting `decodedTotal > maxBytes` makes it fail as recorded above.
+
+No repro: the failure only shows against a live server that sends gzip unasked (NYT). It was reproduced in TASK-74.4.8's first live proof run (NYT -> not-a-recipe; curl without --compressed returned ~3.5 KB of gzip bytes, with --compressed the 690 KB page). The second proof run, after this fix, imported NYT ok. Re-running it needs the emulators, which this review must not start.
+
+Closed by philosophy:reviewer. All 4 ACs met: Accept-Encoding sent; gzip/deflate/br/identity decoded; unknown encoding -> unreachable (AC1). Raw and decoded bytes are both capped, and each cap is isolated by its own test (AC2). fetch-page.test.ts: reviewer re-ran it, 32 passed (AC3). Orchestrator's run on main after b874244: check 16 passed, typecheck clean, test 2072 passed, test:emulator 148 passed (AC4). Low findings, none filed: raw DEFLATE (RFC 1951) and multi-value Content-Encoding are refused as unreachable. Both fit AC1's wording. File a follow-up only if a real site sends them. Contract section 10 amendment already landed (ca170f7).
 <!-- SECTION:NOTES:END -->

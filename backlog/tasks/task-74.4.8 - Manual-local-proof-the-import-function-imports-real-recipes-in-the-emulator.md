@@ -1,7 +1,7 @@
 ---
 id: TASK-74.4.8
 title: 'Manual local proof: the import function imports real recipes in the emulator'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
@@ -27,7 +27,7 @@ Split key: orch-proof-function. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Implementation notes on TASK-74.4 record: pnpm emulators running; real URLs from three real recipe sites (one of them NYT Cooking, at least two of them fixture sites) imported through the callable, with titles and counts; a second call answered from the cache with no new fetch; a URL whose host resolves to 127.0.0.1 (http://localhost.:8080/x) refused as unreachable; and a log excerpt showing no URL or title
+- [x] #1 Implementation notes on TASK-74.4 record: pnpm emulators running; real URLs from three real recipe sites (one of them NYT Cooking, at least two of them fixture sites) imported through the callable, with titles and counts; a second call answered from the cache with no new fetch; a URL whose host resolves to 127.0.0.1 (http://localhost.:8080/x) refused as unreachable; and a log excerpt showing no URL or title
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -74,4 +74,6 @@ Second local proof run (orchestrator, 2026-11-07, pnpm emulators on main at ca17
 - R36: the function's own log lines are only {error:'blocked'|'unreachable', message:'importRecipe failed'}; no recipe title appears anywhere in the emulator output. The only URLs are the Functions emulator's own 'External network resource requested!' warnings (emulator infrastructure, absent in production), one per outbound request.
 - An earlier attempt in this run got functions/not-found because the proof script ran before the Functions emulator had finished loading; rerun once loaded.
 finish-moved: AC#1 said 'three fixture sites'; three of the five fixture sites block automated fetches today, so it now reads 'three real recipe sites (one of them NYT Cooking, at least two of them fixture sites)'. NYT and RecipeTin are fixture sites; Budget Bytes is the third real site.
+
+Reviewer (philosophy:reviewer): closed. AC#1 (as reworded, finish-moved with reason in notes) met: TASK-74.4 notes record the live proof; scratchpad proof2-run4.log shows NYT Cooking, RecipeTin Eats (both fixture sites) and Budget Bytes ok with titles and counts; utm-tagged repeat answered from cache with no outbound request; localhost. refused as unreachable; emulators-live2.log function lines carry only error kinds - the single 'marcella' match is the emulator's own External-network warning URL, not a function log line, and no title appears. No repro: the gzip bug's repro is the first proof run recorded in these notes (NYT -> not-a-recipe); re-recording needs the emulators, which this review must not start. Evidence from orchestrator on main: pnpm check 16 passed, typecheck clean, 2072 unit, 148 emulator tests passed. Findings: none filed. Note (info): AC#1 originally asked for three fixture sites; three of five fixture sites refuse automated fetches today, a real-world limit recorded honestly rather than a defect.
 <!-- SECTION:NOTES:END -->
