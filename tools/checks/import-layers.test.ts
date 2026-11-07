@@ -123,6 +123,89 @@ describe('import layers (R26, R27, R60)', () => {
     expect(rulesOf(findings)).toContain('import-layers/design-levels');
   });
 
+  describe('app-providers: each app imports only its own providers (R26, R27)', () => {
+    const providers = {
+      'packages/providers-firebase/src/index.ts': 'export {};',
+      'packages/providers-device/src/index.ts': 'export {};',
+      'packages/providers-memory/src/index.ts': 'export {};',
+      'packages/providers-server/src/index.ts': 'export {};',
+    };
+
+    it('lets mobile import the phone providers and functions import the server provider', () => {
+      expect(
+        run({
+          ...providers,
+          'apps/mobile/src/composition/a.ts': "import '@grocs/providers-firebase'; import '@grocs/providers-device'; import '@grocs/providers-memory';",
+          'apps/functions/src/index.ts': "import '@grocs/providers-server';",
+        }),
+      ).toEqual([]);
+    });
+
+    it('rejects mobile importing the server provider, from shipped and test files alike', () => {
+      expect(rulesOf(run({ ...providers, 'apps/mobile/src/composition/a.ts': "import '@grocs/providers-server';" }))).toEqual(['import-layers/app-providers']);
+      expect(rulesOf(run({ ...providers, 'apps/mobile/src/composition/a.test.ts': "import '@grocs/providers-server';" }))).toEqual(['import-layers/app-providers']);
+    });
+
+    it('rejects functions importing a phone provider', () => {
+      expect(rulesOf(run({ ...providers, 'apps/functions/src/index.ts': "import '@grocs/providers-firebase';" }))).toEqual(['import-layers/app-providers']);
+    });
+
+    it('fails closed for an app missing from the table', () => {
+      for (const provider of Object.keys(providers).map((f) => f.split('/')[1]!)) {
+        const findings = run({ ...providers, 'apps/other/src/index.ts': `import '@grocs/${provider}';` });
+        expect(rulesOf(findings), provider).toEqual(['import-layers/app-providers']);
+        expect(findings[0]?.detail).toContain('no entry in APP_PROVIDERS');
+      }
+    });
+
+    it('names the rule, the reason and the allowed providers in the message', () => {
+      const findings = run({ ...providers, 'apps/mobile/src/composition/a.ts': "import '@grocs/providers-server';" });
+      const text = message(check, findings[0]!);
+      expect(text).toContain('FAIL import-layers/app-providers (R26, R27)');
+      expect(text).toContain('Why: Providers are split by platform');
+      expect(text).toContain('Fix:');
+      expect(text).toContain('apps/mobile may import providers-firebase, providers-device, providers-memory');
+    });
+  });
+
+  describe('pure-folder: the recipe parsing imports only @grocs/core and pure/ (decision-15)', () => {
+    const pure = 'packages/providers-server/src/recipe/pure';
+    const core = { 'packages/core/src/index.ts': 'export {};' };
+
+    it('accepts @grocs/core and relative files inside pure/', () => {
+      expect(
+        run({
+          ...core,
+          [`${pure}/ingredient-line.ts`]: "import type { ParsedIngredient } from '@grocs/core'; import { units } from './units.ts'; export const p = (x: ParsedIngredient) => [x, units];",
+          [`${pure}/units.ts`]: "import { y } from './sub/y.ts'; export const units = y;",
+          [`${pure}/sub/y.ts`]: "import { z } from '../z.ts'; export const y = z;",
+          [`${pure}/z.ts`]: 'export const z = 1;',
+        }),
+      ).toEqual([]);
+    });
+
+    it('rejects a node built-in', () => {
+      const findings = run({ [`${pure}/hash.ts`]: "import { createHash } from 'node:crypto'; export { createHash };" });
+      expect(rulesOf(findings)).toEqual(['import-layers/pure-folder']);
+      expect(message(check, findings[0]!)).toContain('Why: decision-15');
+    });
+
+    it('rejects a ../ import that leaves pure/', () => {
+      const findings = run({ [`${pure}/a.ts`]: "import { f } from '../fetch-page.ts'; export { f };", 'packages/providers-server/src/recipe/fetch-page.ts': 'export const f = 1;' });
+      expect(rulesOf(findings)).toEqual(['import-layers/pure-folder']);
+    });
+
+    it('rejects a third-party package and another project package', () => {
+      expect(rulesOf(run({ [`${pure}/a.ts`]: "import * as cheerio from 'cheerio'; export { cheerio };" }))).toEqual(['import-layers/pure-folder']);
+      expect(rulesOf(run({ [`${pure}/a.ts`]: "import '@grocs/ports';", 'packages/ports/src/index.ts': 'export {};' }))).toEqual(['import-layers/pure-folder']);
+    });
+
+    it('lets pure/ tests read fixtures, and leaves the rest of recipe/ to the provider rules', () => {
+      expect(run({ [`${pure}/a.test.ts`]: "import { readFileSync } from 'node:fs'; import { it } from 'vitest'; it('x', () => readFileSync);" })).toEqual([]);
+      expect(run({ 'packages/providers-server/src/recipe/fetch-page.ts': "import { request } from 'node:https'; export { request };" })).toEqual([]);
+    });
+  });
+
   it('names the rule and the reason in every failure message', () => {
     const findings = run({
       'packages/core/src/index.ts': "import '@grocs/ports';",

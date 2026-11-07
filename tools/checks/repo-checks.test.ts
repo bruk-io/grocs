@@ -93,6 +93,17 @@ describe('domain purity (R25)', () => {
   it('allows names that only look like globals, and tests', () => {
     expect(coreRules.run(fixture({ 'packages/core/src/a.ts': 'export const o = { Date: 1 }; export const d = o.Date;', 'packages/core/src/a.test.ts': 'Date.now();' }))).toEqual([]);
   });
+
+  it('holds the server-only recipe parsing in pure/ to the same rule (decision-15), and names both folders', () => {
+    const f = coreRules.run(fixture({ 'packages/providers-server/src/recipe/pure/parse.ts': 'export const at = () => Date.now();' }));
+    expect(rulesOf(f)).toEqual(['core-purity/no-ambient-io']);
+    expect(message(coreRules, f[0]!)).toContain('packages/providers-server/src/recipe/pure/');
+    expect(message(coreRules, f[0]!)).toContain('packages/core/src/');
+  });
+
+  it('leaves the impure recipe code outside pure/ alone', () => {
+    expect(coreRules.run(fixture({ 'packages/providers-server/src/recipe/fetch-page.ts': 'export const at = () => Date.now();', 'packages/providers-server/src/recipe/pure/parse.test.ts': 'Date.now();' }))).toEqual([]);
+  });
 });
 
 describe('test presence (R46, R47)', () => {
@@ -104,6 +115,16 @@ describe('test presence (R46, R47)', () => {
 
   it('does not want a test for type-only modules or index files', () => {
     expect(testPresence.run(fixture({ 'packages/core/src/t.ts': 'export interface T {}', 'packages/core/src/index.ts': 'export function f() {}' }))).toEqual([]);
+  });
+
+  it('wants a unit test beside a pure/ recipe-parsing module too (decision-15), but not for its fixtures', () => {
+    const files = { 'packages/providers-server/src/recipe/pure/ingredient-line.ts': 'export function parseIngredientLine() {}' };
+    const f = testPresence.run(fixture(files));
+    expect(rulesOf(f)).toEqual(['test-presence/domain-unit-test']);
+    expect(f[0]?.detail).toContain('ingredient-line.test.ts does not exist');
+    expect(testPresence.run(fixture({ ...files, 'packages/providers-server/src/recipe/pure/ingredient-line.test.ts': '' }))).toEqual([]);
+    expect(testPresence.run(fixture({ 'packages/providers-server/src/recipe/pure/fixtures/pages.ts': 'export function page() {}' }))).toEqual([]);
+    expect(testPresence.run(fixture({ 'packages/providers-server/src/recipe/fetch-page.ts': 'export function fetchPage() {}' }))).toEqual([]);
   });
 
   it('wants a scenario test for every command', () => {
