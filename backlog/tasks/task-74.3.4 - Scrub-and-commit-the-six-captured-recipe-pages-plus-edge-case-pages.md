@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:03'
+updated_date: '2026-11-07 03:10'
 labels:
   - size-2
   - layer-providers
@@ -37,7 +37,7 @@ Split key: providers-recipe-fixtures. Layer: providers. Contract: TASK-74's plan
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
 1. Merge local main into this worktree; confirm with git log.
-2. Extract each raw captured page's <script type=\"application/ld+json\"> block(s) verbatim (regex, no re-encoding) into packages/providers-server/src/recipe/pure/fixtures/<site>.html, wrapped in a minimal <!DOCTYPE html><html><head>...</head><body></body></html> skeleton - not the publisher's full page.
+2. Extract each raw captured page's <script type=\"application/ld+json\"> block(s) verbatim (regex, no re-encoding), including each block's original opening <script ...> tag, into packages/providers-server/src/recipe/pure/fixtures/<site>.html, wrapped in a minimal <!DOCTYPE html><html><head>...</head><body></body></html> skeleton - not the publisher's full page.
 3. Inspect each real fixture's actual recipeYield/image/recipeInstructions/@type/top-level shapes to find which AC#2 edge cases the five real pages do not already cover.
 4. Hand-write one minimal page per uncovered edge case: Recipe under mainEntity, recipeYield as a bare number, image as a bare @id reference with no resolvable url, a page with no JSON-LD at all, a malformed ld+json block before a valid one, and a Recipe with no recipeInstructions.
 5. grep every fixture file for AIza, firebaseio.com, googleapis and seven-character merge-marker lines.
@@ -46,10 +46,16 @@ Split key: providers-recipe-fixtures. Layer: providers. Contract: TASK-74's plan
 ### Risks
 No parser exists yet (TASK-74.3.6 is later), so these fixtures cannot be proven against the real reader in this task; AC#1-#3 are proven by inspection and by diffing extracted JSON-LD against the raw captures, AC#4 by grep. This task only commits fixtures, per its own acceptance criteria and modified-files list - no parser code is added. No contract deviation found; following TASK-74.3.4's own task text (not the stale task-file title 'Scrub-and-commit-the-six...plus edge-case pages' versus the current five-site body) since the body/AC/notes are authoritative over the historic filename.
 
+Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+
 ### Proof
 - ls + grep output recorded in notes for AC#1 and AC#4.
 - A table in README.md naming each real file's shape and each hand-made file's covered edge case, keyed to AC#2 and AC#3.
 - pnpm check output (AC#4's "the orchestrator confirms pnpm check passes" is the orchestrator's job, not this builder's, per the task text; this builder records its own layer checks).
+
+Files expected to change:
+- packages/providers-server/src/recipe/pure/fixtures/*.html
+- packages/providers-server/src/recipe/pure/fixtures/README.md
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -62,8 +68,6 @@ Raw captures from TASK-74.3.3 (orchestrator, 2026-11-07): /private/tmp/claude-50
 finish-moved 2026-11-07 (orchestrator): five sites instead of six. No web search returned a bbcgoodfood.com recipe URL (its domain is blocked to the search crawler), so BBC Good Food is dropped. Five real sites including NYT Cooking still meet TASK-74.3's 'at least five sites'.
 
 Correction 2026-11-07 (orchestrator): BBC Good Food is dropped, not pending. The five captured sites are NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52 (see TASK-74.3.3). Don't wait for a sixth page.
-
-test simple note
 
 Checks run (providers layer, from the worktree):
 mise exec -- pnpm -s typecheck: tsc --noEmit, no output, exit 0.
@@ -96,4 +100,22 @@ AC#3: fixtures/README.md tables list each real file's source URL, capture date (
 AC#4 (orchestrator confirms pnpm check): grep for AIza, firebaseio.com, googleapis across fixtures/ matches only README.md's own sentence describing the scrub, no fixture .html file matches.
 
 Grep for a seven-character conflict-marker line across fixtures/: no matches anywhere. No dependency was added; the lockfile is untouched by this task.
+
+Review-fix 2026-11-07 (builder, TASK-74.3.4 revision): addressed layer-reviewer findings.
+
+1) README.md's "A note for TASK-74.3.6 (the parser)" section claimed nyt-cooking.html's ImageObject entries carry contentUrl but not url, so a parser reading only url would see image: null. This is false: every one of nyt-cooking.html's 4 image entries has both url and contentUrl, and the two values are byte-identical (verified by parsing the fixture's JSON and comparing img['url'] == img['contentUrl'] for all 4 images - all True). Removed the section.
+
+2) README.md's intro paragraph and the nyt-cooking table row both claimed the Recipe block is not the first ld+json block on the NYT page. Checked: nyt-cooking.html's block 0 (of 4) is the Recipe (@type Recipe), followed by WebPage, Organization, NewsMediaOrganization. That claim was false for NYT. Parsed all five real fixtures' ld+json blocks in order (not just NYT) to confirm which ones actually have the Recipe later than block 0: allrecipes block 0 is the Recipe/NewsArticle array, serious-eats block 0 is the Recipe array, recipetineats block 0 is the @graph document that holds the Recipe node, nyt-cooking block 0 is the Recipe - only food52.html has the Recipe later (block 2 of 3: WebSite, Organization, Recipe). Reworded the intro and both table rows to credit "Recipe is a later block" coverage to food52.html only.
+
+3) The recipetineats.html table row claimed "@type a list of several types ending in Recipe". Checked the raw capture: the Recipe node's @type is the plain string "Recipe" (python search for the literal `"@type":"Recipe"` found it in the raw file; a list form `"@type":[` was not found). This matches the capture notes already on file. Fixed the row to say @type is a plain string, not a list. The claim that the real set covers @type-as-a-list still holds via serious-eats.html (["Recipe"]) and allrecipes.html (["Recipe","NewsArticle"]).
+
+4) All five real-site fixtures had their opening <script> tag for each ld+json block rewritten to a bare `<script type="application/ld+json">`, losing the original attributes. Restored each block's original opening tag exactly as captured: nyt-cooking.html's four blocks now reopen with `data-next-head=""`; serious-eats.html's block reopens with `id="bedrock-schema_1-0" class="comp bedrock-schema mntl-schema-unified" type="application/ld+json"`; allrecipes.html's block reopens with `id="allrecipes-schema_1-0" class="comp allrecipes-schema mntl-schema-unified" type="application/ld+json"`; recipetineats.html's two blocks reopen with `class="yoast-schema-graph"` and `class="wp-parsely-metadata"` respectively. food52.html already matched the raw capture's bare tags, so it needed no change. Re-verified after the fix that every fixture's extracted ld+json block bodies are still byte-identical to the raw captures (same block count and same per-block byte length for all five files). Re-ran the AIza/firebaseio.com/googleapis/seven-character-marker scrub: only README.md's own descriptive sentence matches ("AIza", "firebaseio.com", "googleapis" as literal words it names); no fixture .html file matches, and no seven-character marker line exists anywhere under fixtures/. Updated README.md's wording ("unmodified" -> "unmodified down to each block's original opening <script ...> tag") to describe this accurately.
+
+5) Removed the stray "test simple note" line from these Implementation Notes (leftover debugging text, not evidence).
+
+6) Restored the plan's dropped "Files expected to change" list and the decision-3 mediation risk line (see Implementation Plan).
+
+Re-ran checks after all fixes:
+mise exec -- pnpm -s typecheck: tsc --noEmit, no output, exit 0.
+mise exec -- pnpm exec vitest run --project unit packages/providers-: Test Files 7 passed (7), Tests 63 passed (63).
 <!-- SECTION:NOTES:END -->
