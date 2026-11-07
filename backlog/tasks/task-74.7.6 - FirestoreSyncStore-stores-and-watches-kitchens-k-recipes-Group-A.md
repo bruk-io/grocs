@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.6
 title: 'FirestoreSyncStore stores and watches kitchens/{k}/recipes - Group A'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:49'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-3
   - layer-providers
@@ -27,10 +27,10 @@ Split key: providers-firestore-recipes. Layer: providers. Contract: TASK-74's pl
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 FirestoreSyncStore implements the three methods at kitchens/{k}/recipes/{id}, using decodeRecipe, mergeRecipe and encodeRecipe
-- [ ] #2 firestore-sync-store.emulator.test.ts also runs syncStoreRecipeContract
-- [ ] #3 Stored-shape tests: readRaw shows schemaVersion 1 and plain content fields; a bad or future-version doc written with writeRaw makes getRecipes reject; the watcher reports the invalid doc and still delivers valid ones
-- [ ] #4 The offline note in the class doc also covers recipes, and no commit is made
+- [x] #1 FirestoreSyncStore implements the three methods at kitchens/{k}/recipes/{id}, using decodeRecipe, mergeRecipe and encodeRecipe
+- [x] #2 firestore-sync-store.emulator.test.ts also runs syncStoreRecipeContract
+- [x] #3 Stored-shape tests: readRaw shows schemaVersion 1 and plain content fields; a bad or future-version doc written with writeRaw makes getRecipes reject; the watcher reports the invalid doc and still delivers valid ones
+- [x] #4 The offline note in the class doc also covers recipes, and no commit is made
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -65,4 +65,6 @@ $ tsc --noEmit
 (no errors; repo-wide typecheck is clean at this point in the group)
 
 Files changed: packages/providers-firebase/src/firestore-sync-store.ts, packages/providers-firebase/src/firestore-sync-store.emulator.test.ts.
+
+Closed by reviewer. AC#1: mergeRecipe/getRecipes/watchRecipes at kitchens/{k}/recipes/{id} using decodeRecipe/mergeRecipe/encodeRecipe in a transaction, no-where-clause query (6bcb2fc). AC#2: syncStoreRecipeContract wired into firestore-sync-store.emulator.test.ts. AC#3: recipe stored-shape block covers schemaVersion 1 + plain fields, bad and future-version docs rejecting getRecipes, watcher reporting invalid doc while delivering valid; passing among the orchestrator's 128 emulator tests on main. AC#4: class doc covers recipes incl. offline-transaction note; builder made no commit (orchestrator committed Group A as TASK-74.7.8). Findings: none blocking. Low: future-version test matches /unsupported|schemaVersion/ loosely rather than naming the doc; acceptable, no draft filed. Emulator suite not re-run by reviewer per orchestrator instruction (port collisions).
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.4
 title: 'SyncStore stores and watches kitchen recipes (port, fake, contract) - Group A'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:29'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-3
   - layer-ports
@@ -26,11 +26,11 @@ Split key: ports-sync-store-recipes. Layer: ports. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 port.ts declares mergeRecipe, getRecipes and watchRecipes as direct method signatures on SyncStore, with doc comments in the existing style
-- [ ] #2 InMemorySyncStore implements them with #recipes and #recipeWatchers, keyed ${kitchenId}/${id}, filtered by kitchen only, merged with core mergeRecipe, and notified via queueMicrotask, including an initial notify
-- [ ] #3 contract.ts exports syncStoreRecipeContract and literally calls .mergeRecipe(, .getRecipes( and .watchRecipes(. It covers: stores and returns unchanged; merging the same copy twice changes nothing; two members importing the same recipeId give one record with the earlier createdAt; a delete wins and a later deleted:null copy does not undo it (R20); kitchens don't mix; a watcher sees current state, then a change; unsubscribe stops calls
-- [ ] #4 fake.test.ts calls syncStoreRecipeContract, test-support.ts re-exports it, and vitest --project unit packages/ports passes in the shared worktree
-- [ ] #5 No commit is made by this task. It hands the worktree to the next Group A builder through the task notes
+- [x] #1 port.ts declares mergeRecipe, getRecipes and watchRecipes as direct method signatures on SyncStore, with doc comments in the existing style
+- [x] #2 InMemorySyncStore implements them with #recipes and #recipeWatchers, keyed ${kitchenId}/${id}, filtered by kitchen only, merged with core mergeRecipe, and notified via queueMicrotask, including an initial notify
+- [x] #3 contract.ts exports syncStoreRecipeContract and literally calls .mergeRecipe(, .getRecipes( and .watchRecipes(. It covers: stores and returns unchanged; merging the same copy twice changes nothing; two members importing the same recipeId give one record with the earlier createdAt; a delete wins and a later deleted:null copy does not undo it (R20); kitchens don't mix; a watcher sees current state, then a change; unsubscribe stops calls
+- [x] #4 fake.test.ts calls syncStoreRecipeContract, test-support.ts re-exports it, and vitest --project unit packages/ports passes in the shared worktree
+- [x] #5 No commit is made by this task. It hands the worktree to the next Group A builder through the task notes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -86,4 +86,6 @@ Additional proof (advisor follow-up):
 2. Repo-wide typecheck (`mise exec -- pnpm -s typecheck`) - zero errors under packages/ports. Every remaining error lands exactly on the break surface the contract names in §0.7: MemorySyncStore, FirestoreSyncStore, the three `: SyncStore = {` literals in add-item.scenario.test.ts (lines 54, 91, 166), and their direct consequences (compose-firebase.ts, compose-demo.ts, memory-sync-store.test.ts, firestore-sync-store.emulator.test.ts constructing/using those same two classes). No error outside that surface.
 
 3. `node tools/checks/run.ts --mode files packages/ports/src/sync-store/port.ts packages/ports/src/sync-store/fake.ts packages/ports/src/sync-store/contract.ts packages/ports/src/sync-store/fake.test.ts` -> "checks passed (16 checks, files mode, ...)" - includes port-contracts/method-covered, confirming port.ts's three new methods are each literally called in contract.ts.
+
+Reviewed by philosophy:reviewer on main at ca542a3. Closed: all 5 AC met. Evidence: diff in 6bcb2fc (port.ts three direct methods with doc comments; InMemorySyncStore #recipes/#recipeWatchers keyed kitchenId/id, kitchen-only filter, core mergeRecipe, queueMicrotask with initial notify; contract.ts syncStoreRecipeContract with the 7 named cases; fake.test.ts calls it; test-support re-exports it); ports unit tests re-run here: 7 files, 71 tests passed; orchestrator's pnpm check 16 passed incl. port-contracts/method-covered; no commit by this task (orchestrator committed the group, TASK-74.7.8). Findings: low - getRecipes doc comment says '(any week)' though recipes have no week; cosmetic wording, answered here, no draft filed.
 <!-- SECTION:NOTES:END -->

@@ -5,6 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:09'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-3
   - core
@@ -28,3 +29,9 @@ decision-16 makes an imported recipe a kitchen-wide record at kitchens/{kitchenI
 - [ ] #3 SyncStore has mergeRecipe, getRecipes and watchRecipes, covered by its contract suite and implemented by the fake, the Firestore provider and the memory provider
 - [ ] #4 firestore.rules tests show a member can read and write their kitchen's recipes and a non-member cannot
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Group A deviation from decision-3 (orchestrator, 2026-11-07): the SyncStore widening (TASK-74.7.4 ports, 74.7.5 and 74.7.6 providers, 74.7.7 application) breaks every implementation at once, and pre-commit runs repo-wide typecheck, so no single layer builder could commit green. The four builders edited one shared worktree (.claude/worktrees/group-a) in sequence without committing, each reviewed by its own layer reviewer, and the orchestrator committed the group once everything was green (6bcb2fc, merged in 6242c0b) under TASK-74.7.8. Bruk agreed to this on 2026-11-07. Precedent: c4db885 (TASK-1.21.2/.3/.4).
+<!-- SECTION:NOTES:END -->

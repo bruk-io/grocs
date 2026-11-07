@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:15'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-1
   - orchestrator
@@ -28,8 +28,8 @@ Split key: orch-integrate-sync-store. Layer: orchestrator. Contract: TASK-74's p
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 One commit on main holds every Group A file, and pre-commit (checks, repo-wide typecheck, unit tests) passed without --no-verify
-- [ ] #2 pnpm test:emulator passes for firestore-sync-store.emulator.test.ts, including syncStoreRecipeContract
+- [x] #1 One commit on main holds every Group A file, and pre-commit (checks, repo-wide typecheck, unit tests) passed without --no-verify
+- [x] #2 pnpm test:emulator passes for firestore-sync-store.emulator.test.ts, including syncStoreRecipeContract
 - [ ] #3 Notes on TASK-74.7 record the deviation and the c4db885 precedent
 <!-- AC:END -->
 
@@ -52,3 +52,9 @@ Each acceptance criterion is shown by a test or command output recorded in the n
 Files expected to change:
 - (none)
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review (philosophy:reviewer, 2026-11-06): NOT CLOSED. AC#1 met: 6bcb2fc holds all 14 Group A files (port, fake, contract, memory + Firestore stores, emulator test, add-item scenario, four leaf tasks); its message records check 16, typecheck, 2033 unit tests, and no evidence of --no-verify. AC#2 met on the orchestrator's emulator run (128 passed; the 4 failures are all recipe-importer.emulator.test.ts, owned by TASK-74.4.7/74.5.9). AC#3 UNMET: TASK-74.7 has no implementation notes and no mention of the deviation or c4db885 (grep of backlog/tasks finds c4db885 only in TASK-74, 74.5.12, 74.7.8 and TASK-1.21.x). To close: append a note on TASK-74.7 recording the decision-3 deviation (shared worktree, orchestrator commit, agreed by Bruk 2026-11-07) and the c4db885 precedent, then re-review. No drafts filed.
+<!-- SECTION:NOTES:END -->

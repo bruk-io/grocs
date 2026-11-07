@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.7
 title: add-item scenario's hand-built SyncStores gain the recipe methods - Group A
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:49'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-1
   - layer-application
@@ -25,8 +25,8 @@ Split key: application-sync-literals. Layer: application. Contract: TASK-74's pl
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The three SyncStore literals in add-item.scenario.test.ts declare mergeRecipe, getRecipes and watchRecipes, and every existing assertion is unchanged
-- [ ] #2 vitest --project unit packages/application passes in the shared worktree, and no commit is made
+- [x] #1 The three SyncStore literals in add-item.scenario.test.ts declare mergeRecipe, getRecipes and watchRecipes, and every existing assertion is unchanged
+- [x] #2 vitest --project unit packages/application passes in the shared worktree, and no commit is made
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -74,4 +74,6 @@ Duration  347ms (transform 2.18s, setup 0ms, import 3.13s, tests 129ms, environm
 ```
 
 Group A application literals done. No commit made as per task instructions.
+
+Reviewed by philosophy:reviewer. Closed. AC1: git show 6bcb2fc on add-item.scenario.test.ts is additions only - mergeRecipe/getRecipes/watchRecipes added to the three SyncStore literals exactly as planned; no assertion touched. AC2: vitest --project unit packages/application on main re-run by reviewer: 17 files, 94 tests passed; builder made no commit (group committed by orchestrator in 6bcb2fc under TASK-74.7.8, agreed deviation). No findings.
 <!-- SECTION:NOTES:END -->

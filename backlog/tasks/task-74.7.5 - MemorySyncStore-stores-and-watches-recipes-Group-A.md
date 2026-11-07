@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.5
 title: MemorySyncStore stores and watches recipes - Group A
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:49'
+updated_date: '2026-11-07 04:19'
 labels:
   - size-2
   - layer-providers
@@ -26,9 +26,9 @@ Split key: providers-memory-recipes. Layer: providers. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 MemorySyncStore implements mergeRecipe, getRecipes and watchRecipes (a third Map, watchers filtered by kitchen only, queueMicrotask)
-- [ ] #2 memory-sync-store.test.ts also runs syncStoreRecipeContract
-- [ ] #3 vitest --project unit packages/providers-memory passes in the shared worktree, and no commit is made
+- [x] #1 MemorySyncStore implements mergeRecipe, getRecipes and watchRecipes (a third Map, watchers filtered by kitchen only, queueMicrotask)
+- [x] #2 memory-sync-store.test.ts also runs syncStoreRecipeContract
+- [x] #3 vitest --project unit packages/providers-memory passes in the shared worktree, and no commit is made
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -67,4 +67,6 @@ $ tsc --noEmit
 git status shows memory-sync-store.ts and memory-sync-store.test.ts modified, nothing committed. AC#3 met.
 
 No contract change was needed; port.ts/fake.ts/contract.ts/test-support.ts for the recipe methods were already present in the shared worktree from TASK-74.7.4.
+
+Closed by reviewer. AC#1: diff in 6bcb2fc adds #recipes Map, #recipeWatchers, mergeRecipe (core mergeRecipe on existing copy), getRecipes, watchRecipes filtered by kitchen only via queueMicrotask. AC#2: memory-sync-store.test.ts runs syncStoreRecipeContract; reran vitest --project unit packages/providers-memory on main: 57 passed. AC#3: worker's notes show the pass in the shared worktree with no commit; the orchestrator committed once in 6bcb2fc (TASK-74.7.8). Findings (low, no draft): initial watchRecipes notify queues two microtasks (mirrors item/meal pattern, harmless); key prefix filter would collide if a kitchenId contained '/', same as existing maps, ids are generated so no realistic path.
 <!-- SECTION:NOTES:END -->
