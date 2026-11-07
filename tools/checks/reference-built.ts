@@ -19,7 +19,7 @@ export const SPECIMEN_NAMES: Readonly<Record<string, string>> = {
   check: 'Checkbox',
   item: 'ItemRow',
   speech: 'SpeechBubble',
-  invite: 'InviteCode',
+  invite: 'InviteCard',
   skeleton: 'Skeleton',
   icon: 'Icon',
   mascot: 'Mascot',

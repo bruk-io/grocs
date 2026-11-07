@@ -11,7 +11,6 @@ export interface CreateKitchen {
 export interface KitchenCreated extends DomainEvent {
   readonly type: 'KitchenCreated';
   readonly kitchenId: string;
-  readonly inviteCode: string;
 }
 
 export async function createKitchen(command: CreateKitchen, ctx: CommandContext): Promise<CommandResult> {
@@ -20,6 +19,6 @@ export async function createKitchen(command: CreateKitchen, ctx: CommandContext)
   if (command.name.trim() === '') return err({ code: 'empty-name', message: 'the kitchen name is empty' });
 
   const created = await kitchens.createKitchen(command.name, command.timeZone);
-  const event: KitchenCreated = { type: 'KitchenCreated', kitchenId: created.kitchenId, inviteCode: created.inviteCode };
+  const event: KitchenCreated = { type: 'KitchenCreated', kitchenId: created.kitchenId };
   return ok([event]);
 }

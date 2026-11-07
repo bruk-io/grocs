@@ -1,106 +1,112 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isKitchenFull, MAX_MEMBERS } from '@grocs/core';
+import { acceptInvite, cancelInvite, createKitchen, inviteByEmail, isInvitedTo } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
 import { FakeClock } from '../clock/fake.ts';
 import type { Clock } from '../clock/port.ts';
 import { SequentialIds } from '../ids/fake.ts';
 import type { IdGenerator } from '../ids/port.ts';
-import type { CreatedKitchen, InvitePreview, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from './port.ts';
+import type { AcceptOutcome, CreatedKitchen, InviteByEmailOutcome, InviteOffer, KitchenDetails, KitchenGateway } from './port.ts';
 
-interface Invite {
-  readonly code: string;
-  readonly kitchenId: string;
-  readonly createdAt: number;
-  status: 'pending' | 'used';
+/** Who the fake is calling as: their uid, the name on their sign-in, and its verified email (or null for none). */
+export interface FakeCaller {
+  readonly uid: string;
+  readonly name?: string;
+  readonly email?: string | null;
 }
 
 /**
  * Held in memory, standing in for the server functions. Two or more instances can share the same
- * `kitchens`/`invites` maps to stand in for the server both phones talk to, the way two
- * `InMemorySyncStore`s share state for the two-client tests.
+ * `kitchens` map to stand in for the server both phones talk to, the way two `InMemorySyncStore`s
+ * share state for the two-client tests.
  */
 export class FakeKitchenGateway implements KitchenGateway {
   readonly #kitchens: Map<string, Kitchen>;
-  readonly #invites: Map<string, Invite>;
   readonly #clock: Clock;
   readonly #ids: IdGenerator;
-  readonly #callerUid: string;
-  readonly #displayName: string;
+  readonly #uid: string;
+  readonly #name: string;
+  readonly #email: string | null;
 
-  constructor(
-    callerUid: string,
-    shared?: { kitchens: Map<string, Kitchen>; invites: Map<string, Invite> },
-    clock: Clock = new FakeClock(),
-    ids: IdGenerator = new SequentialIds('kitchen'),
-    displayName: string = callerUid,
-  ) {
-    this.#callerUid = callerUid;
+  constructor(caller: string | FakeCaller, shared?: { kitchens: Map<string, Kitchen> }, clock: Clock = new FakeClock(), ids: IdGenerator = new SequentialIds('kitchen')) {
+    const who = typeof caller === 'string' ? { uid: caller } : caller;
+    this.#uid = who.uid;
+    this.#name = who.name ?? who.uid;
+    this.#email = who.email === undefined ? `${who.uid}@example.com` : who.email;
     this.#kitchens = shared?.kitchens ?? new Map();
-    this.#invites = shared?.invites ?? new Map();
     this.#clock = clock;
     this.#ids = ids;
-    this.#displayName = displayName;
   }
 
-  /** A second gateway, for the kitchen's other member, sharing this one's server-side state. */
-  asMember(uid: string, displayName: string = uid): FakeKitchenGateway {
-    return new FakeKitchenGateway(uid, { kitchens: this.#kitchens, invites: this.#invites }, this.#clock, this.#ids, displayName);
+  /** A gateway for someone else, sharing this one's server-side state. Their email defaults to `<uid>@example.com`. */
+  asMember(caller: string | FakeCaller): FakeKitchenGateway {
+    return new FakeKitchenGateway(caller, { kitchens: this.#kitchens }, this.#clock, this.#ids);
   }
 
   async createKitchen(name: string, timeZone: string): Promise<CreatedKitchen> {
     const id = this.#ids.newId();
-    const made = createKitchen({ id, name, timeZone, ownerUid: this.#callerUid, ownerName: this.#displayName, createdAt: this.#clock.now() });
+    const made = createKitchen({ id, name, timeZone, ownerUid: this.#uid, ownerName: this.#name, createdAt: this.#clock.now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
-    this.#kitchens.set(made.value.id, made.value);
-    const inviteId = this.#ids.newId();
-    const code = inviteCodeFromId(inviteId);
-    this.#invites.set(code, { code, kitchenId: made.value.id, createdAt: this.#clock.now(), status: 'pending' });
-    return { kitchenId: made.value.id, inviteCode: code };
+    this.#kitchens.set(id, made.value);
+    return { kitchenId: id };
   }
 
-  async joinKitchen(code: string): Promise<JoinOutcome> {
-    const invite = this.#invites.get(code);
-    if (!invite) return { kind: 'rejected', reason: 'not-found' };
-    const checked = checkInvite(invite, this.#clock.now());
-    if (!checked.ok) return { kind: 'rejected', reason: checked.error };
+  async inviteByEmail(kitchenId: string, email: string): Promise<InviteByEmailOutcome> {
+    const kitchen = this.#memberOf(kitchenId);
+    const invited = inviteByEmail({ kitchen, callerUid: this.#uid, callerEmail: this.#email, email, now: this.#clock.now() });
+    if (!invited.ok) {
+      if (invited.error === 'not-a-member') throw notAMember();
+      return { kind: 'rejected', reason: invited.error };
+    }
+    this.#kitchens.set(kitchenId, invited.value);
+    return { kind: 'invited', email: invited.value.invite!.email };
+  }
 
-    const kitchen = this.#kitchens.get(invite.kitchenId);
-    if (!kitchen) return { kind: 'rejected', reason: 'not-found' };
-    const joined = addMember(kitchen, this.#callerUid, this.#displayName);
-    if (!joined.ok) return { kind: 'rejected', reason: joined.error };
+  async cancelInvite(kitchenId: string): Promise<void> {
+    const cancelled = cancelInvite(this.#memberOf(kitchenId), this.#uid);
+    if (!cancelled.ok) throw notAMember();
+    this.#kitchens.set(kitchenId, cancelled.value);
+  }
 
-    this.#kitchens.set(kitchen.id, joined.value);
-    invite.status = 'used';
-    return { kind: 'joined', kitchenId: kitchen.id };
+  async invitesForMe(): Promise<readonly InviteOffer[]> {
+    return [...this.#kitchens.values()]
+      .filter((k) => isInvitedTo(k, this.#email) && !k.members.includes(this.#uid))
+      .sort((a, b) => a.invite!.createdAt - b.invite!.createdAt)
+      .map((k) => ({ kitchenId: k.id, kitchen: k.name, inviter: k.memberNames[k.invite!.invitedBy] ?? '' }));
+  }
+
+  async acceptInvite(kitchenId: string): Promise<AcceptOutcome> {
+    const accepted = acceptInvite({ target: this.#kitchens.get(kitchenId) ?? null, current: this.#mine(), uid: this.#uid, name: this.#name, email: this.#email });
+    if (!accepted.ok) return { kind: 'rejected', reason: accepted.error };
+    this.#kitchens.set(kitchenId, accepted.value.joined);
+    if (accepted.value.left) this.#kitchens.set(accepted.value.left.id, accepted.value.left);
+    return { kind: 'joined', kitchenId };
   }
 
   async findMyKitchen(): Promise<string | null> {
-    for (const kitchen of this.#kitchens.values()) {
-      if (kitchen.members.includes(this.#callerUid)) return kitchen.id;
-    }
-    return null;
+    return this.#mine()?.id ?? null;
   }
 
   async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
     const kitchen = this.#kitchens.get(kitchenId);
-    if (!kitchen) return null;
-    return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames[uid] ?? uid })) };
+    if (!kitchen || !kitchen.members.includes(this.#uid)) return null;
+    return {
+      name: kitchen.name,
+      members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames[uid] ?? uid })),
+      invitedEmail: kitchen.invite?.email ?? null,
+    };
   }
 
-  async inviteForKitchen(kitchenId: string): Promise<KitchenInvite> {
+  #mine(): Kitchen | null {
+    for (const kitchen of this.#kitchens.values()) if (kitchen.members.includes(this.#uid)) return kitchen;
+    return null;
+  }
+
+  #memberOf(kitchenId: string): Kitchen {
     const kitchen = this.#kitchens.get(kitchenId);
-    if (!kitchen || !kitchen.members.includes(this.#callerUid)) throw new Error('permission-denied: not a member of this kitchen');
-    if (isKitchenFull(kitchen)) return { kind: 'full' };
-    const now = this.#clock.now();
-    const reused = inviteToReuse([...this.#invites.values()].filter((i) => i.kitchenId === kitchenId), now);
-    if (reused) return { kind: 'open', code: reused.code, expiresAt: inviteExpiresAt(reused.createdAt) };
-    const code = inviteCodeFromId(this.#ids.newId());
-    this.#invites.set(code, { code, kitchenId, createdAt: now, status: 'pending' });
-    return { kind: 'open', code, expiresAt: inviteExpiresAt(now) };
+    if (!kitchen || !kitchen.members.includes(this.#uid)) throw notAMember();
+    return kitchen;
   }
+}
 
-  async previewInvite(code: string): Promise<InvitePreview | null> {
-    const invite = this.#invites.get(code) ?? null;
-    const kitchen = invite ? (this.#kitchens.get(invite.kitchenId) ?? null) : null;
-    return invitePreview(invite, kitchen, this.#clock.now(), MAX_MEMBERS);
-  }
+function notAMember(): Error {
+  return new Error('permission-denied: not a member of this kitchen');
 }

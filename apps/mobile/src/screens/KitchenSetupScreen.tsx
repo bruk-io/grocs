@@ -1,24 +1,34 @@
 import { useState } from 'react';
-import { Share, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { KitchenSetupTemplate, Text } from '@grocs/ui';
 import type { CreateKitchen, KitchenCreated } from '@grocs/application';
 import type { App } from '../composition/compose-app.ts';
-import { inviteMessage } from './invite.ts';
 import { useGo } from './navigate.ts';
-
+import { useEmailInvite } from './use-email-invite.ts';
 
 const COULD_NOT_CREATE = 'We could not make your kitchen. Check your connection and try again.';
 
+export interface KitchenSetupScreenProps {
+  app: App;
+  email: string;
+  onReady: (kitchenId: string) => void;
+  /** Looks again for a partner's invite to this email (TASK-78). */
+  onCheckInvites?: () => void;
+  checkingInvites?: boolean;
+}
+
 /**
- * Your kitchen, for a signed-in member who has none. Start planning makes the kitchen (CreateKitchen)
- * and shows the invite link and code; pressing it again opens the kitchen's Groceries.
+ * Your kitchen, for a signed-in member who has none. Start planning makes the kitchen (CreateKitchen),
+ * then the partner's email can be added; pressing it again opens the kitchen's Groceries. Someone
+ * waiting to join their partner's kitchen can look for the invite here instead.
  */
-export function KitchenSetupScreen({ app, email, name: you, onReady }: { app: App; email: string; /** The signed-in person's name, for the share message (TASK-70). */ name?: string; onReady: (kitchenId: string) => void }) {
+export function KitchenSetupScreen({ app, email, onReady, onCheckInvites, checkingInvites = false }: KitchenSetupScreenProps) {
   const go = useGo();
   const [name, setName] = useState('Our kitchen');
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState<KitchenCreated | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const card = useEmailInvite(app, created?.kitchenId ?? '', null);
 
   const create = async () => {
     setProblem(null);
@@ -36,6 +46,7 @@ export function KitchenSetupScreen({ app, email, name: you, onReady }: { app: Ap
     }
   };
 
+  const onStart = created ? () => onReady(created.kitchenId) : name.trim() === '' ? undefined : () => void create();
   return (
     <View style={styles.screen}>
       <KitchenSetupTemplate
@@ -43,20 +54,12 @@ export function KitchenSetupScreen({ app, email, name: you, onReady }: { app: Ap
         kitchenName={name}
         onKitchenNameChange={setName}
         starting={creating}
-        onOpenInvite={go.join}
+        invite={created ? card : { kind: 'noKitchen' }}
+        checkingInvites={checkingInvites}
+        {...(onCheckInvites && !created ? { onCheckInvites } : {})}
         // A failed sign-out is logged by the instrumented auth port; they stay where they are, as in Settings.
         onSignOut={() => void app.signOut().then(go.welcome, () => undefined)}
-        {...(created
-          ? {
-              inviteCode: created.inviteCode,
-              inviteStatus: { kind: 'waiting' as const, message: 'Waiting for your partner to join' },
-              onShare: () => void Share.share({ message: inviteMessage(created.inviteCode, { kitchen: name, ...(you ? { inviter: you } : {}) }) }),
-              onCopy: () => void app.copyText(created.inviteCode),
-              onStart: () => onReady(created.kitchenId),
-            }
-          : name.trim() === ''
-            ? { inviteCode: null }
-            : { inviteCode: null, onStart: () => void create() })}
+        {...(onStart ? { onStart } : {})}
       />
       {problem ? <Text variant="muted">{problem}</Text> : null}
     </View>

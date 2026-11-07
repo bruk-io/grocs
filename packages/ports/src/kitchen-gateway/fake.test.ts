@@ -1,24 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import { kitchenGatewayContract } from './contract.ts';
-import { INVITE_LIFETIME_MS } from '@grocs/core';
-import { FakeClock } from '../clock/fake.ts';
 import { FakeKitchenGateway } from './fake.ts';
 
 kitchenGatewayContract({ describe, it, expect }, async () => {
-  const owner = new FakeKitchenGateway('alex');
-  return { owner, partner: owner.asMember('sam'), stranger: owner.asMember('carl') };
+  const owner = new FakeKitchenGateway({ uid: 'alex', email: 'alex@example.com' });
+  return {
+    owner,
+    partner: owner.asMember({ uid: 'sam', email: 'Sam@Example.com' }),
+    stranger: owner.asMember({ uid: 'carl', email: 'carl@example.com' }),
+    ownerEmail: 'alex@example.com',
+    partnerEmail: 'Sam@Example.com',
+    strangerEmail: 'carl@example.com',
+  };
 });
 
-describe('FakeKitchenGateway.inviteForKitchen past an invite lifetime (TASK-56)', () => {
-  it('issues a fresh code once the last one has expired, and the partner can join with it', async () => {
-    const clock = new FakeClock();
-    const owner = new FakeKitchenGateway('alex', undefined, clock);
-    const created = await owner.createKitchen('Our kitchen', 'UTC');
-    clock.advance(INVITE_LIFETIME_MS + 1);
-    const fresh = await owner.inviteForKitchen(created.kitchenId);
-    if (fresh.kind !== 'open') throw new Error(`expected an open invite, got ${fresh.kind}`);
-    expect(fresh.code).not.toBe(created.inviteCode);
-    expect(fresh.expiresAt).toBe(clock.now() + INVITE_LIFETIME_MS);
-    expect(await owner.asMember('sam').joinKitchen(fresh.code)).toEqual({ kind: 'joined', kitchenId: created.kitchenId });
+describe('FakeKitchenGateway with no verified email (TASK-78)', () => {
+  it('is offered nothing, even for an invite to the address it would have had', async () => {
+    const owner = new FakeKitchenGateway('alex');
+    const { kitchenId } = await owner.createKitchen('Our kitchen', 'UTC');
+    await owner.inviteByEmail(kitchenId, 'sam@example.com');
+    const noEmail = owner.asMember({ uid: 'sam', email: null });
+    expect(await noEmail.invitesForMe()).toEqual([]);
+    expect(await noEmail.acceptInvite(kitchenId)).toEqual({ kind: 'rejected', reason: 'not-found' });
   });
 });

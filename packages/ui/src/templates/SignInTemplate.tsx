@@ -15,26 +15,24 @@ interface SignInTemplateBase {
   tagline: string;
   /** A host in the kitchen was tapped. */
   onMascotPress?: (name: MascotName, line: string) => void;
-  /** Below the invite row (or the primary action), in the sheet's own layout. Development builds put the test sign-in here (R53). */
+  /** Below the invite line (or the primary action), in the sheet's own layout. Development builds put the test sign-in here (R53). */
   footer?: ReactNode;
 }
 
 export interface SignInTemplateSignInProps extends SignInTemplateBase {
   onContinue?: () => void;
-  onOpenInvite?: () => void;
   /** Google's sheet is open. */
   signingIn?: boolean;
   primaryLabel?: never;
   onPrimary?: never;
 }
 
-/** One primary action in place of Continue with Google and the invite row (the demo). No Google sheet exists to be open, so signingIn, onContinue and onOpenInvite are not accepted. */
+/** One primary action in place of Continue with Google and the invite line (the demo). No Google sheet exists to be open, so signingIn and onContinue are not accepted. */
 export interface SignInTemplatePrimaryProps extends SignInTemplateBase {
   primaryLabel: string;
   onPrimary: () => void;
   signingIn?: never;
   onContinue?: never;
-  onOpenInvite?: never;
 }
 
 export type SignInTemplateProps = SignInTemplateSignInProps | SignInTemplatePrimaryProps;
@@ -62,7 +60,6 @@ export function SignInTemplate(props: SignInTemplateProps) {
           <AuthSheet
             signingIn={props.signingIn ?? false}
             {...(props.onContinue ? { onContinue: props.onContinue } : {})}
-            {...(props.onOpenInvite ? { onOpenInvite: props.onOpenInvite } : {})}
             {...(footer ? { footer } : {})}
           />
         )

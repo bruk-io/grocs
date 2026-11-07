@@ -3,11 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import type { GoogleSignIn } from '@grocs/ports';
 import { SignInTemplate, Text } from '@grocs/ui';
 import type { DemoAccess } from '../composition/native.ts';
-import { useGo } from './navigate.ts';
 
 /**
- * The signed-out screen: Continue with Google signs in for real (TASK-1.15); the invite link opens
- * the join screen. The same flow in every build, dev and release alike - no test sign-in, by design.
+ * The signed-out screen: Continue with Google signs in for real (TASK-1.15). Someone with an invite
+ * signs in the same way and is offered it once signed in (TASK-78). The same flow in every build, dev and release alike - no test sign-in, by design.
  * A successful sign-in needs no screen-level follow-up: it updates Firebase Auth state, which Home's
  * watchSession already observes.
  */
@@ -18,7 +17,6 @@ export function WelcomeScreen({
   signInWithGoogle: GoogleSignIn['signInWithGoogle'];
   demo?: DemoAccess | null;
 }) {
-  const go = useGo();
   const [signingIn, setSigningIn] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const onContinue = () => {
@@ -37,7 +35,6 @@ export function WelcomeScreen({
           ? { primaryLabel: 'Try the demo', onPrimary: () => void demo.signIn() }
           : {
               onContinue,
-              onOpenInvite: go.join,
               signingIn,
               ...(problem ? { footer: <Text variant="muted">{problem}</Text> } : {}),
             })}

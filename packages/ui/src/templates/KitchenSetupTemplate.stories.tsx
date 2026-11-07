@@ -9,16 +9,21 @@ const meta = {
     email: 'you@example.com',
     kitchenName: 'Our kitchen',
     onKitchenNameChange: () => undefined,
+    invite: { kind: 'noKitchen' },
+    onStart: () => undefined,
+    onCheckInvites: () => undefined,
     onSignOut: () => undefined,
   },
 } satisfies Meta<typeof KitchenSetupTemplate>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Household. */
-export const Rest: Story = { args: { inviteCode: 'MOREL-24', onShare: () => undefined, onCopy: () => undefined } };
-/** Before Start planning there is no code: the card shows a hint and no Share link or Copy code. */
-export const NoInviteYet: Story = { args: { inviteCode: null, onOpenInvite: () => undefined } };
+/** Before Start planning: no kitchen to invite to yet, and a way to look for a partner's invite instead. */
+export const Rest: Story = {};
+/** The kitchen is made: the partner's email can be added. */
+export const Made: Story = { args: { invite: { kind: 'compose', email: '', onEmailChange: () => undefined, onInvite: () => undefined } } };
+/** The partner is invited. */
+export const Invited: Story = { args: { invite: { kind: 'invited', email: 'shazya@gmail.com', onCancel: () => undefined } } };
 
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Rest, decorators: [withPhoneInsets] };

@@ -26,7 +26,7 @@ export async function appOnFakes({
   syncStore = new InMemorySyncStore(),
   kitchen = true,
   clock = new FakeClock(),
-  kitchens = new FakeKitchenGateway('u1', undefined, clock),
+  kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock),
   googleAccount = null,
   devSignIn = null,
 }: {
@@ -37,9 +37,9 @@ export async function appOnFakes({
   syncStore?: InMemorySyncStore;
   /** Whether the signed-in member (u1) already belongs to a kitchen. False gives the kitchen setup screen. */
   kitchen?: boolean;
-  /** The kitchen gateway, as u1 sees it. Pass one built with `.asMember('u2')`'s shared state to put a partner's invite in it. */
+  /** The kitchen gateway, as u1 (u1@grocs.test) sees it. Share its state with `.asMember(...)` to have a partner invite u1. */
   kitchens?: FakeKitchenGateway;
-  /** The clock the gateway and the app share, to move time past an invite's expiry. */
+  /** The clock the gateway and the app share. */
   clock?: FakeClock;
   /** Stands in for a successful Google picker (FakeAuth's own doc): set to make Continue with Google succeed; null (the default) stands in for a cancelled or failed pick. */
   googleAccount?: { uid: string; email: string; displayName: string | null } | null;

@@ -4,19 +4,17 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './KitchenSetupTemplate.stories.tsx';
-import { KitchenSetupTemplate } from './KitchenSetupTemplate.tsx';
 
-const { Rest, NoInviteYet } = composeStories(stories);
+const { Rest, Made, Invited } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
 describe('KitchenSetupTemplate', () => {
-  it('names who is signed in, the kitchen, and the invite to send', () => {
+  it('names who is signed in and the kitchen', () => {
     render(<Rest />);
     expect(screen.getByText('Signed in as you@example.com')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Your kitchen' })).toBeTruthy();
     expect((screen.getByRole('textbox', { name: 'Name your kitchen' }) as HTMLInputElement).value).toBe('Our kitchen');
-    expect(screen.getByText('MOREL-24')).toBeTruthy();
   });
 
   it('reports a change to the kitchen name', async () => {
@@ -26,22 +24,11 @@ describe('KitchenSetupTemplate', () => {
     expect(onKitchenNameChange).toHaveBeenCalledExactlyOnceWith('Our kitchens');
   });
 
-  it('shares, copies and starts, each to its own callback', async () => {
-    const onShare = vi.fn();
-    const onCopy = vi.fn();
+  it('starts', async () => {
     const onStart = vi.fn();
-    render(<Rest onShare={onShare} onCopy={onCopy} onStart={onStart} />);
-    await user.click(screen.getByRole('button', { name: 'Share link' }));
-    await user.click(screen.getByRole('button', { name: 'Copy code' }));
+    render(<Rest onStart={onStart} />);
     await user.click(screen.getByRole('button', { name: 'Start planning' }));
-    expect(onShare).toHaveBeenCalledExactlyOnceWith();
-    expect(onCopy).toHaveBeenCalledExactlyOnceWith();
     expect(onStart).toHaveBeenCalledExactlyOnceWith();
-  });
-
-  it('shows where the invite stands once there is a status', () => {
-    render(<Rest inviteStatus={{ message: 'Link sent. Waiting for them to join…' }} />);
-    expect(screen.getByText('Link sent. Waiting for them to join…')).toBeTruthy();
   });
 
   it('while starting shows the action busy and locks the name', async () => {
@@ -54,39 +41,34 @@ describe('KitchenSetupTemplate', () => {
     expect((screen.getByRole('textbox', { name: 'Name your kitchen' }) as HTMLInputElement).readOnly).toBe(true);
   });
 
-  it('disables the invite button whose handler is missing', () => {
-    render(<KitchenSetupTemplate email="you@example.com" kitchenName="Our kitchen" onKitchenNameChange={() => undefined} inviteCode="MOREL-24" onShare={() => undefined} />);
-    expect(screen.getByRole('button', { name: 'Share link' }).getAttribute('aria-disabled')).not.toBe('true');
-    expect(screen.getByRole('button', { name: 'Copy code' }).getAttribute('aria-disabled')).toBe('true');
+  it('before the kitchen is made, says which email the partner should add and looks for their invite (TASK-78)', async () => {
+    const onCheckInvites = vi.fn();
+    render(<Rest onCheckInvites={onCheckInvites} />);
+    expect(screen.getByText("Joining your partner's kitchen? Ask them to add you@example.com in Household.")).toBeTruthy();
+    expect(screen.getByText('You can invite them once your kitchen is made.')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Check for an invite' }));
+    expect(onCheckInvites).toHaveBeenCalledOnce();
   });
 
-  it('before there is a code shows a hint, no sample code, and no Share link or Copy code', () => {
-    render(<NoInviteYet />);
-    expect(screen.getByText('Your code appears after Start planning.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Share link' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
-    expect(screen.queryByText(/MOREL/)).toBeNull();
-    expect(screen.getByRole('button', { name: 'Start planning' })).toBeTruthy();
+  it('once the kitchen is made, asks for the partner\'s email and stops offering to look for an invite', async () => {
+    const onInvite = vi.fn();
+    render(<Made invite={{ kind: 'compose', email: 'shazya@gmail.com', onEmailChange: () => undefined, onInvite }} />);
+    expect(screen.queryByRole('button', { name: 'Check for an invite' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Invite' }));
+    expect(onInvite).toHaveBeenCalledOnce();
   });
 
-  it('offers the code entry before the kitchen exists, for someone who already has an invite (TASK-56)', async () => {
-    const onOpenInvite = vi.fn();
-    render(<NoInviteYet onOpenInvite={onOpenInvite} />);
-    await user.click(screen.getByRole('button', { name: 'Open it to join' }));
-    expect(onOpenInvite).toHaveBeenCalledOnce();
-  });
-
-  it('does not offer it once the kitchen has its own invite', () => {
-    render(<Rest onOpenInvite={() => undefined} />);
-    expect(screen.queryByRole('button', { name: 'Open it to join' })).toBeNull();
+  it('shows who is invited', () => {
+    render(<Invited />);
+    expect(screen.getByText('Invited shazya@gmail.com. Waiting for them to join.')).toBeTruthy();
   });
 
   it('signs out, before and after the kitchen exists, for someone signed in with the wrong account (TASK-67)', async () => {
     const onSignOut = vi.fn();
-    render(<NoInviteYet onSignOut={onSignOut} />);
+    render(<Rest onSignOut={onSignOut} />);
     await user.click(screen.getByRole('button', { name: 'Sign out' }));
     cleanup();
-    render(<Rest onSignOut={onSignOut} />);
+    render(<Made onSignOut={onSignOut} />);
     await user.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(onSignOut).toHaveBeenCalledTimes(2);
   });

@@ -22,18 +22,15 @@ describe('SignInTemplate', () => {
     expect(screen.getByRole('heading', { name: 'Grocs' })).toBeTruthy();
     expect(screen.getByText('Plan the week. Shop together.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Open it to join' })).toBeTruthy();
+    expect(screen.getByText('Got an invite? Continue with the Google account it was sent to.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Cremi the cremini, tap to hear a line' })).toBeTruthy();
   });
 
-  it('continues with Google and opens the invite', async () => {
+  it('continues with Google', async () => {
     const onContinue = vi.fn();
-    const onOpenInvite = vi.fn();
-    render(<Rest onContinue={onContinue} onOpenInvite={onOpenInvite} />);
+    render(<Rest onContinue={onContinue} />);
     await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
     expect(onContinue).toHaveBeenCalledExactlyOnceWith();
-    await user.click(screen.getByRole('button', { name: 'Open it to join' }));
-    expect(onOpenInvite).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('shows the button busy while Google is open', () => {

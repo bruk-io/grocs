@@ -1,15 +1,11 @@
-import type { CreatedKitchen, InvitePreview, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from '@grocs/ports';
+import type { AcceptOutcome, CreatedKitchen, InviteByEmailOutcome, InviteOffer, KitchenDetails, KitchenGateway } from '@grocs/ports';
 import type { FirestoreFns, FunctionsFns } from './sdk.ts';
-
-interface CreateKitchenResponse {
-  readonly kitchenId: string;
-  readonly inviteCode: string;
-}
 
 interface KitchenDoc {
   readonly name: string;
   readonly members: readonly string[];
   readonly memberNames?: Readonly<Record<string, string>>;
+  readonly invite?: { readonly email: string };
 }
 
 /** True for a Firestore permission-denied error - the shape isMember() produces by erroring on a document that does not exist, same as one that exists but the caller does not belong to (R4). */
@@ -18,8 +14,8 @@ function isPermissionDenied(error: unknown): boolean {
 }
 
 /**
- * Calls the createKitchen/joinKitchen Cloud Functions (R2, R3). Translates; the decisions (whether
- * an invite is still good, whether the kitchen has room) are the server's, made with core's pure
+ * Calls the kitchen Cloud Functions (R2, R3, TASK-78). Translates; the decisions (who may invite or
+ * join, whether the kitchen has room) are the server's, made with core's pure
  * functions inside the transaction that writes (@grocs/providers-server). getKitchen is the one
  * exception: kitchens/{kitchenId} is already readable by its members under firebase/firestore.rules
  * (R4), so it reads the document directly instead of adding another function.
@@ -38,33 +34,27 @@ export class FirebaseKitchenGateway implements KitchenGateway {
   }
 
   async createKitchen(name: string, timeZone: string): Promise<CreatedKitchen> {
-    const call = this.#fns.httpsCallable<{ name: string; timeZone: string }, CreateKitchenResponse>(this.#functionsInstance, 'createKitchen');
-    const { data } = await call({ name, timeZone });
-    return { kitchenId: data.kitchenId, inviteCode: data.inviteCode };
+    return this.#call<{ name: string; timeZone: string }, CreatedKitchen>('createKitchen', { name, timeZone });
   }
 
-  async joinKitchen(code: string): Promise<JoinOutcome> {
-    const call = this.#fns.httpsCallable<{ code: string }, JoinOutcome>(this.#functionsInstance, 'joinKitchen');
-    const { data } = await call({ code });
-    return data;
+  async inviteByEmail(kitchenId: string, email: string): Promise<InviteByEmailOutcome> {
+    return this.#call<{ kitchenId: string; email: string }, InviteByEmailOutcome>('inviteByEmail', { kitchenId, email });
+  }
+
+  async cancelInvite(kitchenId: string): Promise<void> {
+    await this.#call<{ kitchenId: string }, null>('cancelInvite', { kitchenId });
+  }
+
+  async invitesForMe(): Promise<readonly InviteOffer[]> {
+    return this.#call<Record<string, never>, readonly InviteOffer[]>('invitesForMe', {});
+  }
+
+  async acceptInvite(kitchenId: string): Promise<AcceptOutcome> {
+    return this.#call<{ kitchenId: string }, AcceptOutcome>('acceptInvite', { kitchenId });
   }
 
   async findMyKitchen(): Promise<string | null> {
-    const call = this.#fns.httpsCallable<Record<string, never>, string | null>(this.#functionsInstance, 'findMyKitchen');
-    const { data } = await call({});
-    return data;
-  }
-
-  async inviteForKitchen(kitchenId: string): Promise<KitchenInvite> {
-    const call = this.#fns.httpsCallable<{ kitchenId: string }, KitchenInvite>(this.#functionsInstance, 'inviteForKitchen');
-    const { data } = await call({ kitchenId });
-    return data;
-  }
-
-  async previewInvite(code: string): Promise<InvitePreview | null> {
-    const call = this.#fns.httpsCallable<{ code: string }, InvitePreview | null>(this.#functionsInstance, 'previewInvite');
-    const { data } = await call({ code });
-    return data;
+    return this.#call<Record<string, never>, string | null>('findMyKitchen', {});
   }
 
   async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
@@ -72,14 +62,19 @@ export class FirebaseKitchenGateway implements KitchenGateway {
       const snap = await this.#fs.getDoc(this.#fs.doc(this.#db, 'kitchens', kitchenId));
       if (!snap.exists()) return null;
       const kitchen = snap.data() as KitchenDoc;
-      return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames?.[uid] ?? uid })) };
+      return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames?.[uid] ?? uid })), invitedEmail: kitchen.invite?.email ?? null };
     } catch (error) {
-      // isMember() errors evaluating the rule for a kitchenId nobody created (it indexes
+      // The rules deny a kitchen the caller is not in; isMember() also errors for a kitchenId nobody created (it indexes
       // .data.members on a document that does not exist), which Firestore surfaces to the client
       // as permission-denied rather than revealing non-existence - null matches every other
       // provider's answer for an id nobody created, instead of throwing on this one.
       if (isPermissionDenied(error)) return null;
       throw error;
     }
+  }
+
+  async #call<In, Out>(name: string, input: In): Promise<Out> {
+    const { data } = await this.#fns.httpsCallable<In, Out>(this.#functionsInstance, name)(input);
+    return data;
   }
 }

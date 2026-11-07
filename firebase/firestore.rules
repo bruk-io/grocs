@@ -14,8 +14,9 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/kitchens/$(kitchenId)).data.members;
     }
 
-    // A kitchen is readable by its members. Creating and joining go through
-    // server-side functions later (R2, R3); members cannot rewrite the member list here.
+    // A kitchen is readable by its members, including the email invite it holds (TASK-78). Creating,
+    // inviting and joining go through the server functions (R2, R3); members cannot rewrite the member
+    // list or the invite here, and an invited person cannot read the kitchen until they have joined.
     match /kitchens/{kitchenId} {
       allow read: if isMember(kitchenId);
       allow write: if false;

@@ -2,30 +2,36 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '../atoms/Button.tsx';
 import { Text } from '../atoms/Text.tsx';
 import { LabelledField } from '../molecules/LabelledField.tsx';
-import type { StatusRowProps } from '../molecules/StatusRow.tsx';
 import { InviteCard } from '../organisms/InviteCard.tsx';
+import type { InviteCardProps } from '../organisms/InviteCard.tsx';
 import { SubHeader } from '../organisms/SubHeader.tsx';
 import { tokens } from '../tokens/tokens.ts';
 import { ActionBar } from './layouts/ActionBar.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
-/** The Your kitchen screen: waiting for the partner, once they have joined, and and before there is an invite code (the card shows a hint and no Share link or Copy code). */
-export const KITCHENSETUPTEMPLATE_STATES = ['rest', 'noInviteYet'] as const;
+/**
+ * The Your kitchen screen: before the kitchen is made (rest), once it is made and the partner's email
+ * can be added (made), and once they are invited (invited).
+ */
+export const KITCHENSETUPTEMPLATE_STATES = ['rest', 'made', 'invited'] as const;
 
-interface KitchenSetupTemplateBase {
+export interface KitchenSetupTemplateProps {
   /** The Google account that is signed in. */
   email: string;
   kitchenName: string;
   onKitchenNameChange: (name: string) => void;
+  /** The invite card: noKitchen until the kitchen is made. */
+  invite: InviteCardProps;
   onStart?: () => void;
   /** The kitchen is being made. */
   starting?: boolean;
   /**
-   * Someone with an invite who signed in before opening it lands here, not on the join screen: this
-   * offers the code entry instead of making a kitchen of their own (R3, TASK-56). Shown only before
-   * the kitchen exists.
+   * Looks again for an invite to this email (TASK-78). Someone whose partner has not added them yet
+   * lands here; once the partner has, this finds it without signing out. Shown only before the
+   * kitchen is made.
    */
-  onOpenInvite?: () => void;
+  onCheckInvites?: () => void;
+  checkingInvites?: boolean;
   /**
    * Signs out, for someone who signed in with the wrong account: setup has no Settings to do it from,
    * so without this they are stuck here (TASK-67).
@@ -33,40 +39,23 @@ interface KitchenSetupTemplateBase {
   onSignOut?: () => void;
 }
 
-/** The kitchen has an invite code and where it stands. Leave onShare or onCopy out and that button on the invite card is disabled. */
-export interface KitchenSetupTemplateInviteProps extends KitchenSetupTemplateBase {
-  inviteCode: string;
-  inviteStatus?: StatusRowProps;
-  onShare?: () => void;
-  onCopy?: () => void;
-}
-
-/** Before Start planning there is no code: the card shows a hint and no Share link or Copy code, so no status or handlers are accepted. */
-export interface KitchenSetupTemplateNoInviteProps extends KitchenSetupTemplateBase {
-  inviteCode: null;
-  inviteStatus?: never;
-  onShare?: never;
-  onCopy?: never;
-}
-
-export type KitchenSetupTemplateProps = KitchenSetupTemplateInviteProps | KitchenSetupTemplateNoInviteProps;
-
 /** template.task filled for Your kitchen: header.sub, field.labelled, invite.card, action.bar. */
-export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, inviteCode, inviteStatus, onShare, onCopy, onStart, starting = false, onOpenInvite, onSignOut }: KitchenSetupTemplateProps) {
+export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, invite, onStart, starting = false, onCheckInvites, checkingInvites = false, onSignOut }: KitchenSetupTemplateProps) {
+  const beforeKitchen = invite.kind === 'noKitchen';
   return (
     <TaskLayout
       header={<SubHeader lead={{ kind: 'line', text: `Signed in as ${email}` }} tag="Last step" title="Your kitchen" mascot="enoki" />}
       actionBar={<ActionBar label="Start planning" loading={starting} loadingLabel="Starting" {...(onStart ? { onPress: onStart } : {})} />}
-      {...((inviteCode === null && onOpenInvite) || onSignOut
+      {...((beforeKitchen && onCheckInvites) || onSignOut
         ? {
             footer: (
               <View style={styles.footer}>
-                {inviteCode === null && onOpenInvite ? (
-                  <View style={styles.row}>
+                {beforeKitchen && onCheckInvites ? (
+                  <View style={styles.joining}>
                     <Text variant="small" tone="muted">
-                      Got an invite?
+                      {`Joining your partner's kitchen? Ask them to add ${email} in Household.`}
                     </Text>
-                    <Button variant="text" size="s" label="Open it to join" disabled={starting} onPress={onOpenInvite} />
+                    <Button variant="text" size="s" label="Check for an invite" loading={checkingInvites} loadingLabel="Checking" disabled={starting} onPress={onCheckInvites} />
                   </View>
                 ) : null}
                 {onSignOut ? (
@@ -83,11 +72,7 @@ export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, 
         : {})}
     >
       <LabelledField label="Name your kitchen" value={kitchenName} onChangeText={onKitchenNameChange} disabled={starting} />
-      {inviteCode === null ? (
-        <InviteCard code={null} />
-      ) : (
-        <InviteCard code={inviteCode} {...(inviteStatus ? { status: inviteStatus } : {})} {...(onShare ? { onShare } : {})} {...(onCopy ? { onCopy } : {})} />
-      )}
+      <InviteCard {...invite} />
     </TaskLayout>
   );
 }
@@ -95,4 +80,5 @@ export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, 
 const styles = StyleSheet.create({
   footer: { gap: tokens.space[2] },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: tokens.space[2] },
+  joining: { alignItems: 'center', gap: tokens.space[2] },
 });
