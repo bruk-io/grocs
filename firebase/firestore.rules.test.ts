@@ -165,6 +165,35 @@ describe('inviteCodes/{code} (R2, R3)', () => {
   });
 });
 
+// The recipe-import cache (decision-15): written only by the Admin SDK inside the import function.
+// No match block, so default deny keeps every app client out - the same shape as inviteCodes above.
+for (const collection of ['recipes', 'recipeSources', 'recipeFailures'] as const) {
+  describe(`${collection}/{key} (decision-15)`, () => {
+    const cached = { schemaVersion: 1, fetchedAt: 1 };
+
+    async function seedCache(): Promise<void> {
+      await seedKitchen('k1', ['alex', 'sam']);
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), `${collection}/k1`), cached);
+      });
+    }
+
+    it('a signed-in kitchen member cannot read or write a cache doc (default-deny, no match block)', async () => {
+      await seedCache();
+      const alex = testEnv.authenticatedContext('alex');
+      await assertFails(getDoc(doc(alex.firestore(), `${collection}/k1`)));
+      await assertFails(setDoc(doc(alex.firestore(), `${collection}/k1`), cached));
+    });
+
+    it('a signed-out request cannot read or write a cache doc', async () => {
+      await seedCache();
+      const anon = testEnv.unauthenticatedContext();
+      await assertFails(getDoc(doc(anon.firestore(), `${collection}/k1`)));
+      await assertFails(setDoc(doc(anon.firestore(), `${collection}/k1`), cached));
+    });
+  });
+}
+
 describe('memberships/{uid} (TASK-14)', () => {
   async function seedMembership(uid: string, kitchenId: string): Promise<void> {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {

@@ -35,5 +35,7 @@ service cloud.firestore {
       allow read: if signedIn() && request.auth.uid == uid;
       allow write: if false;
     }
+
+    // recipes, recipeSources, recipeFailures: the recipe-import cache, written only by the Admin SDK (decision-15). No rule here: default deny keeps app clients out; deny tests prove it.
   }
 }
