@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:15'
+updated_date: '2026-11-07 04:16'
 labels:
   - size-3
   - layer-providers
@@ -216,4 +216,17 @@ $ tsc --noEmit
 (no output, exit 0)
 
 Orchestrator ruling 2026-11-07 (decision-3 mediation): (1) resolving against the normalised request URL is accepted for the first pass; carrying the final URL is a follow-up draft, not this task. (2) The empty-image guard (empty string -> null) is now in the contract (TASK-74's plan, Amendments). Remaining for this task: the reviewer's test for an image that cannot be resolved.
+
+Round 4 (2026-11-07): added the remaining reviewer-requested test, import-recipe.test.ts
+"an image that cannot be resolved becomes null" - a JSON-LD image of 'https://[bad', which
+throws when passed to `new URL(image, pageUrl)` against pageUrl 'https://recipe.invalid/soup';
+resolveImage's catch returns null, and the test asserts the import is ok with image === null.
+
+$ mise exec -- pnpm exec vitest run --project unit packages/providers-server
+ Test Files  9 passed (9)
+      Tests  218 passed (218)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no output, exit 0)
 <!-- SECTION:NOTES:END -->

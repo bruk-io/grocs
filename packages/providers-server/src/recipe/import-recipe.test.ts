@@ -342,6 +342,17 @@ describe('importRecipe', () => {
     expect(result.value.image).toBeNull();
   });
 
+  it('an image that cannot be resolved becomes null', async () => {
+    const cache = new TestRecipeCache();
+    const { fetchPage } = makeFetchPage({ [PAGE_URL]: { kind: 'page', html: recipeHtml('https://[bad') } });
+
+    const result = await importRecipe(PAGE_URL, { fetchPage, cache, now: () => 1_000 });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.value.image).toBeNull();
+  });
+
   // Per WHATWG URL resolution, new URL('', base) returns base itself, which is the page URL, not an
   // image - an unguarded empty image would otherwise write the page's own URL into the recipe's
   // image field.
