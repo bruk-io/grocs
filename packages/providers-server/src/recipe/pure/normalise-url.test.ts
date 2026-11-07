@@ -8,6 +8,9 @@ describe('normaliseRecipeUrl', () => {
   // AC#1: golden table of at least 10 input/output pairs, each naming the rule it proves.
   const table: readonly [name: string, input: string, output: string][] = [
     ['root path collapses to no path', 'https://x.com/', 'https://x.com'],
+    ['double slash path collapses to no path', 'https://x.com//', 'https://x.com'],
+    ['trailing slashes are all stripped', 'https://x.com/a//', 'https://x.com/a'],
+    ['one trailing slash is stripped', 'https://x.com/a/', 'https://x.com/a'],
     ['host is lowercased', 'https://X.COM/path', 'https://x.com/path'],
     ['utm_Source is dropped (case-insensitive prefix)', 'https://x.com/path?utm_Source=abc&id=5', 'https://x.com/path?id=5'],
     ['fbclid is dropped', 'https://x.com/path?fbclid=123&id=5', 'https://x.com/path?id=5'],
