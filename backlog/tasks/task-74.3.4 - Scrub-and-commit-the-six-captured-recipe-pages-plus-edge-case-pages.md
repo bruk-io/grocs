@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:32'
+updated_date: '2026-11-07 02:41'
 labels:
   - size-2
   - layer-providers
@@ -56,4 +56,6 @@ Files expected to change:
 
 <!-- SECTION:NOTES:BEGIN -->
 finish-moved 2026-11-07 (orchestrator): AC #1 and #3 changed from committing scrubbed full pages to committing each page's extracted JSON-LD in a minimal wrapper. The repo is going public (TASK-10), the NYT page alone was ~680 KB, and full publisher pages are not ours to redistribute. The parser's real-page coverage is unchanged because it reads only the ld+json blocks.
+
+Raw captures from TASK-74.3.3 (orchestrator, 2026-11-07): /private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/52850201-1584-4979-8b13-ca0cc6779c1a/scratchpad/recipe-fixtures/ holds raw/ (nyt-cooking.html, serious-eats.html, allrecipes.html, recipetineats.html, food52.html), capture-notes.md (source URL, capture date, exact headers per file) and capture-log.json. The scratchpad is session-scoped: run this task while it still exists. BBC Good Food is not yet captured (no search returned a bbcgoodfood.com URL); see TASK-74.3.3 notes.
 <!-- SECTION:NOTES:END -->
