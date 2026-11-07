@@ -1,11 +1,11 @@
 ---
 id: TASK-73
 title: On iOS the keyboard covers a form's action button
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 14:09'
+updated_date: '2026-11-07 14:11'
 labels:
   - size-1
   - ui
@@ -68,4 +68,6 @@ Possible causes:
 ```
 
 Repro recorded above: apps/mobile/e2e/meal-form-keyboard.yaml (type a meal, then one tap on 'Add to <day>' with the keyboard up) against the pre-fix TaskLayout with Metro restarted: the button sat under the keyboard and the flow failed (screenshot /Users/brukhabtu/.maestro/tests/2026-11-07_090220/meal-form-keyboard/takeScreenshot/meal-form-keyboard-open.png). With the fix and Metro restarted: passed, button above the keyboard (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/post/2026-11-07_090746/meal-form-keyboard/takeScreenshot/meal-form-keyboard-open.png). An earlier 'pre-fix' attempt passed only because Metro had not reloaded the reverted file; that run is not evidence.
+
+Re-reviewed by philosophy:reviewer: closed. AC #1 met: meal-form-keyboard.yaml passed post-fix, and its screenshot (shots/post/2026-11-07_090746) shows the keyboard up with Add to Tuesday above it; the one tap added the meal. Repro recorded at b5b8e45: pre-fix screenshot (~/.maestro/tests/2026-11-07_090220) shows the button under the keyboard and the flow failed. Full check (recorded on TASK-61): check, typecheck and unit tests pass; test:emulator could not start because this session's emulators hold 8080/9099, the same environment failure as the earlier run, not a code failure; CI 42377775413 passed on 0b0d46b and later commits add only e2e flows and notes. No findings.
 <!-- SECTION:NOTES:END -->
