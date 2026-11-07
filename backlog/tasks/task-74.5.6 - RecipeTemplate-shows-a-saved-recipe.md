@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.6
 title: RecipeTemplate shows a saved recipe
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:39'
 labels:
   - size-3
   - layer-ui
@@ -34,18 +34,42 @@ Split key: ui-recipe-template. Layer: ui. Contract: TASK-74's plan.
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Compose from TaskLayout, SubHeader and existing atoms.
-2. Write the stories, then the behaviour test.
+1. Compose RecipeTemplate.tsx from layouts/TaskLayout, layouts/Card, organisms/SubHeader and atoms/Text only; no new atoms/molecules/organisms needed, per contract §16.
+2. SubHeader lead is 'back' labelled 'Meal plan' (consistent with MealFormTemplate, the other meal-adjacent template), tag = yieldLabel when present (left out otherwise), mascot 'chanty'. Content: a muted "From {sourceLabel}" line, a Card listing ingredient lines as written, a Card listing numbered steps.
+3. RECIPETEMPLATE_STATES = ['rest','noYield','long']; stories for each plus RecipeTemplate.stories.tsx; RecipeTemplate.behaviour.test.tsx drives onBack via composeStories + userEvent and checks the rest/noYield content.
+4. Export RecipeTemplate/RecipeTemplateProps from packages/ui/src/index.ts.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+No port or other-layer dependency; followed TASK-74's slice contract §16 literally (field names, states). The only judgment calls contract left open (back label, mascot, section layout) are recorded above rather than raised as a contract-change request, since the contract explicitly leaves UI composition to this task ("Compose from TaskLayout, SubHeader and existing atoms").
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/ui/src/templates/RecipeTemplate.tsx
-- packages/ui/src/templates/RecipeTemplate.stories.tsx
-- packages/ui/src/templates/RecipeTemplate.behaviour.test.tsx
-- packages/ui/src/index.ts
+- AC#1: RecipeTemplateProps + RECIPETEMPLATE_STATES = ['rest','noYield','long'] exported; Rest/NoYield/Long stories in RecipeTemplate.stories.tsx.
+- AC#2: no new atoms/molecules/organisms added, so nothing new for story-coverage to check beyond RecipeTemplate itself, which story-coverage passes (see check output in notes).
+- AC#3: RecipeTemplate.behaviour.test.tsx 'goes back to Meal plan' test drives onBack through composeStories/userEvent.
+- AC#4: pnpm -s typecheck and vitest --project ui pass repo-wide; output pasted into notes.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation: packages/ui/src/templates/RecipeTemplate.tsx composes layouts/TaskLayout, layouts/Card, organisms/SubHeader and atoms/Text (no new atoms/molecules/organisms). Exports RecipeTemplateProps and RECIPETEMPLATE_STATES = ['rest','noYield','long'], exported from packages/ui/src/index.ts. SubHeader back label 'Meal plan' (as MealFormTemplate uses), mascot 'chanty'; tag = yieldLabel when present. RecipeTemplate.stories.tsx has Rest/NoYield/Long stories. RecipeTemplate.behaviour.test.tsx drives onBack through composeStories + userEvent and checks title/yield/source/ingredients/numbered steps render.
+
+Check output:
+- `pnpm -s typecheck` (repo-wide): `$ tsc --noEmit` with no errors.
+- `pnpm exec vitest run --project ui`: `Test Files  53 passed (53)` / `Tests  974 passed (974)`.
+- `node tools/checks/run.ts --mode staged` (with the new/changed files staged, includes story-coverage, import-layer and the rest of the 16 checks): `checks passed (16 checks, staged mode, 578 ms)`.
+
+Per-story proof of AC#4's "Level-1 story and accessibility tests", named rather than inferred from the aggregate count (`vitest run --project ui --reporter=verbose 2>&1 | grep -i recipetemplate`):
+
+stories.test.tsx (level-1: every story renders) has one passing case per declared state:
+ ✓ ./templates/RecipeTemplate.stories.tsx > Rest
+ ✓ ./templates/RecipeTemplate.stories.tsx > NoYield
+ ✓ ./templates/RecipeTemplate.stories.tsx > Long
+
+stories.accessibility.test.tsx (R42: contrast + touch targets) likewise has one passing case per state:
+ ✓ ./templates/RecipeTemplate.stories.tsx > Rest: text is 4.5:1 and targets are 44 x 44
+ ✓ ./templates/RecipeTemplate.stories.tsx > NoYield: text is 4.5:1 and targets are 44 x 44
+ ✓ ./templates/RecipeTemplate.stories.tsx > Long: text is 4.5:1 and targets are 44 x 44
+
+Plus the three RecipeTemplate.behaviour.test.tsx cases, all passing.
+<!-- SECTION:NOTES:END -->
