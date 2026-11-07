@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:45'
+updated_date: '2026-11-07 04:15'
 labels:
   - size-3
   - layer-providers
@@ -59,4 +59,6 @@ Files expected to change:
 
 <!-- SECTION:NOTES:BEGIN -->
 Contract amendment 2026-11-07 (orchestrator): importRecipe resolves a relative image against the fetched page's final URL with new URL(image, pageUrl), keeps it only if http(s), else null - see TASK-74's plan, Amendments. Include a test for a relative image and for one that can't be resolved.
+
+Orchestrator ruling 2026-11-07 (decision-3 mediation): (1) resolving against the normalised request URL is accepted for the first pass; carrying the final URL is a follow-up draft, not this task. (2) The empty-image guard (empty string -> null) is now in the contract (TASK-74's plan, Amendments). Remaining for this task: the reviewer's test for an image that cannot be resolved.
 <!-- SECTION:NOTES:END -->
