@@ -5,10 +5,11 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:35'
+updated_date: '2026-11-07 02:44'
 labels:
   - size-1
   - orchestrator
+  - finish-moved
 dependencies: []
 parent_task_id: TASK-74.4
 type: task
@@ -27,7 +28,7 @@ Split key: orch-ac-rewording. Layer: orchestrator. Contract: TASK-74's plan.
 - [ ] #1 TASK-74.4 AC#5 reads as deny-only for app clients, proven by deny tests against Firestore's default deny
 - [ ] #2 TASK-74.4 AC#7 and TASK-74.5 AC#6 say they are manual local verification by the orchestrator
 - [ ] #3 TASK-74.5 AC#2 notes that R12's combine prompt is not built, so duplicates are added as separate items, and it references a follow-up task for R12
-- [ ] #4 decision-16 has an appended note (via the backlog CLI) recording: R20 wins over the 'importing again restores' consequence, so a re-import of a deleted recipe is refused with 'recipe-deleted'; and R12's prompt is not built yet
+- [ ] #4 decision-16 has an appended note (written into the file by the orchestrator, since the backlog CLI cannot write a decision's body) recording: R20 wins over the 'importing again restores' consequence, so a re-import of a deleted recipe is refused with 'recipe-deleted'; and R12's prompt is not built yet
 - [ ] #5 Each edited task gets the finish-moved label and a note saying why
 <!-- AC:END -->
 
@@ -75,4 +76,6 @@ BLOCKED at step 6 (AC#4). The backlog CLI (1.54.0) cannot append to a decision. 
 Request to the orchestrator/Bruk: choose one of (a) Bruk appends the note below to decision-16 by hand (a human exception to the no-direct-edit rule), (b) record it as a new decision (e.g. decision-17 amending decision-16) via `backlog decision create`, then mark decision-16 with `backlog decision edit decision-16 -s "accepted (amended by decision-17)"` or similar, or (c) amend AC#4 and contract §0.6 to accept the amendment living in TASK-74's plan §0.6 and this note. Note text to apply unchanged:
 
 "Amended 2026-11 during TASK-74 split: recipeId is deterministic and R20 says a delete always wins, so a re-imported copy cannot clear a tombstone; ImportRecipe refuses with recipe-deleted. The consequence "importing again restores the recipe" does not hold. R12's combine prompt is not built yet; until it is, imported duplicates are separate items."
+
+finish-moved 2026-11-07 (orchestrator): AC#4 now says the decision-16 note is written into the file by the orchestrator, because the backlog CLI cannot write a decision's body (this task's blocker). The note is appended under decision-16's new '## Amendments' section.
 <!-- SECTION:NOTES:END -->

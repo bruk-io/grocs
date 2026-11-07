@@ -5,10 +5,11 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:42'
+updated_date: '2026-11-07 02:44'
 labels:
   - size-2
   - orchestrator
+  - finish-moved
 dependencies: []
 modified_files:
   - >-
@@ -31,7 +32,7 @@ Split key: orch-capture-fixtures. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Six raw .html pages are saved in the scratchpad under recipe-fixtures/raw/, one each from NYT Cooking, Serious Eats, BBC Good Food, Allrecipes, RecipeTin Eats and one more site (for example Bon Appétit or Food52), each containing schema.org Recipe JSON-LD
+- [ ] #1 Five raw .html pages are saved in the scratchpad under recipe-fixtures/raw/, one each from NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52, each containing schema.org Recipe JSON-LD
 - [ ] #2 recipe-fixtures/capture-notes.md records, for each file, the source URL (taken from a web search result), the capture date and the exact headers sent
 - [ ] #3 Nothing is committed by this task. The scratchpad path is written into providers-recipe-fixtures' notes
 <!-- AC:END -->
@@ -80,4 +81,6 @@ BBC Good Food NOT captured. No WebSearch in this session returned a www.bbcgoodf
 AC#2: capture-notes.md records per file the source URL, the query and verbatim search line it came from, the capture time (2026-11-07T02:40:55-58Z) and the exact headers as requests sent them (response.request.headers): User-Agent Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36; Accept-Encoding gzip, deflate; Accept text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8; Connection keep-alive; Accept-Language en-US,en;q=0.9; no Cookie. Allrecipes redirected once to the trailing-slash URL. NYT, Serious Eats and Allrecipes URLs appeared in search result text, not the links list, because the search crawler is blocked on those domains; this is recorded.
 
 AC#3: the scratchpad is outside the repository; only board files (this task, TASK-74.3.4) are committed. Path appended to TASK-74.3.4 notes.
+
+finish-moved 2026-11-07 (orchestrator): five sites instead of six. No web search returned a bbcgoodfood.com recipe URL (its domain is blocked to the search crawler), so BBC Good Food is dropped. Five real sites including NYT Cooking still meet TASK-74.3's 'at least five sites'.
 <!-- SECTION:NOTES:END -->

@@ -53,3 +53,7 @@ Proposed by Claude on Nov 7, 2026, from Bruk's choice of a separate record. Acce
 - Storing and syncing recipes is its own piece of work across core, ports and three providers. It is split out of TASK-74.5 as its own task, which 74.5 then depends on.
 - doc-1 gains a requirement for kitchen recipes, after R6 to R8, and R36's list of personal fields gains recipe content. That goes in the same doc-1 update as decision-15 (TASK-74.6).
 - The top-level server cache collection is also called `recipes` (decision-15). The paths differ (`recipes/{key}` and `kitchens/{kitchenId}/recipes/{recipeId}`) and the ids are the same key, which is deliberate, but code must name which one it means.
+
+## Amendments
+
+- Amended 2026-11-07 during the TASK-74 split, with Bruk's agreement: recipeId is deterministic and R20 says a delete always wins, so a re-imported copy cannot clear a tombstone. ImportRecipe refuses with `recipe-deleted`. The consequence "importing again restores the recipe from the server cache" does not hold. R12's combine prompt is not built yet (TASK-1.26); until it is, imported duplicates are separate items. Written into the file by the orchestrator, because the backlog CLI cannot write a decision's body (TASK-74.4.1).
