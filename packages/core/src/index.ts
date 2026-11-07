@@ -9,6 +9,8 @@ export type { Item, ItemState, NewItemError, NewItemInput } from './model/item.t
 export { createMeal, moveMeal, relinkMeal, removeMeal, renameMeal, toDayIndex } from './model/meal.ts';
 export type { DayIndex, Meal, MealLinkError, MealNameError, NewMealInput } from './model/meal.ts';
 export type { ParsedIngredient, ParsedRecipe, Recipe, RecipeImportError } from './model/recipe.ts';
+export { groceryLineFor, recipeForLink, recipeFromImport } from './model/kitchen-recipe.ts';
+export type { GroceryLine } from './model/kitchen-recipe.ts';
 export { addExtraItem, emptyList, mergeIntoList, visibleItems } from './model/list.ts';
 export type { AddItemError, WeekList } from './model/list.ts';
 export { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './schema/item-doc.ts';
