@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.9
 title: watchKitchenRecipes query delivers a kitchen's live recipes
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 04:22'
 labels:
   - size-2
   - layer-application
@@ -34,16 +34,31 @@ Split key: application-recipe-query. Layer: application. Contract: TASK-74's pla
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Write the test against InMemorySyncStore, then the query, then the export.
+1. queries/watch-kitchen-recipes.ts: watchKitchenRecipes(store: SyncStore, kitchenId, onRecipes, onError?) per contract §8, taking the SyncStore directly (not Deps, per the split note). Calls store.watchRecipes(kitchenId, recipes => onRecipes(recipes.filter(r => !isRecipeDeleted(r))), onError).
+2. watch-kitchen-recipes.test.ts against InMemorySyncStore: live recipes delivered, tombstones hidden, a thin fake SyncStore that calls onError to prove errors pass through, and that calling the returned Unsubscribe stops further onRecipes calls.
+3. Export watchKitchenRecipes from src/index.ts.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+Group A (TASK-74.7.4/5/6/7, bundled by 74.7.8) is still In Progress in the dependency graph, but the SyncStore port/fake/contract widening (watchRecipes, mergeRecipe, getRecipes, isRecipeDeleted) is already present on main after merging - this task only needs that surface, which contract §8 says commits independently of Deps/Group B. No contract change needed.
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/application/src/queries/watch-kitchen-recipes.ts
-- packages/application/src/queries/watch-kitchen-recipes.test.ts
-- packages/application/src/index.ts
+- vitest --project unit packages/application (new test file green, full project green)
+- pnpm -s typecheck (repo-wide)
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation: packages/application/src/queries/watch-kitchen-recipes.ts exports watchKitchenRecipes(store, kitchenId, onRecipes, onError?) per contract §8 (AC#1), taking the SyncStore directly so it commits independently of Group A/B. It filters tombstones (isRecipeDeleted) before calling onRecipes.
+
+Note on ordering: contract §8 specifies filtering only ("live recipes only"), no ordering clause, unlike watchWeekMeals whose contract asked for insertion order. So this query does not sort; that is a deliberate reading of the contract, not an oversight.
+
+AC#2 (watch-kitchen-recipes.test.ts): 4 tests - delivers live recipes with tombstones hidden, delivers an empty list soon after subscribing with none yet, passes errors through to onError (via a hand-built SyncStore stub since InMemorySyncStore.watchRecipes never raises), and the returned unsubscribe stops further onRecipes calls.
+
+AC#3 (export + checks):
+- Exported from packages/application/src/index.ts.
+- `mise exec -- pnpm exec vitest run --project unit packages/application`: Test Files 18 passed (18) / Tests 98 passed (98).
+- `mise exec -- pnpm -s typecheck`: clean (tsc --noEmit, no output).
+
+Dependency graph note: TASK-74.7.4/5/6/7/8 (Group A) still show In Progress in the board, but the SyncStore surface this task needs (mergeRecipe, getRecipes, watchRecipes, isRecipeDeleted) is already on main as of the `git merge main` done at start of this task (merge commit brought ca542a3 in). Confirmed empirically by reading packages/ports/src/sync-store/{port,fake}.ts in this worktree. No contract change needed; not treating this as a blocker per contract §8's "commits on its own once Group A has landed."
+<!-- SECTION:NOTES:END -->
