@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { JoinKitchen, KitchenJoinRejected, KitchenJoined } from '@grocs/application';
-import type { JoinRejectedReason } from '@grocs/ports';
+import type { InvitePreview, JoinRejectedReason } from '@grocs/ports';
 import { InviteJoinTemplate, InviteRetryTemplate } from '@grocs/ui';
 import { useNativeApp } from '../app-context.tsx';
 import { useGo } from './navigate.ts';
@@ -24,13 +24,29 @@ const COULD_NOT_JOIN = 'We could not check that code. Check your connection and 
 export function JoinInviteScreen() {
   const { app, signInWithGoogle } = useNativeApp();
   const go = useGo();
-  const params = useLocalSearchParams<{ code?: string; from?: string; kitchen?: string }>();
+  const params = useLocalSearchParams<{ code?: string }>();
   const linked = typeof params.code === 'string' && params.code !== '' ? params.code : null;
 
   const [code, setCode] = useState(linked ?? '');
   const [showEntry, setShowEntry] = useState(linked === null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  // Who invited and to which kitchen, from the server once someone is signed in (TASK-70). Never from
+  // the link, which anyone can edit; signed out, the screen names nobody.
+  const [preview, setPreview] = useState<InvitePreview | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => app.watchSession((user) => setSignedIn(user !== null)), [app]);
+  useEffect(() => {
+    if (!signedIn || linked === null) return;
+    let current = true;
+    app.previewInvite(linked).then(
+      (got) => current && setPreview(got),
+      () => undefined,
+    );
+    return () => {
+      current = false;
+    };
+  }, [app, signedIn, linked]);
 
   const join = async (raw: string) => {
     const typed = raw.trim().toUpperCase();
@@ -65,9 +81,8 @@ export function JoinInviteScreen() {
   if (linked !== null && !showEntry) {
     return (
       <InviteJoinTemplate
-        // From the sender's link (TASK-68); a link without them names nobody rather than a made-up kitchen.
-        inviter={typeof params.from === 'string' && params.from !== '' ? params.from : 'Your partner'}
-        kitchen={typeof params.kitchen === 'string' && params.kitchen !== '' ? params.kitchen : 'their kitchen'}
+        inviter={preview?.inviter ?? 'Your partner'}
+        kitchen={preview?.kitchen ?? 'their kitchen'}
         description="Plan the week's meals together and shop from one shared list, live on both phones."
         joining={busy}
         onJoin={() => void join(linked)}

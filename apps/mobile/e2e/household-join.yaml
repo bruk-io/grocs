@@ -10,9 +10,8 @@ env:
 # The field, by its placeholder: "Invite code" also matches the label above it.
 - tapOn: "MOREL-42"
 - inputText: "${CODE}"
-# Close the keyboard by tapping the heading: hideKeyboard is Back on Android.
-- tapOn: "Enter your invite code"
-- tapOn: "Check code"
+# The keyboard's return key checks the code, as a person would; on iOS the keyboard covers Check code (TASK-73).
+- pressKey: Enter
 - extendedWaitUntil:
     visible: "Groceries"
     timeout: 30000

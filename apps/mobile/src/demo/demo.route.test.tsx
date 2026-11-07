@@ -107,6 +107,7 @@ describe('demo composition', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(await screen.findByText('Notifications')).toBeTruthy();
-    expect(screen.getByText(/Our kitchen/)).toBeTruthy();
+    // The kitchen's name loads after Settings draws (TASK-63 reads it, not a hardcoded string), so wait for it.
+    expect(await screen.findByText(/Our kitchen/)).toBeTruthy();
   });
 });

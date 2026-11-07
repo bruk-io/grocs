@@ -18,6 +18,16 @@ export interface KitchenGateway {
    * both its members (R3). Rejects when the caller is not a member of the kitchen.
    */
   inviteForKitchen(kitchenId: string): Promise<KitchenInvite>;
+  /**
+   * Who invited the caller and to which kitchen, from the server's own records, before they join
+   * (TASK-70) - or null for a code that would not let them in. The names never come from the link.
+   */
+  previewInvite(code: string): Promise<InvitePreview | null>;
+}
+
+export interface InvitePreview {
+  readonly inviter: string;
+  readonly kitchen: string;
 }
 
 export type KitchenInvite = { readonly kind: 'open'; readonly code: string; readonly expiresAt: number } | { readonly kind: 'full' };

@@ -75,17 +75,22 @@ describe('Household', () => {
 });
 
 describe('JoinInvite', () => {
-  it("names who sent the link and their kitchen, from the sender's link (TASK-68)", async () => {
-    await open('/join?code=MOREL-0042&from=Bruk&kitchen=Our%20place');
+  it("names the real sender and kitchen from the server, ignoring names written into the link (TASK-70)", async () => {
+    const clock = new FakeClock();
+    const mine = new FakeKitchenGateway('u1', undefined, clock);
+    const { inviteCode } = await mine.asMember('u2', 'Bruk').createKitchen('Our place', 'UTC');
+    const app = await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock });
+    renderRoute(ROUTES, { app, location: `/join?code=${inviteCode}&from=Mallory&kitchen=Fake%20kitchen` });
     expect(await screen.findByText('Bruk invited you to')).toBeTruthy();
     expect(screen.getByText('Our place')).toBeTruthy();
+    expect(screen.queryByText(/Mallory|Fake kitchen/)).toBeNull();
   });
 
-  it('names nobody, rather than a made-up kitchen, from a link without the sender', async () => {
-    await open('/join?code=MOREL-0042');
+  it('names nobody when signed out, since only a signed-in person may ask the server', async () => {
+    await open('/join?code=MOREL-0042&from=Mallory&kitchen=Fake%20kitchen');
     expect(await screen.findByText('Your partner invited you to')).toBeTruthy();
     expect(screen.getByText('their kitchen')).toBeTruthy();
-    expect(screen.queryByText('Our kitchen')).toBeNull();
+    expect(screen.queryByText(/Mallory|Fake kitchen/)).toBeNull();
   });
 
   it('shows the invite from a link, and the code entry from /join', async () => {

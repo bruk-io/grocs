@@ -1,4 +1,4 @@
-import type { CreatedKitchen, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from '@grocs/ports';
+import type { CreatedKitchen, InvitePreview, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from '@grocs/ports';
 import type { FirestoreFns, FunctionsFns } from './sdk.ts';
 
 interface CreateKitchenResponse {
@@ -58,6 +58,12 @@ export class FirebaseKitchenGateway implements KitchenGateway {
   async inviteForKitchen(kitchenId: string): Promise<KitchenInvite> {
     const call = this.#fns.httpsCallable<{ kitchenId: string }, KitchenInvite>(this.#functionsInstance, 'inviteForKitchen');
     const { data } = await call({ kitchenId });
+    return data;
+  }
+
+  async previewInvite(code: string): Promise<InvitePreview | null> {
+    const call = this.#fns.httpsCallable<{ code: string }, InvitePreview | null>(this.#functionsInstance, 'previewInvite');
+    const { data } = await call({ code });
     return data;
   }
 

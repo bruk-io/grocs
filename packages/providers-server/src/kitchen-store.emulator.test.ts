@@ -30,6 +30,9 @@ function gatewayFor(store: KitchenStore, uid: string, displayName: string = uid)
     async inviteForKitchen(kitchenId) {
       return store.inviteForKitchen(kitchenId, uid);
     },
+    async previewInvite(code) {
+      return store.previewInvite(code);
+    },
   };
 }
 

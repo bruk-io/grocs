@@ -13,7 +13,7 @@ const COULD_NOT_CREATE = 'We could not make your kitchen. Check your connection 
  * Your kitchen, for a signed-in member who has none. Start planning makes the kitchen (CreateKitchen)
  * and shows the invite link and code; pressing it again opens the kitchen's Groceries.
  */
-export function KitchenSetupScreen({ app, email, onReady }: { app: App; email: string; onReady: (kitchenId: string) => void }) {
+export function KitchenSetupScreen({ app, email, name: you, onReady }: { app: App; email: string; /** The signed-in person's name, for the share message (TASK-70). */ name?: string; onReady: (kitchenId: string) => void }) {
   const go = useGo();
   const [name, setName] = useState('Our kitchen');
   const [creating, setCreating] = useState(false);
@@ -48,7 +48,7 @@ export function KitchenSetupScreen({ app, email, onReady }: { app: App; email: s
           ? {
               inviteCode: created.inviteCode,
               inviteStatus: { kind: 'waiting' as const, message: 'Waiting for your partner to join' },
-              onShare: () => void Share.share({ message: inviteMessage(created.inviteCode, { kitchen: name }) }),
+              onShare: () => void Share.share({ message: inviteMessage(created.inviteCode, { kitchen: name, ...(you ? { inviter: you } : {}) }) }),
               onCopy: () => void app.copyText(created.inviteCode),
               onStart: () => onReady(created.kitchenId),
             }

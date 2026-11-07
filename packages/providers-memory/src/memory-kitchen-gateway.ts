@@ -1,6 +1,6 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isKitchenFull } from '@grocs/core';
+import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isKitchenFull, MAX_MEMBERS } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
-import type { Clock, CreatedKitchen, IdGenerator, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from '@grocs/ports';
+import type { Clock, CreatedKitchen, IdGenerator, InvitePreview, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from '@grocs/ports';
 
 interface Invite {
   readonly code: string;
@@ -102,5 +102,11 @@ export class MemoryKitchenGateway implements KitchenGateway {
     const code = inviteCodeFromId(this.#ids.newId());
     this.#state.invites.set(code, { code, kitchenId, createdAt: now, status: 'pending' });
     return { kind: 'open', code, expiresAt: inviteExpiresAt(now) };
+  }
+
+  async previewInvite(code: string): Promise<InvitePreview | null> {
+    const invite = this.#state.invites.get(code) ?? null;
+    const kitchen = invite ? (this.#state.kitchens.get(invite.kitchenId) ?? null) : null;
+    return invitePreview(invite, kitchen, this.#clock.now(), MAX_MEMBERS);
   }
 }
