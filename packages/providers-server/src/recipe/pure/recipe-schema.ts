@@ -37,7 +37,8 @@ function decodeEntities(text: string): string {
         return match;
       }
     }
-    return NAMED_ENTITIES[body.toLowerCase()] ?? match;
+    const key = body.toLowerCase();
+    return Object.hasOwn(NAMED_ENTITIES, key) ? NAMED_ENTITIES[key]! : match;
   });
 }
 
