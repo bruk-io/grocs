@@ -71,8 +71,9 @@ function redactInner(value: unknown, path: WeakSet<object>): unknown {
 }
 
 /**
- * A copy of `value` with every personal field removed: personal fields of any object shaped like an
- * item or meal, and any attribute named after one (itemName, mealLink). Cycles are cut. Pure and idempotent.
+ * A copy of `value` with every personal field removed: personal fields of any object shaped like any
+ * entity in PERSONAL_FIELDS (item, meal, recipe, ingredient), and any attribute named after one
+ * (itemName, mealLink, recipeTitle, ingredientLine, ...). Cycles are cut. Pure and idempotent.
  */
 export function redact(value: unknown): unknown {
   return redactInner(value, new WeakSet());

@@ -20,7 +20,7 @@ const meal = (() => {
   return r.value;
 })();
 
-const ingredient: ParsedIngredient = { line: '2 cups flour', quantity: '2', unit: 'cups', item: 'flour' };
+const ingredient: ParsedIngredient = { line: '1 1/2 cups flour', quantity: '1 1/2', unit: 'cups', item: 'flour' };
 
 const recipe: Recipe = {
   id: 'r1',
@@ -79,7 +79,7 @@ describe('redact (R36)', () => {
       expect(text).not.toContain('Taco night tacos');
       expect(text).not.toContain('recipe.invalid');
       expect(text).not.toContain('Chop the onions');
-      expect(text).not.toContain('2 cups flour');
+      expect(text).not.toContain('1 1/2 cups flour');
       expect(text).toContain(REDACTED);
       expect(text).toContain('r1');
     }
@@ -87,8 +87,10 @@ describe('redact (R36)', () => {
 
   it('removes line, quantity, unit and item from a bare ingredient', () => {
     const text = JSON.stringify(redact({ event: 'x', ingredient }));
-    expect(text).not.toContain('2 cups flour');
+    expect(text).not.toContain('1 1/2 cups flour');
     expect(text).not.toContain('flour');
+    expect(text).not.toContain('1 1/2');
+    expect(text).not.toContain('cups');
     expect(text).toContain(REDACTED);
   });
 
@@ -100,22 +102,42 @@ describe('redact (R36)', () => {
   });
 
   it('removes attributes named after a recipe or ingredient personal field', () => {
-    for (const key of ['recipeTitle', 'recipeSourceUrl', 'recipeImage', 'ingredientLine']) {
+    for (const key of [
+      'recipeTitle',
+      'recipeSourceUrl',
+      'recipeIngredients',
+      'recipeSteps',
+      'recipeImage',
+      'ingredientLine',
+      'ingredientQuantity',
+      'ingredientUnit',
+      'ingredientItem',
+    ]) {
       expect(PERSONAL_ATTRIBUTE_KEYS.has(key)).toBe(true);
     }
     expect(
       redact({
         recipeTitle: 'Taco night tacos',
         recipeSourceUrl: 'https://recipe.invalid/tacos',
+        recipeIngredients: [ingredient],
+        recipeSteps: ['Chop the onions.', 'Cook the meat.'],
         recipeImage: 'https://recipe.invalid/tacos.jpg',
         ingredientLine: '2 cups flour',
+        ingredientQuantity: '2',
+        ingredientUnit: 'cups',
+        ingredientItem: 'flour',
         port: 'syncStore',
       }),
     ).toEqual({
       recipeTitle: REDACTED,
       recipeSourceUrl: REDACTED,
+      recipeIngredients: REDACTED,
+      recipeSteps: REDACTED,
       recipeImage: REDACTED,
       ingredientLine: REDACTED,
+      ingredientQuantity: REDACTED,
+      ingredientUnit: REDACTED,
+      ingredientItem: REDACTED,
       port: 'syncStore',
     });
   });
