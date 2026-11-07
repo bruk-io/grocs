@@ -3,11 +3,11 @@ id: TASK-74.2
 title: >-
   Decide where an imported recipe lives in kitchen data and how its ingredients
   reach the grocery list
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 01:16'
+updated_date: '2026-11-07 01:20'
 labels:
   - size-2
   - core
@@ -108,4 +108,6 @@ visual: 425 story views checked (axe, 44 x 44, images not compared)
 ```
 
 Review (philosophy:reviewer, 2026-11-07): all four criteria met; not closed only because the task file has never been committed (board-check close), and this review may not commit. #1 decision-16 (accepted) makes the recipe its own kitchen record at kitchens/{kitchenId}/recipes/{recipeId}, keyed by the server cache key, and says why (R6 keeps meals to name and link; one record per URL; several meals share it). #2 one AddItem per ingredient with name (item or whole line), amount as written, the meal's badge for the meal's week (R10), aisle 'other' until TASK-57, duplicates through the R12/R19 combine prompt; matches AddItem in packages/application/src/commands/add-item.ts. #3 RECIPE_SCHEMA_VERSION 1 in core/schema with personal fields (R30, R36), merge rule (earlier createdAt, delete wins, R20; content never restamped so R18 is moot), SyncStore methods for fake, contract, Firestore and memory providers; firestore.rules' kitchens/{kitchenId}/{collection}/{document=**} match already covers recipes, with allow/deny tests required (R49) and carried as TASK-74.7 #4. #4 filed as TASK-74.6 #3. Full check exited 0 and changed no files. Findings (none filed): low, the kitchen recipes subcollection and the top-level recipes cache share a name, which decision-16 itself flags; low, the full check's visual image comparison is skipped on darwin (repo design). To close: commit the board files, then run close-task TASK-74.2.
+
+Closed by philosophy:reviewer's verdict (independent of the work): all four criteria met by decision-16, accepted by Bruk 2026-11-07; checked against R6, R8-R12, R17-R20, R30, R36, R49, add-item.ts, sync-store port and firestore.rules. doc-1 update is TASK-74.6 #3; storage and sync is TASK-74.7. Full check (record-check --tier full) exited 0. Findings: two low - the kitchen recipes subcollection and the server recipes cache share a name (already noted in decision-16), and macOS skips visual image comparison by design - no follow-ups.
 <!-- SECTION:NOTES:END -->
