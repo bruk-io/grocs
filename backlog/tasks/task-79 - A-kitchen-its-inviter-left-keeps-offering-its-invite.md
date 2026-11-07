@@ -1,11 +1,11 @@
 ---
 id: TASK-79
 title: A kitchen its inviter left keeps offering its invite
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 18:25'
-updated_date: '2026-11-07 18:28'
+updated_date: '2026-11-07 18:33'
 labels:
   - area-kitchen
   - size-1
@@ -25,8 +25,8 @@ Found reviewing TASK-78.1. removeMember (packages/core/src/model/email-invite.ts
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A kitchen a member leaves by joining another no longer holds the invite that member sent, or such an invite is never offered or accepted
-- [ ] #2 A contract test on every gateway covers: a person who invited from their own kitchen then joins another, and the invited address is offered nothing from the old kitchen
+- [x] #1 A kitchen a member leaves by joining another no longer holds the invite that member sent, or such an invite is never offered or accepted
+- [x] #2 A contract test on every gateway covers: a person who invited from their own kitchen then joins another, and the invited address is offered nothing from the old kitchen
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -110,4 +110,72 @@ After the fix:
 - pnpm check: 16 checks passed; pre-commit (checks, typecheck, unit tests) green.
 
 Also, from the TASK-78.1 review's low findings: 10dd0ae points reference-built's 'invite' specimen at InviteCard and rewords the two field comments that mentioned invite codes. The reused reason text in weakening-overrides.json is left as is.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(775 earlier lines omitted)
+```text
+│  3.73 kB │ gzip:   1.49 kB
+│  storybook-static/assets/MealFormTemplate.stories-CNxvce07.js
+│  4.32 kB │ gzip:   1.57 kB
+│  storybook-static/assets/KitchenSetupTemplate.stories-DTqI6Emg.js
+│  4.34 kB │ gzip:   1.73 kB
+│  storybook-static/assets/ItemPickerTemplate.stories-D5959drz.js
+│  4.45 kB │ gzip:   1.58 kB
+│  storybook-static/assets/Button.stories-Cf-cXPNU.js
+│  4.47 kB │ gzip:   1.30 kB
+│  storybook-static/assets/ItemRow-BxoPYo3r.js
+│  5.19 kB │ gzip:   1.99 kB
+│  storybook-static/assets/TextField-BCPEAhXA.js
+│  5.35 kB │ gzip:   2.03 kB
+│  storybook-static/assets/PreferencesTemplate.stories-REguETur.js
+│  5.75 kB │ gzip:   2.17 kB
+│  storybook-static/assets/Button-BGBisdDM.js
+│  6.43 kB │ gzip:   2.04 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/GroceryListTemplate.stories-CG1CBRg6.js
+│  9.43 kB │ gzip:   3.14 kB
+│  storybook-static/assets/Mascot-4rKT5ofR.js
+│  12.29 kB │ gzip:   4.46 kB
+│  storybook-static/assets/icons-Czdhq-VZ.js
+│  15.62 kB │ gzip:   2.56 kB
+│  storybook-static/assets/KitchenScene-D84rpS8T.js
+│  18.10 kB │ gzip:   5.05 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-DCqf-5KD.js
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-BtIyf4X3.js
+│  167.09 kB │ gzip:  49.81 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-DMAHZb3t.js
+│  1,361.03 kB │ gzip: 392.16 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.16s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/share-by-email/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 437 story views checked (axe, 44 x 44, images not compared)
+```
+
+Review (philosophy:reviewer, 2026-11-07): closed. Full check green, exit 0 (emulator suite 104/104 incl. the new contract test on the server store and Firebase gateway). AC #1: removeMember now drops the invite; sound because a kitchen holding an invite has exactly one member (inviteByEmail refuses full kitchens and joining consumes the invite), so the leaver is the inviter. AC #2: contract test 'offers nothing from a kitchen whose inviter has left it...' runs on fake, memory, server and Firebase; repro recorded failing against pre-fix code. No new findings. 10dd0ae resolves the earlier low findings 2 and 3.
 <!-- SECTION:NOTES:END -->
