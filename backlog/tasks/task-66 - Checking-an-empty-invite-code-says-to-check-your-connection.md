@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 22:07'
-updated_date: '2026-11-07 13:59'
+updated_date: '2026-11-07 14:09'
 labels:
   - size-1
   - app
@@ -96,4 +96,6 @@ If this is a long-running test, pass a timeout value as the last argument or con
    Start at  08:59:00
    Duration  6.72s (transform 822ms, setup 125ms, import 1.37s, tests 5.01s, environment 151ms)
 ```
+
+Repro recorded above: the route test, run with the empty-code guard disabled in the working tree, failed (joinKitchen called, no prompt).
 <!-- SECTION:NOTES:END -->

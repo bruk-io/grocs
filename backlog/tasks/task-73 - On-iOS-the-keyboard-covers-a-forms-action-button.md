@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 14:03'
+updated_date: '2026-11-07 14:09'
 labels:
   - size-1
   - ui
@@ -66,4 +66,6 @@ Possible causes:
 
 /Users/brukhabtu/.maestro/tests/2026-11-07_090220
 ```
+
+Repro recorded above: apps/mobile/e2e/meal-form-keyboard.yaml (type a meal, then one tap on 'Add to <day>' with the keyboard up) against the pre-fix TaskLayout with Metro restarted: the button sat under the keyboard and the flow failed (screenshot /Users/brukhabtu/.maestro/tests/2026-11-07_090220/meal-form-keyboard/takeScreenshot/meal-form-keyboard-open.png). With the fix and Metro restarted: passed, button above the keyboard (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/post/2026-11-07_090746/meal-form-keyboard/takeScreenshot/meal-form-keyboard-open.png). An earlier 'pre-fix' attempt passed only because Metro had not reloaded the reverted file; that run is not evidence.
 <!-- SECTION:NOTES:END -->

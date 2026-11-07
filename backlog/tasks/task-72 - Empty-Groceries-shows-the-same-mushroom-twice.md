@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 00:25'
-updated_date: '2026-11-07 13:58'
+updated_date: '2026-11-07 14:09'
 labels:
   - size-1
   - ui
@@ -142,4 +142,6 @@ AssertionError: expected [ <button …(5)>…(1)</button>, …(1) ] to have a le
    Start at  08:58:53
    Duration  1.28s (transform 601ms, setup 10ms, import 954ms, tests 89ms, environment 157ms)
 ```
+
+Repro recorded above: the GroceryListTemplate behaviour test, run with the fix line reverted in the working tree (header given the mascot again), failed with 2 mushrooms.
 <!-- SECTION:NOTES:END -->
