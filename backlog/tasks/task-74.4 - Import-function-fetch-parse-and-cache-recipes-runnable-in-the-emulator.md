@@ -5,9 +5,11 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
+updated_date: '2026-11-07 02:35'
 labels:
   - size-5
   - providers
+  - finish-moved
 dependencies:
   - TASK-74.1
   - TASK-74.3
@@ -27,8 +29,14 @@ The server half of TASK-74: a callable Cloud Function in apps/functions that tak
 - [ ] #2 A URL already in the shared cache is answered from it without fetching the site, and the cache is keyed by canonical URL so tracking parameters do not create duplicates
 - [ ] #3 The cache stores the parsed recipe and the raw Recipe JSON-LD separately
 - [ ] #4 A URL whose fetch or parse failed is not fetched again for 1 day, and callers get the same error meanwhile
-- [ ] #5 Firestore rules stop app clients reading or writing the cache directly, with allow and deny tests
+- [ ] #5 App clients cannot read or write recipes, recipeSources or recipeFailures: Firestore's default deny holds, with deny tests (the Admin SDK is the only writer)
 - [ ] #6 Emulator tests cover cache hit, cache miss, failure memory and the not-a-recipe error without fetching live sites
-- [ ] #7 pnpm emulators runs the function locally, and importing a real recipe URL through it works
+- [ ] #7 pnpm emulators runs the function locally, and importing a real recipe URL through it works (manual local run by the orchestrator; no automated test fetches a live site, decision-15)
 - [ ] #8 No recipe URL or content is written to logs (R36)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+finish-moved (TASK-74.4.1, 2026-11-07): AC#5 changed from 'Firestore rules stop app clients reading or writing the cache directly, with allow and deny tests' to deny-only. The contract (TASK-74 plan, firestore.rules section) gives the three server collections no match block, following the inviteCodes precedent, so Firestore's default deny is the rule and there is no allow case for an app client to test; the Admin SDK is the only writer. AC#7 now says it is a manual local run by the orchestrator, because decision-15 and contract §0.4 forbid any automated test from fetching a live site.
+<!-- SECTION:NOTES:END -->
