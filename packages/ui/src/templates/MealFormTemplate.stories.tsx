@@ -31,5 +31,17 @@ export const Removing: Story = { ...Editing, args: { ...Editing.args, link: 'htt
 /** The link field shows a validation error. */
 export const Invalid: Story = { ...Rest, args: { linkError: 'Invalid recipe link' } };
 
+/** A link is pasted in and 'Get recipe and groceries' is offered. */
+export const WithImport: Story = { ...Rest, args: { link: 'https://example.com/recipe', onImportRecipe: () => undefined } };
+
+/** Importing the recipe: the action is busy and disabled. */
+export const Importing: Story = { ...WithImport, args: { ...WithImport.args, importing: true } };
+
+/** The import failed: the message shows under the link field, in place of the hint. */
+export const ImportError: Story = { ...WithImport, args: { ...WithImport.args, importError: "We couldn't reach that site. Try again tomorrow." } };
+
+/** The meal already has a saved recipe: its title shows with a View recipe action. */
+export const WithRecipe: Story = { ...WithImport, args: { ...WithImport.args, recipeTitle: 'Fried rice', onOpenRecipe: () => undefined } };
+
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Rest, decorators: [withPhoneInsets] };
