@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 01:09'
+updated_date: '2026-11-07 02:38'
 labels:
   - size-5
   - app
@@ -32,3 +32,9 @@ The app half of TASK-74. The app knows nothing about recipe sites or parsing: it
 - [ ] #5 The app's import port has a contract test, and its provider talks only to the import function
 - [ ] #6 A locally run app imports a real recipe through the function in the emulator
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Deleted design/reference/RecipeImport.dc.html: superseded by decision-16 (no ticking, no scaling), R66. Its shot design/reference/shots/RecipeImport.png and its canvas.json entry went with it (TASK-74.5.1).
+<!-- SECTION:NOTES:END -->
