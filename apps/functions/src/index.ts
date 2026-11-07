@@ -65,3 +65,10 @@ export const inviteForKitchen = onCall(async (request) => {
     throw error;
   }
 });
+
+/** Who invited and to which kitchen, for a code the caller could use (TASK-70). Signed in only, like every kitchen function, so guessing codes reveals no names. */
+export const previewInvite = onCall(async (request) => {
+  requireUid(request);
+  const code = requireString(request.data, 'code');
+  return store().previewInvite(code.trim().toUpperCase());
+});

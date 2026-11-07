@@ -209,5 +209,25 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
         t.expect(refused).toBe(true);
       }),
     );
+
+    t.it(
+      "previews a working invite with the kitchen's own member and name, not anything the link says (TASK-70)",
+      withGateways(async ({ owner, partner }) => {
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const preview = await partner.previewInvite(created.inviteCode);
+        t.expect(preview?.kitchen).toBe('Our kitchen');
+        t.expect(typeof preview?.inviter).toBe('string');
+      }),
+    );
+
+    t.it(
+      'previews nothing for an unknown code, or once the invite has been used',
+      withGateways(async ({ owner, partner, stranger }) => {
+        t.expect(await stranger.previewInvite('NOPE-0000')).toBeNull();
+        const created = await owner.createKitchen('Our kitchen', 'America/New_York');
+        await partner.joinKitchen(created.inviteCode);
+        t.expect(await stranger.previewInvite(created.inviteCode)).toBeNull();
+      }),
+    );
   });
 }

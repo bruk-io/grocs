@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { checkInvite, INVITE_CODE_PATTERN, INVITE_LIFETIME_MS, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isInviteExpired } from './invite.ts';
+import { checkInvite, INVITE_CODE_PATTERN, INVITE_LIFETIME_MS, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isInviteExpired } from './invite.ts';
 import type { InviteRecord } from './invite.ts';
 
 describe('inviteCodeFromId (R2)', () => {
@@ -87,5 +87,29 @@ describe('inviteToReuse (TASK-56)', () => {
 
   it('picks the newest of several usable invites', () => {
     expect(inviteToReuse([invite('OLD-0001', 1000), invite('NEW-0002', 3000), invite('MID-0003', 2000)], 4000)?.code).toBe('NEW-0002');
+  });
+});
+
+describe('invitePreview (TASK-70)', () => {
+  const invite: InviteRecord = { code: 'MOREL-0001', kitchenId: 'k1', createdAt: 1000, status: 'pending' };
+  const open = { name: 'Our kitchen', members: ['u1'], memberNames: { u1: 'Bruk' } };
+
+  it("names the kitchen's member and the kitchen, from the kitchen itself", () => {
+    expect(invitePreview(invite, open, 2000, 2)).toEqual({ inviter: 'Bruk', kitchen: 'Our kitchen' });
+  });
+
+  it('shows nothing for an invite that would not let anyone in', () => {
+    expect(invitePreview(null, open, 2000, 2)).toBeNull();
+    expect(invitePreview({ ...invite, status: 'used' }, open, 2000, 2)).toBeNull();
+    expect(invitePreview(invite, open, 1000 + INVITE_LIFETIME_MS + 1, 2)).toBeNull();
+    expect(invitePreview(invite, null, 2000, 2)).toBeNull();
+  });
+
+  it('shows nothing once the kitchen is full', () => {
+    expect(invitePreview(invite, { ...open, members: ['u1', 'u2'] }, 2000, 2)).toBeNull();
+  });
+
+  it('falls back to a plain word when the member has no name', () => {
+    expect(invitePreview(invite, { ...open, memberNames: {} }, 2000, 2)?.inviter).toBe('Your partner');
   });
 });

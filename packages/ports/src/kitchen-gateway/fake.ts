@@ -1,10 +1,10 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isKitchenFull } from '@grocs/core';
+import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isKitchenFull, MAX_MEMBERS } from '@grocs/core';
 import type { Kitchen } from '@grocs/core';
 import { FakeClock } from '../clock/fake.ts';
 import type { Clock } from '../clock/port.ts';
 import { SequentialIds } from '../ids/fake.ts';
 import type { IdGenerator } from '../ids/port.ts';
-import type { CreatedKitchen, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from './port.ts';
+import type { CreatedKitchen, InvitePreview, JoinOutcome, KitchenDetails, KitchenGateway, KitchenInvite } from './port.ts';
 
 interface Invite {
   readonly code: string;
@@ -96,5 +96,11 @@ export class FakeKitchenGateway implements KitchenGateway {
     const code = inviteCodeFromId(this.#ids.newId());
     this.#invites.set(code, { code, kitchenId, createdAt: now, status: 'pending' });
     return { kind: 'open', code, expiresAt: inviteExpiresAt(now) };
+  }
+
+  async previewInvite(code: string): Promise<InvitePreview | null> {
+    const invite = this.#invites.get(code) ?? null;
+    const kitchen = invite ? (this.#kitchens.get(invite.kitchenId) ?? null) : null;
+    return invitePreview(invite, kitchen, this.#clock.now(), MAX_MEMBERS);
   }
 }

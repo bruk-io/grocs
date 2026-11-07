@@ -1,9 +1,9 @@
 // The composition root's wiring: ports in, an App for the screens out (R26). This is the one place
 // where providers meet the application layer, and the one place that instruments them (R31).
-import { commandHandlers, createDispatcher, findMyKitchen, getKitchenInfo, getKitchenInvite, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
+import { commandHandlers, createDispatcher, findMyKitchen, getInvitePreview, getKitchenInfo, getKitchenInvite, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
 import type { Command, CommandResult, Deps, KitchenInfo, RuntimeInfo } from '@grocs/application';
 import type { Item, Meal } from '@grocs/core';
-import type { KitchenInvite, Logger, Unsubscribe, User } from '@grocs/ports';
+import type { InvitePreview, KitchenInvite, Logger, Unsubscribe, User } from '@grocs/ports';
 
 export interface AppOptions {
   /** The providers. In the real app these come from composeFirebaseApp; tests pass fakes. */
@@ -27,6 +27,8 @@ export interface App {
   getKitchenInfo(kitchenId: string): Promise<KitchenInfo | null>;
   /** The invite to share with the partner, or 'full' (TASK-56). */
   getKitchenInvite(kitchenId: string): Promise<KitchenInvite>;
+  /** Who sent an invite and to which kitchen, from the server, before joining; null for a code that would not let them in (TASK-70). */
+  previewInvite(code: string): Promise<InvitePreview | null>;
   /** Now, as the app's clock reads it, for choosing the current week. */
   now(): number;
   /** Copies text to the device clipboard. */
@@ -58,6 +60,7 @@ export function composeApp({ ports, logger, runtime, copyText }: AppOptions): Ap
     findMyKitchen: () => findMyKitchen(session),
     getKitchenInfo: (kitchenId) => getKitchenInfo(session, kitchenId),
     getKitchenInvite: (kitchenId) => getKitchenInvite(session, kitchenId),
+    previewInvite: (code) => getInvitePreview(session, code),
     now: () => ports.clock.now(),
     copyText,
   };

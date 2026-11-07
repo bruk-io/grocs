@@ -1,5 +1,5 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, inviteToReuse, isKitchenFull } from '@grocs/core';
-import type { InviteCheckError, JoinKitchenError, Kitchen } from '@grocs/core';
+import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isKitchenFull, MAX_MEMBERS } from '@grocs/core';
+import type { InviteCheckError, InvitePreview, JoinKitchenError, Kitchen } from '@grocs/core';
 import type { Firestore } from 'firebase-admin/firestore';
 
 export interface CreatedKitchen {
@@ -150,6 +150,19 @@ export class KitchenStore {
         if (error instanceof NotAMemberError || attempt === attempts) throw error;
       }
     }
+  }
+
+  /**
+   * Who invited and to which kitchen, for a code that would let the caller in, or null (TASK-70).
+   * Read from the invite and kitchen documents, so a joiner never sees names taken from a link; the
+   * decision of whether the code is usable is core's (invitePreview).
+   */
+  async previewInvite(code: string): Promise<InvitePreview | null> {
+    const inviteSnap = await this.#db.doc(`inviteCodes/${code}`).get();
+    const invite = inviteSnap.exists ? { code, ...(inviteSnap.data() as InviteDoc) } : null;
+    const kitchenSnap = invite ? await this.#db.doc(`kitchens/${invite.kitchenId}`).get() : null;
+    const kitchen = kitchenSnap?.exists ? (kitchenSnap.data() as Kitchen) : null;
+    return invitePreview(invite, kitchen, this.#now(), MAX_MEMBERS);
   }
 
   /** A kitchen's name and members - or null for an id nobody created. */

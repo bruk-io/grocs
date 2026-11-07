@@ -26,7 +26,7 @@ export function KitchenGate({ app, demo, signInWithGoogle, children }: KitchenGa
   if (kitchen.kind === 'looking') return null;
   if (kitchen.kind === 'failed') return <Text variant="muted">We could not find your kitchen. Check your connection and reopen the app.</Text>;
   if (kitchen.kind === 'none') {
-    return <KitchenSetupScreen app={app} email={user.email ?? ''} onReady={(id) => setKitchen({ kind: 'found', id })} />;
+    return <KitchenSetupScreen app={app} email={user.email ?? ''} {...(user.displayName ? { name: user.displayName } : {})} onReady={(id) => setKitchen({ kind: 'found', id })} />;
   }
   return <>{children(kitchen.id)}</>;
 }

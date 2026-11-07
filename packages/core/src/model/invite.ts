@@ -69,3 +69,25 @@ export function inviteToReuse(invites: readonly InviteRecord[], now: number): In
   const usable = invites.filter((i) => checkInvite(i, now).ok);
   return usable.reduce<InviteRecord | null>((newest, i) => (newest === null || i.createdAt > newest.createdAt ? i : newest), null);
 }
+
+/** What a joiner sees before joining: who invited them, and to which kitchen (TASK-70). */
+export interface InvitePreview {
+  readonly inviter: string;
+  readonly kitchen: string;
+}
+
+/**
+ * The preview for an invite, or null when it would not let anyone in: unknown, used, expired, or a
+ * kitchen already full. The names come from the kitchen itself, never from the link. A kitchen with
+ * room has one member, who is the person inviting.
+ */
+export function invitePreview(
+  invite: InviteRecord | null,
+  kitchen: { readonly name: string; readonly members: readonly string[]; readonly memberNames: Readonly<Record<string, string>> } | null,
+  now: number,
+  maxMembers: number,
+): InvitePreview | null {
+  if (!kitchen || !checkInvite(invite, now).ok || kitchen.members.length >= maxMembers) return null;
+  const owner = kitchen.members[0];
+  return { inviter: (owner && kitchen.memberNames[owner]) || 'Your partner', kitchen: kitchen.name };
+}
