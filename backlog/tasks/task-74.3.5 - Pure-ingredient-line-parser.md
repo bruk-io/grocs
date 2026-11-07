@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.5
 title: Pure ingredient-line parser
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:59'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-2
   - layer-providers
@@ -26,9 +26,9 @@ Split key: providers-ingredient-line. Layer: providers. Contract: TASK-74's plan
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 pure/ingredient-line.ts exports parseIngredientLine(line): ParsedIngredient. line is trimmed, and quantity and unit are kept as written
-- [ ] #2 ingredient-line.test.ts has table tests for: Unicode fractions (½, 1¼), mixed numbers (1 1/2), ranges (2-3, 2 to 3), bracketed sizes ('1 (14-ounce) can chickpeas' → quantity '1', unit '(14-ounce) can', item 'chickpeas'), a note after the first comma excluded from item ('2 onions, finely chopped' → item 'onions'), no quantity ('salt to taste' → quantity null, unit null), common units and abbreviations (cup, tbsp, tsp, g, kg, ml, oz, lb, clove, pinch) and plural units
-- [ ] #3 Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/providers- passes
+- [x] #1 pure/ingredient-line.ts exports parseIngredientLine(line): ParsedIngredient. line is trimmed, and quantity and unit are kept as written
+- [x] #2 ingredient-line.test.ts has table tests for: Unicode fractions (½, 1¼), mixed numbers (1 1/2), ranges (2-3, 2 to 3), bracketed sizes ('1 (14-ounce) can chickpeas' → quantity '1', unit '(14-ounce) can', item 'chickpeas'), a note after the first comma excluded from item ('2 onions, finely chopped' → item 'onions'), no quantity ('salt to taste' → quantity null, unit null), common units and abbreviations (cup, tbsp, tsp, g, kg, ml, oz, lb, clove, pinch) and plural units
+- [x] #3 Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/providers- passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -90,4 +90,6 @@ pinch) plus their long forms/plurals, not a general units dictionary. 'can', 'pa
 not units here (e.g. '1 can tomatoes' parses as quantity '1', unit null, item 'can tomatoes'),
 only the explicit bracketed-size form ('1 (14-ounce) can chickpeas') gets a unit. TASK-74.3.6's
 fixtures should expect that boundary.
+
+Closed by review. AC#1: parseIngredientLine trims line, keeps quantity/unit as written (test '2 Cups Flour'). AC#2: table covers every listed case incl. plurals; 28 tests pass locally. AC#3: orchestrator's merged-main run at 6b8e90f: pnpm check 16 checks pass (pure-folder, core-purity, test-presence), typecheck clean, 1907 unit tests pass. Findings (none filed): unit set is AC#2's list only, so '1 can tomatoes' gives unit null - documented boundary for TASK-74.3.6, acceptable under best effort.
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.6.1
 title: 'doc-1 records recipe import''s layout, provider rule, ports and kitchen recipes'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:01'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-1
   - orchestrator
@@ -25,7 +25,7 @@ Split key: orch-doc1. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TASK-74.6 AC#1-#3 are met. The layout lists providers-server/src/recipe and recipe/pure. R25 names the pure/ exception. R26/R27 state the per-app provider lists and the pure/ scope of core-purity, pure-folder and test-presence. R28 names the recipe importer port. R67 states kitchen recipes, with R8 pointing to it. R36 lists recipe content as personal
+- [x] #1 TASK-74.6 AC#1-#3 are met. The layout lists providers-server/src/recipe and recipe/pure. R25 names the pure/ exception. R26/R27 state the per-app provider lists and the pure/ scope of core-purity, pure-folder and test-presence. R28 names the recipe importer port. R67 states kitchen recipes, with R8 pointing to it. R36 lists recipe content as personal
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -68,4 +68,6 @@ Evidence (git diff -U0 --word-diff on doc-1):
 No other lines of doc-1 changed (word-diff shows only these 8 hunks plus updated_date).
 
 pnpm check: 'checks passed (16 checks, all mode, 415 ms)'
+
+Reviewer verdict: closed. AC#1 verified directly in doc-1 on main at 6b8e90f: layout line for providers-server src/recipe with pure/ (line 147), R25 pure/ exception, R26 per-app provider lists and pure/ domain rules, R27 names app-providers, pure-folder, core-purity, test-presence, R28 adds kitchen gateway and recipe importer, R67 kitchen recipes with delete-wins (decision-16), R8 points to R67, R36 lists recipe fields as personal. Orchestrator evidence: pnpm check 16 passed, typecheck, unit and emulator suites green. Findings: none filed. Minor: the layout line names pure/ inside the src/recipe entry rather than a separate recipe/pure line; it is accurate enough to count as listing it.
 <!-- SECTION:NOTES:END -->

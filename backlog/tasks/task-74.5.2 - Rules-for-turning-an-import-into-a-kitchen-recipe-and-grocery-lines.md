@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.2
 title: Rules for turning an import into a kitchen recipe and grocery lines
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:52'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-2
   - layer-core
@@ -25,9 +25,9 @@ Split key: core-kitchen-recipe-rules. Layer: core. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 model/kitchen-recipe.ts exports GroceryLine, recipeFromImport, recipeForLink and groceryLineFor as in contract §2
-- [ ] #2 kitchen-recipe.test.ts covers: recipeFromImport sets id = recipeId, takes addedBy and createdAt from the stamp, sets deleted to null and leaves the content unchanged; recipeForLink matches on exact sourceUrl, skips deleted recipes, and returns null for a null link or no match; groceryLineFor covers item+quantity+unit ('½ cup'), quantity only, unit only, no quantity (amount null) and no item (name = line)
-- [ ] #3 Exported from packages/core/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/core passes
+- [x] #1 model/kitchen-recipe.ts exports GroceryLine, recipeFromImport, recipeForLink and groceryLineFor as in contract §2
+- [x] #2 kitchen-recipe.test.ts covers: recipeFromImport sets id = recipeId, takes addedBy and createdAt from the stamp, sets deleted to null and leaves the content unchanged; recipeForLink matches on exact sourceUrl, skips deleted recipes, and returns null for a null link or no match; groceryLineFor covers item+quantity+unit ('½ cup'), quantity only, unit only, no quantity (amount null) and no item (name = line)
+- [x] #3 Exported from packages/core/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/core passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -54,4 +54,6 @@ Implemented packages/core/src/model/kitchen-recipe.ts (GroceryLine, recipeFromIm
 Proof:
 - vitest --project unit packages/core: Test Files 14 passed (14), Tests 124 passed (124)
 - pnpm -s typecheck: tsc --noEmit, no errors
+
+Closed by reviewer. AC1: kitchen-recipe.ts exports GroceryLine, recipeFromImport, recipeForLink, groceryLineFor with signatures matching contract §2. AC2: kitchen-recipe.test.ts covers every listed case (10 tests, re-run passing). AC3: exported from core index.ts; orchestrator evidence on merged main 6b8e90f: pnpm typecheck clean, pnpm test 1907 passed, pnpm check passed. Findings: none blocking. Minor: recipeFromImport shares steps/ingredients arrays by reference with the parsed input (readonly types, acceptable). Plan's 'Files expected to change' list dropped on rewrite; not a criterion, no task filed.
 <!-- SECTION:NOTES:END -->

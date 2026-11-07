@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.3
 title: 'RecipeImporter port, fake and contract suite'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:57'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-2
   - layer-ports
@@ -25,11 +25,11 @@ Split key: ports-recipe-importer. Layer: ports. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/ports/src/recipe-importer/ has port.ts, fake.ts, contract.ts and fake.test.ts, as in contract §7, all in one commit
-- [ ] #2 FakeRecipeImporter returns the seeded outcome for a seeded URL, 'invalid-url' for a non-http(s) URL and 'not-a-recipe' for an unknown URL, and records calls
-- [ ] #3 recipeImporterContract covers the four cases in contract §7. fake.test.ts runs it, using recipe.invalid URLs, plus fake-specific tests (calls are recorded; unknown → not-a-recipe)
-- [ ] #4 index.ts exports the RecipeImporter type. test-support.ts exports FakeRecipeImporter, RecipeImportOutcome, recipeImporterContract and RecipeImporterSubject, none of which is on the main entry
-- [ ] #5 At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/ports passes. The orchestrator confirms pnpm check port-contracts
+- [x] #1 packages/ports/src/recipe-importer/ has port.ts, fake.ts, contract.ts and fake.test.ts, as in contract §7, all in one commit
+- [x] #2 FakeRecipeImporter returns the seeded outcome for a seeded URL, 'invalid-url' for a non-http(s) URL and 'not-a-recipe' for an unknown URL, and records calls
+- [x] #3 recipeImporterContract covers the four cases in contract §7. fake.test.ts runs it, using recipe.invalid URLs, plus fake-specific tests (calls are recorded; unknown → not-a-recipe)
+- [x] #4 index.ts exports the RecipeImporter type. test-support.ts exports FakeRecipeImporter, RecipeImportOutcome, recipeImporterContract and RecipeImporterSubject, none of which is on the main entry
+- [x] #5 At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/ports passes. The orchestrator confirms pnpm check port-contracts
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -66,4 +66,6 @@ Proof:
 Checked tools/checks/port-contracts.ts directly (read-only, no Bash run needed): port-contracts/provider-runs-contract only scans files under packages/providers-*/ for `class X implements <PortInterface>` and requires a test there calling the contract. No provider implements RecipeImporter yet (MemoryRecipeImporter is TASK-74.5.4, FirebaseRecipeImporter is TASK-74.5.5), so that rule cannot fire against this commit. The other three rules it enforces are satisfied: port-files (port.ts/fake.ts/contract.ts/fake.test.ts all present), method-covered (contract.ts matches `.importRecipe(`), fake-runs-contract (fake.test.ts contains `recipeImporterContract(`). This confirms the task description's "a new port breaks nothing, so it commits on its own" for AC#5's port-contracts part; the orchestrator can still run `pnpm check port-contracts` for the authoritative pass.
 
 Also tightened fake.ts: merged the two @grocs/core imports into one type import, and made `get calls()` return a defensive copy ([...this.#calls]) so the readonly string[] type is honest.
+
+Closed by reviewer. AC1: 25ccf16 adds port.ts, fake.ts, contract.ts, fake.test.ts together (0ccf963 later tidies fake.ts only). AC2-3: fake and contract cover known/twice-same-id/remembered/invalid-url, fake.test.ts runs the contract on recipe.invalid URLs plus calls-recorded and unknown->not-a-recipe; vitest --project unit packages/ports 64 passed. AC4: index.ts exports RecipeImporter type only; the four test-support exports are present and absent from index. AC5: orchestrator's typecheck clean on 6b8e90f; pnpm check port-contracts passed here. Findings (low, no task): contract case 3/4 assert result.ok before the narrowing throw - redundant but harmless; fake matches seeded URLs before validating, so seeding an invalid URL would bypass invalid-url - test-only, acceptable.
 <!-- SECTION:NOTES:END -->

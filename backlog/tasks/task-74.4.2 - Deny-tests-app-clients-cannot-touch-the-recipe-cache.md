@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.2
 title: 'Deny tests: app clients cannot touch the recipe cache'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:04'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-1
   - orchestrator
@@ -25,9 +25,9 @@ Split key: orch-cache-rules. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 firestore.rules has no new match block, only a comment naming recipes, recipeSources and recipeFailures as Admin-SDK-only under default deny (decision-15)
-- [ ] #2 firestore.rules.test.ts has one describe per collection. Get and set each fail for a signed-in kitchen member and for an unauthenticated client, against a doc seeded with rules disabled
-- [ ] #3 pnpm test:emulator passes, and pnpm check reports no weakening
+- [x] #1 firestore.rules has no new match block, only a comment naming recipes, recipeSources and recipeFailures as Admin-SDK-only under default deny (decision-15)
+- [x] #2 firestore.rules.test.ts has one describe per collection. Get and set each fail for a signed-in kitchen member and for an unauthenticated client, against a doc seeded with rules disabled
+- [x] #3 pnpm test:emulator passes, and pnpm check reports no weakening
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -60,4 +60,6 @@ Worker report (TASK-74.4.2):
   verbose run of firestore.rules.test.ts: 6 new tests passed, e.g. '✓ recipes/{key} (decision-15) > a signed-in kitchen member cannot read or write a cache doc (default-deny, no match block)', '✓ recipeFailures/{key} (decision-15) > a signed-out request cannot read or write a cache doc'; 'Tests 26 passed (26)' for the file (main had 20 it() in it).
   Mutation check (reverted): adding 'match /recipes/{k} { allow read, write: if true; }' made both recipes tests fail ('Tests 2 failed | 24 passed (26)'), so the deny tests do detect an allow.
 - AC#3: pnpm test:emulator: 'Test Files 8 passed (8) / Tests 116 passed (116)' (110 before + 6 new; count only grew). pnpm check: 'checks passed (16 checks, all mode, 403 ms)'.
+
+Review (philosophy:reviewer): closed. AC#1: firestore.rules diff in 8c20caa is +2 lines (blank + decision-15 comment); top-level matches are only kitchens/{kitchenId} (nested wildcard scoped under it) and memberships/{uid}, so recipes/recipeSources/recipeFailures fall to default deny. AC#2: firestore.rules.test.ts:168-195 loops one describe per collection, seeds kitchen k1 (alex member) and <collection>/k1 with rules disabled, assertFails getDoc+setDoc for authenticatedContext('alex') and unauthenticatedContext(); worker's mutation check shows the tests catch an allow. AC#3: orchestrator on merged main 6b8e90f: pnpm test:emulator 116 passed (110+6), pnpm check 16 checks passed. Findings: none blocking. Minor: get and set share one it() per context, so a failure names the context but not which op; not filed.
 <!-- SECTION:NOTES:END -->

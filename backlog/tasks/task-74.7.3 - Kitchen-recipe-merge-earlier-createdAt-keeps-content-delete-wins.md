@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.3
 title: 'Kitchen recipe merge: earlier createdAt keeps content, delete wins'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:54'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-2
   - layer-core
@@ -25,10 +25,10 @@ Split key: core-recipe-merge. Layer: core. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 merge/recipe-merge.ts exports mergeRecipe and isRecipeDeleted as in contract §4, and mergeRecipe throws on different ids
-- [ ] #2 Example tests: the earlier createdAt wins addedBy and createdAt; a delete on either copy wins; a later copy with deleted:null (a re-import) never clears a tombstone; different ids are refused
-- [ ] #3 fast-check properties: order independence (forward vs reversed fold), any shuffle, idempotence, associativity and delete-never-undone, using an arbitrary with fixed id and content, members alex|sam and at 0..12
-- [ ] #4 Exported from packages/core/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/core passes
+- [x] #1 merge/recipe-merge.ts exports mergeRecipe and isRecipeDeleted as in contract §4, and mergeRecipe throws on different ids
+- [x] #2 Example tests: the earlier createdAt wins addedBy and createdAt; a delete on either copy wins; a later copy with deleted:null (a re-import) never clears a tombstone; different ids are refused
+- [x] #3 fast-check properties: order independence (forward vs reversed fold), any shuffle, idempotence, associativity and delete-never-undone, using an arbitrary with fixed id and content, members alex|sam and at 0..12
+- [x] #4 Exported from packages/core/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/core passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -65,4 +65,6 @@ AC4 - exported from packages/core/src/index.ts (`export { isRecipeDeleted, merge
 `mise exec -- pnpm -s typecheck` -> clean (tsc --noEmit, no output)
 
 Repo-wide, at commit time via lefthook pre-commit: checks (16 checks) passed, typecheck passed, unit-tests (139 files, 1775 tests) passed.
+
+Reviewed by philosophy:reviewer at 6b8e90f. Closed: all 4 criteria met. AC1 recipe-merge.ts exports mergeRecipe/isRecipeDeleted per contract §4, throws on different ids. AC2 example tests cover earlier createdAt, delete on either copy (the delete copy is the later one, so laterStamp is exercised), re-import never clears tombstone, different ids. AC3 five fast-check properties on an arbitrary with fixed id/content, alex|sam, 0..12, with the reason commented. AC4 exported from core index; reviewer reran vitest --project unit packages/core: 15 files / 134 tests pass; orchestrator: typecheck clean, pnpm check, 1907 unit and 116 emulator tests pass. Findings: none filed. Note only: the plan's Files-expected-to-change list was dropped (not a criterion).
 <!-- SECTION:NOTES:END -->

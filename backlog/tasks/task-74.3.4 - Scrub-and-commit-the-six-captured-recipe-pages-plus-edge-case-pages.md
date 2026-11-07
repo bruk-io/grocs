@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.4
 title: 'Commit the five captured recipe pages'' JSON-LD, plus edge-case pages'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:12'
+updated_date: '2026-11-07 03:23'
 labels:
   - size-2
   - layer-providers
@@ -26,10 +26,10 @@ Split key: providers-recipe-fixtures. Layer: providers. Contract: TASK-74's plan
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/providers-server/src/recipe/pure/fixtures/ holds, for each of the five captured pages (NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52), its Recipe JSON-LD block(s) exactly as captured inside a minimal HTML wrapper - not the publisher's full page, since the repo is going public (TASK-10) and full pages are large and not ours to redistribute
-- [ ] #2 Hand-made minimal pages cover any shape the real pages do not show among: @graph, a top-level array, @type as a list, Recipe under mainEntity, HowToSection instructions, yield as a number and as a list, image as a bare @id reference. There is also a page with no JSON-LD, a page with a malformed ld+json block before a valid one, and a Recipe with no recipeInstructions
-- [ ] #3 fixtures/README.md lists each file's source URL, capture date and headers (from the orchestrator's capture notes), says the real-site files keep only their JSON-LD, and says which files are hand-made
-- [ ] #4 No fixture contains 'AIza', 'firebaseio.com' or a seven-character marker line. The orchestrator confirms pnpm check passes
+- [x] #1 packages/providers-server/src/recipe/pure/fixtures/ holds, for each of the five captured pages (NYT Cooking, Serious Eats, Allrecipes, RecipeTin Eats and Food52), its Recipe JSON-LD block(s) exactly as captured inside a minimal HTML wrapper - not the publisher's full page, since the repo is going public (TASK-10) and full pages are large and not ours to redistribute
+- [x] #2 Hand-made minimal pages cover any shape the real pages do not show among: @graph, a top-level array, @type as a list, Recipe under mainEntity, HowToSection instructions, yield as a number and as a list, image as a bare @id reference. There is also a page with no JSON-LD, a page with a malformed ld+json block before a valid one, and a Recipe with no recipeInstructions
+- [x] #3 fixtures/README.md lists each file's source URL, capture date and headers (from the orchestrator's capture notes), says the real-site files keep only their JSON-LD, and says which files are hand-made
+- [x] #4 No fixture contains 'AIza', 'firebaseio.com' or a seven-character marker line. The orchestrator confirms pnpm check passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -122,4 +122,6 @@ mise exec -- pnpm exec vitest run --project unit packages/providers-: Test Files
 Review-fix follow-up 2026-11-07 (builder): first commit attempt failed the pre-commit hook on apps/mobile/src/routes/kitchen.route.test.tsx ("shows the invite link and code, then Groceries works on that kitchen") timing out at 5000ms - outside this layer and outside this task's changed files. Retried the commit unchanged and the same suite passed (Test Files 138 passed (138), Tests 1765 passed (1765)); treating it as a flake, not something this fix introduced.
 
 Also noted while re-running board-check: TASK-74.3.4's plan already fails two pre-existing, unrelated board-check findings - "lists no files: add each file that changes with --modified-file" and "cites no requirement from TASK-74's spec: name the R-numbers it delivers" - confirmed present before this round's edits too (checked via git stash against commit c64a867). Neither is among the reviewer's five findings for this round, so left alone; the reviewer asked for a restored prose "Files expected to change" list (done), which is a different thing from the --modified-file frontmatter field board-check wants. Flagging for the orchestrator since fixing board metadata wasn't asked of this task.
+
+Closed by reviewer. AC1: five real fixtures hold only their ld+json blocks in a minimal wrapper (5-24 KB), block counts/sizes match captures per notes. AC2: real pages cover @graph, array, @type list, HowToSection, yield list (recipetineats); six hand-made pages cover mainEntity, yield number, bare @id image, no JSON-LD, malformed-then-valid, no instructions. AC3: README lists URL, date, headers, JSON-LD-only, hand-made files. AC4: grep finds no AIza/firebaseio.com/marker line in any fixture; orchestrator's pnpm check passed at 6b8e90f. Findings: plan lacks modified_files/R-number board metadata (minor, not a criterion, no draft).
 <!-- SECTION:NOTES:END -->
