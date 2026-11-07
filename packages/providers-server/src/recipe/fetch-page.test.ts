@@ -1,3 +1,4 @@
+import { gzipSync, deflateSync, brotliCompressSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import type { RawResponse, ResolveHost, Transport } from './fetch-page.ts';
 import { createGuardedLookup, createLiveFetchPage } from './fetch-page.ts';
@@ -162,6 +163,78 @@ describe('createLiveFetchPage', () => {
     expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html: 'café' });
   });
 
+  it('decodes a gzip-compressed body (Content-Encoding: gzip)', async () => {
+    const html = '<html><body>NYT sends this gzipped even with no Accept-Encoding</body></html>';
+    const compressed = gzipSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('decodes a deflate-compressed body (Content-Encoding: deflate)', async () => {
+    const html = '<html><body>deflated</body></html>';
+    const compressed = deflateSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'deflate' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('decodes a brotli-compressed body (Content-Encoding: br)', async () => {
+    const html = '<html><body>brotli</body></html>';
+    const compressed = brotliCompressSync(Buffer.from(html, 'utf-8'));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'br' }, bytesBody([compressed])));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'page', html });
+  });
+
+  it('gives unreachable for an unknown Content-Encoding, without reading the body', async () => {
+    const { body, wasIterated } = trackedBody('whatever this is');
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'compress' }, body));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]) });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+    expect(wasIterated()).toBe(false);
+  });
+
+  it('gives unreachable for a gzip body that decompresses past maxBytes, without fully inflating it', async () => {
+    // 20 MB of a single repeated byte compresses to a few KB; split the compressed bytes into many
+    // small chunks so the test can see how many the fetcher actually pulled from the source. If
+    // the fetcher fully inflated the body before checking the cap, it would have to consume every
+    // chunk; capping early means most of them are never read.
+    const huge = Buffer.alloc(20 * 1024 * 1024, 0x61);
+    const compressed = gzipSync(huge);
+    const chunkSize = 64;
+    const chunks: Uint8Array[] = [];
+    for (let offset = 0; offset < compressed.byteLength; offset += chunkSize) {
+      chunks.push(compressed.subarray(offset, offset + chunkSize));
+    }
+    let pulled = 0;
+    const trackedChunks: AsyncIterable<Uint8Array> = {
+      async *[Symbol.asyncIterator]() {
+        for (const chunk of chunks) {
+          pulled += 1;
+          yield chunk;
+        }
+      },
+    };
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, trackedChunks));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes: 1000 });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+    // Capped early: nowhere near every compressed chunk (there are hundreds) was pulled.
+    expect(pulled).toBeLessThan(chunks.length / 2);
+  });
+
+  it('gives unreachable when the compressed (raw) body itself exceeds maxBytes, for a gzip-encoded response', async () => {
+    const html = '<html><body>small</body></html>'.repeat(5);
+    const compressed = gzipSync(Buffer.from(html, 'utf-8'));
+    const chunks = [compressed.subarray(0, 4), compressed.subarray(4, 8), compressed.subarray(8)];
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody(chunks)));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes: compressed.byteLength - 1 });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+  });
+
   it('refuses a redirect to a private IPv4 literal as unreachable', async () => {
     const { transport, calls } = stubTransport(async (url) =>
       url.hostname === 'example.com'
@@ -279,10 +352,11 @@ describe('createLiveFetchPage', () => {
     const [, init] = calls[0]!;
     // The exact key set, not just that Cookie/Authorization happen to be absent: a header this
     // fetcher never sets at all should not silently start appearing here unreviewed.
-    expect(Object.keys(init.headers).sort()).toEqual(['Accept', 'Accept-Language', 'User-Agent']);
+    expect(Object.keys(init.headers).sort()).toEqual(['Accept', 'Accept-Encoding', 'Accept-Language', 'User-Agent']);
     expect(init.headers['User-Agent']).toBeTruthy();
     expect(init.headers['Accept']).toBeTruthy();
     expect(init.headers['Accept-Language']).toBeTruthy();
+    expect(init.headers['Accept-Encoding']).toBe('gzip, deflate, br');
 
     // Proves init.lookup really is the guarded lookup (not just any function): with a resolve
     // stub queued to answer private, the lookup it was handed refuses.

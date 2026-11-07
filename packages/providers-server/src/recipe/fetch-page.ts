@@ -10,6 +10,10 @@ import { lookup as dnsLookup } from 'node:dns/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import type { IncomingMessage } from 'node:http';
+import { createGunzip, createInflate, createBrotliDecompress } from 'node:zlib';
+import type { Transform } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import type { RecipeImportError } from '@grocs/core';
 import { isAllowedTarget, isPublicAddress } from './pure/address.ts';
 import { errorForStatus } from './pure/status.ts';
@@ -78,6 +82,7 @@ const REQUEST_HEADERS: Readonly<Record<string, string>> = {
   'User-Agent': 'Mozilla/5.0 (compatible; GrocsRecipeImporter/1.0; +https://grocs.app)',
   Accept: 'text/html,application/xhtml+xml',
   'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
 };
 
 /** Strips a bracket pair and a zone id from a URL's hostname, leaving the bare address isPublicAddress judges. */
@@ -119,6 +124,74 @@ function concatBytes(chunks: readonly Uint8Array[], total: number): Uint8Array {
     offset += chunk.byteLength;
   }
   return out;
+}
+
+/** 'identity' for no encoding (byte-for-byte passthrough); a Transform for a known encoding; undefined for anything else. */
+function decompressorFor(contentEncoding: string): Transform | 'identity' | undefined {
+  const encoding = contentEncoding.trim().toLowerCase();
+  switch (encoding) {
+    case '':
+    case 'identity':
+      return 'identity';
+    case 'gzip':
+    case 'x-gzip':
+      return createGunzip();
+    case 'deflate':
+      return createInflate();
+    case 'br':
+      return createBrotliDecompress();
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Reads `body`, decompressing it per `contentEncoding` (gzip, deflate, br, or identity), and caps
+ * both the compressed bytes read and the decompressed bytes produced at `maxBytes`: the moment
+ * either total is exceeded the pipeline is torn down, so a small compressed body that inflates
+ * past the cap is refused without ever being fully inflated. An unknown encoding is refused before
+ * a single byte is read.
+ */
+async function readDecodedBody(body: AsyncIterable<Uint8Array>, contentEncoding: string, maxBytes: number): Promise<Uint8Array | undefined> {
+  const decompressor = decompressorFor(contentEncoding);
+  if (decompressor === undefined) return undefined;
+
+  let rawTotal = 0;
+  const source = Readable.from(
+    (async function* (): AsyncGenerator<Uint8Array> {
+      for await (const chunk of body) {
+        rawTotal += chunk.byteLength;
+        if (rawTotal > maxBytes) throw new Error('raw body over maxBytes');
+        yield chunk;
+      }
+    })(),
+  );
+
+  const chunks: Uint8Array[] = [];
+  let decodedTotal = 0;
+  const collector = new Writable({
+    write(chunk: Uint8Array, _encoding, callback) {
+      decodedTotal += chunk.byteLength;
+      if (decodedTotal > maxBytes) {
+        callback(new Error('decoded body over maxBytes'));
+        return;
+      }
+      chunks.push(chunk);
+      callback();
+    },
+  });
+
+  try {
+    if (decompressor === 'identity') {
+      await pipeline(source, collector);
+    } else {
+      await pipeline(source, decompressor, collector);
+    }
+  } catch {
+    return undefined;
+  }
+
+  return concatBytes(chunks, decodedTotal);
 }
 
 async function defaultResolve(host: string): Promise<readonly { readonly address: string; readonly family: 4 | 6 }[]> {
@@ -208,22 +281,13 @@ export function createLiveFetchPage(options: LiveFetchOptions = {}): FetchPage {
         const mimeType = mimeTypeOf(contentType);
         if (mimeType !== 'text/html' && mimeType !== 'application/xhtml+xml') return failed('not-a-recipe');
 
-        const chunks: Uint8Array[] = [];
-        let total = 0;
-        try {
-          for await (const chunk of response.body) {
-            total += chunk.byteLength;
-            if (total > maxBytes) return failed('unreachable');
-            chunks.push(chunk);
-          }
-        } catch {
-          return failed('unreachable');
-        }
+        const decoded = await readDecodedBody(response.body, response.headers['content-encoding'] ?? '', maxBytes);
+        if (decoded === undefined) return failed('unreachable');
         // A body iterable that ignores the abort signal (e.g. a stub) must not slip the deadline
         // past the caller: if the shared controller fired while this body was read, the hop lost.
         if (controller.signal.aborted) return failed('unreachable');
 
-        return { kind: 'page', html: decode(concatBytes(chunks, total), charsetOf(contentType)) };
+        return { kind: 'page', html: decode(decoded, charsetOf(contentType)) };
       }
     } finally {
       clearTimeout(timer);
