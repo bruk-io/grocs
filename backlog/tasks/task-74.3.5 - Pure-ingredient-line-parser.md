@@ -1,11 +1,11 @@
 ---
 id: TASK-74.3.5
 title: Pure ingredient-line parser
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:58'
 labels:
   - size-2
   - layer-providers
@@ -35,15 +35,41 @@ Split key: providers-ingredient-line. Layer: providers. Contract: TASK-74's plan
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Write the table of cases first, then the parser.
+1. Write ingredient-line.test.ts first: a table of cases covering AC#2 (unicode fractions, mixed numbers, ranges, bracketed sizes, a note after the first comma, no-quantity lines, common units/abbreviations and plurals), each asserting the full ParsedIngredient.
+2. Implement packages/providers-server/src/recipe/pure/ingredient-line.ts: parseIngredientLine(line) -> ParsedIngredient, trimming the line and keeping quantity/unit as written (best effort; quantity/unit may be null). No ambient globals, no imports except @grocs/core (for the ParsedIngredient type) and pure/ siblings -- this file is decision-15's exception to providers-hold-no-rules, held to core-purity and import-layers' pure-folder rule.
+3. Run the pure-folder, core-purity and test-presence checks plus vitest and typecheck; fix until green; record output in the task notes.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+- decision-15's exception only covers this folder; nothing else in providers-server may relax providers-hold-no-rules.
+- Ambiguous cases (e.g. "2 to 3", bracketed sizes, notes after a comma) have one correct behaviour in contract §9/AC#2; if a case in AC#2 is underspecified beyond what's written, I implement the documented table and leave any genuine contract gap in this task's notes rather than guessing silently.
+- decision-16's delete-wins note does not bear on this task (no merge logic here); noted per the launch instructions only.
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/providers-server/src/recipe/pure/ingredient-line.ts
-- packages/providers-server/src/recipe/pure/ingredient-line.test.ts
+- AC#1/#2: ingredient-line.test.ts table tests, pasted vitest output.
+- AC#3: `pnpm -s typecheck` (repo-wide) and `pnpm exec vitest run --project unit packages/providers-` output, both green, pasted into notes.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Proof (TASK-74.3.5)
+
+AC#1/#2 - packages/providers-server/src/recipe/pure/ingredient-line.ts and ingredient-line.test.ts
+cover Unicode fractions, mixed numbers, ranges ('-' and 'to'), bracketed sizes, a note after the
+first comma excluded from item, the no-quantity case, and common units/abbreviations/plurals
+(cup, tbsp(s), tsp(s), g, kg, ml, oz, lb, clove(s), pinch(es)).
+
+$ mise exec -- pnpm exec vitest run --project unit packages/providers-
+ Test Files  8 passed (8)
+      Tests  87 passed (87)
+
+AC#3 - repo-wide typecheck and the full check suite (pure-folder, core-purity, test-presence
+among others) both pass at this commit:
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no errors)
+
+$ node tools/checks/run.ts --mode all
+checks passed (16 checks, all mode, 522 ms)
+<!-- SECTION:NOTES:END -->
