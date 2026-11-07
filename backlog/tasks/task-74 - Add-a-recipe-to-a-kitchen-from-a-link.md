@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 03:20'
+updated_date: '2026-11-07 03:45'
 labels:
   - size-8
   - core
@@ -503,6 +503,10 @@ design/reference/RecipeImport.dc.html is deleted by orch-retire-recipe-board (R6
 - Groups A and B are committed by the orchestrator (c4db885 precedent, §0.7).
 - The server-only pure/ tasks, the fixtures and the presentational ui templates start before the ports contract is reviewed, because none of them depends on a port.
 - application-import-recipe lands after app-compose-recipes, because Deps.recipeImporter cannot be required until every app composition supplies it.
+
+## Amendments (orchestrator, decision-3 mediation)
+- 2026-11-07, section 9 step 4: strip every trailing slash (see that step).
+- 2026-11-07, image URLs: `parseRecipePage`/`parseRecipeJsonLd` stay page-URL-free and return `image` as found. `importRecipe` (TASK-74.4.5), which knows the fetched page's final URL, resolves `image` with `new URL(image, pageUrl)` and keeps it only when the result is http(s); otherwise `image` is null. So `ParsedRecipe.image` is always absolute or null, as section 1 says. Found by reviewer-providers on TASK-74.3.6.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
