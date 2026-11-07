@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeArea } from '../../platform/safe-area.tsx';
 import { tokens } from '../../tokens/tokens.ts';
 
@@ -19,15 +19,20 @@ export function TaskLayout({ header, children, actionBar, footer }: TaskLayoutPr
   const inset = useSafeArea();
   // Whatever sits last on the screen clears the gesture bar; the action bar does that itself.
   const clear = tokens.space[24] + inset.bottom;
+  // iOS lays the keyboard over the screen; padding lifts the action bar above it (TASK-73). Android resizes the window itself.
+  // "handled": a tap on Add, Paste or any other control inside the form works while the keyboard is open, rather than only closing it (TASK-61).
   return (
-    <View style={[styles.screen, { paddingTop: inset.top, paddingLeft: inset.left, paddingRight: inset.right }]}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[styles.screen, { paddingTop: inset.top, paddingLeft: inset.left, paddingRight: inset.right }]}
+    >
       {header}
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, !footer && !actionBar && { paddingBottom: clear }]}>
+      <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, !footer && !actionBar && { paddingBottom: clear }]}>
         {children}
       </ScrollView>
       {footer ? <View style={[styles.footer, !actionBar && { paddingBottom: clear }]}>{footer}</View> : null}
       {actionBar}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

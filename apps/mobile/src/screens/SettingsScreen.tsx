@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import type { User } from '@grocs/ports';
 import { PreferencesTemplate } from '@grocs/ui';
@@ -16,13 +17,18 @@ export function SettingsScreen() {
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => app.watchSession(setUser), [app]);
   const kitchen = useMyKitchenInfo(app);
+  const fromPlan = useLocalSearchParams<{ from?: string }>().from === 'plan';
+  const [copied, setCopied] = useState(false);
 
   const signOut = () => {
     // A failed sign-out is logged by the instrumented auth port; the member stays where they are.
     app.signOut().then(go.welcome, () => undefined);
   };
   const copyDiagnostics = () => {
-    app.copyText(diagnostics()).catch(() => undefined);
+    app.copyText(diagnostics()).then(
+      () => setCopied(true),
+      () => undefined,
+    );
   };
 
   return (
@@ -32,8 +38,9 @@ export function SettingsScreen() {
       kitchen={kitchen?.name ?? ''}
       partnerName={partnerNameOf(kitchen) ?? 'your partner'}
       notificationsUnavailable="Coming soon" // push opt-in is TASK-1.29, which wires the real toggle
-      onBack={go.groceries}
+      {...(fromPlan ? { backLabel: 'Meal plan', onBack: go.plan } : { onBack: go.groceries })}
       onCopyDiagnostics={copyDiagnostics}
+      diagnosticsCopied={copied}
       onOpenHousehold={go.household}
       onSignOut={signOut}
     />

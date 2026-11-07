@@ -9,7 +9,7 @@
 // from tools/emulator-config.ts's demo-project config, which a dev build must carry to see the seed data.
 // Starts the emulators if they are not running, and reseeds them either way.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,6 +51,20 @@ export function planRuns(devices: Devices, flows: readonly string[], runId: stri
     );
   }
   return runs;
+}
+
+/**
+ * Runs step and then deletes a file it created that was not there before. expo prebuild writes
+ * apps/mobile/tsconfig.json extending expo/tsconfig.base, which this hoisted layout cannot resolve,
+ * and 15 vitest files fail until it is removed (TASK-65). A file someone put there themselves stays.
+ */
+export function removingWhatItCreates<T>(path: string, step: () => T, fs: { exists: (p: string) => boolean; remove: (p: string) => void }): T {
+  const was = fs.exists(path);
+  try {
+    return step();
+  } finally {
+    if (!was && fs.exists(path)) fs.remove(path);
+  }
 }
 
 export function parseArgs(args: readonly string[]): Devices & { readonly build: boolean } {
@@ -132,7 +146,7 @@ function main(args: readonly string[]): number {
     console.error('e2e: Metro is not running on :8081. Start it in apps/mobile with `npx expo start`, then rerun.');
     return 1;
   }
-  if (opts.build && build(opts) !== 0) return 1;
+  if (opts.build && removingWhatItCreates(join(appDir, 'tsconfig.json'), () => build(opts), { exists: existsSync, remove: (p) => rmSync(p) }) !== 0) return 1;
   if (args.includes('--inside') || up(8080)) return runFlows(opts);
   // Start the emulators for this run only, and run the flows inside them.
   return sh('pnpm', ['exec', 'firebase', 'emulators:exec', '--only', 'firestore,auth,functions', '--project', 'demo-grocs', ['node', 'tools/e2e.ts', ...args.filter((a) => a !== '--build'), '--inside'].join(' ')]);

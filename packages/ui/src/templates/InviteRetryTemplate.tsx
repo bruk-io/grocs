@@ -7,7 +7,7 @@ import { SubHeader } from '../organisms/SubHeader.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
 /** The Join from an invite screen's typed code entry: a first attempt, a code that did not match, and while a code is being checked. */
-export const INVITERETRYTEMPLATE_STATES = ['invalid', 'firstAttempt'] as const;
+export const INVITERETRYTEMPLATE_STATES = ['invalid', 'firstAttempt', 'missingCode', 'checking'] as const;
 
 interface InviteRetryTemplateBase {
   code: string;
@@ -17,11 +17,12 @@ interface InviteRetryTemplateBase {
   checking?: boolean;
 }
 
-/** Someone who chose to join and is typing a code. Nobody's name is known yet and no code failed, so inviter, errorMessage and onBack are not accepted. */
+/** Someone who chose to join and is typing a code. Nobody's name is known yet and no code failed, so inviter and onBack are not accepted. */
 export interface InviteRetryTemplateFirstProps extends InviteRetryTemplateBase {
   attempt: 'first';
   inviter?: never;
-  errorMessage?: never;
+  /** Why Check code did nothing yet, such as no code typed. Not a failed code: the title stays neutral. */
+  errorMessage?: string;
   onBack?: never;
 }
 
@@ -69,10 +70,15 @@ export function InviteRetryTemplate(props: InviteRetryTemplateProps) {
         display
         inputRef={field}
         disabled={checking}
-        {...(props.attempt !== 'first' && props.errorMessage ? { errorMessage: props.errorMessage } : {})}
+        {...(props.errorMessage ? { errorMessage: props.errorMessage } : {})}
         {...(onCheck ? { onSubmit: onCheck } : {})}
       />
       <Button stretch label="Check code" loading={checking} loadingLabel="Checking" {...(onCheck ? { onPress: onCheck } : {})} />
+      {checking ? (
+        <Text variant="small" tone="muted" align="center">
+          Checking with the server. The first check can take up to half a minute.
+        </Text>
+      ) : null}
       {props.attempt === 'first' ? null : <Button variant="text" stretch label="Back to my invite" {...(props.onBack ? { onPress: props.onBack } : {})} />}
     </TaskLayout>
   );

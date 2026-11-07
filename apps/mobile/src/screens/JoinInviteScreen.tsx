@@ -16,6 +16,7 @@ export const JOIN_REJECTION_MESSAGES: Record<JoinRejectedReason, string> = {
 };
 
 const COULD_NOT_JOIN = 'We could not check that code. Check your connection and try again.';
+export const ENTER_A_CODE = 'Type the code from your invite first.';
 
 /**
  * Joins a kitchen from an invite: opened from the link (code in the URL) it shows the invite, and
@@ -31,6 +32,12 @@ export function JoinInviteScreen() {
   const [showEntry, setShowEntry] = useState(linked === null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  // Check code pressed with nothing typed: ask for the code, call nothing (TASK-66).
+  const [askForCode, setAskForCode] = useState(false);
+  const changeCode = (next: string) => {
+    setCode(next);
+    setAskForCode(false);
+  };
   // Who invited and to which kitchen, from the server once someone is signed in (TASK-70). Never from
   // the link, which anyone can edit; signed out, the screen names nobody.
   const [preview, setPreview] = useState<InvitePreview | null>(null);
@@ -50,6 +57,11 @@ export function JoinInviteScreen() {
 
   const join = async (raw: string) => {
     const typed = raw.trim().toUpperCase();
+    if (typed === '') {
+      setAskForCode(true);
+      return;
+    }
+    setAskForCode(false);
     setError(undefined);
     setBusy(true);
     try {
@@ -91,17 +103,26 @@ export function JoinInviteScreen() {
   }
   // Nothing has been checked yet: a neutral code entry. After a rejection it becomes the retry shape.
   if (linked === null && error === undefined) {
-    return <InviteRetryTemplate attempt="first" code={code} onCodeChange={setCode} checking={busy} onCheck={() => void join(code)} />;
+    return (
+      <InviteRetryTemplate
+        attempt="first"
+        code={code}
+        onCodeChange={changeCode}
+        checking={busy}
+        onCheck={() => void join(code)}
+        {...(askForCode ? { errorMessage: ENTER_A_CODE } : {})}
+      />
+    );
   }
   return (
     <InviteRetryTemplate
       inviter="your partner"
       code={code}
-      onCodeChange={setCode}
+      onCodeChange={changeCode}
       checking={busy}
       onCheck={() => void join(code)}
       onBack={linked !== null ? () => setShowEntry(false) : go.welcome}
-      {...(error ? { errorMessage: error } : {})}
+      {...(askForCode ? { errorMessage: ENTER_A_CODE } : error ? { errorMessage: error } : {})}
     />
   );
 }

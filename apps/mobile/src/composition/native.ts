@@ -16,6 +16,7 @@ import { composeFirebaseApp } from './compose-firebase.ts';
 import { diagnosticsText } from './diagnostics.ts';
 import { loadDevTools } from './load-dev.ts';
 import { installObservers } from './observe.ts';
+import { devSignInFor } from './dev-sign-in-gate.ts';
 
 /** What the demo variant adds: a way in with no account, and the kitchen it opens on (decision-12). */
 export interface DemoAccess {
@@ -125,7 +126,7 @@ export function createNativeApp(): NativeApp {
     app,
     isDevBuild: dev !== null,
     demo: null,
-    devSignIn: dev && devFunctionsFns ? (name) => dev.signInAsSeedUser(authFns, authInstance, name) : null,
+    devSignIn: devSignInFor(dev, devFunctionsFns, (tools, name) => tools.signInAsSeedUser(authFns, authInstance, name)),
     diagnostics: () => diagnosticsText(build, buffer ? buffer.dump() : 'development build: log records go to the console'),
     signInWithGoogle: () => googleAuth.signInWithGoogle(),
   };

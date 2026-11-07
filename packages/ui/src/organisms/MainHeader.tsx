@@ -27,8 +27,8 @@ export interface MainHeaderProps {
   /** The household, as avatars. */
   members: readonly StackMember[];
   onSettings?: () => void;
-  /** Which mushroom sits beside the title. */
-  mascot: MascotName;
+  /** Which mushroom sits beside the title; left out when the page below already shows one. */
+  mascot?: MascotName;
   /** Pins the mascot's state for stories and baselines; the phones never set it. */
   mascotState?: MascotProps['forceState'];
   /** The shop's progress under the title. Groceries only. */
@@ -61,7 +61,7 @@ export function MainHeader({ title, eyebrow, weekNav, members, onSettings, masco
           </Text>
           {progress ? <ProgressBar {...progress} /> : null}
         </View>
-        <Mascot name={mascot} bubbleSide="left" {...(mascotState ? { forceState: mascotState } : {})} />
+        {mascot ? <Mascot name={mascot} bubbleSide="left" {...(mascotState ? { forceState: mascotState } : {})} /> : null}
       </View>
       {addBar ? <AddBar {...addBar} /> : null}
     </View>

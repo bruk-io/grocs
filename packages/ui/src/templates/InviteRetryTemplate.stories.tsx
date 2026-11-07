@@ -21,5 +21,11 @@ export const Invalid: Story = {
 /** The typed code entry before any code was tried: neutral title and label, empty field showing the code's shape, no error, no way back, no footer. */
 export const FirstAttempt: Story = { args: { attempt: 'first', code: '' } };
 
+/** Check code pressed with nothing typed: still the neutral first attempt, with the field asking for the code. */
+export const MissingCode: Story = { args: { attempt: 'first', code: '', errorMessage: 'Type the code from your invite first.' } };
+
+/** A code being checked: the button spins and a line says the first check can be slow (the server may be starting up). */
+export const Checking: Story = { args: { attempt: 'first', code: 'MOREL-42', checking: true } };
+
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Invalid, decorators: [withPhoneInsets] };
