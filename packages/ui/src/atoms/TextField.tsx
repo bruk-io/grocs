@@ -28,7 +28,7 @@ export interface TextFieldProps {
   actionKind?: 'icon' | 'soft' | 'primary';
   /** The hint shown when the field is empty, when it is not the label. */
   placeholder?: string;
-  /** Sets the typed value in the display font, as for an invite code. */
+  /** Sets the typed value in the display font, for a short code someone reads back. */
   display?: boolean;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';

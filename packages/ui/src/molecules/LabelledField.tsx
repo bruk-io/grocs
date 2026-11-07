@@ -24,7 +24,7 @@ export interface LabelledFieldProps {
   actionLabel?: string;
   onAction?: () => void;
   onSubmit?: () => void;
-  /** Sets the typed value in the display font, as for an invite code. */
+  /** Sets the typed value in the display font, for a short code someone reads back. */
   display?: boolean;
   disabled?: boolean;
   forceState?: 'focus';
