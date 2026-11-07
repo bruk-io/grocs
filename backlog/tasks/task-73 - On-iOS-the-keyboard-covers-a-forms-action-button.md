@@ -1,9 +1,11 @@
 ---
 id: TASK-73
 title: On iOS the keyboard covers a form's action button
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-07 00:38'
+updated_date: '2026-11-07 13:33'
 labels:
   - size-1
   - ui
@@ -19,5 +21,11 @@ Found by the TASK-70 device run, 2026-11-06 (screenshot: Add a meal with the key
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 With the keyboard open on iOS, a task screen's action button is visible and works on the first tap
+- [x] #1 With the keyboard open on iOS, a task screen's action button is visible and works on the first tap
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Fix (9141832): TaskLayout wraps the screen in KeyboardAvoidingView (behaviour 'padding' on iOS, none elsewhere, since Android resizes the window). Proof on the iPhone 18 Pro simulator: Add a meal with the keyboard up shows 'Add to Monday' above the keyboard (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/2026-11-07_081428/verify-alex/takeScreenshot/3-keyboard-up.png), and a Maestro tapOn 'Add to .*' with the keyboard open added the meal on the first tap. No jsdom test: react-native-web has no keyboard, so the device run is the evidence.
+<!-- SECTION:NOTES:END -->

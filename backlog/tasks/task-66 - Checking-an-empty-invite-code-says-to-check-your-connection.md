@@ -1,9 +1,11 @@
 ---
 id: TASK-66
 title: Checking an empty invite code says to check your connection
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 22:07'
+updated_date: '2026-11-07 13:33'
 labels:
   - size-1
   - app
@@ -19,5 +21,11 @@ Found by the TASK-56 flows: Check code with an empty field dispatches JoinKitche
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Check code with nothing typed asks for the code and calls nothing
+- [x] #1 Check code with nothing typed asks for the code and calls nothing
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Fix (9141832): JoinInviteScreen.join returns before dispatching when the trimmed code is empty and shows 'Type the code from your invite first.' on the field; typing clears it. InviteRetryTemplate's first attempt now accepts errorMessage (title stays 'Enter your invite code'); new state/story MissingCode. Proof: kitchen.route.test.tsx 'asks for the code, and calls nothing...' spies on the gateway's joinKitchen and asserts it is never called; fails without the guard, passes with it. On the simulator (Pat): Check code with nothing typed shows the prompt (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/2026-11-07_081545/verify-pat/takeScreenshot/5-missing-code.png).
+<!-- SECTION:NOTES:END -->

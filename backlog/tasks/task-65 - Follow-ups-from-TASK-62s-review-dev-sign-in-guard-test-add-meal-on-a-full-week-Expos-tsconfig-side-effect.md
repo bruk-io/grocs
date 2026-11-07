@@ -3,9 +3,11 @@ id: TASK-65
 title: >-
   Follow-ups from TASK-62's review: dev sign-in guard test, add-meal on a full
   week, Expo's tsconfig side effect
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 21:14'
+updated_date: '2026-11-07 13:33'
 labels:
   - size-1
   - e2e
@@ -21,7 +23,13 @@ From the reviewer's close of TASK-62 (740b4bb). (1) native.ts's devSignIn guard 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A unit test fails if native.ts offers devSignIn in a build not connected to the emulators
+- [x] #1 A unit test fails if native.ts offers devSignIn in a build not connected to the emulators
 - [ ] #2 add-meal.yaml does not depend on the current week having an open day
-- [ ] #3 Running pnpm e2e leaves no apps/mobile/tsconfig.json behind, or the vitest suite is unaffected by it
+- [x] #3 Running pnpm e2e leaves no apps/mobile/tsconfig.json behind, or the vitest suite is unaffected by it
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+#1: the devSignIn decision moved to apps/mobile/src/composition/dev-sign-in-gate.ts (devSignInFor), which native.ts calls; dev-sign-in-gate.test.ts fails if a release build (no dev tools) or a dev build on live Firebase (no emulator functions) is offered it. #3: tools/e2e.ts runs the --build step through removingWhatItCreates, which deletes apps/mobile/tsconfig.json after prebuild if the run created it and keeps one that was already there (tested in tools/e2e.test.ts with a fake fs, including a failing step). Metro alone (expo start) did not recreate the file in this session; prebuild does. #2: add-meal.yaml steps a week ahead while no 'Plan a meal' shows, and after saving steps forward until the meal shows (saving returns the plan to this week: TASK-75). Proof on the iPhone simulator: filled every day of Alex's week with a scratch flow, then add-meal.yaml passed against the full week.
+<!-- SECTION:NOTES:END -->

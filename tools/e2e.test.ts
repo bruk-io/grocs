@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseArgs, planRuns } from './e2e.ts';
+import { parseArgs, planRuns, removingWhatItCreates } from './e2e.ts';
 
 const flows = ['sign-in.yaml', 'add-meal.yaml', 'second-device-add.yaml', 'second-device-see.yaml', 'household-invite.yaml', 'household-join.yaml', 'household-full.yaml'];
 
@@ -36,5 +36,35 @@ describe('parseArgs', () => {
   it('reads each device and --build', () => {
     expect(parseArgs(['--android', 'emu', '--ios', 'sim', '--build'])).toEqual({ android: 'emu', ios: 'sim', build: true });
     expect(parseArgs(['--ios', 'sim'])).toEqual({ ios: 'sim', build: false });
+  });
+});
+
+describe('removingWhatItCreates', () => {
+  const fakeFs = (present: boolean) => {
+    const files = new Set(present ? ['tsconfig.json'] : []);
+    return { files, fs: { exists: (p: string) => files.has(p), remove: (p: string) => void files.delete(p) } };
+  };
+
+  it('deletes the file when the step created it', () => {
+    const { files, fs } = fakeFs(false);
+    expect(removingWhatItCreates('tsconfig.json', () => (files.add('tsconfig.json'), 0), fs)).toBe(0);
+    expect(files.has('tsconfig.json')).toBe(false);
+  });
+
+  it('keeps a file that was there before the step', () => {
+    const { files, fs } = fakeFs(true);
+    removingWhatItCreates('tsconfig.json', () => 0, fs);
+    expect(files.has('tsconfig.json')).toBe(true);
+  });
+
+  it('still deletes it when the step fails', () => {
+    const { files, fs } = fakeFs(false);
+    expect(() =>
+      removingWhatItCreates('tsconfig.json', () => {
+        files.add('tsconfig.json');
+        throw new Error('prebuild failed');
+      }, fs),
+    ).toThrow('prebuild failed');
+    expect(files.has('tsconfig.json')).toBe(false);
   });
 });

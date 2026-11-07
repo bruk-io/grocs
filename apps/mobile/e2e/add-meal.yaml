@@ -1,4 +1,5 @@
-# R51: adding a meal. Alex plans a meal on the first open day of this week, then removes it again.
+# R51: adding a meal. Alex plans a meal on the first open day, stepping a week ahead while every day
+# shown is already planned (TASK-65), then removes it again.
 appId: io.bruk.grocs.dev
 env:
   ACCOUNT: alex
@@ -6,6 +7,15 @@ env:
 ---
 - runFlow: subflows/sign-in.yaml
 - tapOn: "Meal plan"
+- extendedWaitUntil:
+    visible: "Next week"
+    timeout: 10000
+- repeat:
+    times: 8
+    while:
+      notVisible: "Plan a meal"
+    commands:
+      - tapOn: "Next week"
 - tapOn:
     text: "Plan a meal"
     index: 0
@@ -17,6 +27,17 @@ env:
 # The keyboard's return key submits, as a person would. On iOS the keyboard covers the Add button
 # (TASK-73), and hideKeyboard is Back on Android, which leaves the screen.
 - pressKey: Enter
+- extendedWaitUntil:
+    visible: "This week|Week of.*"
+    timeout: 10000
+# Saving returns the plan to the current week even when the meal went on a later one (TASK-75), so
+# step forward until it shows. Once that is fixed this repeats nothing.
+- repeat:
+    times: 8
+    while:
+      notVisible: "${MEAL}"
+    commands:
+      - tapOn: "Next week"
 - extendedWaitUntil:
     visible: "${MEAL}"
     timeout: 10000
