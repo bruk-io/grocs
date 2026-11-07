@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.10
 title: Recipe cache emulator tests break on a second run against long-lived emulators
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 04:50'
-updated_date: '2026-11-07 04:56'
+updated_date: '2026-11-07 05:06'
 labels:
   - size-2
   - layer-providers
@@ -22,9 +22,9 @@ recipe-cache.emulator.test.ts uses fixed URLs (for example fsrc-failure-memory, 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Each test in recipe-cache.emulator.test.ts uses URLs unique to the run as well as the test (or clears its keys first), and running the emulator project twice against one long-lived emulator instance passes both times
-- [ ] #2 No fixture in that file stores a recipe with no ingredients or no steps
-- [ ] #3 The providers unit tests, typecheck and pnpm test:emulator pass
+- [x] #1 Each test in recipe-cache.emulator.test.ts uses URLs unique to the run as well as the test (or clears its keys first), and running the emulator project twice against one long-lived emulator instance passes both times
+- [x] #2 No fixture in that file stores a recipe with no ingredients or no steps
+- [x] #3 The providers unit tests, typecheck and pnpm test:emulator pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -85,4 +85,8 @@ actually produces; `grep -n "ingredients: \[\]" packages/providers-server/src/re
   someone with no kitchen yet" fails on a second run against one `pnpm emulators` instance because
   an earlier test's kitchen is still there under the same hard-coded id). Flagging for a follow-up
   task; this task's acceptance criteria name only recipe-cache.emulator.test.ts.
+
+No repro: recordable as a failing test command: the bug only shows on a second run against a long-lived pnpm emulators instance, which a single record-check run (fresh emulators:exec) cannot reproduce, and reviewers are told not to start emulators while others run in parallel. The worker's two consecutive runs against one instance (12/12 both times) are the proof.
+
+Closed by reviewer. AC#1: every recipe.invalid URL in recipe-cache.emulator.test.ts carries a module-level randomUUID runId (commit 822df53); worker ran the file twice against one long-lived emulator instance, 12/12 both times. AC#2: both ingredients: [] fixtures replaced with a one-item ParsedIngredient. AC#3: providers unit 294/294 and typecheck clean; orchestrator saw pnpm test:emulator 148/148 on main 7fccb40. Finding (low, not filed): kitchen-store.emulator.test.ts has the same fixed-id rerun bug the worker flagged; orchestrator may file a follow-up.
 <!-- SECTION:NOTES:END -->

@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.7
 title: importRecipe callable in apps/functions
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:58'
+updated_date: '2026-11-07 05:06'
 labels:
   - size-2
   - layer-app
@@ -26,9 +26,9 @@ Split key: app-functions-callable. Layer: app. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 apps/functions/src/index.ts exports importRecipe = onCall(...), wired to createLiveFetchPage, FirestoreRecipeCache(getFirestore()) and Date.now
-- [ ] #2 apps/functions/src/import-recipe.emulator.test.ts calls the callable over HTTP. It covers: unauthenticated is rejected; a missing url gives invalid-argument; 'not a link' returns {ok:false,error:'invalid-url'} as data; an Admin-seeded recipes/{key} entry for an already-normalised https://recipe.invalid/<unique> URL is returned. No real domain appears in the test
-- [ ] #3 Logging is by error kind only, with no URL. At this commit, pnpm -s typecheck passes repo-wide, and orch-emulator-suite confirms pnpm test:emulator
+- [x] #1 apps/functions/src/index.ts exports importRecipe = onCall(...), wired to createLiveFetchPage, FirestoreRecipeCache(getFirestore()) and Date.now
+- [x] #2 apps/functions/src/import-recipe.emulator.test.ts calls the callable over HTTP. It covers: unauthenticated is rejected; a missing url gives invalid-argument; 'not a link' returns {ok:false,error:'invalid-url'} as data; an Admin-seeded recipes/{key} entry for an already-normalised https://recipe.invalid/<unique> URL is returned. No real domain appears in the test
+- [x] #3 Logging is by error kind only, with no URL. At this commit, pnpm -s typecheck passes repo-wide, and orch-emulator-suite confirms pnpm test:emulator
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -106,4 +106,6 @@ Result: `Test Files  1 passed (1)` / `Tests  4 passed (4)`, emulator log shows
 'not a link' case and nothing logged for the other three - confirming AC#3's
 "logging is by error kind only, with no URL" for real, not just by typecheck.
 `pnpm -s typecheck` re-run clean after the edit.
+
+Reviewed by philosophy:reviewer: closed. AC#1 index.ts exports importRecipe = onCall wired to createLiveFetchPage(), new FirestoreRecipeCache(getFirestore()), Date.now; requireUid gates it. AC#2 import-recipe.emulator.test.ts covers unauthenticated, missing url -> functions/invalid-argument, 'not a link' -> {ok:false,error:'invalid-url'} as data, and an Admin-seeded recipes/{sha256} entry for a unique https://recipe.invalid URL; only host in the file is recipe.invalid; 4/4 passed in the orchestrator's pnpm test:emulator run at 7fccb40 (148/148). AC#3 failure logged as info('importRecipe failed',{error}) only; emulator log shows no URL; repo typecheck clean on main. Findings (low, not filed): (1) the unauthenticated test asserts only rejects.toThrow(), so any error would pass - tightening to code 'functions/unauthenticated' would make it prove the auth gate specifically; (2) an unexpected exception inside importRecipeOnServer would surface through onCall's default logging - the contract makes it return Results, so no realistic path today.
 <!-- SECTION:NOTES:END -->
