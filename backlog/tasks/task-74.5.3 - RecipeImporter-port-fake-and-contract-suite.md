@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:56'
+updated_date: '2026-11-07 02:57'
 labels:
   - size-2
   - layer-ports
@@ -62,4 +62,8 @@ Proof:
 - `mise exec -- pnpm -s typecheck` -> `$ tsc --noEmit` with no errors (repo-wide, clean exit).
 - contract.ts literally calls `.importRecipe(` and exports `recipeImporterContract`; fake.test.ts calls `recipeImporterContract(...)` seeding known/remembered URLs on host recipe.invalid, plus FakeRecipeImporter-specific tests for recorded calls and an unknown URL returning 'not-a-recipe'.
 - `pnpm check port-contracts` not run here (outside this layer's narrowed Bash); left for the orchestrator per the task text.
+
+Checked tools/checks/port-contracts.ts directly (read-only, no Bash run needed): port-contracts/provider-runs-contract only scans files under packages/providers-*/ for `class X implements <PortInterface>` and requires a test there calling the contract. No provider implements RecipeImporter yet (MemoryRecipeImporter is TASK-74.5.4, FirebaseRecipeImporter is TASK-74.5.5), so that rule cannot fire against this commit. The other three rules it enforces are satisfied: port-files (port.ts/fake.ts/contract.ts/fake.test.ts all present), method-covered (contract.ts matches `.importRecipe(`), fake-runs-contract (fake.test.ts contains `recipeImporterContract(`). This confirms the task description's "a new port breaks nothing, so it commits on its own" for AC#5's port-contracts part; the orchestrator can still run `pnpm check port-contracts` for the authoritative pass.
+
+Also tightened fake.ts: merged the two @grocs/core imports into one type import, and made `get calls()` return a defensive copy ([...this.#calls]) so the readonly string[] type is honest.
 <!-- SECTION:NOTES:END -->

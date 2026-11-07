@@ -1,6 +1,5 @@
-import type { ParsedRecipe, RecipeImportError } from '@grocs/core';
+import type { ParsedRecipe, RecipeImportError, Result } from '@grocs/core';
 import { err, ok } from '@grocs/core';
-import type { Result } from '@grocs/core';
 import type { RecipeImporter } from './port.ts';
 
 /** What a seeded URL resolves to: a parsed recipe, or the error the server would have returned. */
@@ -35,7 +34,7 @@ export class FakeRecipeImporter implements RecipeImporter {
 
   /** URLs passed to `importRecipe`, in order (test inspection only). */
   get calls(): readonly string[] {
-    return this.#calls;
+    return [...this.#calls];
   }
 
   async importRecipe(url: string): Promise<Result<ParsedRecipe, RecipeImportError>> {
