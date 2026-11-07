@@ -44,6 +44,8 @@ export function KitchenSetupScreen({ app, email, name: you, onReady }: { app: Ap
         onKitchenNameChange={setName}
         starting={creating}
         onOpenInvite={go.join}
+        // A failed sign-out is logged by the instrumented auth port; they stay where they are, as in Settings.
+        onSignOut={() => void app.signOut().then(go.welcome, () => undefined)}
         {...(created
           ? {
               inviteCode: created.inviteCode,

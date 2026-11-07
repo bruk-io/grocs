@@ -29,6 +29,12 @@ describe('sign-in routing', () => {
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 
+  it('signs out from kitchen setup back to Welcome, for someone signed in with the wrong account (TASK-67)', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
+    expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeTruthy();
+  });
+
   it('sends a member with no kitchen to kitchen setup', async () => {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
     expect(await screen.findByText('Your kitchen')).toBeTruthy();
