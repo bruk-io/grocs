@@ -1,11 +1,11 @@
 ---
-id: DRAFT-30
+id: TASK-74
 title: Add a recipe to a kitchen from a link
-status: Draft
+status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 00:52'
+updated_date: '2026-11-07 01:01'
 labels:
   - size-8
   - core
@@ -55,7 +55,7 @@ A logged-out probe of six NYT Cooking recipes on 2026-11-06 (same browser User-A
 - [x] How long a failed fetch is remembered: 1 day.
 - [x] Whether to keep the source after parsing: keep the raw Recipe JSON-LD object on the server, separate from the parsed recipe; not the whole page.
 - [x] Carried forward: search across recipe sites comes later, after import works.
-- [ ] Where an imported recipe lives in kitchen data (its own record, or on the Meal whose link it came from) and how its ingredients become grocery Items (name, amount, meal badge, aisle). Blocks the app side; a design task.
+- [x] Carried forward: where an imported recipe lives in kitchen data (its own record, or on the Meal whose link it came from) and how its ingredients become grocery Items (name, amount, meal badge, aisle). It blocks only the app flow, so it is answered by a design child before that child starts, while the server side proceeds.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -72,19 +72,27 @@ A logged-out probe of six NYT Cooking recipes on 2026-11-06 (same browser User-A
 - [ ] #10 The server keeps each imported page's raw Recipe JSON-LD separately from the parsed recipe, and can re-parse from it without fetching the site
 - [ ] #11 A URL whose fetch failed is not fetched again for 1 day
 - [ ] #12 Recipe and ingredient-line parsing are pure and tested against saved pages from at least five sites
-- [ ] #13 Must not break: kitchen data stays readable and writable only by its members (R4), and no recipe URL or content is written to logs (R36)
+- [ ] #13 The import function runs locally in the Functions emulator started by pnpm emulators, and a locally run app imports recipes through it
+- [ ] #14 Must not break: kitchen data stays readable and writable only by its members (R4), and no recipe URL or content is written to logs (R36)
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Sized 8 on 2026-11-06. It spans every layer (core, ports, a new server-only package, providers-server, functions, firebase rules, providers-firebase, ui, app), adds a new kind of kitchen data with its own schema, merge and security rules, and has one open design question. The parsers are predictable; the spread comes from the kitchen-data change and the app flow. Split before committing.
+Sized 8 on 2026-11-06. It spans every layer (core, ports, a new server-only package, providers-server, functions, firebase rules, providers-firebase, ui, app), adds a new kind of kitchen data with its own schema, merge and security rules, and has one open design question. Parsing is predictable; the spread comes from the kitchen-data change and the app flow. Split before committing.
 
-Proposed split, in order:
+Local testing (Bruk, 2026-11-06): no separate fixture server. The import function runs in the Functions emulator and is used for local testing; parsing is unit-tested against saved pages.
+
+Proposed split, in order (kept small at Bruk's request):
 1. design, size-1: record the server-side decision (Cloud Function, shared Firestore cache, raw JSON-LD kept separately, 1-day failure memory, and where the server-only parsing package sits in the layers with the import rule that keeps it out of the apps).
 2. design, size-2: where an imported recipe lives in kitchen data and how its ingredients become grocery Items.
-3. task, size-2: server-only, schema.org Recipe JSON-LD to recipe, with saved pages from at least five sites as fixtures. Depends on 1.
-4. task, size-3: server-only, ingredient-line parser (quantity, unit, item; line kept). Depends on 1.
-5. task, size-5: server import - the apps/functions callable, fetcher, cache and failure memory, rules and emulator tests. Depends on 1, 3, 4.
-6. task, size-5: app flow - the app's import port and its client for the function, paste a link, save the recipe to the kitchen, add its ingredients to the grocery list. Depends on 2 and 5.
+3. task, size-3: server-only parsing - schema.org Recipe JSON-LD to a parsed recipe, including each ingredient line's quantity, unit and item, with saved pages from at least five sites as fixtures. Depends on 1.
+4. task, size-5: server import - the apps/functions callable, fetcher, cache and failure memory, rules and emulator tests, runnable through pnpm emulators. Depends on 1 and 3.
+5. task, size-5: app flow - the app's import port and its client for the function, paste a link, save the recipe to the kitchen, add its ingredients to the grocery list. Depends on 2 and 4.
+
+Going live depends on the separate infrastructure intent "Grocs' Firebase project and deploys are code" (captured 2026-11-06): child 4 can be built and tested against the emulators without it, but this intent cannot close until the import function deploys from code.
+
+Order (Bruk, 2026-11-06): prove it locally first - parsing, the import function in the Functions emulator, and the app's client code - before the deployment work in the infrastructure intent.
+
+Split on 2026-11-06 into TASK-74.1 to TASK-74.5, following the proposed split above. TASK-74.1 and TASK-74.2 can start now; TASK-74.3 waits on 74.1, TASK-74.4 on 74.1 and 74.3, TASK-74.5 on 74.2 and 74.4.
 <!-- SECTION:NOTES:END -->
