@@ -95,16 +95,28 @@ describe('isAllowedTarget', () => {
     expect(isAllowedTarget(new URL('https://x.com/path'))).toBe(true);
   });
 
-  it('allows an explicit port 80', () => {
+  it('allows an explicit port 80 (default for http, stripped by URL)', () => {
     expect(isAllowedTarget(new URL('http://x.com:80/path'))).toBe(true);
   });
 
-  it('allows an explicit port 443', () => {
+  it('allows an explicit port 443 (default for https, stripped by URL)', () => {
     expect(isAllowedTarget(new URL('https://x.com:443/path'))).toBe(true);
+  });
+
+  it("allows https on port '80' (non-default for the scheme, kept by URL)", () => {
+    expect(isAllowedTarget(new URL('https://x.com:80/path'))).toBe(true);
+  });
+
+  it("allows http on port '443' (non-default for the scheme, kept by URL)", () => {
+    expect(isAllowedTarget(new URL('http://x.com:443/path'))).toBe(true);
   });
 
   it('rejects any other port', () => {
     expect(isAllowedTarget(new URL('https://x.com:8443/path'))).toBe(false);
+  });
+
+  it('rejects another other port (8080)', () => {
+    expect(isAllowedTarget(new URL('https://x.com:8080/path'))).toBe(false);
   });
 
   it('rejects a non-http(s) protocol', () => {
