@@ -7,3 +7,4 @@ export type { LogRecord, Logger, Severity } from './logging/port.ts';
 export type { AuthPort, GoogleSignIn, TestSignIn, User } from './auth/port.ts';
 export type { SyncStore } from './sync-store/port.ts';
 export type { CreatedKitchen, JoinOutcome, JoinRejectedReason, KitchenDetails, InvitePreview, KitchenGateway, KitchenInvite, KitchenMemberDetails } from './kitchen-gateway/port.ts';
+export type { RecipeImporter } from './recipe-importer/port.ts';
