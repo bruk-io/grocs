@@ -3,7 +3,7 @@ id: doc-1
 title: 'Spec: Grocs, a shared meal plan and grocery list for the two of us'
 type: specification
 created_date: '2026-10-18 17:02'
-updated_date: '2026-10-19 15:53'
+updated_date: '2026-11-07 03:01'
 ---
 Intent: TASK-1
 
@@ -23,7 +23,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R5 A week runs Monday to Sunday, in the kitchen's time zone. Each day holds zero or more meals, shown in the order they were added.
 - R6 A meal has a name (required) and an optional link (an http or https URL). It has no other fields.
 - R7 Either member can add, rename, relink or remove a meal on any day of the current or a future week, and can move between weeks.
-- R8 Removing a meal never deletes grocery items. It removes that meal's badge from them, and an item left with no badge stays on the list as an extra.
+- R8 Removing a meal never deletes grocery items. It removes that meal's badge from them, and an item left with no badge stays on the list as an extra. Kitchen recipes: see R67.
 
 ### Grocery list
 
@@ -52,10 +52,10 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 
 ### Architecture and import layers
 
-- R25 The domain rules live in one TypeScript package used by both apps. Domain functions take data and return data; they never perform I/O, read the clock or generate ids.
-- R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: design tokens only; its components take data and callbacks as props and never import the application layer or providers. App (the composition root): every layer. It is the only place providers are chosen and wired, and its screens connect the application layer to the UI.
-- R27 The import rules in R26 are checked by an agent hook after every edit, by pre-commit and in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another.
-- R28 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation and logging. Only the application layer calls them.
+- R25 The domain rules live in one TypeScript package used by both apps. Domain functions take data and return data; they never perform I/O, read the clock or generate ids. One deliberate exception: server-only recipe parsing lives in packages/providers-server/src/recipe/pure, held to core-purity, import-layers/pure-folder and test-presence (decision-15).
+- R26 The code is organised in layers, and each layer may import only what is listed here. Domain: nothing else in the project, and no I/O, platform or UI framework packages. Ports: domain. Application: domain and ports. Providers: ports, domain and third-party SDKs. UI: design tokens only; its components take data and callbacks as props and never import the application layer or providers. App (the composition root): every layer. It is the only place providers are chosen and wired, and its screens connect the application layer to the UI. An app may import only its own providers: mobile imports providers-firebase, providers-device and providers-memory; functions imports providers-server. packages/providers-server/src/recipe/pure is held to the domain rules (no I/O, no clock, imports only core).
+- R27 The import rules in R26 are checked by an agent hook after every edit, by pre-commit and in continuous integration on every change. A violation fails the build with a message that names the rule and why it exists. There are no import cycles between packages, and providers do not import one another. import-layers/app-providers, import-layers/pure-folder, core-purity and test-presence enforce this.
+- R28 The SDK defines interfaces (ports) for the sync store, authentication, push notifications, local key-value storage, configuration, the clock, id generation, logging, the kitchen gateway and the recipe importer (a port the server answers). Only the application layer calls them.
 - R29 Each port has one shared contract test suite, and every provider for that port passes it in continuous integration.
 - R30 The shapes of stored documents and activity records are defined once in the SDK with a schema version. Providers validate them on read and write.
 
@@ -66,7 +66,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R33 Uncaught errors, unhandled promise rejections, UI render errors and screen changes are logged automatically by handlers installed once at app start.
 - R34 Every log record has one structured shape (timestamp, severity, message, attributes, correlation id) that fits the OpenTelemetry log data model, so a hosted log service can be added later as one more provider.
 - R35 Development builds log to the console. Release builds keep the most recent log records in a bounded buffer on the phone, which a member can copy from a diagnostics action.
-- R36 Fields marked personal in the SDK's schemas (item names, amounts, meal names, links) are removed automatically before any log record is written. The logging port's contract tests fail if a personal field gets through.
+- R36 Fields marked personal in the SDK's schemas (item names, amounts, meal names, links, recipe titles, source URLs, images, ingredient lines and steps) are removed automatically before any log record is written. The logging port's contract tests fail if a personal field gets through.
 - R37 Only the console provider writes to the console directly. Continuous integration flags any other direct console use.
 
 ### Shared UI
@@ -115,6 +115,7 @@ The problem lives on the intent and is not restated here. Each requirement is ch
 - R64 The same story files run in a browser (Storybook for React Native Web) and on both phones (Storybook for React Native). The browser version offers screen sizes for the iPhone and both Fold screens, and a switch between iOS and Android styling. The on-device version is a route in development builds only; release builds don't contain it.
 - R65 Component tests (R50) render the stories, so each state is written once and is both viewed and tested.
 - R66 The canvas design is retired, and Storybook is the only record of the design system. The retired boards are kept read-only in `design/reference/` as the visual reference for building components and screens. Nothing new is designed there, and a board is deleted once what it shows is built. A check fails when a name is both built and still in `design/reference/`.
+- R67 An imported recipe is a kitchen-wide record, found from a meal whose link equals its source URL. Its content is written once and never edited, and a delete always wins, so importing a deleted recipe again is refused (decision-16, R20).
 
 ## Repository layout
 
@@ -143,6 +144,7 @@ grocs/
 │   ├── providers-firebase/     Firestore sync store, Auth, push registration
 │   ├── providers-device/       key-value storage, clock, ids, console logger, on-phone log buffer (R35)
 │   ├── providers-server/       Admin SDK providers used by apps/functions
+│   │   └── src/recipe/         recipe import: fetch, cache, callable work (decision-15); pure/ parsing held to core-purity
 │   ├── providers-memory/       in-memory sign-in and sync for the demo build, never in a real release (decision-12)
 │   └── ui/                     shared component library, presentational only (R26, R38)
 │       ├── .storybook/         browser Storybook config: screen sizes, iOS/Android switch (R64)
