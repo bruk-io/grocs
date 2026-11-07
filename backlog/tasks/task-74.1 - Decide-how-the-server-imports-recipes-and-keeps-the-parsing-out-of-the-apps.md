@@ -1,11 +1,11 @@
 ---
 id: TASK-74.1
 title: Decide how the server imports recipes and keeps the parsing out of the apps
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 01:12'
+updated_date: '2026-11-07 01:20'
 labels:
   - size-1
   - providers
@@ -107,4 +107,6 @@ Exit status 1
 ```
 
 Review (philosophy:reviewer, 2026-11-06): all five criteria met and ticked. #1-#4 are answered in decision-15 (accepted), and #5 by filing TASK-74.6. The decision's repo claims were checked and hold: import-layers.ts keys its table by layer only, so app may import any provider (unitOf already names the app). core-purity covers only packages/core/src. No app imports providers-server; the one mention is a comment in providers-firebase/src/kitchen-gateway.emulator.test.ts. The kitchen-gateway shape (port, providers-firebase client, providers-server work, callables in apps/functions/src/index.ts) is as described. Full-tier check: the visual step failed with a Storybook openStory timeout (tools/visual.ts). Visual baselines are compared on Linux only, and this task changed no code, so it does not bear on this design task. NOT CLOSED: board-check close reports the task file has never been committed, and this review may not commit (fix/invite-preview belongs to another session). To close: commit the TASK-74 board files on main, then run close-task TASK-74.1. Findings, none filed: (low) decision-15 remembers 'unreachable' for a day, so a transient outage blocks a URL for 24h; the decision accepts this in Consequences.
+
+Closed by philosophy:reviewer's verdict (independent of the work): all five criteria met by decision-15, accepted by Bruk 2026-11-07; repo claims verified (import-layers keyed by layer only, core-purity covers only packages/core/src, no app imports providers-server); doc-1 update filed as TASK-74.6. Findings: one low - an unreachable URL is blocked for a day - accepted in decision-15's consequences, no follow-up. Full check failed only at a macOS Storybook openStory timeout in tools/visual.ts; this task changed no code.
 <!-- SECTION:NOTES:END -->
