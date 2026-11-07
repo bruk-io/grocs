@@ -197,6 +197,20 @@ describe('createLiveFetchPage', () => {
     expect(await fetchPage('http://[2606:4700::1]/recipe')).toEqual({ kind: 'page', html: 'ok' });
   });
 
+  it('refuses a redirect carrying userinfo as unreachable, and never connects to it', async () => {
+    // A different host for the redirect target than the start URL, so without the guard the
+    // fetcher would actually reach the 200 below instead of merely redirect-looping: the
+    // assertion on the result, not just on the call count, depends on the fix.
+    const { transport, calls } = stubTransport(async (url) =>
+      url.hostname === 'example.com'
+        ? page(302, { location: 'https://user:pass@other.example.com/x' }, textBody(''))
+        : page(200, { 'content-type': 'text/html' }, textBody('should not be reached')),
+    );
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([[PUBLIC_V4]]) });
+    expect(await fetchPage('https://example.com/recipe')).toEqual({ kind: 'failed', error: 'unreachable' });
+    expect(calls).toHaveLength(1); // the redirect target carrying credentials is never connected to
+  });
+
   it('refuses a redirect to a non-default port as unreachable', async () => {
     const { transport } = stubTransport(async (url) =>
       url.hostname === 'example.com'

@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:35'
+updated_date: '2026-11-07 03:43'
 labels:
   - size-3
   - layer-providers
@@ -95,4 +95,18 @@ checks passed (16 checks, staged mode, 683 ms)
 
 $ mise exec -- node tools/checks/run.ts   (whole repo, all mode)
 checks passed (16 checks, all mode, 482 ms)
+
+Review follow-up (address review findings):
+
+1. BLOCKING - userinfo on a redirect hop (fixed). Added `if (current.username !== '' || current.password !== '') return failed('unreachable');` to the per-hop guard in fetch-page.ts, right after isAllowedTarget, so it applies on every hop including the first. Added a stub-transport test: a 302 to `https://user:pass@other.example.com/x` (a different host than the start URL, so the fix is proven by the result, not only the call count) gives `{kind:'failed', error:'unreachable'}` and the transport is called once. Verified red-without-fix: temporarily removed the guard line and reran just that test - it failed with `calls` length 6 (redirect-looped to maxRedirects instead of refusing), confirming the test catches the regression. Restored the fix and reran the full suite green.
+
+2. RECOMMENDED - resource leak (fixed). `controller.abort()` now runs in the `finally` after `clearTimeout(timer)`, so every request this call started (an open redirect hop, or a response body never fully read because of a non-HTML Content-Type or the maxBytes cap) is destroyed at the end of the call instead of waiting on the remote end. Also added `if (controller.signal.aborted) return failed('unreachable')` right after the body-read loop, so a transport/body that ignores the abort signal still can't slip the deadline past the caller. Did not additionally release each earlier redirect hop's response as soon as a later hop starts (the reviewer's "also consider"): the end-of-call abort already bounds the leak to the lifetime of one fetchPage() call, and releasing hop-by-hop would add complexity for a 5-hop-max chain inside a 10s deadline. Also attached a no-op `res.on('error', () => {})` in the default transport: the abort can land after a body is no longer being iterated (unread redirect/non-HTML body), and an 'error' event with no listener on an already-settled stream would otherwise surface as an unhandled exception unrelated to the actual fetch outcome; the for-await loop's own try/catch still handles an in-flight body error normally.
+
+3. NOTE - header case (documented, not blocking). Added a doc comment on RawResponse.headers: "Keys are lowercase (as node:http/https already deliver them); the fetcher looks up 'location' and 'content-type' verbatim."
+
+Checks after the fixes:
+- `mise exec -- pnpm exec vitest run --project unit packages/providers-` -> Test Files 12 passed (12), Tests 204 passed (204)
+- `mise exec -- pnpm -s typecheck` -> passes with no output (tsc --noEmit clean)
+
+Files touched: packages/providers-server/src/recipe/fetch-page.ts, packages/providers-server/src/recipe/fetch-page.test.ts
 <!-- SECTION:NOTES:END -->

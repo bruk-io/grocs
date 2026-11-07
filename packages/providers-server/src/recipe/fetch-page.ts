@@ -51,6 +51,7 @@ export function createGuardedLookup(resolve: ResolveHost): LookupFunction {
 
 export interface RawResponse {
   readonly status: number;
+  /** Keys are lowercase (as node:http/https already deliver them); the fetcher looks up 'location' and 'content-type' verbatim. */
   readonly headers: Readonly<Record<string, string>>;
   readonly body: AsyncIterable<Uint8Array>;
 }
@@ -135,6 +136,11 @@ const defaultTransport: Transport = (url, init) =>
         if (value === undefined) continue;
         headers[key] = Array.isArray(value) ? value.join(', ') : value;
       }
+      // A no-op listener, not a swallow: the fetcher's for-await still rejects (and is caught)
+      // when the body errors mid-read. This only stops an 'error' emitted after the body is no
+      // longer being iterated (an unread redirect/non-HTML body, or one abandoned by the
+      // finally's abort) from becoming an unhandled exception that has nothing to do with it.
+      res.on('error', () => {});
       resolve({ status: res.statusCode ?? 0, headers, body: res });
     });
     req.on('error', reject);
@@ -172,6 +178,7 @@ export function createLiveFetchPage(options: LiveFetchOptions = {}): FetchPage {
       let redirectsFollowed = 0;
       for (;;) {
         if (!isAllowedTarget(current)) return failed('unreachable');
+        if (current.username !== '' || current.password !== '') return failed('unreachable');
         const literal = literalAddress(current.hostname);
         if (literal !== null && !isPublicAddress(literal)) return failed('unreachable');
 
@@ -212,11 +219,18 @@ export function createLiveFetchPage(options: LiveFetchOptions = {}): FetchPage {
         } catch {
           return failed('unreachable');
         }
+        // A body iterable that ignores the abort signal (e.g. a stub) must not slip the deadline
+        // past the caller: if the shared controller fired while this body was read, the hop lost.
+        if (controller.signal.aborted) return failed('unreachable');
 
         return { kind: 'page', html: decode(concatBytes(chunks, total), charsetOf(contentType)) };
       }
     } finally {
       clearTimeout(timer);
+      // Destroys every request this call started (including an open redirect hop or a response
+      // whose body was never fully read) rather than leaving its socket open until the remote end
+      // closes it.
+      controller.abort();
     }
   };
 }
