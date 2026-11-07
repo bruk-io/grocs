@@ -11,6 +11,7 @@ import { check as importLayers } from './import-layers.ts';
 import { check as mergeConflictMarkers } from './merge-conflict-markers.ts';
 import { check as portContracts } from './port-contracts.ts';
 import { check as referenceBuilt } from './reference-built.ts';
+import { check as sampleData } from './sample-data.ts';
 import { check as storyCoverage } from './story-coverage.ts';
 import { check as svgArt } from './svg-art.ts';
 import { check as testPresence } from './test-presence.ts';
@@ -33,4 +34,5 @@ export const checks: readonly Check[] = [
   uiLibrary,
   visualBaselines,
   e2eFlows,
+  sampleData,
 ];

@@ -13,7 +13,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** JoinInviteInvalid. */
+/** A code that did not match, after the first attempt. */
 export const Invalid: Story = {
   args: { inviter: 'Alex', errorMessage: 'That code is not a match. Check it with Alex, or ask for a fresh link.' },
 };

@@ -48,7 +48,7 @@ export function KitchenSetupScreen({ app, email, onReady }: { app: App; email: s
           ? {
               inviteCode: created.inviteCode,
               inviteStatus: { kind: 'waiting' as const, message: 'Waiting for your partner to join' },
-              onShare: () => void Share.share({ message: inviteMessage(created.inviteCode) }),
+              onShare: () => void Share.share({ message: inviteMessage(created.inviteCode, { kitchen: name }) }),
               onCopy: () => void app.copyText(created.inviteCode),
               onStart: () => onReady(created.kitchenId),
             }

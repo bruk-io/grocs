@@ -4,8 +4,8 @@ import { MealPlanTemplate, Text } from '@grocs/ui';
 import { visibleItems, weekIdFor } from '@grocs/core';
 import type { Item, Meal } from '@grocs/core';
 import type { App } from '../composition/compose-app.ts';
-import { household } from '../sample/sample-data.ts';
 import { useGo } from './navigate.ts';
+import { avatarsFor, useKitchenInfo } from './use-kitchen-info.ts';
 import { mealTone, weekDays, weekLabelFor } from './week-days.ts';
 
 export interface PlanScreenProps {
@@ -13,7 +13,7 @@ export interface PlanScreenProps {
   kitchenId: string;
 }
 
-/** The week's meals (R5-R8): MealPlanTemplate fed by watchWeekMeals. Household avatars stay sample for now (TASK-27's territory). */
+/** The week's meals (R5-R8): MealPlanTemplate fed by watchWeekMeals. The avatars are the kitchen's real members (TASK-58). */
 export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
   const go = useGo();
   const [weekOffset, setWeekOffset] = useState(0);
@@ -25,6 +25,7 @@ export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
   const [meals, setMeals] = useState<readonly Meal[]>([]);
   const [items, setItems] = useState<readonly Item[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const kitchen = useKitchenInfo(app, kitchenId);
 
   useEffect(
     () =>
@@ -62,7 +63,7 @@ export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
       <MealPlanTemplate
         title={weekOffset === 0 ? 'This week' : 'That week'}
         weekLabel={weekLabelFor(viewedAt)}
-        members={household}
+        members={avatarsFor(kitchen)}
         days={planDays}
         toBuy={toBuy}
         onSettings={go.settings}

@@ -7,6 +7,7 @@ import { GroceryListTemplate } from '@grocs/ui';
 import type { ListItem } from '@grocs/ui';
 import type { App } from '../composition/compose-app.ts';
 import { useGo } from './navigate.ts';
+import { avatarsFor, useKitchenInfo } from './use-kitchen-info.ts';
 import { mealTone, todayId, weekDays, weekLabelFor } from './week-days.ts';
 
 export interface GroceriesScreenProps {
@@ -33,6 +34,7 @@ const toListItem = (item: Item, weekMeals: readonly { id: string; name: string; 
  * no sections, meal badges or who-added yet, so the things to buy sit in one section and carry none of those.
  */
 export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
+  const kitchen = useKitchenInfo(app, kitchenId);
   const go = useGo();
   const weekId = useMemo(() => weekIdFor(app.now()), [app]);
   const days = useMemo(() => weekDays(app.now()).days, [app]);
@@ -105,7 +107,7 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   return (
     <GroceryListTemplate
       weekLabel={weekLabelFor(app.now())}
-      members={[]}
+      members={avatarsFor(kitchen)}
       layout={inner ? 'inner' : 'phone'}
       rail={{
         activeSection: 'groceries',

@@ -1,4 +1,5 @@
-// Sample content for the screens until their slices bring real data: what each reference screen shows (R40, R66).
+// Sample content for the demo build (decision-12) and the development-only /groceries-samples route: what each
+// reference screen shows (R40, R66). No real screen reads it; the real app shows only the kitchen's own data.
 import type { ListItem, PlanDay, StackMember } from '@grocs/ui';
 
 /** Alex and Sam; Sam is in the app now. */
@@ -68,19 +69,4 @@ export const meals = [
   { id: 'chana', label: 'Chana masala', tone: 'amber' },
   { id: 'chicken', label: 'Sheet-pan chicken', tone: 'sky' },
   { id: 'pizza', label: 'Pizza night', tone: 'tomato' },
-] as const;
-
-export const suggestions = [
-  { id: 's1', name: 'Eggs', detail: 'Dairy & eggs · usually 1 dozen' },
-  { id: 's2', name: 'Egg noodles', detail: 'Pantry' },
-  { id: 's3', name: 'Eggplant', detail: 'Produce' },
-] as const;
-
-export const oftenBought = [
-  { id: 'f1', label: 'Bananas' },
-  { id: 'f2', label: 'Limes' },
-  { id: 'f3', label: 'Coffee beans' },
-  { id: 'f4', label: 'Greek yogurt' },
-  { id: 'f5', label: 'Sourdough loaf' },
-  { id: 'f6', label: 'Baby spinach' },
 ] as const;

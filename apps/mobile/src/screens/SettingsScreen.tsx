@@ -3,6 +3,7 @@ import type { User } from '@grocs/ports';
 import { PreferencesTemplate } from '@grocs/ui';
 import { useNativeApp } from '../app-context.tsx';
 import { useGo } from './navigate.ts';
+import { partnerNameOf, useMyKitchenInfo } from './use-kitchen-info.ts';
 
 /**
  * Settings. Sign out ends the session and leads to Welcome; Copy diagnostics puts the header and the
@@ -14,6 +15,7 @@ export function SettingsScreen() {
   const { app, diagnostics } = useNativeApp();
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => app.watchSession(setUser), [app]);
+  const kitchen = useMyKitchenInfo(app);
 
   const signOut = () => {
     // A failed sign-out is logged by the instrumented auth port; the member stays where they are.
@@ -27,8 +29,8 @@ export function SettingsScreen() {
     <PreferencesTemplate
       name={user?.displayName ?? user?.email ?? 'You'}
       email={user?.email ?? ''}
-      kitchen="Our kitchen" // the app has no read of the kitchen's name yet; this is the name every kitchen starts with
-      partnerName="your partner"
+      kitchen={kitchen?.name ?? ''}
+      partnerName={partnerNameOf(kitchen) ?? 'your partner'}
       notificationsUnavailable="Coming soon" // push opt-in is TASK-1.29, which wires the real toggle
       onBack={go.groceries}
       onCopyDiagnostics={copyDiagnostics}
