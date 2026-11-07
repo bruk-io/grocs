@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:38'
+updated_date: '2026-11-07 04:45'
 labels:
   - size-3
   - layer-providers
@@ -126,4 +126,36 @@ AC#4 (`mise exec -- pnpm -s typecheck`, repo-wide):
   Test Files  17 passed (17)
        Tests  294 passed (294)
 FirestoreRecipeCache is exported from packages/providers-server/src/index.ts.
+
+Review findings addressed (commit 26e24a0):
+
+1. invalid-url test: wrapped FirestoreRecipeCache in a recording RecipeCache (logs every
+   getRecipe/getSource/getFailure/saveRecipe/saveFailure call) and asserted the log is empty,
+   not just that fetchPage was never called and the result matched. Now the test actually fails
+   if importRecipe/any cache implementation were to write under a fixed key for invalid-url.
+
+2. Added "getSource round-trips a nested-array jsonLd shape (HowToSection.itemListElement)":
+   saves a CachedSource whose jsonLd nests itemListElement arrays inside the outer
+   recipeInstructions array, asserts the raw recipeSources doc stores jsonLd as a string, and
+   that cache.getSource(key) deep-equals the original jsonLd object. This is the one case §11's
+   deviation note exists for and previously had no test writing that shape to Firestore.
+
+3. firestore-recipe-cache.ts: replaced the hand-written `ReadonlySet<string>` copy of
+   RecipeImportError with `const RECIPE_IMPORT_ERRORS = {...} as const satisfies
+   Record<RecipeImportError, true>`, checked with `Object.hasOwn`. A new RecipeImportError kind
+   added to core without a matching key here is now a compile error instead of a silent miss in
+   decodeFailureDoc.
+
+4. "a source re-parse equals the stored recipe": now reads back recipes/{key} from Firestore and
+   compares the re-parsed jsonLd against that stored doc's `recipe` field (minus recipeId/
+   sourceUrl), instead of comparing against importRecipe's in-memory result.value. Proves the
+   on-disk recipes/{key} and recipeSources/{key} agree after the round trip.
+
+Checks run from the worktree:
+- `mise exec -- pnpm exec vitest run --project unit packages/providers-`: 17 files / 294 tests
+  passed.
+- `mise exec -- pnpm -s typecheck`: clean (tsc --noEmit, no errors).
+- `mise exec -- pnpm exec firebase emulators:exec --only firestore,auth,functions --project
+  demo-grocs "pnpm exec vitest run --project emulator packages/providers-server/src/recipe/recipe-cache.emulator.test.ts"`:
+  1 file / 12 tests passed (was 10 tests before adding the nested-array getSource test).
 <!-- SECTION:NOTES:END -->
