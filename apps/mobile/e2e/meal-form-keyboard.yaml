@@ -1,0 +1,47 @@
+# TASK-73: on a task screen the action bar stays above the keyboard, and one tap on it works while
+# the keyboard is open. Alex types a meal and taps Add to <day> rather than the return key.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: alex
+  MEAL: "E2E keyboard soup ${RUN_ID}"
+---
+- runFlow: subflows/sign-in.yaml
+- tapOn: "Meal plan"
+- extendedWaitUntil:
+    visible: "Next week"
+    timeout: 10000
+- repeat:
+    times: 8
+    while:
+      notVisible: "Plan a meal"
+    commands:
+      - tapOn: "Next week"
+- tapOn:
+    text: "Plan a meal"
+    index: 0
+- extendedWaitUntil:
+    visible: "Add a meal"
+    timeout: 10000
+- tapOn: "What are you making?"
+- inputText: "${MEAL}"
+- waitForAnimationToEnd
+- takeScreenshot: meal-form-keyboard-open
+- tapOn: "Add to .*"
+- extendedWaitUntil:
+    visible: "This week|Week of.*"
+    timeout: 10000
+# Saving returns the plan to the current week (TASK-75), so step forward until the meal shows.
+- repeat:
+    times: 8
+    while:
+      notVisible: "${MEAL}"
+    commands:
+      - tapOn: "Next week"
+- extendedWaitUntil:
+    visible: "${MEAL}"
+    timeout: 10000
+- tapOn: "${MEAL}"
+- tapOn: "Remove meal"
+- extendedWaitUntil:
+    notVisible: "${MEAL}"
+    timeout: 10000

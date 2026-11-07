@@ -1,0 +1,39 @@
+# TASK-61: with the keyboard open, the first tap on Add adds the item instead of only closing the
+# keyboard. Jo's kitchen starts empty, so Groceries offers Add an item, which opens quick add.
+appId: io.bruk.grocs.dev
+env:
+  ACCOUNT: jo
+  ITEM: "E2E first tap ${RUN_ID}"
+---
+- runFlow: subflows/sign-in.yaml
+- extendedWaitUntil:
+    visible: "Nothing on the list yet"
+    timeout: 10000
+- tapOn:
+    text: "Add an item"
+    below: "Nothing on the list yet"
+- extendedWaitUntil:
+    visible: "Paste a few items at once, one per line."
+    timeout: 10000
+- tapOn:
+    text: "Add an item"
+    leftOf: "Add"
+- inputText: "${ITEM}"
+- waitForAnimationToEnd
+- takeScreenshot: quick-add-keyboard-open
+# One tap, with the keyboard still up.
+- tapOn: "Add"
+- tapOn: "Groceries"
+- extendedWaitUntil:
+    visible: "${ITEM}"
+    timeout: 10000
+- tapOn:
+    text: "${ITEM}"
+    index: 0
+- extendedWaitUntil:
+    visible: "In the cart"
+    timeout: 10000
+- tapOn: "Clear the cart"
+- extendedWaitUntil:
+    notVisible: "${ITEM}"
+    timeout: 10000

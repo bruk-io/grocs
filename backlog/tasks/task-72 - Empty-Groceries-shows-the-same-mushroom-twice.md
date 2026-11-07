@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 00:25'
-updated_date: '2026-11-07 13:49'
+updated_date: '2026-11-07 13:58'
 labels:
   - size-1
   - ui
@@ -96,4 +96,50 @@ Error: Could not start Authentication Emulator, port taken.
 ```
 
 Reviewed by philosophy:reviewer: not closed. AC #1 is met on the evidence (behaviour test, baseline from run 42376447534, simulator shot 7-empty-groceries: one mushroom). close-task refuses: a bug closes with its repro recorded (record-check <id> --repro -- <test>, which must fail, so it has to be recorded against the pre-fix code by the worker), or a note starting 'No repro:'. The notes say the test failed without the fix, but no repro was recorded. Low: MainHeader.mascot became optional for every caller.
+
+Repro at 8c8b471d2bb5, test files: packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx; command: `npx vitest run packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx -t 'with nothing on the list'` exited 1
+
+```text
+
+ RUN  v4.1.12 /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items
+
+stderr | packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx > GroceryListTemplate > with nothing on the list shows the empty list and adds an item from it
+Received `false` for a non-boolean attribute `accessible`.
+
+If you want to write it to the DOM, pass a string instead: accessible="false" or accessible={value.toString()}.
+
+If you used to conditionally omit it with accessible={condition && value}, pass accessible={condition ? value : undefined} instead.
+React does not recognize the `accessibilityElementsHidden` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `accessibilityelementshidden` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+React does not recognize the `importantForAccessibility` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `importantforaccessibility` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+
+ ❯ |ui| packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx (16 tests | 1 failed | 15 skipped) 89ms
+     × with nothing on the list shows the empty list and adds an item from it 88ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |ui| packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx > GroceryListTemplate > with nothing on the list shows the empty list and adds an item from it
+AssertionError: expected [ <button …(5)>…(1)</button>, …(1) ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx:77:75
+     75|     expect(screen.getByText('Nothing on the list yet')).toBeTruthy();
+     76|     expect(screen.queryByText('All done!')).toBeNull();
+     77|     expect(screen.getAllByRole('button', { name: /tap to hear a line/ …
+       |                                                                           ^
+     78|     await user.click(screen.getByRole('button', { name: 'Add an item' …
+     79|     expect(onAddItem).toHaveBeenCalledExactlyOnceWith();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 skipped (16)
+   Start at  08:58:53
+   Duration  1.28s (transform 601ms, setup 10ms, import 954ms, tests 89ms, environment 157ms)
+```
 <!-- SECTION:NOTES:END -->
