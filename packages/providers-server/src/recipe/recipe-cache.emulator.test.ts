@@ -12,6 +12,38 @@ import { importRecipe } from './import-recipe.ts';
 import { normaliseRecipeUrl } from './pure/normalise-url.ts';
 import { parseRecipeJsonLd } from './pure/recipe-schema.ts';
 import { recipeKey } from './recipe-key.ts';
+import type { CachedFailure, CachedRecipe, CachedSource, RecipeCache } from './recipe-cache.ts';
+
+/** Wraps a real RecipeCache and logs every method call, so a test can assert the cache was (or was
+ * not) touched at all - not just that a particular collection ended up empty. */
+function recordingCache(cache: RecipeCache): { readonly cache: RecipeCache; readonly log: string[] } {
+  const log: string[] = [];
+  return {
+    log,
+    cache: {
+      async getRecipe(key: string) {
+        log.push(`getRecipe:${key}`);
+        return cache.getRecipe(key);
+      },
+      async getSource(key: string) {
+        log.push(`getSource:${key}`);
+        return cache.getSource(key);
+      },
+      async getFailure(key: string) {
+        log.push(`getFailure:${key}`);
+        return cache.getFailure(key);
+      },
+      async saveRecipe(key: string, recipe: CachedRecipe, source: CachedSource) {
+        log.push(`saveRecipe:${key}`);
+        return cache.saveRecipe(key, recipe, source);
+      },
+      async saveFailure(key: string, failure: CachedFailure) {
+        log.push(`saveFailure:${key}`);
+        return cache.saveFailure(key, failure);
+      },
+    },
+  };
+}
 
 function normalise(url: string): string {
   const result = normaliseRecipeUrl(url);
@@ -153,7 +185,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
 
   it('invalid-url stores nothing in any of the three collections', async () => {
     const db = adminFirestore();
-    const cache = new FirestoreRecipeCache(db);
+    const { cache, log } = recordingCache(new FirestoreRecipeCache(db));
     const url = 'not a url at all';
     const { fetchPage, calls } = makeFetchPage({});
 
@@ -161,7 +193,9 @@ describe('FirestoreRecipeCache (emulator)', () => {
     expect(result).toEqual({ ok: false, error: 'invalid-url' });
     expect(calls).toEqual([]);
     // invalid-url has no key (recipeKey needs an already-normalised URL), so there is nothing to
-    // read back by key; the proof is that the cache (and fetchPage) were never touched at all.
+    // read back by key; the proof is that the cache (and fetchPage) were never touched at all -
+    // the recording cache's log, not just the result, is what proves it.
+    expect(log).toEqual([]);
   });
 
   it('a source re-parse equals the stored recipe', async () => {
@@ -176,6 +210,10 @@ describe('FirestoreRecipeCache (emulator)', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('unreachable');
 
+    const recipeDoc = await readRaw(db, `recipes/${key}`);
+    const storedRecipe = recipeDoc!.recipe as Record<string, unknown>;
+    const { recipeId: _recipeId, sourceUrl: _sourceUrl, ...storedContent } = storedRecipe;
+
     const sourceDoc = await readRaw(db, `recipeSources/${key}`);
     const jsonLd = JSON.parse(sourceDoc!.jsonLd as string);
     const reparsed = parseRecipeJsonLd(jsonLd);
@@ -183,8 +221,48 @@ describe('FirestoreRecipeCache (emulator)', () => {
     if (!reparsed.ok) throw new Error('unreachable');
     // The recipe this test's fixture produces has no image, so resolveImage's absolute-URL
     // resolution (import-recipe.ts, done once between parse and store) never fires here; a
-    // re-parse of the stored jsonLd is directly comparable to the stored recipe's content.
-    expect(reparsed.value).toEqual({ title: result.value.title, yield: result.value.yield, steps: result.value.steps, ingredients: result.value.ingredients, image: result.value.image });
+    // re-parse of the stored jsonLd is directly comparable to the stored recipe doc's content.
+    // Comparing against the Firestore-read document (not result.value, importRecipe's in-memory
+    // return) proves the round trip through recipes/{key} and recipeSources/{key} still agrees.
+    expect(reparsed.value).toEqual(storedContent);
+  });
+
+  it('getSource round-trips a nested-array jsonLd shape (HowToSection.itemListElement)', async () => {
+    const db = adminFirestore();
+    const cache = new FirestoreRecipeCache(db);
+    const url = 'https://recipe.invalid/fsrc-nested-sections';
+    const normalised = normalise(url);
+    const key = recipeKey(normalised);
+
+    const jsonLd = {
+      '@type': 'Recipe',
+      name: 'Nested Sections Soup',
+      recipeIngredient: ['1 cup broth'],
+      recipeInstructions: [
+        {
+          '@type': 'HowToSection',
+          name: 'Prep',
+          itemListElement: [
+            { '@type': 'HowToStep', text: 'Chop the vegetables.' },
+            { '@type': 'HowToStep', text: 'Measure the broth.' },
+          ],
+        },
+        { '@type': 'HowToStep', text: 'Boil it.' },
+      ],
+    };
+
+    await cache.saveRecipe(
+      key,
+      { url: normalised, recipe: { recipeId: key, sourceUrl: normalised, title: 'Nested Sections Soup', yield: null, steps: ['Chop the vegetables.', 'Measure the broth.', 'Boil it.'], ingredients: [], image: null }, parserVersion: 1, fetchedAt: 1 },
+      { url: normalised, jsonLd, fetchedAt: 1 },
+    );
+
+    const sourceDoc = await readRaw(db, `recipeSources/${key}`);
+    expect(typeof sourceDoc!.jsonLd).toBe('string');
+
+    const got = await cache.getSource(key);
+    expect(got).not.toBeNull();
+    expect(got!.jsonLd).toEqual(jsonLd);
   });
 
   it('an undecodable doc reads as null (a miss), not a thrown error', async () => {

@@ -32,14 +32,16 @@ interface FailureDocShape {
   readonly failedAt: number;
 }
 
-const RECIPE_IMPORT_ERRORS: ReadonlySet<string> = new Set([
-  'invalid-url',
-  'not-found',
-  'blocked',
-  'unreachable',
-  'not-a-recipe',
-  'incomplete-recipe',
-]);
+/** A compile-time tie to core's RecipeImportError union: a new error kind added there without a
+ * matching key here is a type error (`satisfies`), not a silently-dropped decode. */
+const RECIPE_IMPORT_ERRORS = {
+  'invalid-url': true,
+  'not-found': true,
+  'blocked': true,
+  'unreachable': true,
+  'not-a-recipe': true,
+  'incomplete-recipe': true,
+} as const satisfies Record<RecipeImportError, true>;
 
 function isParsedRecipe(value: unknown): value is ParsedRecipe {
   if (typeof value !== 'object' || value === null) return false;
@@ -86,7 +88,7 @@ function decodeSourceDoc(data: Record<string, unknown> | undefined): CachedSourc
 function decodeFailureDoc(data: Record<string, unknown> | undefined): CachedFailure | null {
   if (!data) return null;
   if (data.schemaVersion !== SCHEMA_VERSION) return null;
-  if (typeof data.error !== 'string' || !RECIPE_IMPORT_ERRORS.has(data.error)) return null;
+  if (typeof data.error !== 'string' || !Object.hasOwn(RECIPE_IMPORT_ERRORS, data.error)) return null;
   if (typeof data.failedAt !== 'number') return null;
   return { error: data.error as RecipeImportError, failedAt: data.failedAt };
 }
