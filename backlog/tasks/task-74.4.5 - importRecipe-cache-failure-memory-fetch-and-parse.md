@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:55'
+updated_date: '2026-11-07 04:06'
 labels:
   - size-3
   - layer-providers
@@ -94,4 +94,63 @@ $ tsc --noEmit
 (no output, exit 0)
 
 Modified/added files: packages/providers-server/src/recipe/recipe-key.ts, packages/providers-server/src/recipe/recipe-key.test.ts, packages/providers-server/src/recipe/recipe-cache.ts, packages/providers-server/src/recipe/import-recipe.ts, packages/providers-server/src/recipe/import-recipe.test.ts, packages/providers-server/src/index.ts
+
+Review findings addressed (2026-11-07, round 2):
+
+1. resolveImage trailing-slash bug (fixed): resolveImage's base is now the trimmed *raw request
+   URL* (`requestedUrl = url.trim()`), not the normalised one. normaliseRecipeUrl strips every
+   trailing slash (contract §9 step 4), which was moving `new URL(image, base)`'s resolution up one
+   directory whenever the page's own address ended in '/'. No contract change was needed: fetchPage
+   still receives the normalised URL (pageUrl) exactly as before, and FetchedPage is unchanged - only
+   the base passed into the local resolveImage() changed. Covered by a new test with a trailing-slash
+   page URL and a relative image, verifying the image resolves under the page's own directory.
+
+2. New contract-owner finding (not in the review, found while fixing #1): the resolution base (the
+   raw request URL) is not part of the cache key and is not persisted anywhere. recipeKey is computed
+   from the normalised URL, so two different raw URLs that normalise to the same key (one with a
+   trailing slash, one without; one with a tracking param, one without; different host casing) will
+   both hit the same cached recipe doc, but whichever is fetched *first* determines the image that
+   gets cached and returned to both. The cached recipe's image cannot be reconstructed from the
+   cached source (jsonLd) plus the stored url alone, because the raw form that produced it isn't
+   stored. This is a real (if narrow) trade-off of the trailing-slash fix; flagging it for the
+   contract owner rather than shipping it silently.
+
+3. AC#10 test (fixed, and limit documented): TASK-74 AC#10 ("parseRecipeJsonLd(cached source jsonLd)
+   equals the cached recipe content") no longer holds in general after the 2026-11-07 image
+   amendment, and not only because an extra resolution step is needed. The test now rebuilds the
+   recipe from the re-parsed jsonLd plus `resolveImage(reparsed.value.image, cachedSource.url)` and
+   compares field-for-field against the cached recipe (recipeId/sourceUrl excluded, since those are
+   recomputed from the key/url rather than reproduced by re-parsing). That rebuild only reproduces
+   the cached image when the raw request URL and its normalised form are identical (true of the
+   fixture used, PAGE_URL has no trailing slash/tracking params/casing differences) - per finding #2,
+   it is not true in general (see the trailing-slash test, which caches an image this rebuild could
+   not reproduce for that URL). Recorded in the test's comment for whoever next touches this.
+
+4. Undecodable-doc test (addressed per the non-blocking option offered): from importRecipe's side, a
+   doc that failed to decode and a key nothing was ever stored under are the identical
+   `Promise<... | null>` - there is no signal available to this function to tell them apart. Updated
+   the test's comment to say so plainly rather than claim separate coverage; it exercises the same
+   path as the plain-miss test. Decoding itself is TASK-74.4.6's concern (the Firestore provider).
+
+5. Single deps.now() (fixed): `fetchedAt` is now computed once into a local and reused for both
+   cachedRecipeDoc and cachedSourceDoc, so saveRecipe's one batch write (contract §10) can no longer
+   record two different fetchedAt values for the two docs.
+
+6. Scope beyond the review (flagged, not asked for): added `image === '' -> null` to resolveImage.
+   Per WHATWG URL resolution, `new URL('', base)` returns `base` itself; since the base is now the
+   raw request URL rather than the normalised/tracking-stripped one (per fix #1), an unresolved empty
+   `image` string (recipe-schema.ts's resolveImageEntry passes a literal '' through unchanged, it
+   does not coerce it to null) would otherwise have written the raw request URL - tracking query
+   params included - into the cached recipe's image field. Added a test with a tracking-tagged
+   request URL and an empty image, asserting null rather than the leaked URL. This is my own addition
+   on top of what the review asked for; flagging it explicitly in case the contract owner wants it
+   handled differently (e.g. stripped search/hash from the base instead of rejecting empty images
+   outright - a fragment-only or query-only image would still inherit the raw query the same way;
+   not fixed here as it wasn't part of the reported findings and no realistic recipe site was seen to
+   emit one).
+
+Checks run after all fixes, from the worktree:
+- `mise exec -- pnpm exec vitest run --project unit packages/providers-` -> 17 test files, 284 tests,
+  all passing (22 in import-recipe.test.ts, up from 20: the trailing-slash and empty-image tests).
+- `mise exec -- pnpm -s typecheck` -> clean (`tsc --noEmit`, no output).
 <!-- SECTION:NOTES:END -->

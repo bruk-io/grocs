@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { RecipeImportError } from '@grocs/core';
 import type { FetchedPage, FetchPage } from './fetch-page.ts';
-import { FAILURE_MEMORY_MS, importRecipe } from './import-recipe.ts';
+import { FAILURE_MEMORY_MS, importRecipe, resolveImage } from './import-recipe.ts';
 import { normaliseRecipeUrl } from './pure/normalise-url.ts';
-import { PARSER_VERSION, parseRecipeJsonLd, parseRecipePage } from './pure/recipe-schema.ts';
+import { PARSER_VERSION, parseRecipeJsonLd } from './pure/recipe-schema.ts';
 import { recipeKey } from './recipe-key.ts';
 import type { CachedFailure, CachedRecipe, CachedSource, RecipeCache } from './recipe-cache.ts';
 
@@ -211,6 +211,13 @@ describe('importRecipe', () => {
     expect(cache.failures.get(key)).toEqual({ error: 'incomplete-recipe', failedAt: 5_000 });
   });
 
+  // AC#2 lists "an undecodable cached doc is treated as a miss" as its own behaviour, but from
+  // importRecipe's side there is nothing to distinguish: RecipeCache.getRecipe/getFailure return
+  // Promise<... | null>, so a doc that failed to decode and a key nothing was ever stored under are
+  // the identical null to this function - there's no separate signal it could key a different
+  // behaviour on. This test therefore exercises the exact same path as the plain-miss cache-hit-less
+  // case above; it doesn't add coverage beyond it. Decoding a stored doc into that null (or not) is
+  // the provider's job, covered in TASK-74.4.6, not here.
   it('a cache returning null for an undecodable recipe doc is treated as a miss and fetches', async () => {
     const cache = new TestRecipeCache(); // no entry for key: getRecipe resolves null, same as an undecodable doc would
     const { fetchPage, calls } = makeFetchPage({ [PAGE_URL]: { kind: 'page', html: recipeHtml('photo.jpg') } });
@@ -235,7 +242,19 @@ describe('importRecipe', () => {
     expect(result.value.sourceUrl).toBe(normalised);
   });
 
-  it('re-parsing the cached source jsonLd equals the cached recipe content (TASK-74 AC#10)', async () => {
+  // TASK-74 AC#10 says parseRecipeJsonLd(cached source jsonLd) equals the cached recipe content.
+  // Since the 2026-11-07 image amendment, that no longer holds in general, and not only because an
+  // extra resolution step is needed: resolveImage's base is the *requested* (pre-normalisation) URL
+  // (see import-recipe.ts's resolveImage doc comment), and that raw form is not persisted anywhere
+  // - only the normalised `cachedSource.url` is. So re-resolving the re-parsed image against
+  // `cachedSource.url` reproduces the cached recipe's image only when the raw request URL and its
+  // normalised form are identical (no trailing slash, no tracking params, canonical casing) - true
+  // of this fixture (PAGE_URL has none of those), but not true in general: a trailing-slash request
+  // (see the dedicated trailing-slash test below) caches an image this rebuild cannot reproduce,
+  // because the raw URL that produced it is gone. Noted in the task notes for the contract owner:
+  // AC#10's "equals the cached recipe content" no longer holds in general after the amendment, and
+  // there is no way to reproduce the cached image from the cache alone.
+  it('re-parsing the cached source jsonLd, with the image re-resolved, equals the cached recipe (TASK-74 AC#10)', async () => {
     const cache = new TestRecipeCache();
     const key = recipeKey(PAGE_URL);
     const html = recipeHtml('photo.jpg');
@@ -243,14 +262,17 @@ describe('importRecipe', () => {
 
     await importRecipe(PAGE_URL, { fetchPage, cache, now: () => 1_000 });
 
-    const parsedDirectly = parseRecipePage(html);
-    if (!parsedDirectly.ok) throw new Error('expected the fixture to parse');
-    const reparsed = parseRecipeJsonLd(cache.sources.get(key)!.jsonLd);
+    const cachedRecipe = cache.recipes.get(key)!;
+    const cachedSource = cache.sources.get(key)!;
+    const reparsed = parseRecipeJsonLd(cachedSource.jsonLd);
     if (!reparsed.ok) throw new Error('expected the stored jsonLd to re-parse');
-    expect(reparsed.value).toEqual(parsedDirectly.value.content);
+
+    const { recipeId: _recipeId, sourceUrl: _sourceUrl, ...cachedContent } = cachedRecipe.recipe;
+    const rebuilt = { ...reparsed.value, image: resolveImage(reparsed.value.image, cachedSource.url) };
+    expect(rebuilt).toEqual(cachedContent);
   });
 
-  it('resolves a relative image against the normalised page URL', async () => {
+  it('resolves a relative image against the requested page URL', async () => {
     const cache = new TestRecipeCache();
     const { fetchPage } = makeFetchPage({ [PAGE_URL]: { kind: 'page', html: recipeHtml('images/soup.jpg') } });
 
@@ -259,6 +281,23 @@ describe('importRecipe', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.value.image).toBe('https://recipe.invalid/images/soup.jpg');
+  });
+
+  // normaliseRecipeUrl strips every trailing slash (contract §9 step 4), so a page URL ending in
+  // '/' (WordPress-style permalinks do this routinely) normalises to a different, slash-less
+  // request/cache-key form. A relative image must still resolve under the page's own directory,
+  // not one normalisation moved it up to - this is the case the trailing-slash bug landed on.
+  it('resolves a relative image under the directory of a trailing-slash page URL', async () => {
+    const cache = new TestRecipeCache();
+    const trailingSlashPageUrl = 'https://recipe.invalid/recipes/soup/';
+    const requestedKey = normalise(trailingSlashPageUrl); // 'https://recipe.invalid/recipes/soup' (slash stripped)
+    const { fetchPage } = makeFetchPage({ [requestedKey]: { kind: 'page', html: recipeHtml('images/soup.jpg') } });
+
+    const result = await importRecipe(trailingSlashPageUrl, { fetchPage, cache, now: () => 1_000 });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.value.image).toBe('https://recipe.invalid/recipes/soup/images/soup.jpg');
   });
 
   it('an absolute non-http(s) image becomes null', async () => {
@@ -277,6 +316,22 @@ describe('importRecipe', () => {
     const { fetchPage } = makeFetchPage({ [PAGE_URL]: { kind: 'page', html: recipeHtml('data:image/png;base64,AAAA') } });
 
     const result = await importRecipe(PAGE_URL, { fetchPage, cache, now: () => 1_000 });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.value.image).toBeNull();
+  });
+
+  // Per WHATWG URL resolution, new URL('', base) returns base itself. Since the base is now the
+  // raw requested URL (not the normalised, tracking-stripped one), an unguarded empty image would
+  // leak the raw request's full query - including any tracking params - into the cached recipe.
+  it('an empty image string becomes null (not the raw request URL, tracking params included)', async () => {
+    const cache = new TestRecipeCache();
+    const taggedUrl = `${PAGE_URL}?utm_source=newsletter`;
+    const requestedKey = normalise(taggedUrl);
+    const { fetchPage } = makeFetchPage({ [requestedKey]: { kind: 'page', html: recipeHtml('') } });
+
+    const result = await importRecipe(taggedUrl, { fetchPage, cache, now: () => 1_000 });
 
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');

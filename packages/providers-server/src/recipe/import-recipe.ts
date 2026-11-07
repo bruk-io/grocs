@@ -20,23 +20,41 @@ export interface RecipeImportDeps {
 }
 
 /**
- * Resolves `image` (as written in the page's JSON-LD) against `pageUrl`, contract amendment
+ * Resolves `image` (as written in the page's JSON-LD) against `baseUrl`, contract amendment
  * 2026-11-07. A relative image resolves to an absolute URL; a bare `data:` URI or anything whose
  * resolved scheme isn't http(s) becomes null; an image that cannot be resolved at all (e.g. because
- * `pageUrl` is somehow not itself a valid URL) also becomes null. `image` is passed back unresolved
+ * `baseUrl` is somehow not itself a valid URL) also becomes null. `image` is passed back unresolved
  * by json-ld.ts/recipe-schema.ts; this is the only place in the import that turns it absolute.
+ *
+ * `baseUrl` must be the URL as requested (trimmed, pre-normalisation), not the normalised form:
+ * normalisation (contract §9 step 4, 2026-11-07 amendment) strips every trailing slash, which
+ * moves `new URL(image, base)`'s resolution up one path segment whenever the page's own address
+ * ends in `/` (e.g. WordPress-style permalinks). The pre-normalisation form keeps that slash, so
+ * it keeps the page's actual directory.
+ *
+ * Trade-off for the contract owner: `baseUrl` is the raw input, and the raw input is *not* part of
+ * the cache key (`recipeKey(normalised)` is). Two different raw URLs that normalise to the same key
+ * (a trailing slash, a different tracking-param, different casing) can therefore produce different
+ * stored images depending on which one happened to be fetched first; the cached recipe does not
+ * record which raw form produced it, so it isn't reproducible from the cache alone. Also, an empty
+ * `image` string resolves to `baseUrl` itself per WHATWG URL resolution, which would otherwise leak
+ * the raw URL's full query (tracking params included) into the stored image; that case is rejected
+ * below rather than resolved.
  *
  * Note for the contract owner: the amendment says to resolve against "the fetched page's final
  * URL", but FetchedPage (contract §10) carries only `{ kind: 'page'; html }` - no final URL after
- * any redirects the fetcher followed internally. The only URL available here is the normalised
- * request URL, so that is what is used. This is correct whenever the page was reached directly;
- * a relative image on a page reached through a cross-origin redirect would resolve against the
- * pre-redirect origin instead of where the page actually ended up.
+ * any redirects the fetcher followed internally. The only URL available here is the one requested,
+ * so that is what is used. This is correct whenever the page was reached directly; a relative image
+ * on a page reached through a cross-origin redirect would resolve against the pre-redirect origin
+ * instead of where the page actually ended up. The same gap applies if a server serves the page
+ * directly at the normalised (slash-stripped) path instead of 301-ing it to the slashed one: the
+ * requested URL used here is the slashed form, one directory below where that server would think
+ * the page lives.
  */
-function resolveImage(image: string | null, pageUrl: string): string | null {
-  if (image === null) return null;
+export function resolveImage(image: string | null, baseUrl: string): string | null {
+  if (image === null || image === '') return null;
   try {
-    const resolved = new URL(image, pageUrl);
+    const resolved = new URL(image, baseUrl);
     return resolved.protocol === 'http:' || resolved.protocol === 'https:' ? resolved.href : null;
   } catch {
     return null;
@@ -49,6 +67,7 @@ function resolveImage(image: string | null, pageUrl: string): string | null {
  * Never throws, and no URL or page content appears in anything it returns.
  */
 export async function importRecipe(url: string, deps: RecipeImportDeps): Promise<Result<ParsedRecipe, RecipeImportError>> {
+  const requestedUrl = url.trim();
   const normalised = normaliseRecipeUrl(url);
   if (!normalised.ok) return err(normalised.error);
   const pageUrl = normalised.value;
@@ -78,12 +97,13 @@ export async function importRecipe(url: string, deps: RecipeImportDeps): Promise
 
   const recipe: ParsedRecipe = {
     ...parsed.value.content,
-    image: resolveImage(parsed.value.content.image, pageUrl),
+    image: resolveImage(parsed.value.content.image, requestedUrl),
     recipeId: key,
     sourceUrl: pageUrl,
   };
-  const cachedRecipeDoc: CachedRecipe = { url: pageUrl, recipe, parserVersion: PARSER_VERSION, fetchedAt: deps.now() };
-  const cachedSourceDoc: CachedSource = { url: pageUrl, jsonLd: parsed.value.jsonLd, fetchedAt: deps.now() };
+  const fetchedAt = deps.now();
+  const cachedRecipeDoc: CachedRecipe = { url: pageUrl, recipe, parserVersion: PARSER_VERSION, fetchedAt };
+  const cachedSourceDoc: CachedSource = { url: pageUrl, jsonLd: parsed.value.jsonLd, fetchedAt };
   await deps.cache.saveRecipe(key, cachedRecipeDoc, cachedSourceDoc);
   return ok(recipe);
 }
