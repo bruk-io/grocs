@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:55'
+updated_date: '2026-11-07 04:58'
 labels:
   - size-2
   - layer-app
@@ -83,4 +83,27 @@ is why this file exists.
 ### Files changed
 - apps/functions/src/index.ts (added `importRecipe`)
 - apps/functions/src/import-recipe.emulator.test.ts (new)
+
+## Update: ran the emulator test directly (per advisor review)
+
+Fixed two issues found before this ran for real:
+- The seeded URL is now unique per run (`-${Date.now()}` suffix), matching AC#2's
+  "<unique>" wording and TASK-74.4.10's long-lived-emulator concern; it still has
+  no query string or trailing slash, so normaliseRecipeUrl is a fixed point on it.
+- The unauthenticated-rejection assertion now matches the proven pattern in
+  packages/providers-firebase/src/recipe-importer.emulator.test.ts (`rejects.toThrow()`)
+  instead of asserting on `.code`, which I had not verified the web SDK surfaces that way.
+
+Ran it for real, scoped to this file only:
+
+```
+mise exec -- pnpm exec firebase emulators:exec --only firestore,auth,functions --project demo-grocs \
+  'vitest run --project emulator apps/functions'
+```
+
+Result: `Test Files  1 passed (1)` / `Tests  4 passed (4)`, emulator log shows
+`{"error":"invalid-url","severity":"INFO","message":"importRecipe failed"}` for the
+'not a link' case and nothing logged for the other three - confirming AC#3's
+"logging is by error kind only, with no URL" for real, not just by typecheck.
+`pnpm -s typecheck` re-run clean after the edit.
 <!-- SECTION:NOTES:END -->

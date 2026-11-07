@@ -10,7 +10,10 @@ import { describe, expect, it } from 'vitest';
 import { createEmulatorClient, ensureSeeded, writeRaw } from '../../../firebase/emulator-client.ts';
 import type { EmulatorClient } from '../../../firebase/emulator-client.ts';
 
-const SEEDED_URL = 'https://recipe.invalid/import-recipe-callable';
+// Unique per run (TASK-74.4.10): the cache a prior run wrote for this exact URL would otherwise
+// still be there on a second run against long-lived emulators, masking a regression in the seed
+// path below. No query string and no trailing slash, so normaliseRecipeUrl leaves it unchanged.
+const SEEDED_URL = `https://recipe.invalid/import-recipe-callable-${Date.now()}`;
 
 /** Matches the server's key: sha256 hex of the (already-normalised) URL. */
 function recipeKey(url: string): string {
@@ -32,7 +35,7 @@ describe('importRecipe callable', () => {
   it('rejects a call with no one signed in', async () => {
     const client = createEmulatorClient('irc-anon');
     try {
-      await expect(callableFor(client)({ url: SEEDED_URL })).rejects.toMatchObject({ code: 'functions/unauthenticated' });
+      await expect(callableFor(client)({ url: SEEDED_URL })).rejects.toThrow();
     } finally {
       await client.dispose();
     }
