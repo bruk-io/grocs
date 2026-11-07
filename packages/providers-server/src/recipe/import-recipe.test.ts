@@ -243,17 +243,9 @@ describe('importRecipe', () => {
   });
 
   // TASK-74 AC#10 says parseRecipeJsonLd(cached source jsonLd) equals the cached recipe content.
-  // Since the 2026-11-07 image amendment, that no longer holds in general, and not only because an
-  // extra resolution step is needed: resolveImage's base is the *requested* (pre-normalisation) URL
-  // (see import-recipe.ts's resolveImage doc comment), and that raw form is not persisted anywhere
-  // - only the normalised `cachedSource.url` is. So re-resolving the re-parsed image against
-  // `cachedSource.url` reproduces the cached recipe's image only when the raw request URL and its
-  // normalised form are identical (no trailing slash, no tracking params, canonical casing) - true
-  // of this fixture (PAGE_URL has none of those), but not true in general: a trailing-slash request
-  // (see the dedicated trailing-slash test below) caches an image this rebuild cannot reproduce,
-  // because the raw URL that produced it is gone. Noted in the task notes for the contract owner:
-  // AC#10's "equals the cached recipe content" no longer holds in general after the amendment, and
-  // there is no way to reproduce the cached image from the cache alone.
+  // resolveImage's base is `cachedSource.url` (the normalised URL), which is exactly what is
+  // persisted, so re-resolving the re-parsed image against it reproduces the cached recipe's image
+  // for any URL, not just this fixture.
   it('re-parsing the cached source jsonLd, with the image re-resolved, equals the cached recipe (TASK-74 AC#10)', async () => {
     const cache = new TestRecipeCache();
     const key = recipeKey(PAGE_URL);
@@ -261,6 +253,30 @@ describe('importRecipe', () => {
     const { fetchPage } = makeFetchPage({ [PAGE_URL]: { kind: 'page', html } });
 
     await importRecipe(PAGE_URL, { fetchPage, cache, now: () => 1_000 });
+
+    const cachedRecipe = cache.recipes.get(key)!;
+    const cachedSource = cache.sources.get(key)!;
+    const reparsed = parseRecipeJsonLd(cachedSource.jsonLd);
+    if (!reparsed.ok) throw new Error('expected the stored jsonLd to re-parse');
+
+    const { recipeId: _recipeId, sourceUrl: _sourceUrl, ...cachedContent } = cachedRecipe.recipe;
+    const rebuilt = { ...reparsed.value, image: resolveImage(reparsed.value.image, cachedSource.url) };
+    expect(rebuilt).toEqual(cachedContent);
+  });
+
+  // Same invariant (TASK-74 AC#10), but with a request URL that needed normalisation (a trailing
+  // slash and a tracking param), to show the rebuild holds generally and not only for an
+  // already-normalised fixture: the resolution base is `cachedSource.url`, the normalised URL,
+  // which is exactly what the cache persists.
+  it('re-parsing the cached source jsonLd reproduces the cached image for a trailing-slash, utm-tagged request (TASK-74 AC#10)', async () => {
+    const cache = new TestRecipeCache();
+    const rawUrl = 'https://recipe.invalid/recipes/soup/?utm_source=newsletter';
+    const requestedKey = normalise(rawUrl);
+    const key = recipeKey(requestedKey);
+    const html = recipeHtml('images/soup.jpg');
+    const { fetchPage } = makeFetchPage({ [requestedKey]: { kind: 'page', html } });
+
+    await importRecipe(rawUrl, { fetchPage, cache, now: () => 1_000 });
 
     const cachedRecipe = cache.recipes.get(key)!;
     const cachedSource = cache.sources.get(key)!;
@@ -285,9 +301,13 @@ describe('importRecipe', () => {
 
   // normaliseRecipeUrl strips every trailing slash (contract §9 step 4), so a page URL ending in
   // '/' (WordPress-style permalinks do this routinely) normalises to a different, slash-less
-  // request/cache-key form. A relative image must still resolve under the page's own directory,
-  // not one normalisation moved it up to - this is the case the trailing-slash bug landed on.
-  it('resolves a relative image under the directory of a trailing-slash page URL', async () => {
+  // request/cache-key form. Per the contract, the image resolves against that normalised URL (the
+  // same URL that was actually fetched), which moves resolution up one path segment relative to the
+  // slashed request. This is the documented contract behaviour, not a bug: see import-recipe.ts's
+  // resolveImage doc comment and the open contract question in this task's notes about whether the
+  // resolution base should instead be the page's actual final URL (which FetchedPage does not carry
+  // today).
+  it('resolves a relative image against the normalised, slash-stripped page URL', async () => {
     const cache = new TestRecipeCache();
     const trailingSlashPageUrl = 'https://recipe.invalid/recipes/soup/';
     const requestedKey = normalise(trailingSlashPageUrl); // 'https://recipe.invalid/recipes/soup' (slash stripped)
@@ -297,7 +317,7 @@ describe('importRecipe', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
-    expect(result.value.image).toBe('https://recipe.invalid/recipes/soup/images/soup.jpg');
+    expect(result.value.image).toBe('https://recipe.invalid/recipes/images/soup.jpg');
   });
 
   it('an absolute non-http(s) image becomes null', async () => {
@@ -322,10 +342,10 @@ describe('importRecipe', () => {
     expect(result.value.image).toBeNull();
   });
 
-  // Per WHATWG URL resolution, new URL('', base) returns base itself. Since the base is now the
-  // raw requested URL (not the normalised, tracking-stripped one), an unguarded empty image would
-  // leak the raw request's full query - including any tracking params - into the cached recipe.
-  it('an empty image string becomes null (not the raw request URL, tracking params included)', async () => {
+  // Per WHATWG URL resolution, new URL('', base) returns base itself, which is the page URL, not an
+  // image - an unguarded empty image would otherwise write the page's own URL into the recipe's
+  // image field.
+  it('an empty image string becomes null (the page URL is not an image)', async () => {
     const cache = new TestRecipeCache();
     const taggedUrl = `${PAGE_URL}?utm_source=newsletter`;
     const requestedKey = normalise(taggedUrl);

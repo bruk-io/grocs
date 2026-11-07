@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:06'
+updated_date: '2026-11-07 04:11'
 labels:
   - size-3
   - layer-providers
@@ -153,4 +153,65 @@ Checks run after all fixes, from the worktree:
 - `mise exec -- pnpm exec vitest run --project unit packages/providers-` -> 17 test files, 284 tests,
   all passing (22 in import-recipe.test.ts, up from 20: the trailing-slash and empty-image tests).
 - `mise exec -- pnpm -s typecheck` -> clean (`tsc --noEmit`, no output).
+
+Review follow-up (2026-11-07, round 3) - superseding findings 1, 2 and 6 above:
+
+Findings 1 ("resolveImage trailing-slash bug"), 2 (the cache-key/raw-URL reproducibility
+trade-off) and 6 (the empty-image tracking-leak reasoning) are withdrawn as written. The
+builder's round-2 fix made resolveImage's base the raw (pre-normalisation) request URL
+instead of the normalised URL that fetchPage actually receives (contract §10 types
+FetchPage as `(normalisedUrl: string) => ...`). That is a contract decision, not a
+providers-layer translation call (providers-hold-no-rules, R26/R27), and it has real costs:
+the cached image then depends on input that is not part of the cache key, so two raw
+URLs normalising to the same key can cache different images depending on fetch order
+(breaking reproducibility from the cache alone); it breaks TASK-74 AC#10 in general, which
+this task is chartered to cover, not only for a fixture that happens to already be
+normalised; and resolving against the raw URL lets tracking-query parameters leak into the
+shared cross-kitchen cache even outside the empty-image case (e.g. a relative `#fragment`
+image resolved against a utm-tagged raw URL keeps the query string).
+
+Reverted per review: resolveImage is now called with `pageUrl` (the normalised URL, the
+same one passed to fetchPage), and the `requestedUrl` local is removed. This is the
+pre-existing TASK-74 §10 contract (resolve against the URL actually fetched), not a new
+behaviour.
+
+One contract question remains, combining the trailing-slash case and the cross-origin
+(or slash-serving) redirect case - both are the same underlying gap: FetchedPage carries
+only `{ kind: 'page'; html }`, no final URL after any redirect the fetcher followed
+internally, and no record of whether the origin server would have served the normalised
+(slash-stripped) path directly. So importRecipe has no way to resolve a relative image
+against the page's actual final address when that differs from the normalised request
+URL (trailing slash moving resolution up one directory; a cross-origin redirect
+resolving against the pre-redirect origin instead of the post-redirect one). A fix would
+add a `finalUrl` to `FetchedPage` (reopening TASK-74.4.4, already built and reviewed) and
+possibly store that final URL on `CachedSource` so TASK-74 AC#10's re-parse invariant
+stays reproducible from the cache alone even when the final URL differs from the
+normalised request URL. Stopping here per the plan's Risks until the orchestrator rules;
+not actioned in this task.
+
+Review findings addressed (2026-11-07, round 3):
+
+1-2 (resolveImage base reverted to the normalised/fetched URL, requestedUrl local removed, doc
+   comment shortened): done, per import-recipe.ts above. The trailing-slash and cross-origin-redirect
+   discussion moved to a single contract question appended to these notes (round-3 entry above),
+   superseding findings 1, 2 and 6 from round 2.
+3. import-recipe.test.ts: "resolves a relative image under the directory of a trailing-slash page
+   URL" renamed to "resolves a relative image against the normalised, slash-stripped page URL" and
+   now asserts the contract behaviour (https://recipe.invalid/recipes/images/soup.jpg, resolved
+   against the slash-stripped normalised URL), with a comment pointing at the open contract question.
+   The AC#10 re-parse test's comment claiming the check "only holds because the fixture's raw URL
+   equals its normalised form" is removed (the base is now cachedSource.url, so it holds generally);
+   added a second AC#10 case using a trailing-slash, utm-tagged raw request to demonstrate it.
+4. Non-blocking item (empty-image guard): kept; doc comment and test name/comment changed from the
+   tracking-param-leak rationale (no longer applicable once the base is the normalised URL) to "the
+   page URL is not an image".
+
+Checks run after all fixes, from the worktree:
+$ mise exec -- pnpm exec vitest run --project unit packages/providers-
+ Test Files  17 passed (17)
+      Tests  285 passed (285)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no output, exit 0)
 <!-- SECTION:NOTES:END -->
