@@ -18,5 +18,11 @@ export const Unavailable: Story = {
   args: { notificationsUnavailable: 'Coming soon' },
 };
 
+/** Just after Copy diagnostics: the button confirms the copy, since iOS shows nothing when an app copies. */
+export const Copied: Story = { args: { ...Rest.args, diagnosticsCopied: true } };
+
+/** Opened from Meal plan: the back link names the screen it returns to. */
+export const FromPlan: Story = { args: { ...Rest.args, backLabel: 'Meal plan' } };
+
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Rest, decorators: [withPhoneInsets] };

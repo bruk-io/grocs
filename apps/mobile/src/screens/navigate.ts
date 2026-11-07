@@ -12,6 +12,8 @@ export function useGo() {
     groceries: () => router.navigate('/'),
     quickAdd: () => router.navigate('/quick-add'),
     settings: () => router.navigate('/settings'),
+    /** Opens Settings with its back link returning to Meal plan. */
+    settingsFromPlan: () => router.navigate({ pathname: '/settings', params: { from: 'plan' } }),
     household: () => router.navigate('/household'),
   };
 }

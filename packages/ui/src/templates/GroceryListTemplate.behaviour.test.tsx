@@ -74,6 +74,7 @@ describe('GroceryListTemplate', () => {
     render(<Empty onAddItem={onAddItem} />);
     expect(screen.getByText('Nothing on the list yet')).toBeTruthy();
     expect(screen.queryByText('All done!')).toBeNull();
+    expect(screen.getAllByRole('button', { name: /tap to hear a line/ })).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: 'Add an item' }));
     expect(onAddItem).toHaveBeenCalledExactlyOnceWith();
   });

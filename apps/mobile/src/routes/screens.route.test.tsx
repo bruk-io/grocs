@@ -140,11 +140,13 @@ describe('Plan', () => {
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 
-  it('opens Settings from the header', async () => {
+  it('opens Settings from the header, and its back link returns to Meal plan', async () => {
     await open('/plan', true);
     await screen.findByText('This week');
     press('Settings');
     expect(await screen.findByText('Notifications')).toBeTruthy();
+    press('Meal plan');
+    expect(await screen.findByText('This week')).toBeTruthy();
   });
 
   it('opens Add a meal from a day', async () => {
@@ -336,6 +338,7 @@ describe('Settings', () => {
     expect(await screen.findByText('U1')).toBeTruthy();
     press('Copy diagnostics');
     await waitFor(() => expect(app.clipboard.copied).toHaveLength(1));
+    expect(await screen.findByRole('button', { name: 'Copied' })).toBeTruthy();
     const copied = app.clipboard.text ?? '';
     expect(copied.split('\n')[0]).toBe('grocs diagnostics - version test, platform test, build 1');
     expect(copied).toContain('AddItem');

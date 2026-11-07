@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './InviteRetryTemplate.stories.tsx';
 import { InviteRetryTemplate } from './InviteRetryTemplate.tsx';
 
-const { Invalid, FirstAttempt } = composeStories(stories);
+const { Invalid, FirstAttempt, MissingCode, Checking } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -18,6 +18,21 @@ describe('InviteRetryTemplate', () => {
     expect((field as HTMLInputElement).value).toBe('MOREL-42');
     expect(field.getAttribute('aria-invalid')).toBe('true');
     expect(screen.getByRole('alert').textContent).toContain('That code is not a match');
+  });
+
+  it('asks for the code on a first attempt without saying a code failed', () => {
+    render(<MissingCode />);
+    expect(screen.getByRole('heading', { name: 'Enter your invite code' })).toBeTruthy();
+    expect(screen.getByRole('alert').textContent).toContain('Type the code from your invite first.');
+  });
+
+  it('says what is happening while a code is checked, and not before', () => {
+    render(<Checking />);
+    expect(screen.getByRole('button', { name: 'Checking' })).toBeTruthy();
+    expect(screen.getByText(/can take up to half a minute/)).toBeTruthy();
+    cleanup();
+    render(<FirstAttempt />);
+    expect(screen.queryByText(/can take up to half a minute/)).toBeNull();
   });
 
   it('reports a change to the code', async () => {

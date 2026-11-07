@@ -1,13 +1,13 @@
 // TASK-1.20.2 (decision-13): the kitchen setup and join screens dispatch CreateKitchen and JoinKitchen,
 // proved through the real routes on the fake kitchen gateway. Sign-in routing uses findMyKitchen (TASK-14).
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { JoinOutcome } from '@grocs/ports';
 import { FakeClock, FakeKitchenGateway } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
 import Join from '../../app/join.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
-import { JOIN_REJECTION_MESSAGES } from '../screens/JoinInviteScreen.tsx';
+import { ENTER_A_CODE, JOIN_REJECTION_MESSAGES } from '../screens/JoinInviteScreen.tsx';
 
 afterEach(cleanup);
 
@@ -133,6 +133,19 @@ describe('joining a kitchen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
     expect(await screen.findByText("Code didn't work")).toBeTruthy();
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('NOPE-0000');
+  });
+
+  it('asks for the code, and calls nothing, when Check code is pressed with nothing typed', async () => {
+    const mine = new FakeKitchenGateway('u1');
+    const join = vi.spyOn(mine, 'joinKitchen');
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine }), location: '/join' });
+    fireEvent.change(await screen.findByRole('textbox'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+    expect(await screen.findByText(ENTER_A_CODE)).toBeTruthy();
+    expect(screen.getByText('Enter your invite code')).toBeTruthy();
+    expect(join).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'M' } });
+    expect(screen.queryByText(ENTER_A_CODE)).toBeNull();
   });
 
   async function enterCode(mine: FakeKitchenGateway, clock: FakeClock, code: string) {
