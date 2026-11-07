@@ -1,9 +1,11 @@
 ---
 id: TASK-67
 title: 'Kitchen setup has no way to sign out, so a wrong account is stuck there'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-06 22:40'
+updated_date: '2026-11-07 01:10'
 labels:
   - size-1
   - app
@@ -21,3 +23,12 @@ Found by the TASK-56 flows: kitchen setup (signed in, no kitchen) offers Start p
 <!-- AC:BEGIN -->
 - [ ] #1 A signed-in person on kitchen setup can sign out from there
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. ui: KitchenSetupTemplate takes onSignOut and shows 'Not you? Sign out' in its footer, under the invite row, before and after the kitchen exists. Behaviour test; story arg.
+2. app: KitchenSetupScreen signs out through App.signOut and goes to Welcome, as Settings does. Route test: sign out from setup lands on Welcome.
+3. Visual baselines via the visual-baselines workflow, reviewed as images.
+4. Full check; pnpm e2e.
+<!-- SECTION:PLAN:END -->

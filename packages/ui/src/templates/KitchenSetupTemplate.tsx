@@ -26,6 +26,11 @@ interface KitchenSetupTemplateBase {
    * the kitchen exists.
    */
   onOpenInvite?: () => void;
+  /**
+   * Signs out, for someone who signed in with the wrong account: setup has no Settings to do it from,
+   * so without this they are stuck here (TASK-67).
+   */
+  onSignOut?: () => void;
 }
 
 /** The kitchen has an invite code and where it stands. Leave onShare or onCopy out and that button on the invite card is disabled. */
@@ -47,19 +52,31 @@ export interface KitchenSetupTemplateNoInviteProps extends KitchenSetupTemplateB
 export type KitchenSetupTemplateProps = KitchenSetupTemplateInviteProps | KitchenSetupTemplateNoInviteProps;
 
 /** template.task filled for Your kitchen: header.sub, field.labelled, invite.card, action.bar. */
-export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, inviteCode, inviteStatus, onShare, onCopy, onStart, starting = false, onOpenInvite }: KitchenSetupTemplateProps) {
+export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, inviteCode, inviteStatus, onShare, onCopy, onStart, starting = false, onOpenInvite, onSignOut }: KitchenSetupTemplateProps) {
   return (
     <TaskLayout
       header={<SubHeader lead={{ kind: 'line', text: `Signed in as ${email}` }} tag="Last step" title="Your kitchen" mascot="enoki" />}
       actionBar={<ActionBar label="Start planning" loading={starting} loadingLabel="Starting" {...(onStart ? { onPress: onStart } : {})} />}
-      {...(inviteCode === null && onOpenInvite
+      {...((inviteCode === null && onOpenInvite) || onSignOut
         ? {
             footer: (
-              <View style={styles.invite}>
-                <Text variant="small" tone="muted">
-                  Got an invite?
-                </Text>
-                <Button variant="text" size="s" label="Open it to join" disabled={starting} onPress={onOpenInvite} />
+              <View style={styles.footer}>
+                {inviteCode === null && onOpenInvite ? (
+                  <View style={styles.row}>
+                    <Text variant="small" tone="muted">
+                      Got an invite?
+                    </Text>
+                    <Button variant="text" size="s" label="Open it to join" disabled={starting} onPress={onOpenInvite} />
+                  </View>
+                ) : null}
+                {onSignOut ? (
+                  <View style={styles.row}>
+                    <Text variant="small" tone="muted">
+                      Not you?
+                    </Text>
+                    <Button variant="text" size="s" label="Sign out" disabled={starting} onPress={onSignOut} />
+                  </View>
+                ) : null}
               </View>
             ),
           }
@@ -76,5 +93,6 @@ export function KitchenSetupTemplate({ email, kitchenName, onKitchenNameChange, 
 }
 
 const styles = StyleSheet.create({
-  invite: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: tokens.space[2] },
+  footer: { gap: tokens.space[2] },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: tokens.space[2] },
 });
