@@ -5,11 +5,111 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 17:39'
-updated_date: '2026-11-07 17:39'
+updated_date: '2026-11-07 18:19'
 labels:
   - area-kitchen
   - size-5
 dependencies: []
+modified_files:
+  - apps/functions/src/index.ts
+  - apps/mobile/app/join.tsx
+  - apps/mobile/e2e/household-full.yaml
+  - apps/mobile/e2e/household-invite.yaml
+  - apps/mobile/e2e/household-join.yaml
+  - apps/mobile/e2e/subflows/sign-in.yaml
+  - apps/mobile/src/composition/compose-app.ts
+  - apps/mobile/src/demo/compose-demo.ts
+  - apps/mobile/src/demo/demo.route.test.tsx
+  - apps/mobile/src/routes/index.route.test.tsx
+  - apps/mobile/src/routes/kitchen.route.test.tsx
+  - apps/mobile/src/routes/screens.route.test.tsx
+  - apps/mobile/src/screens/HouseholdScreen.tsx
+  - apps/mobile/src/screens/InviteOfferScreen.tsx
+  - apps/mobile/src/screens/JoinInviteScreen.tsx
+  - apps/mobile/src/screens/KitchenGate.tsx
+  - apps/mobile/src/screens/KitchenSetupScreen.tsx
+  - apps/mobile/src/screens/WelcomeScreen.tsx
+  - apps/mobile/src/screens/invite-expiry.test.ts
+  - apps/mobile/src/screens/invite-expiry.ts
+  - apps/mobile/src/screens/invite-message.test.tsx
+  - apps/mobile/src/screens/invite.ts
+  - apps/mobile/src/screens/navigate.ts
+  - apps/mobile/src/screens/use-email-invite.ts
+  - apps/mobile/src/screens/use-kitchen-info.test.ts
+  - apps/mobile/src/screens/use-kitchen.ts
+  - apps/mobile/testing/render-route.tsx
+  - firebase/firestore.rules
+  - firebase/firestore.rules.test.ts
+  - firebase/seed/seed.ts
+  - packages/application/src/commands/accept-invite.scenario.test.ts
+  - packages/application/src/commands/accept-invite.ts
+  - packages/application/src/commands/cancel-invite.scenario.test.ts
+  - packages/application/src/commands/cancel-invite.ts
+  - packages/application/src/commands/create-kitchen.scenario.test.ts
+  - packages/application/src/commands/create-kitchen.ts
+  - packages/application/src/commands/index.ts
+  - packages/application/src/commands/invite-by-email.scenario.test.ts
+  - packages/application/src/commands/invite-by-email.ts
+  - packages/application/src/commands/join-kitchen.scenario.test.ts
+  - packages/application/src/commands/join-kitchen.ts
+  - packages/application/src/index.ts
+  - packages/application/src/queries/get-invite-offers.test.ts
+  - packages/application/src/queries/get-invite-offers.ts
+  - packages/application/src/queries/get-invite-preview.test.ts
+  - packages/application/src/queries/get-invite-preview.ts
+  - packages/application/src/queries/get-kitchen-info.test.ts
+  - packages/application/src/queries/get-kitchen-info.ts
+  - packages/application/src/queries/get-kitchen-invite.test.ts
+  - packages/application/src/queries/get-kitchen-invite.ts
+  - packages/core/src/index.ts
+  - packages/core/src/model/email-invite.test.ts
+  - packages/core/src/model/email-invite.ts
+  - packages/core/src/model/invite.test.ts
+  - packages/core/src/model/invite.ts
+  - packages/core/src/model/kitchen.ts
+  - packages/ports/src/index.ts
+  - packages/ports/src/kitchen-gateway/contract.ts
+  - packages/ports/src/kitchen-gateway/fake.test.ts
+  - packages/ports/src/kitchen-gateway/fake.ts
+  - packages/ports/src/kitchen-gateway/port.ts
+  - packages/providers-firebase/src/kitchen-gateway.emulator.test.ts
+  - packages/providers-firebase/src/kitchen-gateway.ts
+  - packages/providers-memory/src/index.ts
+  - packages/providers-memory/src/memory-kitchen-gateway.test.ts
+  - packages/providers-memory/src/memory-kitchen-gateway.ts
+  - packages/providers-server/src/index.ts
+  - packages/providers-server/src/kitchen-store.emulator.test.ts
+  - packages/providers-server/src/kitchen-store.ts
+  - packages/ui/src/atoms/InviteCode.stories.tsx
+  - packages/ui/src/atoms/InviteCode.tsx
+  - packages/ui/src/atoms/TextField.tsx
+  - packages/ui/src/index.ts
+  - packages/ui/src/organisms/AuthSheet.behaviour.test.tsx
+  - packages/ui/src/organisms/AuthSheet.stories.tsx
+  - packages/ui/src/organisms/AuthSheet.tsx
+  - packages/ui/src/organisms/InviteCard.behaviour.test.tsx
+  - packages/ui/src/organisms/InviteCard.stories.tsx
+  - packages/ui/src/organisms/InviteCard.tsx
+  - packages/ui/src/templates/HouseholdTemplate.behaviour.test.tsx
+  - packages/ui/src/templates/HouseholdTemplate.stories.tsx
+  - packages/ui/src/templates/HouseholdTemplate.tsx
+  - packages/ui/src/templates/InviteJoinTemplate.behaviour.test.tsx
+  - packages/ui/src/templates/InviteJoinTemplate.stories.tsx
+  - packages/ui/src/templates/InviteJoinTemplate.tsx
+  - packages/ui/src/templates/InviteRetryTemplate.behaviour.test.tsx
+  - packages/ui/src/templates/InviteRetryTemplate.stories.tsx
+  - packages/ui/src/templates/InviteRetryTemplate.tsx
+  - packages/ui/src/templates/KitchenSetupTemplate.behaviour.test.tsx
+  - packages/ui/src/templates/KitchenSetupTemplate.stories.tsx
+  - packages/ui/src/templates/KitchenSetupTemplate.tsx
+  - packages/ui/src/templates/SignInTemplate.behaviour.test.tsx
+  - packages/ui/src/templates/SignInTemplate.stories.tsx
+  - packages/ui/src/templates/SignInTemplate.tsx
+  - tools/checks/weakening-overrides.json
+  - tools/checks/weakening.test.ts
+  - tools/checks/weakening.ts
+  - tools/e2e.test.ts
+  - tools/e2e.ts
 parent_task_id: TASK-78
 type: task
 ---
@@ -59,3 +159,34 @@ Delivers TASK-78 in one change, bottom-up in one worktree (see TASK-78's sizing 
 - AC #6: grep for inviteCode / joinKitchen / grocs://join finds nothing; spec diff.
 - AC #7: existing two-member kitchen tests and the rules suite pass unchanged; pnpm check, typecheck, test, test:emulator, check:demo green; iOS e2e sign-in and add-item flows pass.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Worker report (2026-11-07, commit 36694c2 on feat/share-by-email)
+
+Built bottom-up in one worktree, as planned.
+
+- core: model/email-invite.ts (normaliseEmail, inviteByEmail, cancelInvite, isInvitedTo, acceptInvite, removeMember); Kitchen.invite. model/invite.ts deleted.
+- ports: KitchenGateway is createKitchen, inviteByEmail, cancelInvite, invitesForMe, acceptInvite, findMyKitchen, getKitchen (+invitedEmail). Contract rewritten (16 tests), passed by the fake, memory, server and Firebase providers.
+- server: the invite lives on kitchens/{id}.invite; invitesFor queries invite.email; acceptInvite reads target, membership and old kitchen before any write. Functions take the email only from request.auth.token.email when email_verified is true.
+- application: InviteByEmail, CancelInvite, AcceptInvite commands with scenario tests; getInviteOffers query; JoinKitchen, getInvitePreview, getKitchenInvite deleted.
+- ui: InviteCard is the email card (rest, filled, invalid, sending, invited, noKitchen); InviteJoinTemplate is the offer (rest, leaving, joining, error) with Join and Not now; KitchenSetup shows the email a partner should add and Check for an invite; AuthSheet's Open it to join replaced by a line; InviteRetryTemplate and InviteCode deleted. TextField gained an email mode.
+- app: KitchenGate offers a waiting invite before the kitchen (Not now remembered per launch); Household and Kitchen setup share use-email-invite; /join, JoinInviteScreen, invite.ts, invite-expiry.ts deleted. Seed accounts are email-verified.
+- spec doc-1 R2 and R3 rewritten.
+- R57: the delete-test rule now honours a content-keyed approval in weakening-overrides.json (never focus or skip); Bruk approved the 13 removals via AskUserQuestion, recorded there.
+
+### Evidence
+
+- The one unknown: the Firebase gateway contract runs through the real callables with Google-credential sign-ins in the emulator, and passes; a separate test shows an unverified email and an anonymous sign-in are offered nothing and cannot accept.
+- pnpm test: 137 files, 1745 tests passed. pnpm test:emulator: 8 files, 102 tests passed. pnpm typecheck clean. pnpm check: 16 checks passed (all, staged and ci --base origin/main modes). check:demo and check:release clean.
+- iOS simulator (9EB5207C), dev build on the emulators, Maestro: sign-in, add-and-tick-item, add-meal, quick-add-first-tap, meal-form-keyboard, and the household trio run in sequence on the one device (Jo adds pat@grocs.test, Pat signs in and is offered it, joins, both see the kitchen full) - all COMPLETED.
+- Bruk's own case (a person with a kitchen of their own joins their partner's): route test 'is offered to someone who has a kitchen of their own...' and the contract test 'lets someone with a kitchen of their own join, and takes them out of the old one'. Not run on a device: the seed has no such pair.
+
+### Not done
+
+- Android: not run (the Android SDK is missing from this machine, as in TASK-76).
+- Visual baselines: regenerating via the visual-baselines workflow (run 42399900120).
+
+Update: visual baselines regenerated by run 42399900120, reviewed (invite join leaving, kitchen setup rest, household invited, invite card invalid read by eye) and committed in 6d7040a. PR #32 opened.
+<!-- SECTION:NOTES:END -->
