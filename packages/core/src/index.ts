@@ -4,6 +4,7 @@ export { compareStamps, laterStamp, mergeStamped, stamped } from './merge/lww.ts
 export type { Stamp, Stamped } from './merge/lww.ts';
 export { isDeleted, mergeItem } from './merge/item-merge.ts';
 export { isMealDeleted, mergeMeal } from './merge/meal-merge.ts';
+export { isRecipeDeleted, mergeRecipe } from './merge/recipe-merge.ts';
 export { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
 export type { Item, ItemState, NewItemError, NewItemInput } from './model/item.ts';
 export { createMeal, moveMeal, relinkMeal, removeMeal, renameMeal, toDayIndex } from './model/meal.ts';

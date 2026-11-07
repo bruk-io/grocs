@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.3
 title: 'Kitchen recipe merge: earlier createdAt keeps content, delete wins'
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:51'
 labels:
   - size-2
   - layer-core
@@ -35,17 +35,15 @@ Split key: core-recipe-merge. Layer: core. Contract: TASK-74's plan.
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Copy meal-merge's `first` selection and its use of laterStamp.
-2. Write the example tests, then the property tests modelled on meal-merge.test.ts.
+1. Write packages/core/src/merge/recipe-merge.ts: mergeRecipe(a, b) throws on a.id !== b.id; first = earlier createdAt, tie by addedBy <= (copied from mergeMeal); content/addedBy/createdAt come from first; deleted = laterStamp(a.deleted, b.deleted). isRecipeDeleted(recipe) = recipe.deleted !== null.
+2. Write recipe-merge.test.ts modelled on meal-merge.test.ts: example tests (earlier createdAt keeps addedBy/createdAt/content, delete on either copy wins, re-import with deleted:null never clears a tombstone, different ids throw) plus fast-check properties (order independence, shuffle, idempotence, associativity, delete-never-undone) on an arbitrary with fixed id and content, members alex|sam, at 0..12. Comment explaining content is held constant per id because the same recipeId comes from the same server cache entry and `first` has no content tiebreak.
+3. Export mergeRecipe and isRecipeDeleted from packages/core/src/index.ts.
+4. Run vitest unit for packages/core and repo-wide typecheck; record output in notes.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+first has no content tiebreak, so the property arbitrary must hold content (sourceUrl/title/yield/steps/ingredients/image) constant per id - only addedBy/createdAt/deleted vary - otherwise associativity/order-independence properties would be falsified by a case the real system never produces (same recipeId always carries the same content). Any contract ambiguity goes in this task's notes and work stops rather than guessing.
 
 ### Proof
-Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/core/src/merge/recipe-merge.ts
-- packages/core/src/merge/recipe-merge.test.ts
-- packages/core/src/index.ts
+- AC1/AC2/AC3: vitest --project unit packages/core output showing recipe-merge.test.ts passing (examples + properties).
+- AC4: index.ts export plus `pnpm -s typecheck` and `vitest --project unit packages/core` output pasted into notes.
 <!-- SECTION:PLAN:END -->
