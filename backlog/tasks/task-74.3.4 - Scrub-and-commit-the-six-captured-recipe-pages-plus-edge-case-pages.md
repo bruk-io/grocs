@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:10'
+updated_date: '2026-11-07 03:12'
 labels:
   - size-2
   - layer-providers
@@ -118,4 +118,8 @@ Review-fix 2026-11-07 (builder, TASK-74.3.4 revision): addressed layer-reviewer 
 Re-ran checks after all fixes:
 mise exec -- pnpm -s typecheck: tsc --noEmit, no output, exit 0.
 mise exec -- pnpm exec vitest run --project unit packages/providers-: Test Files 7 passed (7), Tests 63 passed (63).
+
+Review-fix follow-up 2026-11-07 (builder): first commit attempt failed the pre-commit hook on apps/mobile/src/routes/kitchen.route.test.tsx ("shows the invite link and code, then Groceries works on that kitchen") timing out at 5000ms - outside this layer and outside this task's changed files. Retried the commit unchanged and the same suite passed (Test Files 138 passed (138), Tests 1765 passed (1765)); treating it as a flake, not something this fix introduced.
+
+Also noted while re-running board-check: TASK-74.3.4's plan already fails two pre-existing, unrelated board-check findings - "lists no files: add each file that changes with --modified-file" and "cites no requirement from TASK-74's spec: name the R-numbers it delivers" - confirmed present before this round's edits too (checked via git stash against commit c64a867). Neither is among the reviewer's five findings for this round, so left alone; the reviewer asked for a restored prose "Files expected to change" list (done), which is a different thing from the --modified-file frontmatter field board-check wants. Flagging for the orchestrator since fixing board metadata wasn't asked of this task.
 <!-- SECTION:NOTES:END -->
