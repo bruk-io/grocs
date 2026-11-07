@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.6
 title: Firestore recipe cache and its emulator tests
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:45'
+updated_date: '2026-11-07 04:50'
 labels:
   - size-3
   - layer-providers
@@ -25,10 +25,10 @@ Split key: providers-recipe-cache. Layer: providers. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 FirestoreRecipeCache implements RecipeCache. saveRecipe writes recipes/{key} and recipeSources/{key} and deletes recipeFailures/{key} in one batch, with the doc shapes in contract §11. An undecodable doc reads as null
-- [ ] #2 recipe-cache.emulator.test.ts runs importRecipe with FirestoreRecipeCache and covers: a miss stores both docs (read back raw, the recipe doc has no jsonLd and the source doc has no recipe); a hit makes no fetch; failure memory with an injected clock moved past 24 h; each error kind through the fake FetchPage (not-found, blocked, unreachable, not-a-recipe, incomplete-recipe), each stored in recipeFailures; invalid-url stores nothing; a source re-parse equals the stored recipe
-- [ ] #3 Implementation notes on TASK-74.4 record the JSON-string storage of recipeSources.jsonLd as a deviation from decision-15, with the nested-array reason
-- [ ] #4 Exported from providers-server/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide, and orch-emulator-suite confirms pnpm test:emulator
+- [x] #1 FirestoreRecipeCache implements RecipeCache. saveRecipe writes recipes/{key} and recipeSources/{key} and deletes recipeFailures/{key} in one batch, with the doc shapes in contract §11. An undecodable doc reads as null
+- [x] #2 recipe-cache.emulator.test.ts runs importRecipe with FirestoreRecipeCache and covers: a miss stores both docs (read back raw, the recipe doc has no jsonLd and the source doc has no recipe); a hit makes no fetch; failure memory with an injected clock moved past 24 h; each error kind through the fake FetchPage (not-found, blocked, unreachable, not-a-recipe, incomplete-recipe), each stored in recipeFailures; invalid-url stores nothing; a source re-parse equals the stored recipe
+- [x] #3 Implementation notes on TASK-74.4 record the JSON-string storage of recipeSources.jsonLd as a deviation from decision-15, with the nested-array reason
+- [x] #4 Exported from providers-server/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide, and orch-emulator-suite confirms pnpm test:emulator
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -158,4 +158,6 @@ Checks run from the worktree:
 - `mise exec -- pnpm exec firebase emulators:exec --only firestore,auth,functions --project
   demo-grocs "pnpm exec vitest run --project emulator packages/providers-server/src/recipe/recipe-cache.emulator.test.ts"`:
   1 file / 12 tests passed (was 10 tests before adding the nested-array getSource test).
+
+Review (philosophy:reviewer): closed. AC#1 FirestoreRecipeCache batches recipes/recipeSources writes with the recipeFailures delete; the undecodable-doc test covers all three getters. AC#2 every listed case is in recipe-cache.emulator.test.ts (12 tests), passing in the orchestrator's merged-main pnpm test:emulator at 5bbf8bc (140 passed; the only 4 failures are recipe-importer.emulator.test.ts, waiting on TASK-74.4.7 and run green by TASK-74.5.9). AC#3 deviation note is on TASK-74.4 with the nested-array reason. AC#4 export is in providers-server/src/index.ts; typecheck clean, pnpm check 16 passed, pnpm test 2065 passed. Findings: reviewer-providers' two non-blocking findings (fixed test URLs across runs, fixtures with no ingredients) are already filed as TASK-74.4.10; no new findings. Full-tier record-check not run, on purpose: parallel reviewers would collide on emulator ports, so the orchestrator's emulator run was used instead.
 <!-- SECTION:NOTES:END -->

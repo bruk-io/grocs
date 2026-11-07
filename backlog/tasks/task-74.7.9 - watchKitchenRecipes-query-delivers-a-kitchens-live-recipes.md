@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.9
 title: watchKitchenRecipes query delivers a kitchen's live recipes
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:22'
+updated_date: '2026-11-07 04:50'
 labels:
   - size-2
   - layer-application
@@ -25,9 +25,9 @@ Split key: application-recipe-query. Layer: application. Contract: TASK-74's pla
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 queries/watch-kitchen-recipes.ts exports watchKitchenRecipes(store, kitchenId, onRecipes, onError?) as in contract §8
-- [ ] #2 watch-kitchen-recipes.test.ts: it delivers live recipes only, hides tombstones, passes errors to onError, and its unsubscribe stops calls
-- [ ] #3 Exported from src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/application passes
+- [x] #1 queries/watch-kitchen-recipes.ts exports watchKitchenRecipes(store, kitchenId, onRecipes, onError?) as in contract §8
+- [x] #2 watch-kitchen-recipes.test.ts: it delivers live recipes only, hides tombstones, passes errors to onError, and its unsubscribe stops calls
+- [x] #3 Exported from src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/application passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -61,4 +61,6 @@ AC#3 (export + checks):
 - `mise exec -- pnpm -s typecheck`: clean (tsc --noEmit, no output).
 
 Dependency graph note: TASK-74.7.4/5/6/7/8 (Group A) still show In Progress in the board, but the SyncStore surface this task needs (mergeRecipe, getRecipes, watchRecipes, isRecipeDeleted) is already on main as of the `git merge main` done at start of this task (merge commit brought ca542a3 in). Confirmed empirically by reading packages/ports/src/sync-store/{port,fake}.ts in this worktree. No contract change needed; not treating this as a blocker per contract §8's "commits on its own once Group A has landed."
+
+Review (philosophy:reviewer): closed. AC#1 signature matches contract §8 exactly (store, kitchenId, onRecipes, onError?) -> Unsubscribe, filters isRecipeDeleted. AC#2 4 tests cover live delivery, tombstone hiding, onError passthrough, unsubscribe; rerun green (4/4). AC#3 exported at src/index.ts:39; orchestrator's merged-main run at 5bbf8bc: typecheck clean, pnpm test 2065 passed, pnpm check 16 passed. Findings: none blocking. Info only: no ordering of recipes, a deliberate reading of §8 (no ordering clause); nothing filed.
 <!-- SECTION:NOTES:END -->
