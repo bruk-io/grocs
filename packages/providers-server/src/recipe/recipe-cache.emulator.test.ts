@@ -2,7 +2,10 @@
 // importRecipe with a fake FetchPage (no real network: that's createLiveFetchPage's own test) and
 // the real Admin-SDK cache, so this proves the cache's read/write shapes and the full
 // cache-hit/failure-memory/error-kind ordering together. The cache's three collections are shared
-// and top-level across the whole emulator run, so every test below uses its own recipe.invalid URL.
+// and top-level across the whole emulator run, so every test below uses its own recipe.invalid URL
+// - and (TASK-74.4.10) every URL also carries a run-unique id, so a second run against a
+// long-lived `pnpm emulators` instance never finds a previous run's docs at the same key.
+import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import type { RecipeImportError } from '@grocs/core';
 import { adminFirestore } from '../../../../firebase/emulator-client.ts';
@@ -13,6 +16,8 @@ import { normaliseRecipeUrl } from './pure/normalise-url.ts';
 import { parseRecipeJsonLd } from './pure/recipe-schema.ts';
 import { recipeKey } from './recipe-key.ts';
 import type { CachedFailure, CachedRecipe, CachedSource, RecipeCache } from './recipe-cache.ts';
+
+const runId = randomUUID();
 
 /** Wraps a real RecipeCache and logs every method call, so a test can assert the cache was (or was
  * not) touched at all - not just that a particular collection ended up empty. */
@@ -80,7 +85,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
   it('a miss stores both docs, read back raw with the documented shapes', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-miss';
+    const url = `https://recipe.invalid/${runId}-fsrc-miss`;
     const { fetchPage } = makeFetchPage({ [normalise(url)]: { kind: 'page', html: recipeHtml('Miss Soup') } });
 
     const result = await importRecipe(url, { fetchPage, cache, now: () => 1_000 });
@@ -104,27 +109,27 @@ describe('FirestoreRecipeCache (emulator)', () => {
   it('a hit makes no fetch', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-hit';
+    const url = `https://recipe.invalid/${runId}-fsrc-hit`;
     const normalised = normalise(url);
     const key = recipeKey(normalised);
     await db.doc(`recipes/${key}`).set({
       schemaVersion: 1,
       url: normalised,
-      recipe: { recipeId: key, sourceUrl: normalised, title: 'Cached Soup', yield: null, steps: ['Boil.'], ingredients: [], image: null },
+      recipe: { recipeId: key, sourceUrl: normalised, title: 'Cached Soup', yield: null, steps: ['Boil.'], ingredients: [{ line: '1 cup broth', quantity: '1', unit: 'cup', item: 'broth' }], image: null },
       parserVersion: 1,
       fetchedAt: 500,
     });
     const { fetchPage, calls } = makeFetchPage({});
 
     const result = await importRecipe(url, { fetchPage, cache, now: () => 1_000 });
-    expect(result).toEqual({ ok: true, value: { recipeId: key, sourceUrl: normalised, title: 'Cached Soup', yield: null, steps: ['Boil.'], ingredients: [], image: null } });
+    expect(result).toEqual({ ok: true, value: { recipeId: key, sourceUrl: normalised, title: 'Cached Soup', yield: null, steps: ['Boil.'], ingredients: [{ line: '1 cup broth', quantity: '1', unit: 'cup', item: 'broth' }], image: null } });
     expect(calls).toEqual([]);
   });
 
   it('a remembered failure within the 24h window returns the error with no fetch; after it expires, the page is refetched and the failure doc is deleted', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-failure-memory';
+    const url = `https://recipe.invalid/${runId}-fsrc-failure-memory`;
     const normalised = normalise(url);
     const key = recipeKey(normalised);
 
@@ -168,7 +173,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
     it(`each error kind (${label}) is stored in recipeFailures`, async () => {
       const db = adminFirestore();
       const cache = new FirestoreRecipeCache(db);
-      const url = `https://recipe.invalid/fsrc-error-${label}`;
+      const url = `https://recipe.invalid/${runId}-fsrc-error-${label}`;
       const normalised = normalise(url);
       const key = recipeKey(normalised);
       const { fetchPage } = makeFetchPage({ [normalised]: page });
@@ -201,7 +206,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
   it('a source re-parse equals the stored recipe', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-reparse';
+    const url = `https://recipe.invalid/${runId}-fsrc-reparse`;
     const normalised = normalise(url);
     const key = recipeKey(normalised);
     const { fetchPage } = makeFetchPage({ [normalised]: { kind: 'page', html: recipeHtml('Reparse Soup') } });
@@ -230,7 +235,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
   it('getSource round-trips a nested-array jsonLd shape (HowToSection.itemListElement)', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-nested-sections';
+    const url = `https://recipe.invalid/${runId}-fsrc-nested-sections`;
     const normalised = normalise(url);
     const key = recipeKey(normalised);
 
@@ -253,7 +258,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
 
     await cache.saveRecipe(
       key,
-      { url: normalised, recipe: { recipeId: key, sourceUrl: normalised, title: 'Nested Sections Soup', yield: null, steps: ['Chop the vegetables.', 'Measure the broth.', 'Boil it.'], ingredients: [], image: null }, parserVersion: 1, fetchedAt: 1 },
+      { url: normalised, recipe: { recipeId: key, sourceUrl: normalised, title: 'Nested Sections Soup', yield: null, steps: ['Chop the vegetables.', 'Measure the broth.', 'Boil it.'], ingredients: [{ line: '1 cup broth', quantity: '1', unit: 'cup', item: 'broth' }], image: null }, parserVersion: 1, fetchedAt: 1 },
       { url: normalised, jsonLd, fetchedAt: 1 },
     );
 
@@ -268,7 +273,7 @@ describe('FirestoreRecipeCache (emulator)', () => {
   it('an undecodable doc reads as null (a miss), not a thrown error', async () => {
     const db = adminFirestore();
     const cache = new FirestoreRecipeCache(db);
-    const url = 'https://recipe.invalid/fsrc-undecodable';
+    const url = `https://recipe.invalid/${runId}-fsrc-undecodable`;
     const normalised = normalise(url);
     const key = recipeKey(normalised);
 
