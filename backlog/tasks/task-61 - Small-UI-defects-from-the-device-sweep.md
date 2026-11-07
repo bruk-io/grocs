@@ -1,11 +1,11 @@
 ---
 id: TASK-61
 title: Small UI defects from the device sweep
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-06 19:50'
-updated_date: '2026-11-07 14:09'
+updated_date: '2026-11-07 14:11'
 labels:
   - size-2
   - app
@@ -23,7 +23,7 @@ Found in the 2026-11-06 device sweep of release builds (fold emulator, iPhone 18
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 With the keyboard open, the first tap on Add (quick add) or Paste adds or pastes instead of only closing the keyboard
+- [x] #1 With the keyboard open, the first tap on Add (quick add) or Paste adds or pastes instead of only closing the keyboard
 - [x] #2 The join screen's error message wraps inside the screen; it currently runs off the right edge
 - [x] #3 Checking an invite code shows progress text, not just a spinner, while the cold-start call runs (5 to 30 s observed)
 - [x] #4 Copy diagnostics confirms the copy in the app (iOS shows no system feedback)
@@ -78,4 +78,72 @@ Possible causes:
 ```
 
 AC #1 re-proven 2026-11-07 with apps/mobile/e2e/quick-add-first-tap.yaml (keyboard shown, one tap on Add, item must appear on Groceries). Pre-fix (TaskLayout from origin/main, Metro restarted with --clear so the bundle really had it): keyboard visible, the tap only closed it, flow failed - recorded above as the repro (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/qa-pre/2026-11-07_090405/quick-add-first-tap/takeScreenshot/quick-add-keyboard-open.png). With the fix (Metro restarted again): keyboard visible (/private/tmp/claude-501/-Users-brukhabtu-src-github-com-bruk-io-grocs/ac56ae32-4b92-4feb-9938-4b554a7388d6/scratchpad/shots/post/2026-11-07_090649/quick-add-first-tap/takeScreenshot/quick-add-keyboard-open.png), one tap added the item, flow passed. Why the earlier quick-add shots had no keyboard is unexplained (simulator); this run has it. Paste: the meal form's Paste button is not wired at all (AddMealScreen passes no onPasteLink), so there was nothing to tap-test; filed as its own bug. Learned: Metro started in this worktree does not pick up file edits (no hot reload), so a pre-fix check needs a Metro restart.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 1
+
+(52 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/Asset.fx.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/small-items/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  139 passed (139)
+      Tests  1771 passed (1771)
+   Start at  09:10:49
+   Duration  8.98s (transform 35.60s, setup 4.30s, import 113.31s, tests 40.90s, environment 21.67s)
+
+$ firebase emulators:exec --only firestore,auth,functions --project demo-grocs 'vitest run --project emulator'
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-grocs", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+⚠  auth: Port 9099 is not open on 127.0.0.1, could not start Authentication Emulator.
+⚠  auth: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "auth": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  firestore: Port 8080 is not open on 127.0.0.1, could not start Firestore Emulator.
+⚠  firestore: To select a different host/port, specify that host/port in a firebase.json config file:
+      {
+        // ...
+        "emulators": {
+          "firestore": {
+            "host": "HOST",
+            "port": "PORT"
+          }
+        }
+      }
+⚠  hub: emulator hub unable to start on port 4400, starting on 4401 instead.
+⚠  logging: Logging Emulator unable to start on port 4500, starting on 4501 instead.
+i  emulators: Shutting down emulators.
+
+Error: Could not start Authentication Emulator, port taken.
+[ELIFECYCLE] Command failed with exit code 1.
+```
+
+Re-reviewed by philosophy:reviewer: closed. AC #1 ticked: quick-add-first-tap.yaml post-fix screenshot (shots/post/2026-11-07_090649) shows the software keyboard up, then one tap on Add put the item on Groceries; pre-fix (shots/qa-pre/2026-11-07_090405, repro at 1eac626) the same tap only closed the keyboard and the flow failed. The criterion reads Add or Paste; Add is proven, and Paste cannot paste at all because it is unwired, which is TASK-77's defect, not a keyboard one. ACs #2-#5 met as the previous review found. Full check (recorded on TASK-61): check, typecheck and unit tests pass; test:emulator could not start because this session's emulators hold 8080/9099, the same environment failure as the earlier run, not a code failure; CI 42377775413 passed on 0b0d46b and later commits add only e2e flows and notes. Finding: the pre-fix run reverted the whole TaskLayout, so it does not isolate keyboardShouldPersistTaps from KeyboardAvoidingView; the post-fix behaviour is what the criterion asks, so this is noted, not filed. Finding: the flow taps the field by screen position (35%,27%), which breaks if the layout moves; low, not filed.
 <!-- SECTION:NOTES:END -->
