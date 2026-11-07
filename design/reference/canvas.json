@@ -21,16 +21,6 @@
     }
   ],
   "boards": {
-    "RecipeImport.dc.html": {
-      "x": 1880,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Parked: recipe import",
-      "is_interactive": true,
-      "radius": 40,
-      "page": "app"
-    },
     "D1-OptionA.dc.html": {
       "x": 0,
       "y": 0,
@@ -93,7 +83,6 @@
     }
   },
   "order": [
-    "RecipeImport.dc.html",
     "D1-OptionA.dc.html",
     "D1-OptionB.dc.html",
     "D1-OptionC.dc.html",

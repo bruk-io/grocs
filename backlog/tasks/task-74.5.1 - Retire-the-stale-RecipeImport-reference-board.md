@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.1
 title: Retire the stale RecipeImport reference board
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 02:38'
 labels:
   - size-1
   - orchestrator
@@ -46,3 +46,15 @@ Each acceptance criterion is shown by a test or command output recorded in the n
 Files expected to change:
 - design/reference/RecipeImport.dc.html
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Evidence (worktree wf_ff6cb6f7-7f6-7):
+- Step 1: grep -rn RecipeImport design/ tools/ packages/ui/ found only design/reference/canvas.json (boards entry and order list) besides the board itself; shots/RecipeImport.png is the board's shot (README: delete a board's shot with the board).
+- Step 2: removed design/reference/RecipeImport.dc.html and design/reference/shots/RecipeImport.png, and the board's boards/order entries in design/reference/canvas.json (the reference-built rule's fix text names all three).
+- After: grep -rn RecipeImport design/ tools/ packages/ui/ gives no matches (exit 1).
+- Step 3: pnpm check gives 'checks passed (16 checks, all mode, 658 ms)', exit 0; reference-built is registered in tools/checks/registry.ts.
+- Step 4: TASK-74.5 note added. Committed in the worktree only, not pushed: the workflow forbids pushing and switching branches in the main checkout, so the orchestrator lands it on main.
+- Worktree setup: its branch was cut from origin/main (TASK-67 commits) while local main had the TASK-74 board commits, so a fast-forward was impossible; local main was merged in (merge commit) to get this task.
+<!-- SECTION:NOTES:END -->
