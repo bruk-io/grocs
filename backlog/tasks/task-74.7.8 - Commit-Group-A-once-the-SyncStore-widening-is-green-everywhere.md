@@ -1,11 +1,11 @@
 ---
 id: TASK-74.7.8
 title: Commit Group A once the SyncStore widening is green everywhere
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 04:15'
 labels:
   - size-1
   - orchestrator
