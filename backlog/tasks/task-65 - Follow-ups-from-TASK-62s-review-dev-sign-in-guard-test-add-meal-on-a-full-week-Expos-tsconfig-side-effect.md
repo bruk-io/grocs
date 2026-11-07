@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-06 21:14'
-updated_date: '2026-11-07 13:33'
+updated_date: '2026-11-07 13:36'
 labels:
   - size-1
   - e2e
@@ -32,4 +32,6 @@ From the reviewer's close of TASK-62 (740b4bb). (1) native.ts's devSignIn guard 
 
 <!-- SECTION:NOTES:BEGIN -->
 #1: the devSignIn decision moved to apps/mobile/src/composition/dev-sign-in-gate.ts (devSignInFor), which native.ts calls; dev-sign-in-gate.test.ts fails if a release build (no dev tools) or a dev build on live Firebase (no emulator functions) is offered it. #3: tools/e2e.ts runs the --build step through removingWhatItCreates, which deletes apps/mobile/tsconfig.json after prebuild if the run created it and keeps one that was already there (tested in tools/e2e.test.ts with a fake fs, including a failing step). Metro alone (expo start) did not recreate the file in this session; prebuild does. #2: add-meal.yaml steps a week ahead while no 'Plan a meal' shows, and after saving steps forward until the meal shows (saving returns the plan to this week: TASK-75). Proof on the iPhone simulator: filled every day of Alex's week with a scratch flow, then add-meal.yaml passed against the full week.
+
+pnpm e2e --ios on the simulator (reseeded, normal week) after these changes: add-and-tick-item, add-meal, sign-in all passed. The two-device and household flows need an Android device too and were not run (Android SDK missing).
 <!-- SECTION:NOTES:END -->
