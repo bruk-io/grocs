@@ -101,6 +101,22 @@ export function kitchenGatewayContract(t: TestApi, make: () => Promise<KitchenGa
     );
 
     t.it(
+      'offers nothing from a kitchen whose inviter has left it to join another (TASK-79)',
+      withGateways(async ({ owner, partner, ownerEmail, partnerEmail }) => {
+        // Both make a kitchen and invite each other; the partner joins the owner's. The partner's old
+        // kitchen is now empty, and must not offer the owner its stale invite.
+        const ours = await owner.createKitchen('Our kitchen', 'America/New_York');
+        const theirs = await partner.createKitchen('Their kitchen', 'America/New_York');
+        await owner.inviteByEmail(ours.kitchenId, partnerEmail);
+        await partner.inviteByEmail(theirs.kitchenId, ownerEmail);
+        await partner.acceptInvite(ours.kitchenId);
+        t.expect(await owner.invitesForMe()).toEqual([]);
+        t.expect(await owner.acceptInvite(theirs.kitchenId)).toEqual({ kind: 'rejected', reason: 'not-found' });
+        t.expect(await owner.findMyKitchen()).toBe(ours.kitchenId);
+      }),
+    );
+
+    t.it(
       'offers nothing to, and refuses, a person whose email was not invited (R4)',
       withGateways(async ({ owner, stranger, partnerEmail }) => {
         const { kitchenId } = await owner.createKitchen('Our kitchen', 'America/New_York');

@@ -94,6 +94,12 @@ describe('acceptInvite (R3, R4, TASK-78)', () => {
     expect(r.ok && r.value.left).toEqual({ ...samsOwn, members: [], memberNames: {} });
   });
 
+  it('drops the invite the leaver sent from the kitchen they left, so it is never offered again (TASK-79)', () => {
+    const samInvitedAlex: Kitchen = { ...samsOwn, invite: { email: 'alex@example.com', invitedBy: 'sam', createdAt: 2000 } };
+    const r = acceptInvite({ ...sam, target: invited, current: samInvitedAlex });
+    expect(r.ok && r.value.left?.invite).toBeUndefined();
+  });
+
   it('refuses anyone whose email is not the one invited (R4)', () => {
     expect(acceptInvite({ ...sam, email: 'jo@example.com', target: invited, current: null })).toEqual({ ok: false, error: 'not-found' });
     expect(acceptInvite({ ...sam, email: null, target: invited, current: null })).toEqual({ ok: false, error: 'not-found' });

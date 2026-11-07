@@ -88,10 +88,14 @@ export function acceptInvite(input: AcceptInviteInput): Result<AcceptedInvite, A
   return ok({ joined: added.value, left });
 }
 
-/** The kitchen without `uid` as a member. A kitchen whose last member leaves keeps its data and has no members. */
+/**
+ * The kitchen without `uid` as a member. A kitchen whose last member leaves keeps its data and has no
+ * members. Its invite goes too: a kitchen with an invite has one member, so whoever leaves it sent it,
+ * and an invite from someone who has left must not be offered or accepted (TASK-79).
+ */
 export function removeMember(kitchen: Kitchen, uid: string): Kitchen {
   const { [uid]: _gone, ...memberNames } = kitchen.memberNames;
-  return { ...kitchen, members: kitchen.members.filter((m) => m !== uid), memberNames };
+  return { ...withoutInvite(kitchen), members: kitchen.members.filter((m) => m !== uid), memberNames };
 }
 
 function withoutInvite(kitchen: Kitchen): Kitchen {
