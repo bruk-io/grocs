@@ -15,6 +15,8 @@ export { decodeItem, encodeItem, ITEM_SCHEMA_VERSION } from './schema/item-doc.t
 export type { ItemDoc, SchemaError } from './schema/item-doc.ts';
 export { decodeMeal, encodeMeal, MEAL_SCHEMA_VERSION } from './schema/meal-doc.ts';
 export type { MealDoc } from './schema/meal-doc.ts';
+export { decodeRecipe, encodeRecipe, RECIPE_SCHEMA_VERSION } from './schema/recipe-doc.ts';
+export type { RecipeDoc } from './schema/recipe-doc.ts';
 export { CIRCULAR, PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './schema/personal.ts';
 export { weekIdFor } from './model/week.ts';
 export { addMember, createKitchen, isKitchenFull, KITCHEN_SCHEMA_VERSION, MAX_MEMBERS } from './model/kitchen.ts';

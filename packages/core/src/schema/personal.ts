@@ -20,10 +20,14 @@ interface EntityMarking {
  * Add an entry when a new stored entity gets a field the kitchen types. meal is listed before
  * item: dayIndex is a true structural exclusive to meal, so checking it first means meal can only
  * ever match an actual meal, and anything else falls through cleanly to item's unchanged check.
+ * recipe (shape sourceUrl+ingredients) and ingredient (shape line+item) share no keys with meal or
+ * item, so their position does not change how those two match; they are listed last.
  */
 export const PERSONAL_FIELDS: readonly EntityMarking[] = [
   { entity: 'meal', shape: ['weekId', 'dayIndex'], personal: ['name', 'link'] },
   { entity: 'item', shape: ['weekId', 'addedBy'], personal: ['name', 'amount'] },
+  { entity: 'recipe', shape: ['sourceUrl', 'ingredients'], personal: ['title', 'sourceUrl', 'ingredients', 'steps', 'image'] },
+  { entity: 'ingredient', shape: ['line', 'item'], personal: ['line', 'quantity', 'unit', 'item'] },
 ];
 
 export const REDACTED = '[redacted]';
