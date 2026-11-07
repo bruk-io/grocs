@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hand-made: malformed ld+json block before a valid one</title>
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "Recipe", "name": "Broken Block",
+  "recipeIngredient": ["this object is missing its closing braces"
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "name": "Hand-made Roast Chicken",
+  "recipeYield": "4 servings",
+  "image": "https://example.invalid/roast-chicken.jpg",
+  "recipeIngredient": [
+    "1 whole chicken, about 4 pounds",
+    "2 tablespoons olive oil",
+    "1 lemon, halved",
+    "Salt and pepper, to taste"
+  ],
+  "recipeInstructions": [
+    { "@type": "HowToStep", "text": "Rub the chicken with oil, salt and pepper, and stuff with the lemon." },
+    { "@type": "HowToStep", "text": "Roast at 425F until the juices run clear, about 1 hour 15 minutes." },
+    { "@type": "HowToStep", "text": "Rest for 10 minutes before carving." }
+  ]
+}
+</script>
+</head>
+<body></body>
+</html>
