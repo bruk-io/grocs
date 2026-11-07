@@ -5,13 +5,20 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:07'
+updated_date: '2026-11-07 03:10'
 labels:
   - size-3
   - layer-providers
 dependencies:
   - TASK-74.3.1
   - TASK-74.3.2
+modified_files:
+  - packages/providers-server/src/recipe/pure/normalise-url.ts
+  - packages/providers-server/src/recipe/pure/normalise-url.test.ts
+  - packages/providers-server/src/recipe/pure/address.ts
+  - packages/providers-server/src/recipe/pure/address.test.ts
+  - packages/providers-server/src/recipe/pure/status.ts
+  - packages/providers-server/src/recipe/pure/status.test.ts
 parent_task_id: TASK-74.4
 type: task
 ---
@@ -53,6 +60,12 @@ Split key: providers-url-guard. Layer: providers. Contract: TASK-74's plan.
 - address.test.ts: table tests over every range in contract §9 plus the named edge cases (compressed IPv6, zone id, IPv4-mapped dotted/hex, NAT64, 6to4, 0.1.2.3, 198.18.0.1, 224.0.0.1, 255.255.255.255) plus public v4/v6 positives, all green.
 - status.test.ts: table over 2xx/404/410/401/403/429/other, all green.
 - `pnpm -s typecheck` passes repo-wide; `pnpm exec vitest run --project unit packages/providers-` passes; the repo's check runner (core-purity, import-layers, test-presence) reports no findings for the new files.
+
+### Requirements delivered
+R25 (no ambient clock/randomness/network in the pure/ domain functions, core-purity's rule),
+R26/R25 (import-layers/pure-folder: these files import only @grocs/core and pure/ siblings),
+R46 (test-presence/domain-unit-test: every module here has a beside-it test), all enforced by
+decision-15's pure/ exception to providers-hold-no-rules.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -102,4 +115,31 @@ the right reason. TASK-74.4.4's "an IP-literal host must pass isPublicAddress" s
 strip a literal's brackets before calling isPublicAddress. That is outside this task's §9 scope
 (§9 defines isPublicAddress over a bare address, not a URL.hostname), so it is left for 74.4.4's
 own implementation rather than loosening this module's contract.
+
+## Correction to the per-file test counts above
+
+The earlier per-file counts (18/48/13) were estimated, not measured, and address.test.ts's was
+wrong (it has 54, not 48 - I'd missed the two standalone 'allows a public v4/v6' tests plus two
+more). Measured with the real reporter:
+
+  $ mise exec -- pnpm exec vitest run --project unit packages/providers-server/src/recipe/pure --reporter=verbose
+  Test Files  3 passed (3)
+       Tests  85 passed (85)
+  (normalise-url.test.ts: 18, address.test.ts: 54, status.test.ts: 13 - 18+54+13=85, matches the
+  total; full verbose listing is in this run's tool output, one line per test, all ✓)
+
+## A non-idempotence edge inside the frozen contract (not fixed - flagging for the reviewer)
+
+normaliseRecipeUrl('https://x.com//') -> pathname '//' -> step 4 strips one trailing slash ->
+'/' -> output 'https://x.com/'. Normalising that output again strips its own trailing '/' and
+gives 'https://x.com'. So normalise(normalise(x)) !== normalise(x) for a doubled-slash path,
+even though §9 also says "the function is idempotent". My golden table's 12 rows don't contain a
+doubled-path case, so the idempotence test (which only loops the golden table) doesn't catch it.
+
+I did not change the code: §9 step 4 says literally "one trailing / stripped", and AC#1 requires
+the exact literal steps, so stripping every trailing slash to satisfy idempotence would be
+improvising past the frozen contract. This is safe in context - recipeId and recipeForLink's
+sourceUrl match both come from a single normalisation pass, never a renormalised string - but
+it's a real tension between step 4 and the idempotence sentence that the contract owner may want
+to annotate. Flagging it rather than resolving it myself (decision-3 mediation).
 <!-- SECTION:NOTES:END -->
