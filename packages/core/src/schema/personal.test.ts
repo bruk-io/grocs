@@ -2,9 +2,11 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { createExtraItem } from '../model/item.ts';
 import { createMeal } from '../model/meal.ts';
+import type { ParsedIngredient, ParsedRecipe, Recipe } from '../model/recipe.ts';
 import { PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './personal.ts';
 import { encodeItem } from './item-doc.ts';
 import { encodeMeal } from './meal-doc.ts';
+import { encodeRecipe } from './recipe-doc.ts';
 
 const item = (() => {
   const r = createExtraItem({ id: 'i1', weekId: 'w', name: 'Oat milk', amount: '2 cartons' }, { at: 1, by: 'alex' });
@@ -17,6 +19,31 @@ const meal = (() => {
   if (!r.ok) throw new Error('setup');
   return r.value;
 })();
+
+const ingredient: ParsedIngredient = { line: '1 1/2 cups flour', quantity: '1 1/2', unit: 'cups', item: 'flour' };
+
+const recipe: Recipe = {
+  id: 'r1',
+  addedBy: 'alex',
+  createdAt: 1,
+  sourceUrl: 'https://recipe.invalid/tacos',
+  title: 'Taco night tacos',
+  yield: '4 servings',
+  steps: ['Chop the onions.', 'Cook the meat.'],
+  ingredients: [ingredient],
+  image: 'https://recipe.invalid/tacos.jpg',
+  deleted: null,
+};
+
+const parsedRecipe: ParsedRecipe = {
+  recipeId: 'r1',
+  sourceUrl: recipe.sourceUrl,
+  title: recipe.title,
+  yield: recipe.yield,
+  steps: recipe.steps,
+  ingredients: recipe.ingredients,
+  image: recipe.image,
+};
 
 describe('redact (R36)', () => {
   it('removes the name and amount from an item, the domain form and the stored form', () => {
@@ -44,6 +71,75 @@ describe('redact (R36)', () => {
     expect(classify(encodeMeal(meal))).toBe('meal');
     expect(classify(encodeItem(item))).toBe('item');
     expect(classify({ id: 'i1', weekId: 'w', addedBy: 'alex', name: item.name, amount: item.amount })).toBe('item');
+  });
+
+  it('removes title, URL, image, ingredients and steps from a recipe, the domain form, the stored form and a bare ParsedRecipe', () => {
+    for (const shape of [recipe, encodeRecipe(recipe), parsedRecipe]) {
+      const text = JSON.stringify(redact({ event: 'x', recipe: shape }));
+      expect(text).not.toContain('Taco night tacos');
+      expect(text).not.toContain('recipe.invalid');
+      expect(text).not.toContain('Chop the onions');
+      expect(text).not.toContain('1 1/2 cups flour');
+      expect(text).toContain(REDACTED);
+      expect(text).toContain('r1');
+    }
+  });
+
+  it('removes line, quantity, unit and item from a bare ingredient', () => {
+    const text = JSON.stringify(redact({ event: 'x', ingredient }));
+    expect(text).not.toContain('1 1/2 cups flour');
+    expect(text).not.toContain('flour');
+    expect(text).not.toContain('1 1/2');
+    expect(text).not.toContain('cups');
+    expect(text).toContain(REDACTED);
+  });
+
+  it('classifies a recipe document as a recipe, not an item or a meal', () => {
+    const classify = (v: object) => PERSONAL_FIELDS.find((e) => e.shape.every((k) => k in v))?.entity;
+    expect(classify(recipe)).toBe('recipe');
+    expect(classify(encodeRecipe(recipe))).toBe('recipe');
+    expect(classify(parsedRecipe)).toBe('recipe');
+  });
+
+  it('removes attributes named after a recipe or ingredient personal field', () => {
+    for (const key of [
+      'recipeTitle',
+      'recipeSourceUrl',
+      'recipeIngredients',
+      'recipeSteps',
+      'recipeImage',
+      'ingredientLine',
+      'ingredientQuantity',
+      'ingredientUnit',
+      'ingredientItem',
+    ]) {
+      expect(PERSONAL_ATTRIBUTE_KEYS.has(key)).toBe(true);
+    }
+    expect(
+      redact({
+        recipeTitle: 'Taco night tacos',
+        recipeSourceUrl: 'https://recipe.invalid/tacos',
+        recipeIngredients: [ingredient],
+        recipeSteps: ['Chop the onions.', 'Cook the meat.'],
+        recipeImage: 'https://recipe.invalid/tacos.jpg',
+        ingredientLine: '2 cups flour',
+        ingredientQuantity: '2',
+        ingredientUnit: 'cups',
+        ingredientItem: 'flour',
+        port: 'syncStore',
+      }),
+    ).toEqual({
+      recipeTitle: REDACTED,
+      recipeSourceUrl: REDACTED,
+      recipeIngredients: REDACTED,
+      recipeSteps: REDACTED,
+      recipeImage: REDACTED,
+      ingredientLine: REDACTED,
+      ingredientQuantity: REDACTED,
+      ingredientUnit: REDACTED,
+      ingredientItem: REDACTED,
+      port: 'syncStore',
+    });
   });
 
   it('removes attributes named after a personal field', () => {
