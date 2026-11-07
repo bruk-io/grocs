@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:51'
+updated_date: '2026-11-07 02:54'
 labels:
   - size-2
   - layer-core
@@ -47,3 +47,22 @@ first has no content tiebreak, so the property arbitrary must hold content (sour
 - AC1/AC2/AC3: vitest --project unit packages/core output showing recipe-merge.test.ts passing (examples + properties).
 - AC4: index.ts export plus `pnpm -s typecheck` and `vitest --project unit packages/core` output pasted into notes.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented packages/core/src/merge/recipe-merge.ts (mergeRecipe, isRecipeDeleted) and recipe-merge.test.ts, exported from packages/core/src/index.ts. Commit c724d42.
+
+AC1: mergeRecipe(a, b) throws `cannot merge different recipes: <a> and <b>` on different ids; first = earlier createdAt, tie by addedBy <= (copied from mergeMeal); content/addedBy/createdAt from first; deleted = laterStamp(a.deleted, b.deleted).
+
+AC2/AC3 - `mise exec -- pnpm exec vitest run --project unit packages/core/src/merge/recipe-merge.test.ts`:
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+Covers: earlier createdAt keeps addedBy/createdAt/content; tied createdAt breaks tie by addedBy; delete on either copy wins (exercises laterStamp, not just `first`); a re-imported copy with deleted:null never clears a tombstone; different ids throw. Properties: order independence (forward/reversed fold), any shuffle, idempotence, associativity, delete-never-undone. Arbitrary fixes id and content (sourceUrl/title/yield/steps/ingredients/image) and varies only addedBy/createdAt/deleted (members alex|sam, at 0..12), with a comment explaining why: the same recipeId always comes from the same server cache entry, and `first` has no content tiebreak, so letting content vary would falsify associativity/order-independence on a case the real system never produces.
+
+AC4 - exported from packages/core/src/index.ts (`export { isRecipeDeleted, mergeRecipe } from './merge/recipe-merge.ts'`). Full suite + typecheck:
+`mise exec -- pnpm exec vitest run --project unit packages/core` -> Test Files 14 passed (14), Tests 124 passed (124)
+`mise exec -- pnpm -s typecheck` -> clean (tsc --noEmit, no output)
+
+Repo-wide, at commit time via lefthook pre-commit: checks (16 checks) passed, typecheck passed, unit-tests (139 files, 1775 tests) passed.
+<!-- SECTION:NOTES:END -->
