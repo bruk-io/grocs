@@ -1,7 +1,7 @@
 ---
 id: TASK-74.3.7
 title: decodeEntities resolves names like '&constructor;' through Object's prototype
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 03:45'
@@ -109,4 +109,6 @@ Received: "A function Object() { [native code] } B &toString; C &__proto__;"
    Start at  23:19:59
    Duration  151ms (transform 53ms, setup 0ms, import 70ms, tests 5ms, environment 0ms)
 ```
+
+Closed by reviewer. AC1 met: recipe-schema.ts uses Object.hasOwn (8cb88d3). AC2 met: test covers &constructor;, &toString;, &__proto__; providers unit tests and typecheck pass (orchestrator: 2061 unit tests, typecheck clean at ca542a3). Repro recorded: new test fails on pre-fix code (1 failed). No findings filed.
 <!-- SECTION:NOTES:END -->
