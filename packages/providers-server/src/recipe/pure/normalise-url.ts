@@ -22,7 +22,7 @@ function compareRaw(a: string, b: string): number {
 /**
  * Canonicalises a recipe link into the server's cache key (contract §9, steps 1-7): rejects
  * anything but a plain http(s) URL with no userinfo, lowercases and drops a default port via
- * WHATWG host parsing, strips one trailing slash, drops tracking parameters and the fragment, and
+ * WHATWG host parsing, strips every trailing slash, drops tracking parameters and the fragment, and
  * sorts the remaining query by its raw (unencoded) key then value. Everything else - encoding,
  * path casing - is kept exactly as written: this is a key, not a normal form for display.
  */
@@ -37,7 +37,7 @@ export function normaliseRecipeUrl(raw: string): Result<string, 'invalid-url'> {
   if (url.username !== '' || url.password !== '') return err('invalid-url');
 
   const host = url.host;
-  const path = url.pathname === '/' ? '' : url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+  const path = url.pathname.replace(/\/+$/, '');
 
   const rawQuery = url.search.startsWith('?') ? url.search.slice(1) : url.search;
   const kept = rawQuery
