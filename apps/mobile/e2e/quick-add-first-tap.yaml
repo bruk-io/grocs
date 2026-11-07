@@ -15,9 +15,9 @@ env:
 - extendedWaitUntil:
     visible: "Paste a few items at once, one per line."
     timeout: 10000
+# The field shares its name with the screen title, so tap it by place.
 - tapOn:
-    text: "Add an item"
-    leftOf: "Add"
+    point: "35%,27%"
 - inputText: "${ITEM}"
 - waitForAnimationToEnd
 - takeScreenshot: quick-add-keyboard-open
