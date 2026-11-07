@@ -3,11 +3,11 @@ id: TASK-74.5.7
 title: >-
   Meal form offers 'Get recipe and groceries', shows progress, errors and a
   saved recipe
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:41'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-2
   - layer-ui
@@ -26,9 +26,9 @@ Split key: ui-meal-form-import. Layer: ui. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 MealFormTemplate has the added props. The import action is hidden when onImportRecipe is absent, is busy and disabled while importing, shows importError under the link field, and shows 'View recipe' when recipeTitle and onOpenRecipe are set
-- [ ] #2 MEALFORMTEMPLATE_STATES gains 'importing', 'importError' and 'withRecipe', with stories
-- [ ] #3 The MealFormTemplate behaviour test covers onImportRecipe and onOpenRecipe. At this commit, pnpm -s typecheck passes repo-wide and vitest --project ui passes
+- [x] #1 MealFormTemplate has the added props. The import action is hidden when onImportRecipe is absent, is busy and disabled while importing, shows importError under the link field, and shows 'View recipe' when recipeTitle and onOpenRecipe are set
+- [x] #2 MEALFORMTEMPLATE_STATES gains 'importing', 'importError' and 'withRecipe', with stories
+- [x] #3 The MealFormTemplate behaviour test covers onImportRecipe and onOpenRecipe. At this commit, pnpm -s typecheck passes repo-wide and vitest --project ui passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -73,4 +73,6 @@ Added the disabled-attribute assertion to the importing test (busy+disabled both
 Two things recorded for the reviewer:
 - Precedence when both importError and linkError are set: importError takes the link field's errorMessage slot (`importError ?? linkError`), silently suppressing the R6 validation message. Contract §16 lists only "message under the link field" and does not rank the two; this is my choice, not a contract requirement.
 - The stories file also adds a non-state base story, WithImport (link + onImportRecipe only, no importing/importError/recipeTitle), that Importing/ImportError/WithRecipe extend. This means TASK-74.5.8 should expect four new templates-meal-form-* baseline sets (WithImport, Importing, ImportError, WithRecipe), not three. OnPhone is existing precedent for a story without a declared state.
+
+Closed by reviewer. AC#1: props present (MealFormTemplate.tsx), behaviour tests cover hidden/press/busy+disabled/importError/View recipe. AC#2: MEALFORMTEMPLATE_STATES gains importing/importError/withRecipe with Importing/ImportError/WithRecipe stories. AC#3: vitest --project ui MealFormTemplate re-run by reviewer: 14 passed; orchestrator evidence at 6b10c7c: typecheck clean, pnpm test 2018 passed, pnpm check 16 passed. Findings (none filed): importError ?? linkError hides the R6 validation message when both set - low, worker's documented choice, contract silent; WithImport base story adds a fourth baseline set, noted for TASK-74.5.8; worker note says 15 tests, file runs 14 - cosmetic.
 <!-- SECTION:NOTES:END -->

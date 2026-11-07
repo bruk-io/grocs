@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.6
 title: RecipeTemplate shows a saved recipe
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:39'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-3
   - layer-ui
@@ -24,10 +24,10 @@ Split key: ui-recipe-template. Layer: ui. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 templates/RecipeTemplate.tsx exports RecipeTemplateProps and RECIPETEMPLATE_STATES = ['rest','noYield','long'], with a story for each state
-- [ ] #2 Any new atoms, molecules or organisms satisfy story-coverage (STATES list, a story per state, interactive states where required)
-- [ ] #3 RecipeTemplate.behaviour.test.tsx drives onBack through composeStories and userEvent
-- [ ] #4 Level-1 story and accessibility tests pass. At this commit, pnpm -s typecheck passes repo-wide and vitest --project ui passes
+- [x] #1 templates/RecipeTemplate.tsx exports RecipeTemplateProps and RECIPETEMPLATE_STATES = ['rest','noYield','long'], with a story for each state
+- [x] #2 Any new atoms, molecules or organisms satisfy story-coverage (STATES list, a story per state, interactive states where required)
+- [x] #3 RecipeTemplate.behaviour.test.tsx drives onBack through composeStories and userEvent
+- [x] #4 Level-1 story and accessibility tests pass. At this commit, pnpm -s typecheck passes repo-wide and vitest --project ui passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -72,4 +72,6 @@ stories.accessibility.test.tsx (R42: contrast + touch targets) likewise has one 
  ✓ ./templates/RecipeTemplate.stories.tsx > Long: text is 4.5:1 and targets are 44 x 44
 
 Plus the three RecipeTemplate.behaviour.test.tsx cases, all passing.
+
+Review (philosophy:reviewer): closed. AC1: RecipeTemplateProps and RECIPETEMPLATE_STATES=['rest','noYield','long'] exported, Rest/NoYield/Long stories present, exported from index.ts. AC2: no new atoms/molecules/organisms (commit ccb8ee4 touches only the template, its story, its behaviour test and index.ts); pnpm check (16 checks incl. story-coverage) passed on merged main 6b10c7c. AC3: behaviour test drives onBack via composeStories+userEvent; re-run here, 3/3 pass. AC4: orchestrator's run on 6b10c7c: typecheck clean, pnpm test 2018 passed; per-story level-1 and accessibility cases named in notes. Emulator failures are in recipe-importer (TASK-74.4.7/74.5.9), unrelated to this UI leaf. No findings; visual baselines are TASK-74.5.8.
 <!-- SECTION:NOTES:END -->

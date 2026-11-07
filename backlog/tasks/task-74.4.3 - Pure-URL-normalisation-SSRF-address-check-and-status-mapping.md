@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.3
 title: 'Pure URL normalisation, SSRF address check and status mapping'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:15'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-3
   - layer-providers
@@ -33,11 +33,11 @@ Split key: providers-url-guard. Layer: providers. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 normaliseRecipeUrl implements contract §9 steps 1-7 exactly. normalise-url.test.ts has a golden table of at least 10 input/output pairs, including: 'https://x.com/' → 'https://x.com'; uppercase host; utm_Source and fbclid dropped; parameter order sorted; '%20' kept as written; fragment dropped; 'ftp://x' and 'https://u:p@x.com' → invalid-url; non-default port kept. It also shows idempotence and that the output passes core relinkMeal
-- [ ] #2 isPublicAddress returns false for every range listed in contract §9 and for unparseable input. Table tests cover compressed IPv6, a zone id (fe80::1%eth0), IPv4-mapped in dotted (::ffff:127.0.0.1) and hex (::ffff:7f00:1) form, NAT64, 6to4, 0.1.2.3, 198.18.0.1, 224.0.0.1 and 255.255.255.255. It returns true for public v4 (e.g. 93.184.216.34) and v6 (e.g. 2606:4700::1)
-- [ ] #3 isAllowedTarget allows only http/https on ports '', '80' and '443'
-- [ ] #4 errorForStatus maps per decision-15's table (404/410 not-found; 401/403/429 blocked; other non-2xx unreachable; 2xx null)
-- [ ] #5 Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
+- [x] #1 normaliseRecipeUrl implements contract §9 steps 1-7 exactly. normalise-url.test.ts has a golden table of at least 10 input/output pairs, including: 'https://x.com/' → 'https://x.com'; uppercase host; utm_Source and fbclid dropped; parameter order sorted; '%20' kept as written; fragment dropped; 'ftp://x' and 'https://u:p@x.com' → invalid-url; non-default port kept. It also shows idempotence and that the output passes core relinkMeal
+- [x] #2 isPublicAddress returns false for every range listed in contract §9 and for unparseable input. Table tests cover compressed IPv6, a zone id (fe80::1%eth0), IPv4-mapped in dotted (::ffff:127.0.0.1) and hex (::ffff:7f00:1) form, NAT64, 6to4, 0.1.2.3, 198.18.0.1, 224.0.0.1 and 255.255.255.255. It returns true for public v4 (e.g. 93.184.216.34) and v6 (e.g. 2606:4700::1)
+- [x] #3 isAllowedTarget allows only http/https on ports '', '80' and '443'
+- [x] #4 errorForStatus maps per decision-15's table (404/410 not-found; 401/403/429 blocked; other non-2xx unreachable; 2xx null)
+- [x] #5 Pure-folder, core-purity and test-presence pass. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -167,4 +167,6 @@ improvising past the frozen contract. This is safe in context - recipeId and rec
 sourceUrl match both come from a single normalisation pass, never a renormalised string - but
 it's a real tension between step 4 and the idempotence sentence that the contract owner may want
 to annotate. Flagging it rather than resolving it myself (decision-3 mediation).
+
+Closed by philosophy:reviewer. All 5 ACs met: on main at 6b10c7c the pure/ suite (normalise-url, address, status) passes (165 tests across providers-server pure + siblings), pnpm typecheck clean, pnpm check 16/16 per orchestrator. Findings: (1) idempotence gap for '//' paths - fixed by TASK-74.4.9 (commit e3b7a6d, path.replace(/\/+$/, ''), golden row https://x.com// -> https://x.com, idempotence test over the table); contract §9 step 4 amended accordingly. (2) isAllowedTarget port tests were default-port duplicates - fixed in round 2 with cross-scheme :80/:443 cases. (3) Bracketed IPv6 hostnames fail closed in isPublicAddress for the wrong reason - noted for TASK-74.4.4 to strip brackets; no draft filed, owned there. Note TASK-74.4.9 still shows To Do on the board though its fix is merged; orchestrator should close it.
 <!-- SECTION:NOTES:END -->

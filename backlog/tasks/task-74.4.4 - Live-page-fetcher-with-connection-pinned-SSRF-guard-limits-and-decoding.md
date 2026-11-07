@@ -1,11 +1,11 @@
 ---
 id: TASK-74.4.4
 title: 'Live page fetcher with connection-pinned SSRF guard, limits and decoding'
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 03:43'
+updated_date: '2026-11-07 03:48'
 labels:
   - size-3
   - layer-providers
@@ -25,11 +25,11 @@ Split key: providers-recipe-fetch. Layer: providers. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/recipe/fetch-page.ts exports FetchedPage, FetchPage, ResolveHost, createGuardedLookup, RawResponse, Transport, LiveFetchOptions and createLiveFetchPage as in contract §10
-- [ ] #2 createGuardedLookup tests: a resolve stub that answers public then 127.0.0.1 makes the second lookup error (rebinding refused); any non-public address among several is refused; a public answer is passed to the callback with its family
-- [ ] #3 createLiveFetchPage tests with a stub transport cover: 200 text/html gives a page; 404 not-found; 403 blocked; 500 unreachable; application/pdf gives not-a-recipe and the body is not iterated; a body over maxBytes gives unreachable; a windows-1252 charset decodes correctly; a redirect to a private IP literal or a non-default port is refused as unreachable; more than 5 redirects gives unreachable; the total deadline across two slow hops gives unreachable; a stub transport that throws gives unreachable
-- [ ] #4 Requests carry User-Agent, Accept and Accept-Language and no Cookie or Authorization header, and the stub transport receives the guarded lookup (all asserted on the stub)
-- [ ] #5 No URL appears in any thrown or returned message. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
+- [x] #1 src/recipe/fetch-page.ts exports FetchedPage, FetchPage, ResolveHost, createGuardedLookup, RawResponse, Transport, LiveFetchOptions and createLiveFetchPage as in contract §10
+- [x] #2 createGuardedLookup tests: a resolve stub that answers public then 127.0.0.1 makes the second lookup error (rebinding refused); any non-public address among several is refused; a public answer is passed to the callback with its family
+- [x] #3 createLiveFetchPage tests with a stub transport cover: 200 text/html gives a page; 404 not-found; 403 blocked; 500 unreachable; application/pdf gives not-a-recipe and the body is not iterated; a body over maxBytes gives unreachable; a windows-1252 charset decodes correctly; a redirect to a private IP literal or a non-default port is refused as unreachable; more than 5 redirects gives unreachable; the total deadline across two slow hops gives unreachable; a stub transport that throws gives unreachable
+- [x] #4 Requests carry User-Agent, Accept and Accept-Language and no Cookie or Authorization header, and the stub transport receives the guarded lookup (all asserted on the stub)
+- [x] #5 No URL appears in any thrown or returned message. At this commit, pnpm -s typecheck passes repo-wide and the unit tests pass
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -109,4 +109,6 @@ Checks after the fixes:
 - `mise exec -- pnpm -s typecheck` -> passes with no output (tsc --noEmit clean)
 
 Files touched: packages/providers-server/src/recipe/fetch-page.ts, packages/providers-server/src/recipe/fetch-page.test.ts
+
+Closed by philosophy:reviewer. All 5 ACs met: exports match contract §10; fetch-page.test.ts 25/25 green on main 6b10c7c (re-run here) covering every AC#2/#3/#4 row; typecheck clean, pnpm check 16 checks pass, unit 2018 pass (orchestrator). Layer review findings (userinfo on redirect hop, abort leak, header case) fixed in 93f56fa. Non-blocking: index.ts re-export of createLiveFetchPage/createGuardedLookup deferred to TASK-74.4.5 onward per notes; default node transport unexercised until orch-proof-function (TASK-74.4.8). No drafts filed.
 <!-- SECTION:NOTES:END -->

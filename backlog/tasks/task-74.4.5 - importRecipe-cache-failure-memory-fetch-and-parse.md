@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 04:11'
+updated_date: '2026-11-07 04:15'
 labels:
   - size-3
   - layer-providers
@@ -214,4 +214,6 @@ $ mise exec -- pnpm exec vitest run --project unit packages/providers-
 $ mise exec -- pnpm -s typecheck
 $ tsc --noEmit
 (no output, exit 0)
+
+Orchestrator ruling 2026-11-07 (decision-3 mediation): (1) resolving against the normalised request URL is accepted for the first pass; carrying the final URL is a follow-up draft, not this task. (2) The empty-image guard (empty string -> null) is now in the contract (TASK-74's plan, Amendments). Remaining for this task: the reviewer's test for an image that cannot be resolved.
 <!-- SECTION:NOTES:END -->
