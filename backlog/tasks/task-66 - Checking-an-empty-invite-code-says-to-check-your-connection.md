@@ -1,11 +1,11 @@
 ---
 id: TASK-66
 title: Checking an empty invite code says to check your connection
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-06 22:07'
-updated_date: '2026-11-07 14:09'
+updated_date: '2026-11-07 14:11'
 labels:
   - size-1
   - app
@@ -98,4 +98,6 @@ If this is a long-running test, pass a timeout value as the last argument or con
 ```
 
 Repro recorded above: the route test, run with the empty-code guard disabled in the working tree, failed (joinKitchen called, no prompt).
+
+Re-reviewed by philosophy:reviewer: closed. AC #1 met (route test asserts joinKitchen never called; simulator shot shows the prompt). Repro recorded at 8c8b471: the route test fails with the guard disabled. Full check (recorded on TASK-61): check, typecheck and unit tests pass; test:emulator could not start because this session's emulators hold 8080/9099, the same environment failure as the earlier run, not a code failure; CI 42377775413 passed on 0b0d46b and later commits add only e2e flows and notes. No findings.
 <!-- SECTION:NOTES:END -->
