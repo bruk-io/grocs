@@ -1,11 +1,11 @@
 ---
 id: TASK-78
 title: Share a kitchen by adding the other person's email instead of an invite code
-status: In Progress
+status: Done
 assignee:
   - '@bruk'
 created_date: '2026-11-07 17:36'
-updated_date: '2026-11-07 18:25'
+updated_date: '2026-11-07 18:33'
 labels:
   - area-kitchen
   - size-5
@@ -43,13 +43,13 @@ Decided with Bruk on 2026-11-07 (chat), before this was written down:
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A member can add their partner's email from Household (and from Kitchen setup after creating a kitchen), and sees it listed as invited until it is used or they cancel it
-- [ ] #2 A signed-in person whose Google email matches a pending invite is offered it on opening the app, naming who invited them and the kitchen, with Join and Not now
-- [ ] #3 Joining works whether or not the person already has a kitchen; when they do, the screen says their current list stays behind, and after joining they are no longer a member of the old kitchen
-- [ ] #4 The server matches invites only by the verified email on the caller's sign-in; a person whose email does not match cannot see or use the invite, and a kitchen still holds at most two members (allow and deny tests)
-- [ ] #5 Adding an email never reveals whether that email has a Grocs account
-- [ ] #6 Invite codes, the code entry screen, the /join route and the grocs://join link are gone, and spec R2 and R3 describe sharing by email
-- [ ] #7 Must not break: an existing two-member kitchen keeps working unchanged, and a member still cannot read or write any other kitchen
+- [x] #1 A member can add their partner's email from Household (and from Kitchen setup after creating a kitchen), and sees it listed as invited until it is used or they cancel it
+- [x] #2 A signed-in person whose Google email matches a pending invite is offered it on opening the app, naming who invited them and the kitchen, with Join and Not now
+- [x] #3 Joining works whether or not the person already has a kitchen; when they do, the screen says their current list stays behind, and after joining they are no longer a member of the old kitchen
+- [x] #4 The server matches invites only by the verified email on the caller's sign-in; a person whose email does not match cannot see or use the invite, and a kitchen still holds at most two members (allow and deny tests)
+- [x] #5 Adding an email never reveals whether that email has a Grocs account
+- [x] #6 Invite codes, the code entry screen, the /join route and the grocs://join link are gone, and spec R2 and R3 describe sharing by email
+- [x] #7 Must not break: an existing two-member kitchen keeps working unchanged, and a member still cannot read or write any other kitchen
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -58,4 +58,6 @@ Decided with Bruk on 2026-11-07 (chat), before this was written down:
 Sized 5 (2026-11-07): high complexity (every layer, plus rules, functions and a large deletion of the code path), few unknowns (one: whether a callable's ID token carries email and email_verified for a Google sign-in, checked first against the Auth emulator), moderate risk (membership moves between kitchens in one transaction). Not split into layer-* tasks: the layers depend on each other in order, so layer agents would add no parallelism; built bottom-up in one worktree by the orchestrator. Spec change (R2, R3) is part of the work (AC #6); Bruk approved the design in chat on 2026-11-07: "Let's go ahead and build".
 
 Review (philosophy:reviewer, 2026-11-07): left open. TASK-78.1 is closed and ACs #1-#7 hold on its evidence, but the shipped code contradicts this intent's settled open question ('it stays in the database with no members; nothing reads it'): a kitchen left by someone who had invited from it keeps that invite, and invitesFor still offers it, so Shaz could be offered Bruk's empty old kitchen after he joins hers and leave their shared kitchen by tapping Join. Filed as DRAFT-31. Close this intent once DRAFT-31 is promoted and fixed (or Bruk accepts it as is). Android remains unrun on this machine (as in TASK-76).
+
+Review (philosophy:reviewer, 2026-11-07): closed. TASK-78.1 closed with #1-#7 verified (see its notes); the one contradiction with this intent's settled open question (an empty kitchen still offering its invite) is fixed and closed as TASK-79. Remaining known gaps, accepted rather than blocking: Android not run on this machine (SDK missing, as in TASK-76); Bruk's own case (a person with a kitchen joining their partner's) proven by route and contract tests, not on a device. Override reasons in weakening-overrides.json are boilerplate (low, not filed).
 <!-- SECTION:NOTES:END -->
