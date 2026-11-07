@@ -9,6 +9,7 @@ const meta = {
     email: 'you@example.com',
     kitchenName: 'Our kitchen',
     onKitchenNameChange: () => undefined,
+    onSignOut: () => undefined,
   },
 } satisfies Meta<typeof KitchenSetupTemplate>;
 export default meta;

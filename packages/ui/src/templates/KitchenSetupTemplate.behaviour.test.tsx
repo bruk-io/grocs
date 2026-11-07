@@ -80,4 +80,14 @@ describe('KitchenSetupTemplate', () => {
     render(<Rest onOpenInvite={() => undefined} />);
     expect(screen.queryByRole('button', { name: 'Open it to join' })).toBeNull();
   });
+
+  it('signs out, before and after the kitchen exists, for someone signed in with the wrong account (TASK-67)', async () => {
+    const onSignOut = vi.fn();
+    render(<NoInviteYet onSignOut={onSignOut} />);
+    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    cleanup();
+    render(<Rest onSignOut={onSignOut} />);
+    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(onSignOut).toHaveBeenCalledTimes(2);
+  });
 });
