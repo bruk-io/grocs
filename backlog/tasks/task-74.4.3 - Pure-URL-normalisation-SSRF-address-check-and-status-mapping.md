@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:15'
 labels:
   - size-3
   - layer-providers
@@ -55,3 +55,32 @@ Files expected to change:
 - packages/providers-server/src/recipe/pure/status.ts
 - packages/providers-server/src/recipe/pure/status.test.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Review findings addressed (TASK-74.4.3, round 2)
+
+Finding 1 (address.test.ts port coverage) — fixed. The two "explicit port"
+tests used `http://x.com:80/path` and `https://x.com:443/path`, both
+default-port-for-scheme, so WHATWG strips the port and `url.port === ''`
+duplicates the default-port tests above. Added two cross-scheme cases that
+actually reach the `'80'`/`'443'` branches of isAllowedTarget:
+- `https://x.com:80/path` -> true, url.port === '80' (verified with
+  `new URL(...).port`)
+- `http://x.com:443/path` -> true, url.port === '443' (verified likewise)
+Also added `https://x.com:8080/path` -> false next to the existing 8443 case.
+Renamed the original two tests to note they're the default-port (stripped)
+cases, to avoid the same ambiguity recurring.
+
+Finding 2 (idempotence conflict in TASK-74's contract §9, double slash:
+`https://x.com//` normalising twice gives a different result than once) —
+not actioned here, as instructed: this is a frozen-contract conflict for
+the contract owner / decision-3 mediation, not a providers-layer fix. No
+change made to normalise-url.ts or its tests for this finding.
+
+## Checks rerun after the fix
+- `pnpm exec vitest run --project unit packages/providers-`: 10 test files,
+  151 tests passed (includes the new address.test.ts cases).
+- `pnpm -s typecheck`: exit 0, no errors.
+<!-- SECTION:NOTES:END -->

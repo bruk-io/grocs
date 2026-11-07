@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:05'
 labels:
   - size-2
   - layer-core
@@ -52,3 +52,27 @@ Files expected to change:
 - packages/core/src/schema/personal.test.ts
 - packages/core/src/index.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review findings addressed (commit 0bb5f60 on worktree-wf_9bb52b74-01a-1):
+
+1. "removes attributes named after a recipe or ingredient personal field" now checks
+   all nine contract §5 keys (recipeTitle, recipeSourceUrl, recipeIngredients, recipeSteps,
+   recipeImage, ingredientLine, ingredientQuantity, ingredientUnit, ingredientItem) in both
+   the PERSONAL_ATTRIBUTE_KEYS.has loop and the redact(...).toEqual object, with
+   recipeIngredients given an array value and recipeSteps a string-array value, each
+   asserted to become REDACTED as a whole.
+2. "removes line, quantity, unit and item from a bare ingredient" now uses a distinctive
+   quantity ('1 1/2' instead of '2') and asserts both quantity ('1 1/2') and unit ('cups')
+   are absent from the redacted output, not just line/item.
+3. redact()'s doc comment updated to name all four entities (item, meal, recipe,
+   ingredient) instead of only item and meal.
+
+Checks rerun in the worktree:
+- mise exec -- pnpm exec vitest run --project unit packages/core -> 14 files, 123 tests passed.
+- mise exec -- pnpm -s typecheck -> tsc --noEmit, no errors.
+- Pre-commit hook (lefthook) on the commit ran checks + typecheck + full unit-tests
+  (4 projects) -> 139 files, 1774 tests passed.
+<!-- SECTION:NOTES:END -->
