@@ -9,6 +9,7 @@ export type { FetchedPage, FetchPage, LiveFetchOptions, RawResponse, ResolveHost
 export { FAILURE_MEMORY_MS, importRecipe, importRecipe as importRecipeOnServer } from './recipe/import-recipe.ts';
 export type { RecipeImportDeps } from './recipe/import-recipe.ts';
 export type { CachedFailure, CachedRecipe, CachedSource, RecipeCache } from './recipe/recipe-cache.ts';
+export { FirestoreRecipeCache } from './recipe/firestore-recipe-cache.ts';
 export { recipeKey } from './recipe/recipe-key.ts';
 export { normaliseRecipeUrl } from './recipe/pure/normalise-url.ts';
 export { PARSER_VERSION, parseRecipeJsonLd } from './recipe/pure/recipe-schema.ts';
