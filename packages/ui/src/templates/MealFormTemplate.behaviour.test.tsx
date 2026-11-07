@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './MealFormTemplate.stories.tsx';
 
-const { Rest, Editing, Removing, Invalid } = composeStories(stories);
+const { Rest, Editing, Removing, Invalid, WithImport, Importing, ImportError, WithRecipe } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -79,5 +79,50 @@ describe('MealFormTemplate', () => {
     render(<Invalid />);
     expect(screen.getByText('Invalid recipe link')).toBeTruthy();
     expect(screen.queryByText('Saved with the meal, so the recipe is easy to find again.')).toBeNull();
+  });
+
+  it('hides the import action when onImportRecipe is absent', () => {
+    render(<Rest />);
+    expect(screen.queryByRole('button', { name: 'Get recipe and groceries' })).toBeNull();
+  });
+
+  it('shows the import action and reports a press when onImportRecipe is set', async () => {
+    const onImportRecipe = vi.fn();
+    render(<WithImport onImportRecipe={onImportRecipe} />);
+    const action = screen.getByRole('button', { name: 'Get recipe and groceries' });
+    expect(action.hasAttribute('disabled')).toBe(false);
+    await user.click(action);
+    expect(onImportRecipe).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('while importing shows the import action busy and disabled, and ignores presses', async () => {
+    const onImportRecipe = vi.fn();
+    render(<Importing onImportRecipe={onImportRecipe} />);
+    const action = screen.getByRole('button', { name: 'Getting recipe' });
+    expect(action.getAttribute('aria-busy')).toBe('true');
+    expect(action.hasAttribute('disabled')).toBe(true);
+    await user.click(action);
+    expect(onImportRecipe).not.toHaveBeenCalled();
+  });
+
+  it('shows importError under the link field, in place of the hint', () => {
+    render(<ImportError />);
+    expect(screen.getByText("We couldn't reach that site. Try again tomorrow.")).toBeTruthy();
+    expect(screen.queryByText('Saved with the meal, so the recipe is easy to find again.')).toBeNull();
+  });
+
+  it('shows View recipe with the recipe title when recipeTitle and onOpenRecipe are set, and reports a press', async () => {
+    const onOpenRecipe = vi.fn();
+    render(<WithRecipe onOpenRecipe={onOpenRecipe} />);
+    expect(screen.getByText('Saved recipe: Fried rice')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'View recipe' }));
+    expect(onOpenRecipe).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('hides View recipe when recipeTitle or onOpenRecipe is missing', () => {
+    render(<Rest />);
+    expect(screen.queryByRole('button', { name: 'View recipe' })).toBeNull();
+    render(<WithImport recipeTitle="Fried rice" />);
+    expect(screen.queryByRole('button', { name: 'View recipe' })).toBeNull();
   });
 });
