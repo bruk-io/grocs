@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.9
 title: Run the emulator suites for the recipe providers and callable
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:28'
+updated_date: '2026-11-07 05:04'
 labels:
   - size-1
   - orchestrator

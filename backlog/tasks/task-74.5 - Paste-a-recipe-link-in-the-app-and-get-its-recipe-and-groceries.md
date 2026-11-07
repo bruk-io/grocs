@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 02:38'
+updated_date: '2026-11-07 05:04'
 labels:
   - size-5
   - app
@@ -40,4 +40,6 @@ The app half of TASK-74. The app knows nothing about recipe sites or parsing: it
 finish-moved (TASK-74.4.1, 2026-11-07): AC#2 now notes that R12's combine prompt is not built (no combine code exists in packages or apps, contract §0.1), so an imported ingredient matching a list item is added as a separate item; R12's prompt is already an open task, TASK-1.26 (found by 'backlog search "combine prompt"'), so no new draft was filed. AC#6 now says it is a manual local run by the orchestrator, because decision-15 and contract §0.4 forbid any automated test from fetching a live site.
 
 Deleted design/reference/RecipeImport.dc.html: superseded by decision-16 (no ticking, no scaling), R66. Its shot design/reference/shots/RecipeImport.png and its canvas.json entry went with it (TASK-74.5.1).
+
+TASK-74.5.9 (orchestrator, 2026-11-07) on main at 7fccb40: pnpm test:emulator 11 files / 148 tests passed, including recipe-importer.emulator.test.ts (FirebaseRecipeImporter through the real importRecipe callable, 5 tests) - the 4 failures expected since wave 3 are gone. No outbound host besides the local Functions emulator. pnpm check 16 passed.
 <!-- SECTION:NOTES:END -->
