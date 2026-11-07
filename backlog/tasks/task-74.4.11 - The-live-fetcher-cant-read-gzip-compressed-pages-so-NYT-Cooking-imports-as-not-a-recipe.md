@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 05:06'
-updated_date: '2026-11-07 05:12'
+updated_date: '2026-11-07 05:20'
 labels:
   - size-2
   - layer-providers
@@ -64,4 +64,21 @@ Checks run (this layer only, per the agent's narrowed Bash):
 Contract divergence to record (not blocking, per decision-3): TASK-74 contract §10 lists only 'browser-like User-Agent, Accept and Accept-Language' and says 'A body over maxBytes -> unreachable' with no mention of Accept-Encoding or Content-Encoding decoding. This task's ACs required both; §10 now understates the fetcher by one header (Accept-Encoding: gzip, deflate, br) and should also say the maxBytes cap applies to the decompressed size as well as the compressed bytes read. Suggest a §10 amendment note (same pattern as TASK-74.4.1/TASK-74.4.6) rather than a contract change request, since the orchestrator already owns reconciling built-vs-written here.
 
 Known limitation (not in scope, noting for the record): createInflate expects a zlib-wrapped deflate stream (RFC 1950); some servers send raw DEFLATE (RFC 1951) despite the Content-Encoding: deflate name. AC#1 names 'deflate' and the zlib-wrapped case is the one fetch-page.test.ts proves; a raw-deflate server would still fail as unreachable today.
+
+Review-requested fixes applied to fetch-page.test.ts (providers layer, bug follow-up):
+
+1. Decoded-cap isolation: 'gives unreachable for a gzip body that decompresses past maxBytes, isolated from the raw-bytes cap' now uses maxBytes: 100_000 (above the ~20406-byte compressed fixture, well below the 20 MB decompressed size), with `expect(compressed.byteLength).toBeLessThan(maxBytes)` as a precondition so only the decoded-size counter can ever trip. Confirmed by deleting the `decodedTotal > maxBytes` branch in readDecodedBody: the test goes red (gives `{ kind: 'page', html: 'aaa...' }` instead of the expected failure), then restored it and reran - green again.
+
+2. Replaced the `pulled < chunks.length / 2` assertion (which only ever passed because the fixture's 20406 compressed bytes fit entirely inside the pipeline's internal buffers before the cap fired - the raw cap tripped at chunk 16 of 319, not the decoded one) with a new test, 'caps a gzip bomb early: does not pull anywhere near every compressed chunk before refusing it'. It builds its compressed source lazily (one independently-gzipped 10 KB member at a time, via gzipSync per member, concatenated gzip members decode fine under node's createGunzip), representing a 2 GB decompressed total (~209,716 members) without ever materialising more than what's pulled. `pulled` is asserted to be far under 1/1000 of the potential total; observed in practice 22-1426 of 209,716 depending on which cap fires first, always orders of magnitude below the total. This is a true early-abort proof regardless of fixture size, since nothing past the cap is ever computed.
+
+3. Raw-cap isolation: 'gives unreachable when the compressed (raw) body itself exceeds maxBytes, isolated from the decoded-size cap' now gzips with `{ level: 0 }` so the compressed form (178 bytes) is bigger than the decoded form (155 bytes), and sets maxBytes: 160 (between the two), so only the raw-bytes counter can trip. Confirmed by deleting the `rawTotal > maxBytes` throw: the test goes red, then restored and reran - green.
+
+Checks after the fixes (this layer only, per the agent's narrowed Bash):
+- mise exec -- pnpm exec vitest run --project unit packages/providers-server/src/recipe/fetch-page.test.ts -> Test Files 1 passed (1), Tests 32 passed (32)
+- mise exec -- pnpm exec vitest run --project unit packages/providers- -> Test Files 17 passed (17), Tests 301 passed (301)
+- mise exec -- pnpm -s typecheck -> tsc --noEmit, exit 0
+
+Correction to the earlier implementation notes: the claim that the gzip-bomb case "proves the cap fires early because fewer than half the chunks are pulled" was wrong - that fixture's compressed size (20406 bytes) was small enough to fit entirely in the pipeline's stream buffers before either cap could fire, so the old assertion passed on buffering alone, not on early abort. Each cap (raw-bytes and decoded-size) is now proven by its own isolated test, each confirmed by deleting its branch in readDecodedBody and seeing the matching test go red; the early-abort/laziness property (not fully inflating a bomb) is proven separately by a lazily-generated source large enough that internal stream buffering cannot account for the small fraction pulled.
+
+Left to the orchestrator (not blocking, carried from the prior notes): (1) contract §10 amendment for the Accept-Encoding header and the decompressed-size cap, following the TASK-74.4.1/74.4.6 precedent; (2) the raw-DEFLATE (RFC 1951) limitation and the refusal of multi-value Content-Encoding (e.g. 'br, gzip') as unreachable remain acceptable under AC#1's wording and could be filed as follow-up drafts if a real site needs them.
 <!-- SECTION:NOTES:END -->

@@ -196,41 +196,74 @@ describe('createLiveFetchPage', () => {
     expect(wasIterated()).toBe(false);
   });
 
-  it('gives unreachable for a gzip body that decompresses past maxBytes, without fully inflating it', async () => {
-    // 20 MB of a single repeated byte compresses to a few KB; split the compressed bytes into many
-    // small chunks so the test can see how many the fetcher actually pulled from the source. If
-    // the fetcher fully inflated the body before checking the cap, it would have to consume every
-    // chunk; capping early means most of them are never read.
+  it('gives unreachable for a gzip body that decompresses past maxBytes, isolated from the raw-bytes cap', async () => {
+    // 20 MB of a single repeated byte compresses to ~20 KB; maxBytes (100_000) sits above that
+    // compressed size and well below the 20 MB decompressed size, so only the decoded-size cap
+    // can refuse this body - the raw-bytes counter can never reach maxBytes no matter how much of
+    // the compressed body is read. Confirmed by deleting the `decodedTotal > maxBytes` branch in
+    // readDecodedBody: this test then goes green (the pipeline pulls everything, decodes cleanly,
+    // and gives a page), proving the assertion below only holds because of that branch.
     const huge = Buffer.alloc(20 * 1024 * 1024, 0x61);
     const compressed = gzipSync(huge);
+    const maxBytes = 100_000;
+    expect(compressed.byteLength).toBeLessThan(maxBytes);
     const chunkSize = 64;
     const chunks: Uint8Array[] = [];
     for (let offset = 0; offset < compressed.byteLength; offset += chunkSize) {
       chunks.push(compressed.subarray(offset, offset + chunkSize));
     }
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody(chunks)));
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
+    const result = await fetchPage('https://example.com/recipe');
+    expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
+  });
+
+  it('caps a gzip bomb early: does not pull anywhere near every compressed chunk before refusing it', async () => {
+    // A finite, already-materialised compressed buffer is small enough (tens of KB) to fit
+    // entirely inside the stream buffers the fetcher's pipeline uses (Readable.from's internal
+    // readahead plus zlib's own buffering) before the cap ever gets a chance to fire - so a test
+    // built that way would pass even if the cap were checked only after every chunk was pulled.
+    // This source is instead produced lazily, one independently-gzipped member at a time, each
+    // decompressing to 10 KB of repeated bytes; the generator can represent an arbitrarily large
+    // decompressed total (here, 2 GB - hundreds of thousands of members) because nothing past the
+    // cap is ever actually gzipped. `pulled` counts how many members the fetcher actually asked
+    // for, so a broken cap that read everything would drive it up toward `totalMembers`.
+    const totalDecodedBytes = 2 * 1024 * 1024 * 1024;
+    const memberDecodedBytes = 10 * 1024;
+    const totalMembers = Math.ceil(totalDecodedBytes / memberDecodedBytes);
     let pulled = 0;
-    const trackedChunks: AsyncIterable<Uint8Array> = {
+    const lazyGzipBomb: AsyncIterable<Uint8Array> = {
       async *[Symbol.asyncIterator]() {
-        for (const chunk of chunks) {
+        for (let member = 0; member < totalMembers; member += 1) {
           pulled += 1;
-          yield chunk;
+          // Concatenated gzip members decode as one continuous stream (RFC 1952); node's
+          // createGunzip handles this by default.
+          yield gzipSync(Buffer.alloc(memberDecodedBytes, 0x61));
         }
       },
     };
-    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, trackedChunks));
+    const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, lazyGzipBomb));
     const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes: 1000 });
     const result = await fetchPage('https://example.com/recipe');
     expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
-    // Capped early: nowhere near every compressed chunk (there are hundreds) was pulled.
-    expect(pulled).toBeLessThan(chunks.length / 2);
+    // Capped early: only a tiny fraction of the (hundreds of thousands of) members was ever pulled.
+    expect(pulled).toBeLessThan(totalMembers / 1000);
   });
 
-  it('gives unreachable when the compressed (raw) body itself exceeds maxBytes, for a gzip-encoded response', async () => {
+  it('gives unreachable when the compressed (raw) body itself exceeds maxBytes, isolated from the decoded-size cap', async () => {
     const html = '<html><body>small</body></html>'.repeat(5);
-    const compressed = gzipSync(Buffer.from(html, 'utf-8'));
+    // level: 0 (no compression) so the gzip framing overhead makes the compressed form bigger
+    // than the decoded form; maxBytes sits between the two, so only the raw-bytes counter can
+    // refuse this body - the decoded-size counter never reaches maxBytes. Confirmed by deleting
+    // the `rawTotal > maxBytes` throw in readDecodedBody: this test then goes green.
+    const compressed = gzipSync(Buffer.from(html, 'utf-8'), { level: 0 });
+    expect(compressed.byteLength).toBeGreaterThan(Buffer.byteLength(html));
+    const maxBytes = 160;
+    expect(Buffer.byteLength(html)).toBeLessThan(maxBytes);
+    expect(compressed.byteLength).toBeGreaterThan(maxBytes);
     const chunks = [compressed.subarray(0, 4), compressed.subarray(4, 8), compressed.subarray(8)];
     const { transport } = stubTransport(async () => page(200, { 'content-type': 'text/html', 'content-encoding': 'gzip' }, bytesBody(chunks)));
-    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes: compressed.byteLength - 1 });
+    const fetchPage = createLiveFetchPage({ transport, resolve: queuedResolve([]), maxBytes });
     const result = await fetchPage('https://example.com/recipe');
     expect(result).toEqual({ kind: 'failed', error: 'unreachable' });
   });
