@@ -106,3 +106,21 @@ export const InnerEmptyMeal: Story = {
 export const InnerNoMeals: Story = {
   args: { layout: 'inner', rail: { activeSection: 'groceries', toGo: 14, meals: [] }, sections: allSections },
 };
+
+const groceryAisleOptions = [
+  { id: 'produce', label: 'Produce' },
+  { id: 'meat', label: 'Meat' },
+  { id: 'other', label: 'Other' },
+];
+
+/** A to-buy row was pressed, so its aisle chips show inline below it. */
+export const AisleOpen: Story = {
+  args: {
+    sections: [
+      { id: 'produce', icon: 'produce', title: 'Produce', items: produce },
+      { id: 'meat', icon: 'meat', title: 'Meat', items: meat },
+    ],
+    aisleOptions: groceryAisleOptions,
+    openAisleItemId: produce[0]!.id,
+  },
+};

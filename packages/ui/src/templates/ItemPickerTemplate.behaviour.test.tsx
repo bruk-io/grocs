@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './ItemPickerTemplate.stories.tsx';
 
-const { Typing } = composeStories(stories);
+const { Typing, WithAmountAndAisle } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -64,5 +64,27 @@ describe('ItemPickerTemplate', () => {
     render(<Typing onBack={onBack} />);
     await user.click(screen.getByRole('button', { name: 'Groceries' }));
     expect(onBack).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('leaves out the amount field and aisle chips when not given', () => {
+    render(<Typing />);
+    expect(screen.queryByRole('textbox', { name: 'Amount' })).toBeNull();
+    expect(screen.queryByText(/Aisle/)).toBeNull();
+  });
+
+  it('shows the amount field and reports what is typed in it', async () => {
+    const onAmountChange = vi.fn();
+    render(<WithAmountAndAisle onAmountChange={onAmountChange} />);
+    expect((screen.getByRole('textbox', { name: 'Amount' }) as HTMLInputElement).value).toBe('2 cartons');
+    await user.type(screen.getByRole('textbox', { name: 'Amount' }), 's');
+    expect(onAmountChange).toHaveBeenCalledExactlyOnceWith('2 cartonss');
+  });
+
+  it('shows the aisle chips and chooses one', async () => {
+    const onSelectAisle = vi.fn();
+    render(<WithAmountAndAisle onSelectAisle={onSelectAisle} />);
+    expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('true');
+    await user.click(screen.getByRole('button', { name: 'Produce' }));
+    expect(onSelectAisle).toHaveBeenCalledExactlyOnceWith('produce');
   });
 });

@@ -37,12 +37,16 @@ export interface ItemRowProps {
   onRemove?: () => void;
   /** The row is a placeholder while the list loads (the import skeleton). */
   loading?: boolean;
+  /** Pressing the row's name and amount, not the checkbox, calls this. Left out, nothing is pressable there. */
+  onPress?: () => void;
+  /** What a screen reader says for that press target. Required alongside onPress. */
+  pressLabel?: string;
   forceState?: 'pressed' | 'focus';
 }
 
 const REMOVE_WIDTH = 88;
 
-export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, forceState }: ItemRowProps) {
+export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, onPress, pressLabel, forceState }: ItemRowProps) {
   const [removeFocused, setRemoveFocused] = useState(false);
   if (loading) {
     return (
@@ -76,22 +80,31 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = fals
       </View>
     );
   }
+  const nameAndMeta = (
+    <>
+      <Text variant="label">{name}</Text>
+      {amount || mealBadges.length > 0 || waiting ? (
+        <View style={styles.meta}>
+          {amount ? <Text variant="muted">{amount}</Text> : null}
+          {mealBadges.map((meal) => {
+            const badge = typeof meal === 'string' ? { label: meal } : meal;
+            return <Badge key={badge.label} label={badge.label} {...(badge.tone ? { tone: badge.tone } : {})} />;
+          })}
+          {waiting ? <Tag label="Waiting to send" kind="sync" /> : null}
+        </View>
+      ) : null}
+    </>
+  );
   const body = (
     <View style={[styles.row, styles.card, forceState === 'pressed' && styles.pressed]}>
       {check}
-      <View style={styles.body}>
-        <Text variant="label">{name}</Text>
-        {amount || mealBadges.length > 0 || waiting ? (
-          <View style={styles.meta}>
-            {amount ? <Text variant="muted">{amount}</Text> : null}
-            {mealBadges.map((meal) => {
-              const badge = typeof meal === 'string' ? { label: meal } : meal;
-              return <Badge key={badge.label} label={badge.label} {...(badge.tone ? { tone: badge.tone } : {})} />;
-            })}
-            {waiting ? <Tag label="Waiting to send" kind="sync" /> : null}
-          </View>
-        ) : null}
-      </View>
+      {onPress ? (
+        <Pressable role="button" aria-label={pressLabel} onPress={onPress} style={styles.body}>
+          {nameAndMeta}
+        </Pressable>
+      ) : (
+        <View style={styles.body}>{nameAndMeta}</View>
+      )}
       {isNew ? <Tag label="New" kind="new" /> : null}
       {addedBy ? <Avatar name={addedBy} size="s" /> : null}
     </View>

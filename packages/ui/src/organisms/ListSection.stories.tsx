@@ -29,3 +29,14 @@ export const Waiting: Story = {
     ],
   },
 };
+
+const aisleOptions = [
+  { id: 'produce', label: 'Produce' },
+  { id: 'pantry', label: 'Pantry' },
+  { id: 'other', label: 'Other' },
+];
+
+/** Basmati rice was pressed, so its aisle chips show inline below it. */
+export const AisleOpen: Story = {
+  args: { aisleOptions, openAisleItemId: 'b' },
+};

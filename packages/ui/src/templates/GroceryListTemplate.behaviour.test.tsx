@@ -6,7 +6,7 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './GroceryListTemplate.stories.tsx';
 
-const { Groceries, Offline, Toast, Empty, AllDone, Filtered, EmptyMeal, InnerGroceries, InnerFiltered, InnerEmptyMeal } = composeStories(stories);
+const { Groceries, Offline, Toast, Empty, AllDone, Filtered, EmptyMeal, InnerGroceries, InnerFiltered, InnerEmptyMeal, AisleOpen } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 beforeEach(() => {
   vi.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
@@ -150,5 +150,20 @@ describe('GroceryListTemplate', () => {
   it('on the inner screen says when the chosen meal has nothing left', () => {
     render(<InnerEmptyMeal />);
     expect(screen.getByText('Nothing on the list for Green salad yet.')).toBeTruthy();
+  });
+
+  it('presses a to-buy row and reports which one', async () => {
+    const onPressItem = vi.fn();
+    render(<Groceries onPressItem={onPressItem} aisleOptions={[{ id: 'produce', label: 'Produce' }]} />);
+    await user.click(screen.getByRole('button', { name: 'Change the aisle for Yellow onions' }));
+    expect(onPressItem).toHaveBeenCalledExactlyOnceWith('i1');
+  });
+
+  it('shows the open row\'s aisle chips and chooses one, reporting the row and the aisle', async () => {
+    const onChooseAisle = vi.fn();
+    render(<AisleOpen onChooseAisle={onChooseAisle} />);
+    expect(screen.getByRole('button', { name: 'Meat' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Meat' }));
+    expect(onChooseAisle).toHaveBeenCalledExactlyOnceWith('i1', 'meat');
   });
 });
