@@ -6,13 +6,16 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-11-06 23:41'
-updated_date: '2026-11-08 19:22'
+updated_date: '2026-11-08 19:38'
 labels:
   - size-1
   - app
   - providers
   - finish-moved
+  - layer-app
 dependencies: []
+modified_files:
+  - apps/mobile/src/routes/screens.route.test.tsx
 type: task
 ---
 
@@ -26,6 +29,22 @@ From the reviewer's close of TASK-56 (c67d233). (1) HouseholdScreen hides a fail
 <!-- AC:BEGIN -->
 - [ ] #1 Household shows a failed state when the kitchen's details cannot be read
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Order of work
+1. In apps/mobile/src/routes/screens.route.test.tsx, inside the Household describe, add a test where getKitchenInfo rejects and assert 'Could not check your kitchen: check your connection and try again' appears. Reuse how that file already fakes the app for Household.
+2. Add a second test where getKitchenInfo resolves null and assert the same line.
+3. Run the app project's route tests and pnpm check.
+4. If the screen does not show the line in either case, fix apps/mobile/src/screens/HouseholdScreen.tsx so it does, and nothing else.
+
+### Risks
+- The failure must come through the real screen and app facade, not by rendering the Failed story.
+
+### Proof
+- The two route tests, run through a real route.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 

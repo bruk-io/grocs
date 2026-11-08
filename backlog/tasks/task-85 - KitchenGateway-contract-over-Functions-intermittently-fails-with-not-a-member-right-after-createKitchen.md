@@ -1,11 +1,12 @@
 ---
-id: DRAFT-32
+id: TASK-85
 title: >-
   KitchenGateway contract over Functions intermittently fails with not a member
   right after createKitchen
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-11-08 18:07'
+updated_date: '2026-11-08 19:38'
 labels:
   - providers
   - size-2
@@ -24,3 +25,9 @@ pnpm test:emulator failed once during the TASK-81 review (run started 13:00:04, 
 - [ ] #1 The cause of the intermittent 403 is identified and recorded
 - [ ] #2 pnpm test:emulator passes repeatedly when run straight after pnpm test in the full check chain
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-08, cause found. firestore.rules.test.ts calls clearFirestore in beforeEach, which wipes the whole demo-grocs project. fileParallelism: false serialises files inside one vitest run only, not across two. During TASK-81's review several reviewers ran the emulator suite at once, and one ran it directly against another's live emulators (15, 12, then 8 failures with a changing set). Deliberate repro: a loop deleting the demo project's documents while kitchen-gateway.emulator.test.ts runs gives 'not a member of this kitchen [403]' across many tests, because KitchenStore raises NotAMemberError when the kitchen document is gone. Load ruled out: pnpm test && pnpm test:emulator passed 5 of 5 straight through on a quiet machine, 144 tests each. The timestamps cannot name which process did the wiping in the original run, so this is the confirmed mechanism with contention present in that window, not a captured trace. Fix: a second emulator-project run now fails at once with the reason instead of wiping the first.
+<!-- SECTION:NOTES:END -->
