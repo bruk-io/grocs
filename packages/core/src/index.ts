@@ -22,6 +22,8 @@ export { decodeMeal, encodeMeal, MEAL_SCHEMA_VERSION } from './schema/meal-doc.t
 export type { MealDoc } from './schema/meal-doc.ts';
 export { decodeRecipe, encodeRecipe, RECIPE_SCHEMA_VERSION } from './schema/recipe-doc.ts';
 export type { RecipeDoc } from './schema/recipe-doc.ts';
+export { decodeAisleMemory, encodeAisleMemory, AISLE_SCHEMA_VERSION } from './schema/aisle-doc.ts';
+export type { AisleMemoryDoc } from './schema/aisle-doc.ts';
 export { CIRCULAR, PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './schema/personal.ts';
 export { weekIdFor } from './model/week.ts';
 export { addMember, createKitchen, isKitchenFull, KITCHEN_SCHEMA_VERSION, MAX_MEMBERS } from './model/kitchen.ts';
