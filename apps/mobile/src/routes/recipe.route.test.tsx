@@ -68,4 +68,24 @@ describe('the recipe route (TASK-74.5.14)', () => {
     expect(await screen.findByText('No recipe is saved for this meal yet.')).toBeTruthy();
     expect(app.recipeImporter.calls).toEqual([]);
   });
+
+  it('does not show the empty state before watchWeekMeals and watchKitchenRecipes have delivered', async () => {
+    const syncStore = new InMemorySyncStore();
+    const kitchens = new FakeKitchenGateway('u1');
+    const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+    const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens });
+    const weekId = weekIdFor(app.app.now());
+    const made = createMeal({ id: 'm1', weekId, dayIndex: 0, name: 'Chana masala night', link: SOURCE_URL }, { at: app.app.now(), by: 'u1' });
+    if (!made.ok) throw new Error('fixture meal is invalid');
+    await syncStore.mergeMeal(kitchenId, made.value);
+    await syncStore.mergeRecipe(kitchenId, savedRecipe('r1'));
+
+    // InMemorySyncStore's own watches deliver on a queued microtask (never synchronously), so a
+    // render that showed the empty state here would mean the screen judged "no recipe" before
+    // either watch had answered - the bug a real device's async Firestore snapshot would show.
+    renderRoute(ROUTES, { app, location: '/recipe?dayId=2026-10-19&mealId=m1' });
+    expect(screen.queryByText('No recipe is saved for this meal yet.')).toBeNull();
+
+    expect(await screen.findByText('Chana masala')).toBeTruthy();
+  });
 });

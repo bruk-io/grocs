@@ -32,14 +32,53 @@ export function RecipeScreen({ app, kitchenId, dayId, mealId }: RecipeScreenProp
   const weekId = parsed?.weekId ?? '';
   const [meals, setMeals] = useState<readonly Meal[]>([]);
   const [recipes, setRecipes] = useState<readonly Recipe[]>([]);
+  const [mealsLoaded, setMealsLoaded] = useState(false);
+  const [recipesLoaded, setRecipesLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => app.watchWeekMeals(kitchenId, weekId, (next) => setMeals(next)), [app, kitchenId, weekId]);
-  useEffect(() => app.watchKitchenRecipes(kitchenId, (next) => setRecipes(next)), [app, kitchenId]);
+  useEffect(
+    () =>
+      app.watchWeekMeals(
+        kitchenId,
+        weekId,
+        (next) => {
+          setMeals(next);
+          setMealsLoaded(true);
+        },
+        (error) => setLoadError(error.message),
+      ),
+    [app, kitchenId, weekId],
+  );
+  useEffect(
+    () =>
+      app.watchKitchenRecipes(
+        kitchenId,
+        (next) => {
+          setRecipes(next);
+          setRecipesLoaded(true);
+        },
+        (error) => setLoadError(error.message),
+      ),
+    [app, kitchenId],
+  );
 
   if (!parsed) return null;
 
   const meal = meals.find((m) => m.id === mealId);
   const recipe = recipeForLink(recipes, meal?.link.value ?? null);
+
+  if (loadError) {
+    return (
+      <View style={styles.screen}>
+        <SubHeader lead={{ kind: 'back', label: 'Meal plan', onPress: go.plan }} title="Recipe" mascot="chanty" />
+        <Text variant="body" tone="muted">
+          Could not load this recipe: {loadError}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!mealsLoaded || !recipesLoaded) return null;
 
   if (!recipe) {
     return (
