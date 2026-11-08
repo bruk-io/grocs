@@ -3,7 +3,7 @@ id: TASK-74.5.16
 title: >-
   Manual local proof: a locally run app imports a real recipe through the
   emulator
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
@@ -30,8 +30,8 @@ Split key: orch-proof-app. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TASK-74.5 notes record a dev build importing a real recipe URL: the recipe saved, the meal relinked, groceries added with the meal badge, the recipe view opened, Save afterwards keeping the recipe, and one error case shown, with screenshots or a description
-- [ ] #2 pnpm check, pnpm typecheck, pnpm test and pnpm test:emulator all pass on main
+- [x] #1 TASK-74.5 notes record a dev build importing a real recipe URL: the recipe saved, the meal relinked, groceries added with the meal badge, the recipe view opened, Save afterwards keeping the recipe, and one error case shown, with screenshots or a description
+- [x] #2 pnpm check, pnpm typecheck, pnpm test and pnpm test:emulator all pass on main
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -55,3 +55,9 @@ Each acceptance criterion is shown by a test or command output recorded in the n
 Files expected to change:
 - (none)
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Closed by reviewer. AC#1 met: TASK-74.5 notes record the iOS dev build on the emulators importing budgetbytes basic-chili through the real importRecipe callable (ImportRecipe ok, 17 AddItem ok), recipe view with title/servings/ingredients/steps, meal relinked to the normalised URL, 17 groceries with the meal badge, Save afterwards keeping 'View recipe', and the allrecipes blocked error showing the message with nothing added; screenshots described (kept in scratchpad, not committed). AC#2 met: at 39457f7 pnpm check 16 passed, typecheck clean, pnpm test 2110 tests, pnpm test:emulator 144 tests; only board commits since. Findings: (1) deviation from plan step 3 - import done from the reopened meal because the raised action bar covers the import button with the keyboard open; explained in notes and already filed as a draft bug, no new task. (2) grocery names keep broken parentheses; already a draft. (3) minor: screenshots are not durable outside the session; the written description suffices for the AC. No new drafts filed.
+<!-- SECTION:NOTES:END -->
