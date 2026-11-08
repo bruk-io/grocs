@@ -59,10 +59,24 @@ describe('Firestore sync store: aisle memory offline (R11, R14, decision-7)', ()
     const { store, client } = await signedInClient();
     const kitchenId = await createKitchen();
     await store.rememberAisle(kitchenId, 'milk', stamped('dairy', { at: 100, by: 'seed-alex' }));
-    // Warm the local cache before going offline: aisleFor itself just read it above, via rememberAisle's own getDoc.
+    // rememberAisle's transaction does not itself populate the local cache a plain getDoc reads
+    // from; warm the cache with one online read first, same as a real screen would have done by
+    // reading this document (or a watched one) before ever going offline.
+    await store.aisleFor(kitchenId, 'milk');
     await client.firestoreFns.disableNetwork(client.db);
     try {
       await expect(store.aisleFor(kitchenId, 'milk')).resolves.toBe('dairy');
+    } finally {
+      await client.firestoreFns.enableNetwork(client.db);
+    }
+  });
+
+  it('aisleFor gives null, not a rejection, for a name with no cached document while offline', async () => {
+    const { store, client } = await signedInClient();
+    const kitchenId = await createKitchen();
+    await client.firestoreFns.disableNetwork(client.db);
+    try {
+      await expect(store.aisleFor(kitchenId, 'never-remembered')).resolves.toBeNull();
     } finally {
       await client.firestoreFns.enableNetwork(client.db);
     }
@@ -118,6 +132,14 @@ describe('Firestore sync store: stored shape (R30)', () => {
     }
     expect(seen[0]).toEqual(['i1']);
     expect(errors[0]).toMatch(/invalid item document bad/);
+  });
+
+  it('writes the aisle memory document with a schema version, in core\'s shape', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await store.rememberAisle(kitchenId, 'milk', stamped('dairy', { at: 100, by: 'seed-alex' }));
+    const raw = (await readRaw(`kitchens/${kitchenId}/aisles/milk`)) as Record<string, unknown>;
+    expect(raw).toEqual({ schemaVersion: 1, aisle: { v: 'dairy', at: 100, by: 'seed-alex' } });
   });
 });
 

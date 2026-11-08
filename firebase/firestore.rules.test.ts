@@ -166,6 +166,16 @@ describe('kitchens/{k}/aisles/{nameKey} (R11, R14, decision-7, same wildcard rul
     await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk')));
     await assertFails(setDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk'), aisleDoc));
   });
+
+  it('a non-member cannot read or update an aisle memory document that already exists', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'kitchens/k1/aisles/milk'), aisleDoc);
+    });
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk')));
+    await assertFails(updateDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk'), { aisle: { v: 'pantry', at: 2, by: 'carl' } }));
+  });
 });
 
 describe('an email invite on a kitchen (TASK-78)', () => {

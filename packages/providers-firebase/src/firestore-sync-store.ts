@@ -1,7 +1,9 @@
 import {
+  decodeAisleMemory,
   decodeItem,
   decodeMeal,
   decodeRecipe,
+  encodeAisleMemory,
   encodeItem,
   encodeMeal,
   encodeRecipe,
@@ -9,19 +11,10 @@ import {
   mergeMeal,
   mergeRecipe,
   mergeStamped,
-  stamped,
 } from '@grocs/core';
 import type { Item, Meal, Recipe, Stamped } from '@grocs/core';
 import type { SyncStore, Unsubscribe } from '@grocs/ports';
 import type { FirestoreFns, QuerySnapshotLike } from './sdk.ts';
-
-/**
- * The schema version of the aisle-memory document (decision-7, still proposed, is the one shape
- * this slice adopts). No codec for it lives in core (unlike items, meals and recipes): the shape
- * is one stamped field, so the translation stays here rather than adding a one-field schema
- * module for a document whose home may move once decision-7 lands.
- */
-const AISLE_MEMORY_SCHEMA_VERSION = 1;
 
 /**
  * The kitchen's items, meals and recipes in Firestore: `kitchens/{kitchenId}/items/{itemId}`,
@@ -34,9 +27,12 @@ const AISLE_MEMORY_SCHEMA_VERSION = 1;
  * a connection, so a merge made offline fails instead of queueing; making R16 work is part of
  * design question D4.
  *
- * rememberAisle and aisleFor keep the aisle-suggestion memory (R11, R14) at
- * `kitchens/{kitchenId}/aisles/{nameKey}`, in decision-7's shape. They read and write plain
- * documents rather than a transaction, by design: decision-7 found transactions fail offline.
+ * rememberAisle keeps the aisle-suggestion memory (R11, R14) at
+ * `kitchens/{kitchenId}/aisles/{nameKey}`, in core's schema (`packages/core/src/schema/aisle-doc.ts`,
+ * decision-7's shape). It merges in a transaction, the same as mergeItem, mergeMeal and
+ * mergeRecipe, so it also fails instead of queueing when made offline (same open part of D4).
+ * aisleFor reads the same document directly; unlike the transactional writes, a plain read falls
+ * back to the local cache when offline, so a suggestion can still be read with no connection.
  */
 export class FirestoreSyncStore implements SyncStore {
   readonly #fs: FirestoreFns;
@@ -158,33 +154,51 @@ export class FirestoreSyncStore implements SyncStore {
   }
 
   /**
-   * Remembers `nameKey`'s aisle at `kitchens/{kitchenId}/aisles/{nameKey}` (decision-7's shape,
-   * R11, R14). No transaction: a transaction needs a connection and would fail offline (decision-7),
-   * so this reads, merges with core's last-write-wins rule and writes a plain document instead.
-   * `setDoc` resolves only once the write reaches the server, so this still awaits the round trip
-   * when online; offline it applies to the local cache and queues, same as `getDoc`/`setDoc`
-   * elsewhere in this file.
+   * Remembers `nameKey`'s aisle at `kitchens/{kitchenId}/aisles/{nameKey}` (R11, R14), in core's
+   * schema. Reads, merges with core's last-write-wins rule (so a later stamp can never lose to an
+   * earlier one that happens to write second) and writes inside a transaction, the same pattern
+   * as mergeItem, mergeMeal and mergeRecipe. A Firestore transaction needs a connection, so this
+   * rejects instead of queueing when made offline, same open part of design question D4 as the
+   * other three merges; TASK-1.22.7's AddItem already tolerates that.
    */
   async rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void> {
     const ref = this.#aisleRef(kitchenId, nameKey);
-    const snapshot = await this.#fs.getDoc(ref);
-    let merged = aisle;
-    if (snapshot.exists()) {
-      const stored = decodeAisleMemory(snapshot.data());
-      if (stored) merged = mergeStamped(stored, aisle);
-    }
-    await this.#fs.setDoc(ref, encodeAisleMemory(merged));
+    await this.#fs.runTransaction(this.#db, async (tx) => {
+      const snapshot = await tx.get(ref);
+      let merged = aisle;
+      if (snapshot.exists()) {
+        const stored = decodeAisleMemory(snapshot.data());
+        if (!stored.ok) throw new Error(`invalid aisle document ${nameKey}: ${stored.error.path} ${stored.error.message}`);
+        merged = mergeStamped(stored.value, aisle);
+      }
+      tx.set(ref, encodeAisleMemory(merged));
+    });
   }
 
   /**
-   * The aisle last remembered for `nameKey`, or null if none has been. `getDoc` falls back to the
-   * local cache when offline, which is what lets this work offline (decision-7's spike, TASK-1.16,
-   * covers how quickly a stale cache catches up once the native SDK reconnects).
+   * The aisle last remembered for `nameKey`, or null if none has been. This is a plain `getDoc`,
+   * not a transaction, so once this document has been read online at least once (a transaction's
+   * own write does not by itself populate the cache a plain read serves from), a later call falls
+   * back to that local cache when offline: a suggestion already seen can still be read with no
+   * connection, unlike rememberAisle's write (decision-7's spike, TASK-1.16, covers how quickly a
+   * stale cache catches up once the native SDK reconnects). Offline with no cached document for
+   * this `nameKey`, the SDK rejects with an "unavailable" error rather than resolving to a missing
+   * snapshot; that is read the same as "never remembered" and gives null, since neither tells
+   * rememberAisle anything to merge against. An undecodable document (wrong schema version, or
+   * malformed) also gives null; `aisleFor`'s signature has no error channel the way `watchItems`'s
+   * `onError` does, so the problem has nowhere else to go (noted in TASK-1.22.6).
    */
   async aisleFor(kitchenId: string, nameKey: string): Promise<string | null> {
-    const snapshot = await this.#fs.getDoc(this.#aisleRef(kitchenId, nameKey));
+    let snapshot: Awaited<ReturnType<FirestoreFns['getDoc']>>;
+    try {
+      snapshot = await this.#fs.getDoc(this.#aisleRef(kitchenId, nameKey));
+    } catch (error) {
+      if (isOfflineMiss(error)) return null;
+      throw error;
+    }
     if (!snapshot.exists()) return null;
-    return decodeAisleMemory(snapshot.data())?.value ?? null;
+    const decoded = decodeAisleMemory(snapshot.data());
+    return decoded.ok ? decoded.value.value : null;
   }
 
   #aisleRef(kitchenId: string, nameKey: string): unknown {
@@ -206,24 +220,14 @@ export class FirestoreSyncStore implements SyncStore {
   }
 }
 
-/** `{schemaVersion, aisle: {v, at, by}}` (decision-7). Not core's StoredField shape by name, same fields. */
-function encodeAisleMemory(aisle: Stamped<string>): unknown {
-  return {
-    schemaVersion: AISLE_MEMORY_SCHEMA_VERSION,
-    aisle: { v: aisle.value, at: aisle.stamp.at, by: aisle.stamp.by },
-  };
-}
-
-/** Returns null for a document that is missing, of a different schema version, or malformed, so a bad read is never mistaken for "never remembered". */
-function decodeAisleMemory(raw: unknown): Stamped<string> | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const data = raw as Record<string, unknown>;
-  if (data['schemaVersion'] !== AISLE_MEMORY_SCHEMA_VERSION) return null;
-  const aisle = data['aisle'];
-  if (typeof aisle !== 'object' || aisle === null) return null;
-  const { v, at, by } = aisle as Record<string, unknown>;
-  if (typeof v !== 'string' || typeof at !== 'number' || typeof by !== 'string') return null;
-  return stamped(v, { at, by });
+/**
+ * True for the error the web and native SDKs raise from a `getDoc` made while offline, for a
+ * document absent from the local cache (the Firestore error code `unavailable`, `firestore/unavailable`
+ * on the native module's own codes). `aisleFor` treats this the same as a missing document.
+ */
+function isOfflineMiss(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  return code === 'unavailable' || code === 'firestore/unavailable';
 }
 
 function decodeAll(snapshot: QuerySnapshotLike): { items: Item[]; problems: string[] } {
