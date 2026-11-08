@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ports'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 20:40'
+updated_date: '2026-11-08 20:46'
 labels:
   - layer-ports
   - size-2
@@ -68,5 +68,24 @@ Follow-up for the orchestrator to queue: once TASK-1.22.6 gives both providers a
 `pnpm check`:
 ```
 checks passed (16 checks, all mode, 1364 ms)
+```
+
+Review follow-up addressed: two more cases in syncStoreAisleContract (does not mix the aisle memory of two kitchens, using the otherKitchenId guard; keeps names apart), plus the requested wording fixes.
+
+port.ts: rememberAisle's doc now cites R11 for suggestion too and names core's aisleNameKey(name) as nameKey's source, and "the same stamp twice" now reads "the same stamp and value twice".
+
+test-support.ts: exports both AisleMemoryStore and AisleMemoryStoreSubject from @grocs/ports/testing (was AisleMemoryStore alone).
+
+`pnpm exec vitest run --project unit packages/ports`:
+```
+ Test Files  7 passed (7)
+      Tests  76 passed (76)
+```
+
+`pnpm -s typecheck`: clean, repo-wide.
+
+`pnpm check`:
+```
+checks passed (16 checks, all mode, 604 ms)
 ```
 <!-- SECTION:NOTES:END -->
