@@ -4,23 +4,25 @@ import { normaliseName } from './item.ts';
 import type { Stamp } from '../merge/lww.ts';
 import { stamped } from '../merge/lww.ts';
 
-/** One of the fixed aisle ids. Any other string an item carries groups as 'other' (R11). */
-export type AisleId = 'produce' | 'dairy' | 'meat' | 'bakery' | 'pantry' | 'other';
-
-export interface AisleDef {
-  readonly id: AisleId;
-  readonly label: string;
-}
-
 /** The fixed, ordered list of aisles. The ids match the existing section icons. */
-export const AISLES: readonly AisleDef[] = [
+const AISLE_DEFS = [
   { id: 'produce', label: 'Produce' },
   { id: 'dairy', label: 'Dairy & eggs' },
   { id: 'meat', label: 'Meat' },
   { id: 'bakery', label: 'Bakery' },
   { id: 'pantry', label: 'Pantry' },
   { id: 'other', label: 'Other' },
-] as const;
+] as const satisfies readonly { readonly id: string; readonly label: string }[];
+
+/** One of the fixed aisle ids, derived from AISLES so the two cannot drift. Any other string an item carries groups as 'other' (R11). */
+export type AisleId = (typeof AISLE_DEFS)[number]['id'];
+
+export interface AisleDef {
+  readonly id: AisleId;
+  readonly label: string;
+}
+
+export const AISLES: readonly AisleDef[] = AISLE_DEFS;
 
 const AISLE_IDS: ReadonlySet<string> = new Set(AISLES.map((a) => a.id));
 
@@ -29,14 +31,14 @@ export function aisleSection(aisle: string): AisleId {
   return AISLE_IDS.has(aisle) ? (aisle as AisleId) : 'other';
 }
 
-export interface AisleSection {
+export interface AisleGroup {
   readonly id: AisleId;
   readonly label: string;
   readonly items: readonly Item[];
 }
 
 /** Groups items by aisle, in AISLES order; an aisle with no items is left out. */
-export function groupByAisle(items: readonly Item[]): readonly AisleSection[] {
+export function groupByAisle(items: readonly Item[]): readonly AisleGroup[] {
   const byId = new Map<AisleId, Item[]>();
   for (const item of items) {
     const id = aisleSection(item.aisle.value);

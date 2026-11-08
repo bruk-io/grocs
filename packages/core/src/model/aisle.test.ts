@@ -37,12 +37,12 @@ describe('groupByAisle (R11)', () => {
     expect(sections.find((s) => s.id === 'dairy')?.items.map((i) => i.name.value)).toEqual(['Milk']);
   });
 
-  it('groups an item with an unknown aisle as other', () => {
-    const items = [makeItem('Soap', 'household')];
+  it('groups an unknown aisle together with other as one other section, in input order', () => {
+    const items = [makeItem('Soap', 'household'), makeItem('Foil', 'other')];
     const sections = groupByAisle(items);
     expect(sections).toHaveLength(1);
     expect(sections[0]?.id).toBe('other');
-    expect(sections[0]?.items.map((i) => i.name.value)).toEqual(['Soap']);
+    expect(sections[0]?.items.map((i) => i.name.value)).toEqual(['Soap', 'Foil']);
   });
 
   it('is empty for no items', () => {
@@ -67,11 +67,15 @@ describe('setItemAisle (R18)', () => {
     const next = setItemAisle(original, 'pantry', { at: 2, by: 'sam' });
     expect(next.aisle).toEqual({ value: 'pantry', stamp: { at: 2, by: 'sam' } });
     expect(next.id).toBe(original.id);
+    expect(next.weekId).toBe(original.weekId);
+    expect(next.addedBy).toBe(original.addedBy);
+    expect(next.createdAt).toBe(original.createdAt);
     expect(next.name).toBe(original.name);
     expect(next.amount).toBe(original.amount);
     expect(next.state).toBe(original.state);
     expect(next.badges).toBe(original.badges);
     expect(next.deleted).toBe(original.deleted);
+    expect(original.aisle).toEqual({ value: 'dairy', stamp: { at: 1, by: 'alex' } });
   });
 
   it('merging two copies keeps the later stamp\'s aisle, in both orders (the existing last-write-wins rule)', () => {
