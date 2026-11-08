@@ -18,9 +18,14 @@ const ROUTES = { plan: Plan, 'add-meal': AddMeal, recipe: Recipe_ };
 const DAY_ID = '2026-10-19'; // Monday of the fixed "This week" the other route tests use
 
 // AddMealScreen's own save (AddMeal/EditMeal) and ImportRecipe's relink both write the same
-// meal's link field in one test tick; a clock that never advances would tie them (R18's LWW ties
-// break on value, not recency) and could pick the pre-import link. A real clock always moves
-// between two dispatches; this one does too, by the smallest possible amount.
+// meal's link field in one test tick. FakeClock.now() does not advance on its own, so the two
+// dispatches land on an identical {at, by} stamp; mergeStamped (packages/core/src/merge/lww.ts)
+// then breaks the tie on JSON.stringify order, which keeps the raw pasted link over its
+// normalised sourceUrl whenever the raw link sorts higher (e.g. a tracking parameter adds a `?`,
+// which sorts above the closing `"`). This is not a test-only quirk: SystemClock is Date.now(),
+// millisecond-grained, so the demo build (MemoryRecipeImporter, an in-memory store) can hit the
+// same collision for real. Ticking the clock here only avoids the tie in this test; it does not
+// fix the underlying collision. Tracked as a cross-layer finding in TASK-74.5.15's notes.
 class TickingClock extends FakeClock {
   override now(): number {
     const at = super.now();
@@ -131,9 +136,13 @@ describe('AddMealScreen imports a pasted recipe link (TASK-74.5.15)', () => {
 
   it('keeps meal.link equal to the recipe sourceUrl after going back and tapping Save, and still shows View recipe (AC#2)', async () => {
     const sourceUrl = 'https://recipe.invalid/chana-masala';
-    const { app, syncStore, kitchenId, weekId } = await openEditMeal('m1', { name: 'Chana masala night' }, [[sourceUrl, parsedRecipe({ sourceUrl })]]);
+    // Typed with tracking parameters, so a Save that wrote the raw typed link back (instead of
+    // the import's normalised sourceUrl) would be caught by the assertions below, both at the
+    // remount and after Save.
+    const typedLink = `${sourceUrl}?utm_source=ig`;
+    const { app, syncStore, kitchenId, weekId } = await openEditMeal('m1', { name: 'Chana masala night' }, [[typedLink, parsedRecipe({ sourceUrl })]]);
 
-    fireEvent.change(linkField(), { target: { value: sourceUrl } });
+    fireEvent.change(linkField(), { target: { value: typedLink } });
     fireEvent.click(getRecipeButton());
     await screen.findByText('Chana masala');
     cleanup();
@@ -149,7 +158,6 @@ describe('AddMealScreen imports a pasted recipe link (TASK-74.5.15)', () => {
     const meals = await syncStore.getMeals(kitchenId, weekId);
     expect(meals).toHaveLength(1);
     expect(meals[0]?.link.value).toBe(sourceUrl);
-    void kitchenId;
   });
 
   it('leaves exactly one meal after a failed import followed by a successful retry (AC#3)', async () => {
@@ -163,6 +171,23 @@ describe('AddMealScreen imports a pasted recipe link (TASK-74.5.15)', () => {
 
     fireEvent.change(linkField(), { target: { value: goodUrl } });
     fireEvent.click(getRecipeButton());
+    await screen.findByText('Chana masala');
+
+    const meals = await syncStore.getMeals(kitchenId, weekId);
+    expect(meals).toHaveLength(1);
+  });
+
+  it('leaves exactly one meal when Save is tapped while an import is still in flight on a new meal (§17 step 2)', async () => {
+    const goodUrl = 'https://recipe.invalid/chana-masala';
+    const { syncStore, kitchenId, weekId } = await openNewMeal([[goodUrl, parsedRecipe()]]);
+
+    fireEvent.change(nameField(), { target: { value: 'Chana masala night' } });
+    fireEvent.change(linkField(), { target: { value: goodUrl } });
+    fireEvent.click(getRecipeButton());
+    // importRecipe() sets `importing` synchronously, before its first await (the AddMeal
+    // dispatch); at this point in the same tick the import is still unresolved.
+    fireEvent.click(screen.getByRole('button', { name: 'Add to Monday' }));
+
     await screen.findByText('Chana masala');
 
     const meals = await syncStore.getMeals(kitchenId, weekId);
@@ -183,22 +208,43 @@ describe('AddMealScreen imports a pasted recipe link (TASK-74.5.15)', () => {
     const badUrl = `https://recipe.invalid/${code}`;
     // recipe-deleted is produced by ImportRecipe finding a tombstone for the deterministic
     // recipeId (decision-3 §0.6), not by the importer, so the importer succeeds there and a
-    // pre-seeded tombstone is what makes the command return the error.
-    const entries: ReadonlyArray<readonly [string, RecipeImportOutcome]> = code === 'recipe-deleted' ? [[badUrl, parsedRecipe({ recipeId: 'deleted-1', sourceUrl: badUrl })]] : [[badUrl, code]];
+    // pre-seeded tombstone is what makes the command return the error. Typed with a tracking
+    // parameter so the parsed sourceUrl differs from what was typed: a wrongful relink (or a
+    // tombstone wrongly overwritten with the parsed recipe's content) would otherwise be
+    // invisible to the assertions below.
+    const typedUrl = code === 'recipe-deleted' ? `${badUrl}?utm_source=ig` : badUrl;
+    const entries: ReadonlyArray<readonly [string, RecipeImportOutcome]> =
+      code === 'recipe-deleted' ? [[typedUrl, parsedRecipe({ recipeId: 'deleted-1', sourceUrl: badUrl, title: 'Hijacked title' })]] : [[badUrl, code]];
     const recipes = code === 'recipe-deleted' ? [savedRecipe({ id: 'deleted-1', sourceUrl: badUrl, deleted: { at: 2, by: 'u1' } })] : [];
     const { syncStore, kitchenId, weekId } = await openEditMeal('m1', { name: 'Taco night' }, entries, recipes);
 
-    fireEvent.change(linkField(), { target: { value: badUrl } });
+    fireEvent.change(linkField(), { target: { value: typedUrl } });
     fireEvent.click(getRecipeButton());
 
     expect(await screen.findByText(message)).toBeTruthy();
-    expect(await syncStore.getRecipes(kitchenId)).toHaveLength(code === 'recipe-deleted' ? 1 : 0);
+    const recipesAfter = await syncStore.getRecipes(kitchenId);
+    expect(recipesAfter).toHaveLength(code === 'recipe-deleted' ? 1 : 0);
+    if (code === 'recipe-deleted') {
+      // Still the original tombstone: not cleared, and not overwritten with the parsed recipe's content.
+      expect(recipesAfter[0]?.deleted).not.toBeNull();
+      expect(recipesAfter[0]?.title).toBe('Chana masala');
+    }
     expect(await syncStore.getItems(kitchenId, weekId)).toHaveLength(0);
     const meals = await syncStore.getMeals(kitchenId, weekId);
     // The EditMeal dispatched ahead of ImportRecipe (§17 step 3) already set the link to what was
     // typed; the import itself, having failed, changed nothing further.
-    expect(meals[0]?.link.value).toBe(badUrl);
-    void kitchenId;
+    expect(meals[0]?.link.value).toBe(typedUrl);
+  });
+
+  it('shows the invalid-link message under the link field, not the generic banner, for a non-http pasted link (new meal)', async () => {
+    const { recipeImporter } = await openNewMeal();
+    fireEvent.change(nameField(), { target: { value: 'Chana masala night' } });
+    fireEvent.change(linkField(), { target: { value: 'not a url' } });
+    fireEvent.click(getRecipeButton());
+
+    expect(await screen.findByText('the meal link is not a valid http or https URL')).toBeTruthy();
+    expect(screen.queryByText('Could not add that meal')).toBeNull();
+    expect(recipeImporter.calls).toEqual([]);
   });
 
   it('shows the empty-name message and makes no importer call for a blank name (AC#5)', async () => {

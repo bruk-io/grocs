@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:34'
+updated_date: '2026-11-08 03:46'
 labels:
   - size-3
   - layer-app
@@ -120,4 +120,96 @@ before noticing. That left stray, uncommitted edits to this task's file in the s
 (content-wise the same as the plan above). This worktree's copy and this commit are the correct,
 complete record; the shared checkout's stray working-tree change may need clearing (e.g. a status
 check / git checkout of that one file) since it was never committed there.
+
+## Review response (builder-app)
+
+Addressed all non-blocking review findings in AddMealScreen.tsx and
+recipe-import.route.test.tsx:
+
+- submit() now returns early when `importing` is true (the only app-layer-reachable
+  fix; MealFormTemplate.tsx is packages/ui, outside this layer's write scope), so a
+  Save tapped while an import is in flight no longer races a second AddMeal. Added a
+  new route test ("leaves exactly one meal when Save is tapped while an import is
+  still in flight on a new meal (§17 step 2)") that exploits the fact importRecipe()
+  sets `importing` synchronously before its first await; verified this test fails
+  (2 meals instead of 1) when the guard is removed, and passes with it.
+- importRecipe's AddMeal/EditMeal failure path now routes an 'invalid-link' error to
+  setLinkError(result.error.message), matching submit(); added a route test asserting
+  the message "the meal link is not a valid http or https URL" shows under the link
+  field, not the generic "Could not add that meal" banner.
+- Replaced the `result.value[0] as MealAdded` / `as RecipeImported` bare casts with
+  `result.value.find((e): e is X => e.type === 'X')`, matching the type-guard idiom
+  used elsewhere in the app layer (KitchenSetupScreen, InviteOfferScreen,
+  use-email-invite). A missing event now falls to the 'other' failure instead of
+  silently producing `undefined`.
+- AC#2 test: the FakeRecipeImporter entry is now keyed on a typed link with a tracking
+  parameter (`?utm_source=ig`) while the parsed recipe's sourceUrl stays clean, so the
+  link-equality assertions (at remount and after Save) are now discriminating -
+  verified the test is meaningful (see the blocker note below, which is this same
+  defect surfacing for real).
+- AC#4 recipe-deleted case: typed link now carries a tracking parameter distinct from
+  the tombstone's sourceUrl, and the test now asserts the tombstone is still deleted
+  (`deleted !== null`) and its title is unchanged ('Chana masala', not the importer's
+  'Hijacked title'), so a wrongful relink or a content overwrite would be caught.
+- watchKitchenRecipes failures now set a new `recipesLoadError` state with its own
+  banner text ("Could not load this kitchen's recipes: …") instead of being folded
+  into `loadError` ("Could not load this meal: …"). importRecipe() now clears
+  linkError/problem/importError before the blank-name early return, so a stale import
+  error no longer lingers next to the empty-name banner on a later blank-name attempt.
+- Removed the two dead `void kitchenId;` lines (kitchenId was already used earlier in
+  both tests).
+- Noted (no code change): onImportRecipe is offered only when the link field is
+  non-empty (`{...(link.trim() !== '' ? { onImportRecipe: ... } : {})}`). §17 does not
+  call this out explicitly; it is a reasonable app-layer addition since there is
+  nothing to import from a blank link. Flagging per the reviewer's request so the
+  orchestrator can accept or reject it as part of the contract.
+- Also noted: the shared checkout (/Users/brukhabtu/src/github.com/bruk-io/grocs, not
+  this worktree) still has an uncommitted working-tree edit to this task's board file,
+  left over from an earlier session mistake (per the existing note above). It was not
+  touched from this worktree; it still needs clearing by the orchestrator (e.g.
+  `git -C /Users/brukhabtu/src/github.com/bruk-io/grocs checkout -- "backlog/tasks/task-74.5.15 - Meal-form-imports-a-pasted-recipe-link-and-adds-its-groceries.md"`).
+
+## Cross-layer finding: TickingClock masks a real LWW stamp collision (blocking, needs orchestrator decision)
+
+Per the reviewer: kept TickingClock (removing it would make AC#1/AC#2 fail, since
+nothing else in this layer can fix the underlying collision), corrected its comment to
+state the real defect rather than the false "a real clock always moves between two
+dispatches" claim, and I am stopping to report this rather than silently accepting the
+test-only workaround as a fix.
+
+The defect: `mergeStamped` (packages/core/src/merge/lww.ts) breaks a tie between two
+writes with an identical `{at, by}` stamp by keeping the value that sorts higher as
+`JSON.stringify` output. AddMealScreen's AddMeal/EditMeal save and ImportRecipe's relink
+write the same meal's `link` field; if both land in the same millisecond (SystemClock
+is `Date.now()`, so this is possible in the demo build - MemoryRecipeImporter on an
+in-memory store, not just in tests), the raw pasted link can beat the import's
+normalised sourceUrl whenever the raw link sorts higher as JSON (e.g. a tracking
+parameter such as `?utm_source=ig` adds a `?` byte, 0x3F, which sorts above the closing
+`"`, 0x22, of the shorter normalised string) - exactly the failure §17 and this task
+exist to prevent (the meal silently detaches from its recipe).
+
+Empirical proof (not just a byte-order argument): temporarily swapped TickingClock back
+to plain FakeClock for both test helpers and reran the AC#1 test
+(`vitest --project app apps/mobile/src/routes/recipe-import.route.test.tsx -t "AC#1" --testTimeout=15000`).
+It failed - not merely a stale assertion, but a real behavioural break: the Recipe route
+rendered "No recipe is saved for this meal yet.", because `meal.link` had been left at
+the raw typed link (`...chana-masala?utm_source=ig`), not the normalised sourceUrl
+`recipeForLink` looks up recipes by. Restored TickingClock afterward (test file is
+clean of that temporary change; `git diff` confirms no stray edit remains).
+
+This is an app-layer test masking a core/application defect, not a test-only fix, per
+decision-3 mediation. Requesting: the orchestrator decide how to close the gap in
+core/application - e.g. having ImportRecipe stamp the relink strictly later than the
+meal link's current stamp (so the relink's `at` is always >= the save's `at` + 1,
+regardless of clock granularity), or another core/application-level fix. This app-layer
+task cannot fix it without reaching into core/application, which is out of this layer's
+write scope (apps/** only).
+
+## Proof (full suite, after all fixes)
+
+`mise exec -- pnpm exec vitest run --project app --project tools apps`: 20 test files,
+132 tests, all passed (recipe-import.route.test.tsx now has 15 tests: the 13 original
+plus the new in-flight-Save race test and the new invalid-link-routing test).
+
+`mise exec -- pnpm -s typecheck` (repo-wide): passes, no errors.
 <!-- SECTION:NOTES:END -->

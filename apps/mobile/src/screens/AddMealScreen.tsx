@@ -62,6 +62,7 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
   const [meals, setMeals] = useState<readonly Meal[]>([]);
   const [recipes, setRecipes] = useState<readonly Recipe[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [recipesLoadError, setRecipesLoadError] = useState<string | null>(null);
   const editing = mealId ? meals.find((m) => m.id === mealId) : undefined;
 
   useEffect(
@@ -80,7 +81,7 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
       app.watchKitchenRecipes(
         kitchenId,
         (next) => setRecipes(next),
-        (error) => setLoadError(error.message),
+        (error) => setRecipesLoadError(error.message),
       ),
     [app, kitchenId],
   );
@@ -110,6 +111,9 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
   }, [editing, prefilled]);
 
   const submit = async () => {
+    // An import in flight already holds this meal's save (AddMeal/EditMeal then ImportRecipe);
+    // a Save tapped in that window must not race it into a second AddMeal (§17 step 2).
+    if (importing) return;
     setLinkError(undefined);
     setProblem(undefined);
     setAdding(true);
@@ -130,14 +134,14 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
   };
 
   const importRecipe = async () => {
+    setLinkError(undefined);
+    setProblem(undefined);
+    setImportError(undefined);
     if (name.trim() === '') {
       setProblem(problemFor('empty-name', 'Could not add that meal'));
       return;
     }
     const trimmedLink = link.trim();
-    setLinkError(undefined);
-    setProblem(undefined);
-    setImportError(undefined);
     setImporting(true);
     try {
       let importMealId = activeMealId;
@@ -145,16 +149,23 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
         const added: AddMeal = { type: 'AddMeal', kitchenId, weekId, dayIndex, name, link: trimmedLink };
         const result = await app.dispatch(added);
         if (!result.ok) {
-          setProblem(problemFor(result.error.code, 'Could not add that meal'));
+          if (result.error.code === 'invalid-link') setLinkError(result.error.message);
+          else setProblem(problemFor(result.error.code, 'Could not add that meal'));
           return;
         }
-        importMealId = (result.value[0] as MealAdded).mealId;
+        const mealAdded = result.value.find((e): e is MealAdded => e.type === 'MealAdded');
+        if (mealAdded === undefined) {
+          setProblem(problemFor('other', 'Could not add that meal'));
+          return;
+        }
+        importMealId = mealAdded.mealId;
         setCreatedMealId(importMealId);
       } else {
         const edited: EditMeal = { type: 'EditMeal', kitchenId, weekId, mealId: importMealId, name, link: trimmedLink };
         const result = await app.dispatch(edited);
         if (!result.ok) {
-          setProblem(problemFor(result.error.code, 'Could not save that meal'));
+          if (result.error.code === 'invalid-link') setLinkError(result.error.message);
+          else setProblem(problemFor(result.error.code, 'Could not save that meal'));
           return;
         }
       }
@@ -165,7 +176,11 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
         setImportError(importProblemFor(result.error.code));
         return;
       }
-      const event = result.value[0] as RecipeImported;
+      const event = result.value.find((e): e is RecipeImported => e.type === 'RecipeImported');
+      if (event === undefined) {
+        setImportError(importProblemFor('other'));
+        return;
+      }
       setLink(event.sourceUrl);
 
       for (const line of event.groceries) {
@@ -212,7 +227,10 @@ export function AddMealScreen({ app, kitchenId, dayId, mealId }: AddMealScreenPr
 
   if (!parsed) return null;
 
-  const banner = problem ?? (loadError ? `Could not load this meal: ${loadError}` : undefined);
+  const banner =
+    problem ??
+    (loadError ? `Could not load this meal: ${loadError}` : undefined) ??
+    (recipesLoadError ? `Could not load this kitchen's recipes: ${recipesLoadError}` : undefined);
   // "View recipe" (AC#5) only ever reads local data (watchKitchenRecipes + recipeForLink); it is
   // offered only once a concrete meal id exists to navigate to, matching the currently edited
   // link field so it follows a pasted link to an already-saved recipe before any import happens.
