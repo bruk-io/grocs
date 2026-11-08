@@ -50,9 +50,9 @@ export interface SyncStore {
     onError?: (error: Error) => void,
   ): Unsubscribe;
   /**
-   * Remember that `nameKey` (an item name's aisle-memory key, R11) goes to this aisle, so a later
-   * add of the same name can be suggested it (R14). The later stamp wins; the same stamp twice, or
-   * an older one arriving after a newer one already stored, changes nothing.
+   * Remember that `nameKey` (core's `aisleNameKey(name)`) goes to this aisle, so a later add of
+   * the same name can be suggested it (R11, R14). The later stamp wins; the same stamp and value
+   * twice, or an older stamp arriving after a newer one already stored, changes nothing.
    *
    * Optional only until TASK-1.22.6 implements this in both providers; a ports follow-up then
    * makes it required, since every real SyncStore must offer it.
