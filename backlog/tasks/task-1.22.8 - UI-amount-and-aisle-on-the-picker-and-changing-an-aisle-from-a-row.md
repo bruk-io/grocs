@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.8
 title: 'UI: amount and aisle on the picker, and changing an aisle from a row'
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 21:09'
+updated_date: '2026-11-08 21:15'
 labels:
   - layer-ui
   - size-3
@@ -40,9 +40,9 @@ Cites R9, R11, R38. See TASK-1.22's slice contract. Baselines come from the work
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ItemPickerTemplate shows an optional amount field and aisle chips, with stories and behaviour tests
-- [ ] #2 Pressing a to-buy row shows aisle chips inline, choosing one calls back with the row and aisle, with stories and behaviour tests
-- [ ] #3 ui takes aisle options as data and does not import core
+- [x] #1 ItemPickerTemplate shows an optional amount field and aisle chips, with stories and behaviour tests
+- [x] #2 Pressing a to-buy row shows aisle chips inline, choosing one calls back with the row and aisle, with stories and behaviour tests
+- [x] #3 ui takes aisle options as data and does not import core
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -142,4 +142,39 @@ Second review follow-up (label-content-name-mismatch before baselines):
 4. Added pressPressed, pressFocus and pressDisabled to ITEMROW_STATES (already had matching PressPressed/PressFocus/PressDisabled stories); corrected the stories comment that called the base Pressable story 'Not a state' to describe only that one (the three variants are now declared states, not demo-only).
 
 5. Reran: pnpm exec vitest run --project ui: 53 files, 1039 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed. pnpm --filter @grocs/ui build-storybook: succeeded. pnpm --filter @grocs/ui visual -- --no-build: 'visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.' then 'visual: 474 story views checked (axe, 44 x 44, images not compared)', exit code 0 - no axe violations, including no label-content-name-mismatch on the press target.
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+(57 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a9aca06165da2e8be/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  160 passed (160)
+      Tests  2175 passed (2175)
+   Start at  16:10:37
+   Duration  10.33s (transform 45.52s, setup 4.86s, import 132.80s, tests 48.28s, environment 23.67s)
+```
+
+Verdict: closed. All three criteria met, judged against the diff feat/aisles...HEAD at 12c5c3a and TASK-1.22's ui contract.
+
+AC1: ItemPickerTemplate has amountValue/onAmountChange and aisleOptions/selectedAisleId/onSelectAisle, each absent unless given; story WithAmountAndAisle; behaviour tests cover absence, typing, Enter, choosing and unchoosing.
+AC2: ListSection and GroceryListTemplate take aisleOptions, openAisleItemId, onPressItem, onChooseAisle; chips render inline under the open row; ItemRow has no aisle prop, as the contract requires. Stateful harness test presses a row, sees chips, chooses one, gets (row id, aisle id). Stories AisleOpen, AisleChipGroup and ItemRow press states.
+AC3: AisleOption is a local data type; no core import under packages/ui/src or in packages/ui/package.json (grep).
+Second-round fix confirmed in the diff: the press target has no aria-label, its name comes from its contents (tests assert exact names such as 'Lemon 1'), and the hint is accessibilityHint plus aria-describedby on a hidden sibling.
+
+Checks run by the reviewer: fast tier exited 0 (16 checks, typecheck, 160 files, 2175 tests). build-storybook exited 0. visual --no-build exited 0: 474 story views, axe and 44x44, new stories present in the build. Images NOT compared: this ran on darwin, and baselines for the new stories come later from the workflow, so they are not expected here and that comparison is still owed before the slice closes. Scope was the fast tier plus those two commands as instructed, not the full tier: test:emulator and check:release were not run by this review. Port 4498 was held at one point; it is the emulator run lock and visual does not use it.
+
+Findings, none blocking, no drafts filed:
+Medium, unverified: the hidden hint is a real Text node (ItemRow.tsx styles.hint). On native it duplicates accessibilityHint and may be a separate VoiceOver stop reading 'Change the aisle' on each pressable row. No test covers this and no device was run. Check it in TASK-1.22.9's live iOS run; if it is a stop, render the sibling for web only or hide it from native accessibility.
+Low: GroceryListTemplate's two cart-row tests use AllDone, whose cart rows go through CartSection, never ListSection, so they would pass without the inCart guard. The guard itself is properly tested in ListSection.behaviour.test.tsx. Left as is.
+Low: a stray line 'test note single line' sits in the implementation notes. Left as is.
 <!-- SECTION:NOTES:END -->
