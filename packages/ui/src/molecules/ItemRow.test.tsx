@@ -2,7 +2,8 @@
 import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Platform } from 'react-native';
 import * as stories from './ItemRow.stories.tsx';
 
 const { Rest, InCart, Disabled, Swiped, Loading, AmountOnly, Waiting, New, Pressable, PressDisabled } = composeStories(stories);
@@ -156,5 +157,32 @@ describe('ItemRow (R50, R65)', () => {
     await user.click(screen.getByRole('button', { name: 'Remove Oat milk' }));
     expect(onRemove).toHaveBeenCalledExactlyOnceWith();
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('on web, the press target has aria-describedby pointing to the visually hidden hint', () => {
+    render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
+    const hintId = target.getAttribute('aria-describedby');
+    expect(hintId).toBeTruthy();
+    const hint = document.getElementById(hintId!);
+    expect(hint?.textContent).toBe('Change the aisle');
+    // Verify the hint is visually hidden with the expected styles
+    const styles = window.getComputedStyle(hint!);
+    expect(styles.position).toBe('absolute');
+    expect(styles.width).toBe('1px');
+    expect(styles.height).toBe('1px');
+  });
+
+  it('on native (ios), the press target has no visible hint element and uses accessibilityHint', () => {
+    const platformSpy = vi.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    try {
+      render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }} />);
+      const target = screen.getByRole('button', { name: 'Lemon 1' });
+      expect(target.getAttribute('aria-describedby')).toBeNull();
+      // Verify the hint text element is not rendered on native
+      expect(screen.queryByText('Change the aisle')).toBeNull();
+    } finally {
+      platformSpy.mockRestore();
+    }
   });
 });
