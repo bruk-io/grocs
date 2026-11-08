@@ -4,6 +4,7 @@ import { InMemorySyncStore } from '@grocs/ports/testing';
 import type { SyncStore } from '@grocs/ports';
 import { describe, expect, it } from 'vitest';
 import { createTestClient } from '../testing/client.ts';
+import { wrapSyncStore } from '../testing/wrap-sync-store.ts';
 
 const KITCHEN = 'k1';
 const WEEK = '2026-W42';
@@ -15,24 +16,6 @@ const add = (name: string, extra: { amount?: string; mealId?: string; aisle?: st
   ...extra,
 });
 const clear = () => ({ type: 'ClearCart' as const, kitchenId: KITCHEN, weekId: WEEK });
-
-/** A SyncStore that delegates every method to `store`, except the ones overridden. */
-function wrapSyncStore(store: SyncStore, overrides: Partial<SyncStore>): SyncStore {
-  return {
-    mergeItem: (...a) => store.mergeItem(...a),
-    getItems: (...a) => store.getItems(...a),
-    watchItems: (...a) => store.watchItems(...a),
-    mergeMeal: (...a) => store.mergeMeal(...a),
-    getMeals: (...a) => store.getMeals(...a),
-    watchMeals: (...a) => store.watchMeals(...a),
-    mergeRecipe: (...a) => store.mergeRecipe(...a),
-    getRecipes: (...a) => store.getRecipes(...a),
-    watchRecipes: (...a) => store.watchRecipes(...a),
-    rememberAisle: (...a) => store.rememberAisle(...a),
-    aisleFor: (...a) => store.aisleFor(...a),
-    ...overrides,
-  };
-}
 
 describe('AddItem scenarios (R47)', () => {
   it('adds the item to the store and returns an ItemAdded event', async () => {

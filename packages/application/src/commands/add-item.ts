@@ -37,6 +37,7 @@ export async function addItem(command: AddItem, ctx: CommandContext): Promise<Co
     }
   }
 
+  const stamp = { at: clock.now(), by: user.uid };
   const made = createExtraItem(
     {
       id: ids.newId(),
@@ -46,7 +47,7 @@ export async function addItem(command: AddItem, ctx: CommandContext): Promise<Co
       ...(aisle !== undefined ? { aisle } : {}),
       ...(command.mealId !== undefined ? { badges: [command.mealId] } : {}),
     },
-    { at: clock.now(), by: user.uid },
+    stamp,
   );
   if (!made.ok) return err({ code: made.error, message: 'the item name is empty' });
 
@@ -57,7 +58,7 @@ export async function addItem(command: AddItem, ctx: CommandContext): Promise<Co
   // settle while offline (decision-7), and a rejection here must not fail the add either.
   if (command.aisle !== undefined) {
     const nameKey = aisleNameKey(command.name);
-    void syncStore.rememberAisle(command.kitchenId, nameKey, stamped(command.aisle, { at: clock.now(), by: user.uid })).catch(() => undefined);
+    void syncStore.rememberAisle(command.kitchenId, nameKey, stamped(command.aisle, stamp)).catch(() => undefined);
   }
 
   const event: ItemAdded = { type: 'ItemAdded', itemId: made.value.id, weekId: command.weekId };

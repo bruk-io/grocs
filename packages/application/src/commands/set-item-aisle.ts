@@ -33,9 +33,12 @@ export async function setItemAisleCommand(command: SetItemAisle, ctx: CommandCon
   await syncStore.mergeItem(command.kitchenId, next);
 
   // Teaches the memory for next time; never delays the result (R16) and a rejection must not
-  // fail a change that already landed.
+  // fail a change that already landed. A name with no key (e.g. '!!') has nothing to remember it
+  // under: an empty document id is not valid in Firestore.
   const nameKey = aisleNameKey(item.name.value);
-  void syncStore.rememberAisle(command.kitchenId, nameKey, stamped(command.aisle, stamp)).catch(() => undefined);
+  if (nameKey !== '') {
+    void syncStore.rememberAisle(command.kitchenId, nameKey, stamped(command.aisle, stamp)).catch(() => undefined);
+  }
 
   const event: ItemAisleChanged = { type: 'ItemAisleChanged', itemId: item.id, weekId: command.weekId };
   return ok([event]);

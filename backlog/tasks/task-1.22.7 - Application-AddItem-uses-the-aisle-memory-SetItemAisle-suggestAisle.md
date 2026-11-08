@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-application'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 20:56'
+updated_date: '2026-11-08 21:06'
 labels:
   - layer-application
   - size-3
@@ -84,4 +84,29 @@ $ tsc --noEmit
 $ mise exec -- pnpm check
 $ node tools/checks/run.ts --mode all
 checks passed (16 checks, all mode, 507 ms)
+
+Follow-up from the layer review (same worktree, merged feat/aisles again first: fast-forward, no conflicts, brought in TASK-1.22.10's aisle-doc codec, unrelated to this layer).
+
+Required:
+1. set-item-aisle.scenario.test.ts: added a 'both members (R18, R47)' describe block - two tests prove the later stamp wins whichever of two different aisles on one item arrives first (dispatched in both orders), and a third proves one member offline: a queued older aisle change sent after the other's newer one does not overwrite it (R16), using the queueing-store pattern from add-item.scenario.test.ts's "one member offline" test.
+2. suggest-aisle.ts: aisleFor's rejection is now caught and returns null too, not just the empty-nameKey case - the memory only ever helps, and the screen calls suggestAisle on every keystroke. New test in suggest-aisle.test.ts proves it.
+
+Smaller:
+3. set-item-aisle.scenario.test.ts's 'a failing rememberAisle still lets the change succeed' now sets the clock before dispatching, so the item's existing aisle stamp and the new one are never a same-at tie.
+4. add-item.ts now takes one `stamp` for both the item and the aisle memory, instead of calling clock.now() twice.
+5. set-item-aisle.ts now skips rememberAisle when aisleNameKey(item.name.value) is '' (defensive; createExtraItem already rejects a name that would produce one, so this cannot trigger from AddItem/SetItemAisle today, but matches the guard core's review asked for and protects against a future relaxation).
+6. Pulled the repeated SyncStore wrapper into packages/application/src/testing/wrap-sync-store.ts (exported via the existing testing/index.ts subpath), and pointed add-item.scenario.test.ts, set-item-aisle.scenario.test.ts and suggest-aisle.test.ts at it instead of three local copies.
+
+Evidence:
+$ mise exec -- pnpm exec vitest run --project unit packages/application
+ Test Files  22 passed (22)
+      Tests  140 passed (140)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no output, exit 0)
+
+$ mise exec -- pnpm check
+$ node tools/checks/run.ts --mode all
+checks passed (16 checks, all mode, 579 ms)
 <!-- SECTION:NOTES:END -->

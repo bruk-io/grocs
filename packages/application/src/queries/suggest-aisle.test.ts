@@ -2,6 +2,7 @@ import type { SyncStore } from '@grocs/ports';
 import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
+import { wrapSyncStore } from '../testing/wrap-sync-store.ts';
 import { suggestAisle } from './suggest-aisle.ts';
 
 const KITCHEN = 'k1';
@@ -31,24 +32,21 @@ describe('suggestAisle (R11, R14)', () => {
   it("returns null for a name with no key, such as '!!', without calling aisleFor", async () => {
     const store = new InMemorySyncStore();
     let called = false;
-    const spying: SyncStore = {
-      mergeItem: (...a) => store.mergeItem(...a),
-      getItems: (...a) => store.getItems(...a),
-      watchItems: (...a) => store.watchItems(...a),
-      mergeMeal: (...a) => store.mergeMeal(...a),
-      getMeals: (...a) => store.getMeals(...a),
-      watchMeals: (...a) => store.watchMeals(...a),
-      mergeRecipe: (...a) => store.mergeRecipe(...a),
-      getRecipes: (...a) => store.getRecipes(...a),
-      watchRecipes: (...a) => store.watchRecipes(...a),
-      rememberAisle: (...a) => store.rememberAisle(...a),
+    const spying: SyncStore = wrapSyncStore(store, {
       aisleFor: (...a) => {
         called = true;
         return store.aisleFor(...a);
       },
-    };
+    });
     const deps = make(spying);
     expect(await suggestAisle(deps, KITCHEN, '!!')).toBeNull();
     expect(called).toBe(false);
+  });
+
+  it('returns null, not a rejection, when aisleFor fails: the memory only ever helps', async () => {
+    const store = new InMemorySyncStore();
+    const broken = wrapSyncStore(store, { aisleFor: () => Promise.reject(new Error('aisle lookup is down')) });
+    const deps = make(broken);
+    expect(await suggestAisle(deps, KITCHEN, 'Kale')).toBeNull();
   });
 });
