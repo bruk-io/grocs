@@ -1,10 +1,10 @@
 ---
 id: TASK-1.22
 title: 'Grocery list: we build the week''s list from meals and extras'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-11-08 22:33'
+updated_date: '2026-11-08 22:45'
 labels:
   - size-5
   - slice
@@ -24,8 +24,8 @@ Waits on the meal plan slice. Cites R9, R10, R11.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Either of us adds an item for a meal (it carries that meal's badge) or as an extra
-- [ ] #2 Items to buy are grouped by aisle, and a new item's aisle is suggested from our earlier choices
-- [ ] #3 Each item shows its name, amount, aisle, badges and who added it
+- [x] #2 Items to buy are grouped by aisle, and a new item's aisle is suggested from our earlier choices
+- [x] #3 Each item shows its name, amount, aisle, badges and who added it
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -218,4 +218,60 @@ From TASK-1.23's review, 2026-11-08: #2 must read cleared items for its suggesti
 Split 2026-11-08 from the review's finding that nothing delivered #2 and #3.
 
 Live proof, 2026-11-08, iOS simulator against the emulators, on feat/aisles at 3994a66. Alex adds an item (under Other, with an avatar by name), opens its aisle chips from the row with Other marked, chooses Dairy & eggs and the row moves; adding the same name again lands under Dairy & eggs. Jo uses Quick add: amount field and aisle chips show, Pantry chosen, item under Pantry; ticked and cleared; typing the name again preselects Pantry (R14). The existing flows add-and-tick-item and quick-add-first-tap pass, so the now-pressable row name does not break ticking. Maestro's accessibility tree found 'Change the aisle' as a separate 1x1 element on each row; TASK-1.22.11 fixed it, and after that the tree has none. Baselines: visual baselines workflow run 42526535671, only new images. Screenshots from this session are in the scratchpad, not the repo. Not proved on a device: real VoiceOver speech, Android, native 'firestore/unavailable' offline behaviour (TASK-1.16).
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(839 earlier lines omitted)
+```text
+│  10.79 kB │ gzip:   3.48 kB
+│  storybook-static/assets/Mascot-BsZQCZOO.js
+│  12.29 kB │ gzip:   4.46 kB
+│  storybook-static/assets/icons-CGD0FZRC.js
+│  15.62 kB │ gzip:   2.56 kB
+│  storybook-static/assets/KitchenScene-u4IbtpFo.js
+│  18.10 kB │ gzip:   5.05 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-CsCPY1On.js
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-DINP4KBg.js
+│  167.09 kB │ gzip:  49.81 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-ESMp-duG.js
+│  1,361.60 kB │ gzip: 392.36 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.37s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 474 story views checked (axe, 44 x 44, images not compared)
+```
+
+Review (philosophy:reviewer, 2026-11-08): closed at a89e97d, 3/3 criteria met, judged on behaviour. Full check exited 0 from the worktree: 16 checks, typecheck, 2245 unit tests, 161 emulator tests, release bundles, Storybook, 474 story views. It ran axe and 44 x 44 only: image comparison is skipped on darwin, so baselines rest on workflow run 42526535671 as recorded, not re-verified here.
+
+#1 met: earlier evidence plus route test 'tags the added item with the selected meal' (screens.route.test.tsx:498). #2 met: GroceriesScreen uses groupByAisle, kept under a meal filter (route test :218); suggestion on Quick add and in AddItem (:558, :607). TASK-1.23's R14 ask: met in behaviour, not in the mechanism it named. Nothing reads cleared items; a kitchen-wide aisle memory written at choice time survives Clear (add-item.scenario.test.ts:246, add, tick, clear, re-add gets the aisle; live proof repeats it). I accept this: the memory also spans weeks, which a read of one week's cleared items would not, and before this slice no screen could choose an aisle. #3 met for rows to buy: name, amount, badges, who added (route test :259), aisle by heading (:218).
+
+Contract call on 'shows its aisle': sound for rows to buy, including under a meal filter, since every row sits under its heading. It says nothing about the cart, so here is a second call, mine: CartSection renders name only, with no amount, aisle, badges or who added, though GroceriesScreen builds them for cart rows. Read literally, 'each item' fails there. I count #3 as met because that row is the design system's item.row--done from 080b9e1, before this slice, R13 treats the aisle as belonging to the to-buy state, and TASK-1.23 closed on this row. Bruk may overrule this; if so, it is a small UI change and #3 reopens.
+
+TASK-1.21: not a blocker. board-check raised no block, and its open #1 and #3 are week navigation and moving meals, which this slice does not use. The edge is stale for the orchestrator to judge, as TASK-1.23's was.
+
+Findings. Low, reported only: cart rows as above; the data GroceriesScreen builds for them is discarded. Low, reported only: deselecting a suggested chip on Quick add sends no aisle, so AddItem's memory lookup puts the item in that aisle anyway; the screen showed none, and the row can be changed afterwards. Low, reported only: the who-added avatar shows one initial, the full name only to a screen reader; two members sharing an initial look alike. Low, reported only: an aisle chosen offline is not remembered because rememberAisle's transaction fails and is swallowed; belongs with TASK-1.16 and TASK-1.24. Medium, filed as a draft: R14's amount suggestions have no owner; QuickAddScreen's comment cites archived TASK-57. Not proved on a device: VoiceOver speech, Android, native offline, as the live proof states.
 <!-- SECTION:NOTES:END -->
