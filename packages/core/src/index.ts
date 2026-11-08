@@ -7,6 +7,8 @@ export { isMealDeleted, mergeMeal } from './merge/meal-merge.ts';
 export { isRecipeDeleted, mergeRecipe } from './merge/recipe-merge.ts';
 export { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
 export type { Item, ItemState, NewItemError, NewItemInput } from './model/item.ts';
+export { AISLES, aisleNameKey, aisleSection, groupByAisle, setItemAisle } from './model/aisle.ts';
+export type { AisleDef, AisleGroup, AisleId } from './model/aisle.ts';
 export { createMeal, moveMeal, relinkMeal, removeMeal, renameMeal, toDayIndex } from './model/meal.ts';
 export type { DayIndex, Meal, MealLinkError, MealNameError, NewMealInput } from './model/meal.ts';
 export type { ParsedIngredient, ParsedRecipe, Recipe, RecipeImportError } from './model/recipe.ts';
@@ -20,6 +22,8 @@ export { decodeMeal, encodeMeal, MEAL_SCHEMA_VERSION } from './schema/meal-doc.t
 export type { MealDoc } from './schema/meal-doc.ts';
 export { decodeRecipe, encodeRecipe, RECIPE_SCHEMA_VERSION } from './schema/recipe-doc.ts';
 export type { RecipeDoc } from './schema/recipe-doc.ts';
+export { decodeAisleMemory, encodeAisleMemory, AISLE_SCHEMA_VERSION } from './schema/aisle-doc.ts';
+export type { AisleMemoryDoc } from './schema/aisle-doc.ts';
 export { CIRCULAR, PERSONAL_ATTRIBUTE_KEYS, PERSONAL_FIELDS, redact, REDACTED } from './schema/personal.ts';
 export { weekIdFor } from './model/week.ts';
 export { addMember, createKitchen, isKitchenFull, KITCHEN_SCHEMA_VERSION, MAX_MEMBERS } from './model/kitchen.ts';

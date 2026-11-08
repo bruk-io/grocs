@@ -10,6 +10,7 @@ import { importRecipe } from './import-recipe.ts';
 import { inviteByEmail } from './invite-by-email.ts';
 import { moveMealCommand } from './move-meal.ts';
 import { removeMealCommand } from './remove-meal.ts';
+import { setItemAisleCommand } from './set-item-aisle.ts';
 import { setItemStateCommand } from './set-item-state.ts';
 
 /** Every command by type. Adding a command means adding it here, and a scenario test beside it (R47). */
@@ -25,5 +26,6 @@ export const commandHandlers: Readonly<Record<string, Handler<never>>> = {
   InviteByEmail: inviteByEmail as Handler<never>,
   MoveMeal: moveMealCommand as Handler<never>,
   RemoveMeal: removeMealCommand as Handler<never>,
+  SetItemAisle: setItemAisleCommand as Handler<never>,
   SetItemState: setItemStateCommand as Handler<never>,
 };

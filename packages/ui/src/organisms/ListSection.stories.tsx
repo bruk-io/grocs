@@ -29,3 +29,22 @@ export const Waiting: Story = {
     ],
   },
 };
+
+const aisleOptions = [
+  { id: 'produce', label: 'Produce' },
+  { id: 'pantry', label: 'Pantry' },
+  { id: 'other', label: 'Other' },
+];
+
+/** Basmati rice was pressed, so its aisle chips show inline below it, with Pantry pressed as its current aisle. */
+export const AisleOpen: Story = {
+  args: {
+    items: [
+      { id: 'a', name: 'Chickpeas', amount: '2 cans', mealBadges: [{ label: 'Chana masala', tone: 'amber' }], addedBy: 'Sam', inCart: false },
+      { id: 'b', name: 'Basmati rice', amount: '2 kg', inCart: false, selectedAisleId: 'pantry' },
+    ],
+    aisleOptions,
+    openAisleItemId: 'b',
+    onPressItem: () => undefined,
+  },
+};

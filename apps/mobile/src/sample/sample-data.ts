@@ -1,6 +1,10 @@
 // Sample content for the demo build (decision-12) and the development-only /groceries-samples route: what each
 // reference screen shows (R40, R66). No real screen reads it; the real app shows only the kitchen's own data.
+import type { AisleId } from '@grocs/core';
 import type { ListItem, PlanDay, StackMember } from '@grocs/ui';
+
+/** A sample item with the aisle the demo seed gives it (R11); the dev-only samples route ignores the extra field. */
+export type SampleItem = ListItem & { aisle?: AisleId };
 
 /** Alex and Sam; Sam is in the app now. */
 export const household: readonly StackMember[] = [{ name: 'Alex' }, { name: 'Sam', tone: 'chartreuse', online: true }];
@@ -28,15 +32,15 @@ const chicken = { label: 'Sheet-pan chicken', tone: 'sky' } as const;
 const pizza = { label: 'Pizza night', tone: 'tomato' } as const;
 
 /** The Groceries screen: the top of the Produce section and the start of Meat. */
-export const produce: readonly ListItem[] = [
-  { id: 'i1', name: 'Yellow onions', amount: '2', mealBadges: [chana, chicken], inCart: false },
-  { id: 'i2', name: 'Garlic', amount: '4 cloves', mealBadges: [chana], inCart: false },
-  { id: 'i3', name: 'Bell peppers', amount: '3', mealBadges: [chicken], inCart: false },
-  { id: 'i4', name: 'Lemon', amount: '1', mealBadges: [chana], inCart: false },
-  { id: 'i5', name: 'Fresh ginger', amount: '3 cm piece', mealBadges: [chana], inCart: false },
-  { id: 'i6', name: 'Cilantro', amount: '1 bunch', mealBadges: [chana], inCart: false },
+export const produce: readonly SampleItem[] = [
+  { id: 'i1', name: 'Yellow onions', amount: '2', mealBadges: [chana, chicken], inCart: false, aisle: 'produce' },
+  { id: 'i2', name: 'Garlic', amount: '4 cloves', mealBadges: [chana], inCart: false, aisle: 'produce' },
+  { id: 'i3', name: 'Bell peppers', amount: '3', mealBadges: [chicken], inCart: false, aisle: 'produce' },
+  { id: 'i4', name: 'Lemon', amount: '1', mealBadges: [chana], inCart: false, aisle: 'produce' },
+  { id: 'i5', name: 'Fresh ginger', amount: '3 cm piece', mealBadges: [chana], inCart: false, aisle: 'produce' },
+  { id: 'i6', name: 'Cilantro', amount: '1 bunch', mealBadges: [chana], inCart: false, aisle: 'produce' },
 ];
-export const meat: readonly ListItem[] = [{ id: 'i7', name: 'Chicken thighs', amount: '1 kg', mealBadges: [chicken], inCart: false }];
+export const meat: readonly SampleItem[] = [{ id: 'i7', name: 'Chicken thighs', amount: '1 kg', mealBadges: [chicken], inCart: false, aisle: 'meat' }];
 
 /** The Offline screen: two items wait to be sent. */
 export const offlineProduce: readonly ListItem[] = [

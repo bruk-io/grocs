@@ -77,7 +77,8 @@ describe('index route', () => {
     renderRoute({ index: Home }, { app: await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens }) });
     expect(await screen.findByRole('checkbox', { name: 'Bananas' })).toBeTruthy();
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
-    expect(screen.queryByText('This week')).toBeNull();
+    // Bananas carries no aisle, so its section's title (when it has one to show) is 'Other' (R11), not 'This week'.
+    expect(screen.queryByText('Other')).toBeNull();
     expect((screen.getAllByRole('button', { name: /enoki siblings, tap to hear a line/i })).length).toBeGreaterThan(0);
   });
 
@@ -95,10 +96,11 @@ describe('index route', () => {
       renderRoute({ index: Home }, { app: await withBananas(new InMemorySyncStore()) });
       fireEvent.click(await screen.findByRole('checkbox', { name: 'Bananas', checked: false }));
       expect(await screen.findByRole('checkbox', { name: 'Bananas', checked: true })).toBeTruthy();
-      expect(screen.queryByText('This week')).toBeNull();
+      // Bananas carries no aisle, so its to-buy section's title is 'Other' (R11), not 'This week'.
+      expect(screen.queryByText('Other')).toBeNull();
       fireEvent.click(screen.getByRole('checkbox', { name: 'Bananas' }));
       expect(await screen.findByRole('checkbox', { name: 'Bananas', checked: false })).toBeTruthy();
-      expect(screen.getByText('This week')).toBeTruthy();
+      expect(screen.getByText('Other')).toBeTruthy();
     });
 
     it('shows the banner and leaves the item where it was when the tick fails', async () => {

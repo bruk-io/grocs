@@ -150,6 +150,34 @@ describe('kitchens/{k}/recipes (decision-16, R49)', () => {
   });
 });
 
+describe('kitchens/{k}/aisles/{nameKey} (R11, R14, decision-7, same wildcard rule as items)', () => {
+  const aisleDoc = { schemaVersion: 1, aisle: { v: 'dairy', at: 1, by: 'alex' } };
+
+  it('a member can read and write the aisle memory in their kitchen', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(setDoc(doc(alex.firestore(), 'kitchens/k1/aisles/milk'), aisleDoc));
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1/aisles/milk')));
+  });
+
+  it('a non-member cannot read or write the aisle memory in a kitchen they do not belong to', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk')));
+    await assertFails(setDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk'), aisleDoc));
+  });
+
+  it('a non-member cannot read or update an aisle memory document that already exists', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'kitchens/k1/aisles/milk'), aisleDoc);
+    });
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk')));
+    await assertFails(updateDoc(doc(carl.firestore(), 'kitchens/k1/aisles/milk'), { aisle: { v: 'pantry', at: 2, by: 'carl' } }));
+  });
+});
+
 describe('an email invite on a kitchen (TASK-78)', () => {
   async function seedInvitedKitchen(): Promise<void> {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {

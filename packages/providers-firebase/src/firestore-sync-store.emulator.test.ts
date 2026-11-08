@@ -1,5 +1,10 @@
-import { createExtraItem } from '@grocs/core';
-import { syncStoreContract, syncStoreMealContract, syncStoreRecipeContract } from '@grocs/ports/testing';
+import { createExtraItem, stamped } from '@grocs/core';
+import {
+  syncStoreAisleContract,
+  syncStoreContract,
+  syncStoreMealContract,
+  syncStoreRecipeContract,
+} from '@grocs/ports/testing';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createEmulatorClient, createKitchen, ensureSeeded, readRaw, seedAccount, writeRaw } from '../../../firebase/emulator-client.ts';
 import type { EmulatorClient } from '../../../firebase/emulator-client.ts';
@@ -12,12 +17,16 @@ afterAll(async () => {
   await Promise.all(clients.map((c) => c.dispose()));
 });
 
-async function signedInStore(): Promise<FirestoreSyncStore> {
+async function signedInClient(): Promise<{ store: FirestoreSyncStore; client: EmulatorClient }> {
   await ensureSeeded();
   const client = createEmulatorClient('sync');
   clients.push(client);
   await client.authFns.signInWithEmailAndPassword(client.auth, seedAccount.alex.email, seedAccount.alex.password);
-  return new FirestoreSyncStore(asSdk<FirestoreFns>(client.firestoreFns), client.db);
+  return { store: new FirestoreSyncStore(asSdk<FirestoreFns>(client.firestoreFns), client.db), client };
+}
+
+async function signedInStore(): Promise<FirestoreSyncStore> {
+  return (await signedInClient()).store;
 }
 
 // The same suite the in-memory fake passes (R29, R49), now against the Firestore emulator.
@@ -38,6 +47,40 @@ syncStoreRecipeContract({ describe, it, expect }, async () => ({
   kitchenId: await createKitchen(),
   otherKitchenId: await createKitchen('other'),
 }));
+
+syncStoreAisleContract({ describe, it, expect }, async () => ({
+  store: await signedInStore(),
+  kitchenId: await createKitchen(),
+  otherKitchenId: await createKitchen('other'),
+}));
+
+describe('Firestore sync store: aisle memory offline (R11, R14, decision-7)', () => {
+  it('aisleFor reads a remembered aisle from the cache while offline', async () => {
+    const { store, client } = await signedInClient();
+    const kitchenId = await createKitchen();
+    await store.rememberAisle(kitchenId, 'milk', stamped('dairy', { at: 100, by: 'seed-alex' }));
+    // rememberAisle's transaction does not itself populate the local cache a plain getDoc reads
+    // from, so warm it with one online read first.
+    await store.aisleFor(kitchenId, 'milk');
+    await client.firestoreFns.disableNetwork(client.db);
+    try {
+      await expect(store.aisleFor(kitchenId, 'milk')).resolves.toBe('dairy');
+    } finally {
+      await client.firestoreFns.enableNetwork(client.db);
+    }
+  });
+
+  it('aisleFor gives null, not a rejection, for a name with no cached document while offline', async () => {
+    const { store, client } = await signedInClient();
+    const kitchenId = await createKitchen();
+    await client.firestoreFns.disableNetwork(client.db);
+    try {
+      await expect(store.aisleFor(kitchenId, 'never-remembered')).resolves.toBeNull();
+    } finally {
+      await client.firestoreFns.enableNetwork(client.db);
+    }
+  });
+});
 
 describe('Firestore sync store: stored shape (R30)', () => {
   const made = (() => {
@@ -89,6 +132,38 @@ describe('Firestore sync store: stored shape (R30)', () => {
     expect(seen[0]).toEqual(['i1']);
     expect(errors[0]).toMatch(/invalid item document bad/);
   });
+
+  it('writes the aisle memory document with a schema version, in core\'s shape', async () => {
+    const store = await signedInStore();
+    const kitchenId = await createKitchen();
+    await store.rememberAisle(kitchenId, 'milk', stamped('dairy', { at: 100, by: 'seed-alex' }));
+    const raw = (await readRaw(`kitchens/${kitchenId}/aisles/milk`)) as Record<string, unknown>;
+    expect(raw).toEqual({ schemaVersion: 1, aisle: { v: 'dairy', at: 100, by: 'seed-alex' } });
+  });
+
+  const badAisleDocs: Record<string, Record<string, unknown>> = {
+    'a newer schema version': { schemaVersion: 2, aisle: { v: 'dairy', at: 1, by: 'seed-alex' } },
+    'a malformed document': { schemaVersion: 1, aisle: 'dairy' },
+  };
+
+  for (const [label, badDoc] of Object.entries(badAisleDocs)) {
+    it(`rememberAisle rejects and leaves the document unchanged for ${label}`, async () => {
+      const store = await signedInStore();
+      const kitchenId = await createKitchen();
+      await writeRaw(`kitchens/${kitchenId}/aisles/milk`, badDoc);
+      await expect(store.rememberAisle(kitchenId, 'milk', stamped('pantry', { at: 2, by: 'seed-alex' }))).rejects.toThrow(
+        /invalid aisle document milk/,
+      );
+      await expect(readRaw(`kitchens/${kitchenId}/aisles/milk`)).resolves.toEqual(badDoc);
+    });
+
+    it(`aisleFor rejects for ${label}`, async () => {
+      const store = await signedInStore();
+      const kitchenId = await createKitchen();
+      await writeRaw(`kitchens/${kitchenId}/aisles/milk`, badDoc);
+      await expect(store.aisleFor(kitchenId, 'milk')).rejects.toThrow(/invalid aisle document milk/);
+    });
+  }
 });
 
 describe('Firestore sync store: recipe stored shape (R30, decision-16)', () => {

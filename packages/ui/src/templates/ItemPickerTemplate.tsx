@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import type { AisleOption } from '../atoms/aisle-option.ts';
 import { Chip } from '../atoms/Chip.tsx';
 import type { MealTone } from '../atoms/meal-tone.ts';
 import { Text } from '../atoms/Text.tsx';
@@ -46,6 +47,14 @@ export interface ItemPickerTemplateProps {
   /** What the household buys often. */
   frequent: readonly PickerFrequent[];
   onAddFrequent?: (id: string) => void;
+  /** Free text such as "2 cartons". Left out to leave the field off the screen entirely. */
+  amountValue?: string;
+  onAmountChange?: (text: string) => void;
+  /** The aisles to choose from, as data. Left out (or empty) to leave the chip group off the screen. */
+  aisleOptions?: readonly AisleOption[];
+  selectedAisleId?: string;
+  /** Pressing the chosen aisle again sends undefined, as choosing a meal twice does. */
+  onSelectAisle?: (id: string | undefined) => void;
   /** Goes back to Groceries. */
   onBack?: () => void;
 }
@@ -63,6 +72,11 @@ export function ItemPickerTemplate({
   onAddSuggestion,
   frequent,
   onAddFrequent,
+  amountValue,
+  onAmountChange,
+  aisleOptions = [],
+  selectedAisleId,
+  onSelectAisle,
   onBack,
 }: ItemPickerTemplateProps) {
   return (
@@ -80,6 +94,16 @@ export function ItemPickerTemplate({
           Paste a few items at once, one per line.
         </Text>
       </View>
+      {amountValue !== undefined ? (
+        <View style={styles.group}>
+          <TextField
+            value={amountValue}
+            onChangeText={(text) => onAmountChange?.(text)}
+            label="Amount"
+            {...(onAdd ? { onSubmit: onAdd } : {})}
+          />
+        </View>
+      ) : null}
       {meals.length > 0 ? (
         <View style={styles.group}>
           <Text variant="label" accessibilityRole="header">
@@ -93,6 +117,24 @@ export function ItemPickerTemplate({
                 tone={meal.tone}
                 selected={meal.id === selectedMealId}
                 onPress={() => onSelectMeal?.(meal.id === selectedMealId ? undefined : meal.id)}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
+      {aisleOptions.length > 0 ? (
+        <View style={styles.group}>
+          <Text variant="label" accessibilityRole="header">
+            Aisle <Text variant="muted">(optional)</Text>
+          </Text>
+          <View style={styles.chips}>
+            {aisleOptions.map((aisle) => (
+              <Chip
+                key={aisle.id}
+                label={aisle.label}
+                tone="neutral"
+                selected={aisle.id === selectedAisleId}
+                onPress={() => onSelectAisle?.(aisle.id === selectedAisleId ? undefined : aisle.id)}
               />
             ))}
           </View>

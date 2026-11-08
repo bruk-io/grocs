@@ -3,9 +3,10 @@ import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Platform } from 'react-native';
 import * as stories from './ItemRow.stories.tsx';
 
-const { Rest, InCart, Disabled, Swiped, Loading, AmountOnly, Waiting, New } = composeStories(stories);
+const { Rest, InCart, Disabled, Swiped, Loading, AmountOnly, Waiting, New, Pressable, PressDisabled } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -95,5 +96,93 @@ describe('ItemRow (R50, R65)', () => {
     cleanup();
     render(<Rest />);
     expect(screen.queryByText('New')).toBeNull();
+  });
+
+  it('has no press target when none is given', () => {
+    render(<Rest />);
+    expect(screen.queryByRole('button', { name: /Yellow onions/ })).toBeNull();
+  });
+
+  it('names the press target from the row\'s own visible name and amount, not the hint, and reports a press', async () => {
+    const onPress = vi.fn();
+    render(<Pressable press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
+    expect(target.getAttribute('aria-expanded')).toBe('false');
+    await user.click(target);
+    expect(onPress).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('keeps the amount, meal badges and waiting text exposed (not hidden by a label) on a pressable row', () => {
+    render(
+      <Pressable
+        name="Lemon"
+        amount="1"
+        mealBadges={[{ label: 'Chana masala' }]}
+        waiting
+        press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }}
+      />,
+    );
+    const target = screen.getByRole('button', { name: /Lemon/ });
+    expect(target.textContent).toContain('1');
+    expect(target.textContent).toContain('Chana masala');
+    expect(target.textContent).toContain('Waiting to send');
+  });
+
+  it('says aria-expanded true when what the press target opens is showing', () => {
+    render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: true }} />);
+    expect(screen.getByRole('button', { name: 'Lemon 1' }).getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('does not press the target when disabled, and says so', async () => {
+    const onPress = vi.fn();
+    render(<PressDisabled press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
+    expect(target.getAttribute('aria-disabled')).toBe('true');
+    await user.click(target);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('on a swiped row, pressing, toggling and removing each fire only their own callback', async () => {
+    const onPress = vi.fn();
+    const onToggle = vi.fn();
+    const onRemove = vi.fn();
+    render(<Swiped onToggle={onToggle} onRemove={onRemove} press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    await user.click(screen.getByRole('button', { name: 'Oat milk 1 carton' }));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(onRemove).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('checkbox', { name: 'Oat milk' }));
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith(true);
+    expect(onPress).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'Remove Oat milk' }));
+    expect(onRemove).toHaveBeenCalledExactlyOnceWith();
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('on web, the press target has aria-describedby pointing to the visually hidden hint', () => {
+    render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
+    const hintId = target.getAttribute('aria-describedby');
+    expect(hintId).toBeTruthy();
+    const hint = document.getElementById(hintId!);
+    expect(hint?.textContent).toBe('Change the aisle');
+    // Verify the hint is visually hidden with the expected styles
+    const styles = window.getComputedStyle(hint!);
+    expect(styles.position).toBe('absolute');
+    expect(styles.width).toBe('1px');
+    expect(styles.height).toBe('1px');
+  });
+
+  it('on native (ios), the press target has no visible hint element and uses accessibilityHint', () => {
+    const platformSpy = vi.spyOn(Platform, 'OS', 'get').mockReturnValue('ios');
+    try {
+      render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }} />);
+      const target = screen.getByRole('button', { name: 'Lemon 1' });
+      expect(target.getAttribute('aria-describedby')).toBeNull();
+      // Verify the hint text element is not rendered on native
+      expect(screen.queryByText('Change the aisle')).toBeNull();
+    } finally {
+      platformSpy.mockRestore();
+    }
   });
 });

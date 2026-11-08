@@ -6,7 +6,7 @@ import { AccessibilityInfo } from 'react-native';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './GroceryListTemplate.stories.tsx';
 
-const { Groceries, Offline, Toast, Empty, AllDone, Filtered, EmptyMeal, InnerGroceries, InnerFiltered, InnerEmptyMeal } = composeStories(stories);
+const { Groceries, Offline, Toast, Empty, AllDone, Filtered, EmptyMeal, InnerGroceries, InnerFiltered, InnerEmptyMeal, AisleOpen } = composeStories(stories);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 beforeEach(() => {
   vi.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => undefined);
@@ -150,5 +150,32 @@ describe('GroceryListTemplate', () => {
   it('on the inner screen says when the chosen meal has nothing left', () => {
     render(<InnerEmptyMeal />);
     expect(screen.getByText('Nothing on the list for Green salad yet.')).toBeTruthy();
+  });
+
+  it('presses a to-buy row and reports which one, named from its own visible name, amount and meal badges', async () => {
+    const onPressItem = vi.fn();
+    render(<Groceries onPressItem={onPressItem} aisleOptions={[{ id: 'produce', label: 'Produce' }]} />);
+    await user.click(screen.getByRole('button', { name: 'Yellow onions 2 Chana masala Sheet-pan chicken' }));
+    expect(onPressItem).toHaveBeenCalledExactlyOnceWith('i1');
+  });
+
+  it('cannot press a row that is in the cart', () => {
+    render(<AllDone onPressItem={() => undefined} aisleOptions={[{ id: 'produce', label: 'Produce' }]} />);
+    expect(screen.queryByRole('button', { name: /Bananas/ })).toBeNull();
+  });
+
+  it('shows no chip group for a cart row even when its id is the open one', () => {
+    render(<AllDone onPressItem={() => undefined} aisleOptions={[{ id: 'produce', label: 'Produce' }]} openAisleItemId="c1" />);
+    expect(screen.queryByRole('group', { name: /Aisle for/ })).toBeNull();
+  });
+
+  it('shows the open row\'s aisle chips in a labelled group with its current aisle pressed, and chooses one, reporting the row and the aisle', async () => {
+    const onChooseAisle = vi.fn();
+    render(<AisleOpen onChooseAisle={onChooseAisle} />);
+    expect(screen.getByRole('group', { name: 'Aisle for Yellow onions' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /^Yellow onions/ }).getAttribute('aria-expanded')).toBe('true');
+    await user.click(screen.getByRole('button', { name: 'Meat' }));
+    expect(onChooseAisle).toHaveBeenCalledExactlyOnceWith('i1', 'meat');
   });
 });

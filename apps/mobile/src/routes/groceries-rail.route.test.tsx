@@ -1,5 +1,5 @@
 // R43 and decision-14 on the real Groceries route: the rail from 600 dp, and the meal filter across postures.
-import { act, cleanup, fireEvent, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
@@ -35,6 +35,9 @@ async function open(width: number) {
 }
 
 const rail = () => screen.queryByRole('navigation', { name: 'Sections and meals' });
+// A to-buy row is now itself pressable (to change its aisle), so its accessible name can also
+// match a meal's name through its badge; the rail's own meal button is found by scoping to the rail.
+const selectMeal = (name: string | RegExp) => fireEvent.click(within(screen.getByRole('navigation', { name: 'Sections and meals' })).getByRole('button', { name }));
 
 describe('Groceries by window width', () => {
   it('shows the meal rail at 791 dp', async () => {
@@ -60,7 +63,7 @@ describe('Groceries by window width', () => {
 describe('the meal filter', () => {
   it('narrows the list to the chosen meal and hides the cart until Show all', async () => {
     await open(INNER);
-    fireEvent.click(screen.getByRole('button', { name: /Sheet-pan chicken/ }));
+    selectMeal(/Sheet-pan chicken/);
     expect(screen.getByText('Bell peppers')).toBeTruthy();
     expect(screen.getByText('Chicken thighs')).toBeTruthy();
     expect(screen.queryByText('Garlic')).toBeNull();
@@ -70,7 +73,7 @@ describe('the meal filter', () => {
 
   it('survives folding and unfolding', async () => {
     await open(INNER);
-    fireEvent.click(screen.getByRole('button', { name: /Sheet-pan chicken/ }));
+    selectMeal(/Sheet-pan chicken/);
     expect(screen.queryByText('Garlic')).toBeNull();
     resizeTo(OUTER); // fold
     expect(rail()).toBeNull();
@@ -85,7 +88,7 @@ describe('the meal filter', () => {
 
   it('keeps a filter chosen on the inner screen when folded', async () => {
     await open(INNER);
-    fireEvent.click(screen.getByRole('button', { name: /Chana masala/ }));
+    selectMeal(/Chana masala/);
     resizeTo(OUTER);
     expect(screen.queryByText('Chicken thighs')).toBeNull();
     expect(screen.getByText('Garlic')).toBeTruthy();

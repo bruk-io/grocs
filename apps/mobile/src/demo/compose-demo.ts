@@ -62,7 +62,12 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   };
 }
 
-/** This week's list and plan, from the sample Groceries and Plan screens, added by Alex and Sam. */
+/**
+ * This week's list and plan, from the sample Groceries and Plan screens. Items alternate between the
+ * 'demo-alex' and 'demo-sam' uids, but only demo-alex is a member of the one demo kitchen, so a
+ * 'demo-sam' item shows no avatar for who added it: GroceriesScreen's nameOf finds no member for that
+ * uid in the kitchen's own members (R9's unknown-uid case), by design.
+ */
 function seed(syncStore: MemorySyncStore, clock: Clock): void {
   const at = clock.now();
   const weekId = weekIdFor(at);
@@ -80,7 +85,7 @@ function seed(syncStore: MemorySyncStore, clock: Clock): void {
   }
   for (const [index, sample] of [...produce, ...meat].entries()) {
     const made = createExtraItem(
-      { id: `demo-${sample.id}`, weekId, name: sample.name, ...(sample.amount ? { amount: sample.amount } : {}) },
+      { id: `demo-${sample.id}`, weekId, name: sample.name, ...(sample.amount ? { amount: sample.amount } : {}), ...(sample.aisle ? { aisle: sample.aisle } : {}) },
       { at, by: index % 2 === 0 ? 'demo-alex' : 'demo-sam' },
     );
     if (!made.ok) throw new Error(`the demo sample item ${sample.id} is not a valid item`);
