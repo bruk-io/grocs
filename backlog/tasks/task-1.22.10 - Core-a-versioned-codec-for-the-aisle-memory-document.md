@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.10
 title: 'Core: a versioned codec for the aisle memory document'
-status: In Progress
+status: Done
 assignee:
   - '@builder-core'
 created_date: '2026-11-08 20:56'
-updated_date: '2026-11-08 21:01'
+updated_date: '2026-11-08 21:02'
 labels:
   - layer-core
   - size-1
@@ -26,7 +26,7 @@ From TASK-1.22.6's review. Deciding what a valid stored aisle document is belong
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/core/src/schema/aisle-doc.ts exports the version, encode and decode of {schemaVersion, aisle: stored stamped value}, with decode returning a Result that tells unsupported-version from malformed, with tests for each branch
+- [x] #1 packages/core/src/schema/aisle-doc.ts exports the version, encode and decode of {schemaVersion, aisle: stored stamped value}, with decode returning a Result that tells unsupported-version from malformed, with tests for each branch
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -152,4 +152,72 @@ CORRECTION: Refactored to reuse helpers.
 - All malformed field cases now assert kind: 'invalid'
 - pnpm check: all 16 checks passed
 - pnpm typecheck: no errors
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+(12 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/polyfill/dangerous-internal.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/uuid/index.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/uuid/lib/sha1.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/uuid/lib/v35.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/uuid/lib/bytesToUuid.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/uuid/uuid.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/polyfill/CoreModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/EventEmitter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/ensureNativeModulesAreInstalled.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/NativeModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/SharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/SharedRef.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/Platform.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/environment/browser.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/NativeViewManagerAdapter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/errors/UnavailabilityError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/errors/CodedError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/requireNativeModule.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/registerWebModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/TypedArrays.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/PermissionsInterface.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/PermissionsHook.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/Refs.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/hooks/useReleasingSharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/hooks/useReleasingSharedObjectWithLifecycle.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/reload.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/LegacyEventEmitter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/NativeModulesProxy.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-modules-core/build/worklets/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/ExpoFontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/serverContext.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/FontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/Asset.fx.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a60a2c513da30ff8c/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  161 passed (161)
+      Tests  2150 passed (2150)
+   Start at  16:02:04
+   Duration  9.80s (transform 43.34s, setup 4.91s, import 125.04s, tests 46.72s, environment 22.35s)
+```
+
+Re-review verdict: CLOSED on f913296. Fast tier passed (16 checks, typecheck, 2150 tests); full tier not run, on the orchestrator's instruction. Blocking findings from the first review are fixed: (1) aisle-doc.ts imports toStored, bad, isObject and readField from item-doc.ts and its copies are gone; (2) SchemaError is imported, the second declaration is deleted; (3) every malformed case asserts kind invalid, and a missing-schemaVersion test was added. packages/core/src/index.ts gains only the three codec names and AisleMemoryDoc; no helper is exported from it, and the package exports only that entry point. Remaining, no draft filed: readStamp is exported from item-doc.ts but no aisle-doc file uses it, so that export is unneeded and can be dropped; isString remains a one-line local copy because item-doc.ts does not export it. Meal and recipe copies are out of scope by the orchestrator's decision and filed as a draft on main.
 <!-- SECTION:NOTES:END -->
