@@ -1,6 +1,6 @@
 // The composition root's wiring: ports in, an App for the screens out (R26). This is the one place
 // where providers meet the application layer, and the one place that instruments them (R31).
-import { commandHandlers, createDispatcher, findMyKitchen, getInviteOffers, getKitchenInfo, instrumentDeps, loggingMiddleware, watchKitchenRecipes, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
+import { commandHandlers, createDispatcher, findMyKitchen, getInviteOffers, getKitchenInfo, instrumentDeps, loggingMiddleware, suggestAisle, watchKitchenRecipes, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
 import type { Command, CommandResult, Deps, KitchenInfo, RuntimeInfo } from '@grocs/application';
 import type { Item, Meal, Recipe } from '@grocs/core';
 import type { InviteOffer, Logger, Unsubscribe, User } from '@grocs/ports';
@@ -29,6 +29,8 @@ export interface App {
   getKitchenInfo(kitchenId: string): Promise<KitchenInfo | null>;
   /** The invites waiting for the signed-in person's email, oldest first (TASK-78). */
   getInviteOffers(): Promise<readonly InviteOffer[]>;
+  /** The aisle the kitchen's earlier choices remember for this name (R11, R14), or null for none. */
+  suggestAisle(kitchenId: string, name: string): Promise<string | null>;
   /** Now, as the app's clock reads it, for choosing the current week. */
   now(): number;
   /** Copies text to the device clipboard. */
@@ -61,6 +63,7 @@ export function composeApp({ ports, logger, runtime, copyText }: AppOptions): Ap
     findMyKitchen: () => findMyKitchen(session),
     getKitchenInfo: (kitchenId) => getKitchenInfo(session, kitchenId),
     getInviteOffers: () => getInviteOffers(session),
+    suggestAisle: (kitchenId, name) => suggestAisle(session, kitchenId, name),
     now: () => ports.clock.now(),
     copyText,
   };
