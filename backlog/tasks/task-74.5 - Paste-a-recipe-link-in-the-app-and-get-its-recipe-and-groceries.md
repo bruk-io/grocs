@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-07 05:04'
+updated_date: '2026-11-08 02:48'
 labels:
   - size-5
   - app
@@ -42,4 +42,6 @@ finish-moved (TASK-74.4.1, 2026-11-07): AC#2 now notes that R12's combine prompt
 Deleted design/reference/RecipeImport.dc.html: superseded by decision-16 (no ticking, no scaling), R66. Its shot design/reference/shots/RecipeImport.png and its canvas.json entry went with it (TASK-74.5.1).
 
 TASK-74.5.9 (orchestrator, 2026-11-07) on main at 7fccb40: pnpm test:emulator 11 files / 148 tests passed, including recipe-importer.emulator.test.ts (FirebaseRecipeImporter through the real importRecipe callable, 5 tests) - the 4 failures expected since wave 3 are gone. No outbound host besides the local Functions emulator. pnpm check 16 passed.
+
+Deviation (Group B, TASK-74.5.12): TASK-74.5.10 and TASK-74.5.11 were built in one shared integration worktree without committing, sequentially, and the orchestrator committed them together as 26782b0, because widening Deps breaks every construction site at once. Same deviation and reason as Group A (6bcb2fc, recorded on TASK-74 and TASK-74.7).
 <!-- SECTION:NOTES:END -->
