@@ -3,6 +3,8 @@ export type { Result } from './result/result.ts';
 export { compareStamps, laterStamp, mergeStamped, stamped } from './merge/lww.ts';
 export type { Stamp, Stamped } from './merge/lww.ts';
 export { isDeleted, mergeItem } from './merge/item-merge.ts';
+export { AISLES, aisleNameKey, aisleSection, groupByAisle, setItemAisle } from './model/aisle.ts';
+export type { AisleDef, AisleId, AisleSection } from './model/aisle.ts';
 export { isMealDeleted, mergeMeal } from './merge/meal-merge.ts';
 export { isRecipeDeleted, mergeRecipe } from './merge/recipe-merge.ts';
 export { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
