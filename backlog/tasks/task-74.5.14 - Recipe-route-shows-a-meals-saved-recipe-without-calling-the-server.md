@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 02:59'
+updated_date: '2026-11-08 03:06'
 labels:
   - size-2
   - layer-app
@@ -64,4 +64,17 @@ AC2: recipe added to both ROUTES maps (screens.route.test.tsx, meal-plan.route.t
 AC3: apps/mobile/src/routes/recipe.route.test.tsx two cases: a meal linked to a seeded recipe shows its title, ingredient lines and numbered steps, and asserts app.recipeImporter.calls (the FakeRecipeImporter appOnFakes returns) is empty; a meal with no matching recipe shows "No recipe is saved for this meal yet." with calls also empty. vitest run project app recipe.route.test.tsx result: Test Files 1 passed, Tests 2 passed.
 
 AC4: typecheck result: tsc noEmit, no errors, repo-wide (tsconfig.json includes apps, packages, tools, firebase). vitest run project app project tools apps result: Test Files 19 passed, Tests 116 passed (114 baseline after the merge plus 2 new). pnpm check result: checks passed 16 checks all mode.
+
+Review response (d546f96), addressing the four findings:
+
+1. Merge/main-reconciliation finding: not acted on here, per the reviewer's own instruction to hand it to the orchestrator as its own reviewed step. This worktree's branch was not merged or pushed anywhere; d546f96 only adds two commits on top of d199942 in the existing worktree. No action needed from this task beyond leaving main untouched.
+
+2. get-invite-offers.test.ts fixture fix: confirmed it is not part of this task's feature commit. `git show --stat d199942` touches only apps/mobile/app/recipe.tsx, apps/mobile/src/routes/{meal-plan,recipe,screens}.route.test.tsx, apps/mobile/src/screens/RecipeScreen.tsx, apps/mobile/src/screens/navigate.ts and this task's board file - six app files per the task's AC, no application-layer file. The fixture fix lives in merge commit 980c46f, which is the orchestrator's reconciliation work, not this task's. Nothing to move.
+
+3+4. RecipeScreen.tsx: now passes onError to both app.watchWeekMeals and app.watchKitchenRecipes into a loadError state, rendered as "Could not load this recipe: <message>" in place of the empty state, matching PlanScreen/QuickAddScreen/GroceriesScreen/AddMealScreen. Added mealsLoaded/recipesLoaded state (set true the first time each watch's onMeals/onRecipes callback fires, independent of onError) so the screen renders nothing until both have delivered at least once, instead of judging "no recipe" from each watch's initial empty array. recipe.route.test.tsx gained a third case: renders the route for a meal with a seeded matching recipe and asserts screen.queryByText('No recipe is saved for this meal yet.') is null immediately after render, before InMemorySyncStore's queued-microtask delivery, then findByText('Chana masala') resolves once it delivers.
+
+Checks after the fix commit (d546f96):
+- `mise exec -- pnpm exec vitest run --project app --project tools apps`: Test Files 19 passed (19), Tests 117 passed (117).
+- `mise exec -- pnpm -s typecheck`: tsc --noEmit, no errors.
+- Full pre-commit hook (lefthook) on this commit: checks passed (16 checks, staged mode); typecheck passed; unit-tests (vitest run --project unit --project ui --project app --project tools) Test Files 155 passed (155), Tests 2075 passed (2075).
 <!-- SECTION:NOTES:END -->
