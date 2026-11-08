@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.14
 title: Recipe route shows a meal's saved recipe without calling the server
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:09'
+updated_date: '2026-11-08 03:19'
 labels:
   - size-2
   - layer-app
@@ -27,10 +27,10 @@ Split key: app-recipe-view. Layer: app. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 app/recipe.tsx and src/screens/RecipeScreen.tsx exist, and navigate.ts has recipe(dayId, mealId)
-- [ ] #2 The ROUTES maps in screens.route.test.tsx and meal-plan.route.test.tsx include the route
-- [ ] #3 A level-4 route test seeds a recipe and a meal linked to its sourceUrl, renders the route, sees the title, ingredient lines and steps, and asserts that the FakeRecipeImporter returned by appOnFakes has empty calls. A meal with no matching recipe shows an empty state
-- [ ] #4 At this commit, pnpm -s typecheck passes repo-wide and vitest --project app passes
+- [x] #1 app/recipe.tsx and src/screens/RecipeScreen.tsx exist, and navigate.ts has recipe(dayId, mealId)
+- [x] #2 The ROUTES maps in screens.route.test.tsx and meal-plan.route.test.tsx include the route
+- [x] #3 A level-4 route test seeds a recipe and a meal linked to its sourceUrl, renders the route, sees the title, ingredient lines and steps, and asserts that the FakeRecipeImporter returned by appOnFakes has empty calls. A meal with no matching recipe shows an empty state
+- [x] #4 At this commit, pnpm -s typecheck passes repo-wide and vitest --project app passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -101,4 +101,6 @@ Checks after 4344e02:
 - `mise exec -- pnpm exec vitest run --project app --project tools apps`: Test Files 19 passed (19), Tests 117 passed (117).
 - `mise exec -- pnpm -s typecheck`: tsc --noEmit, no errors.
 - Pre-commit hook (lefthook) on this commit: checks passed (16 checks, staged mode); typecheck passed; unit-tests (vitest run --project unit --project ui --project app --project tools) Test Files 155 passed (155), Tests 2075 passed (2075).
+
+Closed by philosophy:reviewer on main at 98e4018. AC1: app/recipe.tsx, src/screens/RecipeScreen.tsx and go.recipe(dayId, mealId) in navigate.ts all exist. AC2: 'recipe' is in both ROUTES maps. AC3: recipe.route.test.tsx shows title, ingredients and steps, and asserts app.recipeImporter.calls is empty for both the matched case and the no-recipe empty-state case. A third case pins the loading gate, and the worker showed it fails when the gate is removed. AC4: the reviewer re-ran pnpm -s typecheck (clean) and vitest --project app on apps/mobile/src/routes (9 files, 84 tests passed). The orchestrator's full suite on merged main passed. Findings (low, none filed): RecipeScreen keeps a single loadError for both watches; once a recipe is showing, a later error is ignored on purpose, matching the sibling screens. The merge commit's conflict resolution lived outside this task and was replaced by the orchestrator's cherry-picks, so it does not affect this close.
 <!-- SECTION:NOTES:END -->
