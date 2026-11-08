@@ -4,13 +4,12 @@ title: 'Grocery list: we build the week''s list from meals and extras'
 status: Done
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-11-08 22:45'
+updated_date: '2026-11-08 22:47'
 labels:
   - size-5
   - slice
 milestone: m-2
-dependencies:
-  - TASK-1.21
+dependencies: []
 parent_task_id: TASK-1
 type: task
 ---
@@ -274,4 +273,6 @@ Contract call on 'shows its aisle': sound for rows to buy, including under a mea
 TASK-1.21: not a blocker. board-check raised no block, and its open #1 and #3 are week navigation and moving meals, which this slice does not use. The edge is stale for the orchestrator to judge, as TASK-1.23's was.
 
 Findings. Low, reported only: cart rows as above; the data GroceriesScreen builds for them is discarded. Low, reported only: deselecting a suggested chip on Quick add sends no aisle, so AddItem's memory lookup puts the item in that aisle anyway; the screen showed none, and the row can be changed afterwards. Low, reported only: the who-added avatar shows one initial, the full name only to a screen reader; two members sharing an initial look alike. Low, reported only: an aisle chosen offline is not remembered because rememberAisle's transaction fails and is swallowed; belongs with TASK-1.16 and TASK-1.24. Medium, filed as a draft: R14's amount suggestions have no owner; QuickAddScreen's comment cites archived TASK-57. Not proved on a device: VoiceOver speech, Android, native offline, as the live proof states.
+
+2026-11-08: removed the dependency on TASK-1.21. Its open criteria are week navigation and moving meals, which this slice does not use. The close review judged the edge stale.
 <!-- SECTION:NOTES:END -->
