@@ -27,6 +27,7 @@ export interface FirestoreFns {
   where(field: string, op: '==', value: unknown): unknown;
   getDoc(ref: unknown): Promise<DocumentSnapshotLike>;
   getDocs(query: unknown): Promise<QuerySnapshotLike>;
+  setDoc(ref: unknown, data: unknown): Promise<void>;
   onSnapshot(
     query: unknown,
     observer: { next: (snapshot: QuerySnapshotLike) => void; error: (error: Error) => void },
