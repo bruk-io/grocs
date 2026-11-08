@@ -39,11 +39,10 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
   });
   if (!made.ok) throw new Error('the demo kitchen is not a valid kitchen');
   const kitchens = new MemoryKitchenGateway(
-    DEMO_MEMBER.uid,
-    { kitchens: new Map<string, Kitchen>([[made.value.id, made.value]]), invites: new Map() },
+    { uid: DEMO_MEMBER.uid, name: DEMO_MEMBER.displayName ?? DEMO_MEMBER.uid, email: DEMO_MEMBER.email ?? null },
+    { kitchens: new Map<string, Kitchen>([[made.value.id, made.value]]) },
     clock,
     ids,
-    DEMO_MEMBER.displayName ?? DEMO_MEMBER.uid,
   );
 
   const recipeImporter = new MemoryRecipeImporter(demoRecipes);

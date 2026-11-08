@@ -1,6 +1,6 @@
 // Allow and deny tests for firebase/firestore.rules (R4, R49): each rule gets at least one request
-// that must succeed and one that must be denied. Kitchen creation and joining write through the
-// Admin SDK inside the createKitchen/joinKitchen functions (R2, R3), which these rules do not
+// that must succeed and one that must be denied. Kitchen creation, invites and joining write through
+// the Admin SDK inside the kitchen functions (R2, R3, TASK-78), which these rules do not
 // govern (the Admin SDK bypasses rules) - what these rules protect is reading and writing a
 // kitchen's data once it exists.
 import { readFileSync } from 'node:fs';
@@ -150,18 +150,29 @@ describe('kitchens/{k}/recipes (decision-16, R49)', () => {
   });
 });
 
-describe('inviteCodes/{code} (R2, R3)', () => {
-  it('no one can read an invite code directly - only the join function resolves one (default-deny, no match block)', async () => {
+describe('an email invite on a kitchen (TASK-78)', () => {
+  async function seedInvitedKitchen(): Promise<void> {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' });
+      await setDoc(doc(ctx.firestore(), 'kitchens/k1'), { name: 'Our kitchen', members: ['alex'], invite: { email: 'sam@example.com', invitedBy: 'alex', createdAt: 1 } });
     });
+  }
+
+  it('a member can read the invite, as part of their own kitchen', async () => {
+    await seedInvitedKitchen();
     const alex = testEnv.authenticatedContext('alex');
-    await assertFails(getDoc(doc(alex.firestore(), 'inviteCodes/MOREL-0024')));
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1')));
   });
 
-  it('no one can write an invite code directly', async () => {
+  it('the invited person cannot read the kitchen before joining, even signed in with the invited email - only the server matches it', async () => {
+    await seedInvitedKitchen();
+    const sam = testEnv.authenticatedContext('sam', { email: 'sam@example.com', email_verified: true });
+    await assertFails(getDoc(doc(sam.firestore(), 'kitchens/k1')));
+  });
+
+  it('a member cannot write an invite onto the kitchen directly', async () => {
+    await seedInvitedKitchen();
     const alex = testEnv.authenticatedContext('alex');
-    await assertFails(setDoc(doc(alex.firestore(), 'inviteCodes/MOREL-0024'), { kitchenId: 'k1', createdAt: 1, status: 'pending' }));
+    await assertFails(updateDoc(doc(alex.firestore(), 'kitchens/k1'), { invite: { email: 'carl@example.com', invitedBy: 'alex', createdAt: 2 } }));
   });
 });
 

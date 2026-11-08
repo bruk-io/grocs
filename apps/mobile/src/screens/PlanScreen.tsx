@@ -66,7 +66,7 @@ export function PlanScreen({ app, kitchenId }: PlanScreenProps) {
         members={avatarsFor(kitchen)}
         days={planDays}
         toBuy={toBuy}
-        onSettings={go.settings}
+        onSettings={go.settingsFromPlan}
         onPreviousWeek={() => setWeekOffset((n) => n - 1)}
         onNextWeek={() => setWeekOffset((n) => n + 1)}
         onPlan={(dayId) => go.addMeal(dayId)}

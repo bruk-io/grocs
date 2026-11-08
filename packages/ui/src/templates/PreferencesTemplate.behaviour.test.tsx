@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as stories from './PreferencesTemplate.stories.tsx';
 
-const { Rest, Unavailable } = composeStories(stories);
+const { Rest, Unavailable, Copied, FromPlan } = composeStories(stories);
 afterEach(cleanup);
 const user = userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -54,6 +54,19 @@ describe('PreferencesTemplate', () => {
     await user.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(onSignOut).toHaveBeenCalledExactlyOnceWith();
     await user.click(screen.getByRole('button', { name: 'Groceries' }));
+    expect(onBack).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it('confirms the copy on the button once diagnostics are copied', () => {
+    render(<Copied />);
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Copy diagnostics' })).toBeNull();
+  });
+
+  it('names the screen Back returns to', async () => {
+    const onBack = vi.fn();
+    render(<FromPlan onBack={onBack} />);
+    await user.click(screen.getByRole('button', { name: 'Meal plan' }));
     expect(onBack).toHaveBeenCalledExactlyOnceWith();
   });
 

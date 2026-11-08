@@ -1,17 +1,14 @@
-# TASK-56, step 2 of 3, on the other device: Pat signed in before opening the invite, so lands on kitchen
-# setup, and joins Jo's kitchen with the code from household-invite.yaml (${CODE}) instead of making one.
+# TASK-56 and TASK-78, step 2 of 3, on the other device: Pat signs in and is offered Jo's invite to
+# pat@grocs.test (from household-invite.yaml) before anything else, and joins it.
 appId: io.bruk.grocs.dev
 env:
   ACCOUNT: pat
 ---
 - runFlow: subflows/sign-in.yaml
-- assertVisible: "Your kitchen"
-- tapOn: "Open it to join"
-# The field, by its placeholder: "Invite code" also matches the label above it.
-- tapOn: "MOREL-42"
-- inputText: "${CODE}"
-# The keyboard's return key checks the code, as a person would; on iOS the keyboard covers Check code (TASK-73).
-- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Jo invited you to"
+    timeout: 20000
+- tapOn: "Join Jo's kitchen"
 - extendedWaitUntil:
     visible: "Groceries"
     timeout: 30000

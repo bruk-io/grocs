@@ -1,5 +1,5 @@
 export { KitchenStore, NotAMemberError } from './kitchen-store.ts';
-export type { CreatedKitchen, JoinKitchenResult, KitchenInvite } from './kitchen-store.ts';
+export type { AcceptInviteResult, Caller, CreatedKitchen, InviteByEmailResult, InviteOffer, KitchenDetails } from './kitchen-store.ts';
 
 // Recipe import (decision-15, contract TASK-74 §10). Deep imports into packages/providers-server/src/recipe/
 // are forbidden; this is the only way the rest of the contract's layers (the Firestore cache, the

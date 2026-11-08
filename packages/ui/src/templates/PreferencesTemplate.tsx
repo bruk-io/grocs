@@ -10,7 +10,7 @@ import { Card } from './layouts/Card.tsx';
 import { TaskLayout } from './layouts/TaskLayout.tsx';
 
 /** The Settings screen as it appears in the reference: notifications off. */
-export const PREFERENCESTEMPLATE_STATES = ['rest', 'unavailable'] as const;
+export const PREFERENCESTEMPLATE_STATES = ['rest', 'unavailable', 'copied', 'fromPlan'] as const;
 
 /**
  * The notifications switch is one of two shapes, so it is never live without its handler:
@@ -39,19 +39,23 @@ export type PreferencesTemplateProps = NotificationsSwitch & {
   /** The partner, named in the notification line: "Tell me when Sam adds something". */
   partnerName: string;
   onCopyDiagnostics?: () => void;
+  /** The diagnostics are on the clipboard: the button says so, since iOS shows nothing when an app copies. */
+  diagnosticsCopied?: boolean;
   /** Opens the household: its members, and the invite to send while there is room (TASK-56). */
   onOpenHousehold?: () => void;
   onSignOut?: () => void;
-  /** Goes back to Groceries. */
+  /** The screen Back returns to, as the back link names it: Groceries (the default) or Meal plan. */
+  backLabel?: string;
+  /** Goes back to the screen Settings was opened from. */
   onBack?: () => void;
 };
 
 /** template.task filled for Settings: header.sub, settings cards (switch, button.secondary--s), action.bar--secondary. */
-export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyDiagnostics, onOpenHousehold, onSignOut, onBack, ...notifications }: PreferencesTemplateProps) {
+export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyDiagnostics, diagnosticsCopied = false, onOpenHousehold, onSignOut, backLabel = 'Groceries', onBack, ...notifications }: PreferencesTemplateProps) {
   const prompt = `Tell me when ${partnerName} adds something`;
   return (
     <TaskLayout
-      header={<SubHeader lead={{ kind: 'back', label: 'Groceries', ...(onBack ? { onPress: onBack } : {}) }} tag="Signed in with Google" title="Settings" mascot="morty" />}
+      header={<SubHeader lead={{ kind: 'back', label: backLabel, ...(onBack ? { onPress: onBack } : {}) }} tag="Signed in with Google" title="Settings" mascot="morty" />}
       actionBar={<ActionBar label="Sign out" variant="secondary" {...(onSignOut ? { onPress: onSignOut } : {})} />}
     >
       <Card>
@@ -82,7 +86,7 @@ export function PreferencesTemplate({ name, email, kitchen, partnerName, onCopyD
             Copies the app version and sync status. Nothing from your lists or plans.
           </Text>
         </View>
-        <Button variant="secondary" size="s" stretch label="Copy diagnostics" leadingIcon="copy" {...(onCopyDiagnostics ? { onPress: onCopyDiagnostics } : {})} />
+        <Button variant="secondary" size="s" stretch label={diagnosticsCopied ? 'Copied' : 'Copy diagnostics'} leadingIcon={diagnosticsCopied ? 'check' : 'copy'} {...(onCopyDiagnostics ? { onPress: onCopyDiagnostics } : {})} />
       </Card>
       <Card>
         <View style={styles.account}>

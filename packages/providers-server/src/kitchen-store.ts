@@ -1,20 +1,18 @@
-import { addMember, checkInvite, createKitchen, inviteCodeFromId, inviteExpiresAt, invitePreview, inviteToReuse, isKitchenFull, MAX_MEMBERS } from '@grocs/core';
-import type { InviteCheckError, InvitePreview, JoinKitchenError, Kitchen } from '@grocs/core';
-import type { Firestore } from 'firebase-admin/firestore';
+import { acceptInvite, cancelInvite, createKitchen, inviteByEmail } from '@grocs/core';
+import type { InviteByEmailError, Kitchen } from '@grocs/core';
+import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
 
 export interface CreatedKitchen {
   readonly kitchenId: string;
-  readonly inviteCode: string;
 }
 
 export interface KitchenDetails {
   readonly name: string;
   readonly members: readonly { readonly uid: string; readonly name: string }[];
+  readonly invitedEmail: string | null;
 }
 
-export type KitchenInvite = { readonly kind: 'open'; readonly code: string; readonly expiresAt: number } | { readonly kind: 'full' };
-
-/** Thrown when the caller asks for the invite of a kitchen they are not a member of. */
+/** Thrown when the caller invites to, or cancels on, a kitchen they are not a member of. */
 export class NotAMemberError extends Error {
   constructor() {
     super('not a member of this kitchen');
@@ -22,23 +20,34 @@ export class NotAMemberError extends Error {
   }
 }
 
-export type JoinKitchenResult =
-  | { readonly kind: 'joined'; readonly kitchenId: string }
-  | { readonly kind: 'rejected'; readonly reason: InviteCheckError | JoinKitchenError };
-
-interface InviteDoc {
-  readonly kitchenId: string;
-  readonly createdAt: number;
-  readonly status: 'pending' | 'used';
+/** Who is calling, from their verified ID token: `email` is null unless the token says it is verified. */
+export interface Caller {
+  readonly uid: string;
+  readonly name: string;
+  readonly email: string | null;
 }
+
+export type InviteByEmailResult =
+  | { readonly kind: 'invited'; readonly email: string }
+  | { readonly kind: 'rejected'; readonly reason: Exclude<InviteByEmailError, 'not-a-member'> };
+
+export interface InviteOffer {
+  readonly kitchenId: string;
+  readonly kitchen: string;
+  readonly inviter: string;
+}
+
+export type AcceptInviteResult =
+  | { readonly kind: 'joined'; readonly kitchenId: string }
+  | { readonly kind: 'rejected'; readonly reason: 'not-found' | 'full' | 'already-member' };
 
 interface MembershipDoc {
   readonly kitchenId: string;
 }
 
 /**
- * Kitchen and invite documents, read and written through the Admin SDK (R2, R3). Translates; the
- * decisions (whether a name is valid, whether an invite may be used, whether a kitchen has room)
+ * Kitchen and membership documents, read and written through the Admin SDK (R2, R3). Translates; the
+ * decisions (whether a name is valid, who may invite or join, whether a kitchen has room)
  * are core's, called from inside the same transaction that writes, so a concurrent request sees a
  * consistent read - the same reason FirestoreSyncStore.mergeItem runs its merge in a transaction.
  */
@@ -53,62 +62,81 @@ export class KitchenStore {
     this.#now = now;
   }
 
-  /**
-   * Makes a kitchen and its one invite in a single batch - a reader never sees one without the
-   * other. `create()`, not `set()`, on the invite document: inviteCodeFromId's ~340,000-code space
-   * makes a collision with another kitchen's still-pending invite unlikely but not impossible, and
-   * `set()` would silently repoint someone else's live invite at this kitchen instead. `create()`
-   * fails the batch on an existing document, so a collision is retried with a fresh id instead.
-   */
+  /** Makes a kitchen with the caller as its one member, and points their membership at it, in one batch. */
   async createKitchen(name: string, timeZone: string, ownerUid: string, ownerName: string): Promise<CreatedKitchen> {
     const id = this.#ids();
     const made = createKitchen({ id, name, timeZone, ownerUid, ownerName, createdAt: this.#now() });
     if (!made.ok) throw new Error(`invalid kitchen name: ${made.error}`);
-
-    const attempts = 5;
-    for (let attempt = 1; attempt <= attempts; attempt++) {
-      const code = inviteCodeFromId(this.#ids());
-      const invite: InviteDoc = { kitchenId: id, createdAt: this.#now(), status: 'pending' };
-      const batch = this.#db.batch();
-      batch.create(this.#db.doc(`kitchens/${id}`), made.value);
-      batch.create(this.#db.doc(`inviteCodes/${code}`), invite);
-      batch.set(this.#db.doc(`memberships/${ownerUid}`), { kitchenId: id } satisfies MembershipDoc);
-      try {
-        await batch.commit();
-        return { kitchenId: id, inviteCode: code };
-      } catch (error) {
-        if (attempt === attempts) throw error;
-      }
-    }
-    throw new Error('could not find a free invite code');
+    const batch = this.#db.batch();
+    batch.create(this.#db.doc(`kitchens/${id}`), made.value);
+    batch.set(this.#db.doc(`memberships/${ownerUid}`), { kitchenId: id } satisfies MembershipDoc);
+    await batch.commit();
+    return { kitchenId: id };
   }
 
   /**
-   * Resolves a code and adds the caller as the kitchen's second member, atomically: a second
-   * request for the same code, arriving while the first is still in flight, re-reads inside its
-   * own transaction attempt and finds the invite already used rather than racing it (R19).
+   * Puts an invite for `email` on the kitchen (TASK-78), replacing any earlier one. Whether the caller
+   * may, and whether the kitchen has room, are core's calls (inviteByEmail). No account lookup happens,
+   * so the answer is the same whether or not the address uses Grocs.
    */
-  async joinKitchen(code: string, callerUid: string, callerName: string): Promise<JoinKitchenResult> {
+  async inviteByEmail(kitchenId: string, email: string, caller: Caller): Promise<InviteByEmailResult> {
     return this.#db.runTransaction(async (tx) => {
-      const inviteRef = this.#db.doc(`inviteCodes/${code}`);
-      const inviteSnap = await tx.get(inviteRef);
-      const inviteDoc = inviteSnap.exists ? (inviteSnap.data() as InviteDoc) : null;
+      const ref = this.#db.doc(`kitchens/${kitchenId}`);
+      const kitchen = await readKitchen(tx, ref);
+      if (!kitchen) throw new NotAMemberError();
+      const invited = inviteByEmail({ kitchen, callerUid: caller.uid, callerEmail: caller.email, email, now: this.#now() });
+      if (!invited.ok) {
+        if (invited.error === 'not-a-member') throw new NotAMemberError();
+        return { kind: 'rejected', reason: invited.error };
+      }
+      tx.set(ref, invited.value);
+      return { kind: 'invited', email: invited.value.invite!.email };
+    });
+  }
 
-      const checked = checkInvite(inviteDoc ? { code, ...inviteDoc } : null, this.#now());
-      if (!checked.ok) return { kind: 'rejected', reason: checked.error };
+  /** Takes the kitchen's invite back. */
+  async cancelInvite(kitchenId: string, callerUid: string): Promise<void> {
+    await this.#db.runTransaction(async (tx) => {
+      const ref = this.#db.doc(`kitchens/${kitchenId}`);
+      const kitchen = await readKitchen(tx, ref);
+      const cancelled = kitchen ? cancelInvite(kitchen, callerUid) : null;
+      if (!cancelled?.ok) throw new NotAMemberError();
+      tx.set(ref, cancelled.value);
+    });
+  }
 
-      const kitchenRef = this.#db.doc(`kitchens/${inviteDoc!.kitchenId}`);
-      const kitchenSnap = await tx.get(kitchenRef);
-      if (!kitchenSnap.exists) return { kind: 'rejected', reason: 'not-found' };
-      const kitchen = kitchenSnap.data() as Kitchen;
+  /** The kitchens inviting this verified email, oldest invite first; none for a caller with no verified email. */
+  async invitesFor(caller: Caller): Promise<readonly InviteOffer[]> {
+    if (caller.email === null) return [];
+    const snap = await this.#db.collection('kitchens').where('invite.email', '==', caller.email.trim().toLowerCase()).get();
+    return snap.docs
+      .map((d) => d.data() as Kitchen)
+      .filter((k) => !k.members.includes(caller.uid))
+      .sort((a, b) => a.invite!.createdAt - b.invite!.createdAt)
+      .map((k) => ({ kitchenId: k.id, kitchen: k.name, inviter: k.memberNames[k.invite!.invitedBy] ?? '' }));
+  }
 
-      const joined = addMember(kitchen, callerUid, callerName);
-      if (!joined.ok) return { kind: 'rejected', reason: joined.error };
+  /**
+   * Joins the kitchen that invited the caller, leaving the one they were in, atomically (R3, R19,
+   * TASK-78). Every read comes before the first write, as a Firestore transaction requires; the
+   * decisions are core's (acceptInvite).
+   */
+  async acceptInvite(kitchenId: string, caller: Caller): Promise<AcceptInviteResult> {
+    return this.#db.runTransaction(async (tx) => {
+      const targetRef = this.#db.doc(`kitchens/${kitchenId}`);
+      const membershipRef = this.#db.doc(`memberships/${caller.uid}`);
+      const target = await readKitchen(tx, targetRef);
+      const membership = await tx.get(membershipRef);
+      const currentId = membership.exists ? (membership.data() as MembershipDoc).kitchenId : null;
+      const current = currentId !== null && currentId !== kitchenId ? await readKitchen(tx, this.#db.doc(`kitchens/${currentId}`)) : null;
 
-      tx.set(kitchenRef, joined.value);
-      tx.update(inviteRef, { status: 'used' });
-      tx.set(this.#db.doc(`memberships/${callerUid}`), { kitchenId: kitchen.id } satisfies MembershipDoc);
-      return { kind: 'joined', kitchenId: kitchen.id };
+      const accepted = acceptInvite({ target, current, uid: caller.uid, name: caller.name, email: caller.email });
+      if (!accepted.ok) return { kind: 'rejected', reason: accepted.error };
+
+      tx.set(targetRef, accepted.value.joined);
+      if (accepted.value.left) tx.set(this.#db.doc(`kitchens/${accepted.value.left.id}`), accepted.value.left);
+      tx.set(membershipRef, { kitchenId } satisfies MembershipDoc);
+      return { kind: 'joined', kitchenId };
     });
   }
 
@@ -119,57 +147,21 @@ export class KitchenStore {
     return (snap.data() as MembershipDoc).kitchenId;
   }
 
-  /**
-   * The invite a member shares (TASK-56): the kitchen's newest pending, unexpired invite, or a fresh one
-   * when there is none, or 'full' once both members are in. Which invite to reuse, and whether the
-   * kitchen has room, are core's calls (inviteToReuse, isKitchenFull). The read and the write share one
-   * transaction, so two members asking at once get the same invite rather than one each. A new code
-   * that collides with an existing one fails create() and is retried, as in createKitchen.
-   */
-  async inviteForKitchen(kitchenId: string, callerUid: string): Promise<KitchenInvite> {
-    const attempts = 5;
-    for (let attempt = 1; ; attempt++) {
-      try {
-        return await this.#db.runTransaction(async (tx) => {
-          const kitchenSnap = await tx.get(this.#db.doc(`kitchens/${kitchenId}`));
-          const kitchen = kitchenSnap.exists ? (kitchenSnap.data() as Kitchen) : null;
-          if (!kitchen || !kitchen.members.includes(callerUid)) throw new NotAMemberError();
-          if (isKitchenFull(kitchen)) return { kind: 'full' } as const;
-
-          const now = this.#now();
-          const existing = await tx.get(this.#db.collection('inviteCodes').where('kitchenId', '==', kitchenId));
-          const invites = existing.docs.map((d) => ({ code: d.id, ...(d.data() as InviteDoc) }));
-          const reused = inviteToReuse(invites, now);
-          if (reused) return { kind: 'open', code: reused.code, expiresAt: inviteExpiresAt(reused.createdAt) } as const;
-
-          const code = inviteCodeFromId(this.#ids());
-          tx.create(this.#db.doc(`inviteCodes/${code}`), { kitchenId, createdAt: now, status: 'pending' } satisfies InviteDoc);
-          return { kind: 'open', code, expiresAt: inviteExpiresAt(now) } as const;
-        });
-      } catch (error) {
-        if (error instanceof NotAMemberError || attempt === attempts) throw error;
-      }
-    }
-  }
-
-  /**
-   * Who invited and to which kitchen, for a code that would let the caller in, or null (TASK-70).
-   * Read from the invite and kitchen documents, so a joiner never sees names taken from a link; the
-   * decision of whether the code is usable is core's (invitePreview).
-   */
-  async previewInvite(code: string): Promise<InvitePreview | null> {
-    const inviteSnap = await this.#db.doc(`inviteCodes/${code}`).get();
-    const invite = inviteSnap.exists ? { code, ...(inviteSnap.data() as InviteDoc) } : null;
-    const kitchenSnap = invite ? await this.#db.doc(`kitchens/${invite.kitchenId}`).get() : null;
-    const kitchen = kitchenSnap?.exists ? (kitchenSnap.data() as Kitchen) : null;
-    return invitePreview(invite, kitchen, this.#now(), MAX_MEMBERS);
-  }
-
-  /** A kitchen's name and members - or null for an id nobody created. */
-  async getKitchen(kitchenId: string): Promise<KitchenDetails | null> {
+  /** A kitchen's name, members and pending invite, for one of its members - or null otherwise. */
+  async getKitchen(kitchenId: string, callerUid: string): Promise<KitchenDetails | null> {
     const snap = await this.#db.doc(`kitchens/${kitchenId}`).get();
     if (!snap.exists) return null;
     const kitchen = snap.data() as Kitchen;
-    return { name: kitchen.name, members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames?.[uid] ?? uid })) };
+    if (!kitchen.members.includes(callerUid)) return null;
+    return {
+      name: kitchen.name,
+      members: kitchen.members.map((uid) => ({ uid, name: kitchen.memberNames?.[uid] ?? uid })),
+      invitedEmail: kitchen.invite?.email ?? null,
+    };
   }
+}
+
+async function readKitchen(tx: Transaction, ref: DocumentReference): Promise<Kitchen | null> {
+  const snap = await tx.get(ref);
+  return snap.exists ? (snap.data() as Kitchen) : null;
 }

@@ -8,7 +8,6 @@ import Home from '../../app/index.tsx';
 import AddMeal from '../../app/add-meal.tsx';
 import GroceriesSamples from '../../app/groceries-samples.tsx';
 import Household from '../../app/household.tsx';
-import Join from '../../app/join.tsx';
 import Plan from '../../app/plan.tsx';
 import QuickAdd from '../../app/quick-add.tsx';
 import Settings from '../../app/settings.tsx';
@@ -17,7 +16,6 @@ import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 const ROUTES = {
   index: Home,
   household: Household,
-  join: Join,
   plan: Plan,
   'add-meal': AddMeal,
   'groceries-samples': GroceriesSamples,
@@ -35,21 +33,18 @@ const press = (name: string | RegExp) => fireEvent.click(screen.getByRole('butto
 const go = (name: string | RegExp) => fireEvent.click(screen.getByText(name));
 
 describe('Welcome', () => {
-  it('leads to the invite from Open it to join', async () => {
+  it('tells someone with an invite to sign in with the account it was sent to (TASK-78)', async () => {
     await open('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Open it to join' }));
-    expect(await screen.findByRole('button', { name: 'Check code' })).toBeTruthy();
+    expect(await screen.findByText('Got an invite? Continue with the Google account it was sent to.')).toBeTruthy();
   });
 });
 
 describe('Household', () => {
-  it("shows the kitchen's real name, members and invite code, and Back leads to Settings (TASK-56)", async () => {
+  it("shows the kitchen's real name, members and the partner's email to add, and Back leads to Settings (TASK-56, TASK-78)", async () => {
     await open('/household', true);
     expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
-    expect(await screen.findByText('u1 (you)')).toBeTruthy();
-    expect(await screen.findByText(/^[A-Z]+-\d{4}$/)).toBeTruthy();
-    expect(screen.getByText(/^Waiting for your partner to join\. Works until /)).toBeTruthy();
-    expect(screen.queryByText('MOREL-24')).toBeNull();
+    expect(await screen.findByText('U1 (you)')).toBeTruthy();
+    expect(await screen.findByRole('textbox', { name: 'Their email' })).toBeTruthy();
     press(/Settings/);
     expect(await screen.findByRole('heading', { name: 'Settings' })).toBeTruthy();
   });
@@ -60,56 +55,30 @@ describe('Household', () => {
     expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
   });
 
-  it('shows both members and no code once the partner has joined', async () => {
+  it('invites by email and shows who is invited, also after coming back to it (TASK-78)', async () => {
     const clock = new FakeClock();
-    const kitchens = new FakeKitchenGateway('u1', undefined, clock);
+    const kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock);
     const app = await appOnFakes({ signedIn: true, kitchens, clock });
-    const invite = await kitchens.inviteForKitchen((await kitchens.findMyKitchen())!);
-    if (invite.kind !== 'open') throw new Error('expected an open invite');
-    await kitchens.asMember('u2', 'Shazya').joinKitchen(invite.code);
+    renderRoute(ROUTES, { app, location: '/household' });
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Their email' }), { target: { value: 'shazya@grocs.test' } });
+    press('Invite');
+    expect(await screen.findByText('Invited shazya@grocs.test. Waiting for them to join.')).toBeTruthy();
+    cleanup();
+    renderRoute(ROUTES, { app, location: '/household' });
+    expect(await screen.findByText('Invited shazya@grocs.test. Waiting for them to join.')).toBeTruthy();
+  });
+
+  it('shows both members and no invite once the partner has joined', async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock);
+    const app = await appOnFakes({ signedIn: true, kitchens, clock });
+    const kitchenId = (await kitchens.findMyKitchen())!;
+    await kitchens.inviteByEmail(kitchenId, 'shazya@grocs.test');
+    await kitchens.asMember({ uid: 'u2', name: 'Shazya', email: 'shazya@grocs.test' }).acceptInvite(kitchenId);
     renderRoute(ROUTES, { app, location: '/household' });
     expect(await screen.findByText('Shazya')).toBeTruthy();
     expect(await screen.findByText(/has both its members/)).toBeTruthy();
-    expect(screen.queryByText(/^[A-Z]+-\d{4}$/)).toBeNull();
-  });
-});
-
-describe('JoinInvite', () => {
-  it("names the real sender and kitchen from the server, ignoring names written into the link (TASK-70)", async () => {
-    const clock = new FakeClock();
-    const mine = new FakeKitchenGateway('u1', undefined, clock);
-    const { inviteCode } = await mine.asMember('u2', 'Bruk').createKitchen('Our place', 'UTC');
-    const app = await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock });
-    renderRoute(ROUTES, { app, location: `/join?code=${inviteCode}&from=Mallory&kitchen=Fake%20kitchen` });
-    expect(await screen.findByText('Bruk invited you to')).toBeTruthy();
-    expect(screen.getByText('Our place')).toBeTruthy();
-    expect(screen.queryByText(/Mallory|Fake kitchen/)).toBeNull();
-  });
-
-  it('names nobody when signed out, since only a signed-in person may ask the server', async () => {
-    await open('/join?code=MOREL-0042&from=Mallory&kitchen=Fake%20kitchen');
-    expect(await screen.findByText('Your partner invited you to')).toBeTruthy();
-    expect(screen.getByText('their kitchen')).toBeTruthy();
-    expect(screen.queryByText(/Mallory|Fake kitchen/)).toBeNull();
-  });
-
-  it('shows the invite from a link, and the code entry from /join', async () => {
-    await open('/join?code=MOREL-0042');
-    expect(await screen.findByText("You're invited")).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Join with Google' })).toBeTruthy();
-  });
-});
-
-describe('JoinInvite after a wrong code', () => {
-  it('shows the error on the real route with no sample data, and Back to my invite leaves it (TASK-68)', async () => {
-    await open('/join', true);
-    fireEvent.change(await screen.findByRole('textbox'), { target: { value: 'NOPE-0000' } });
-    press('Check code');
-    expect(await screen.findByText("Code didn't work")).toBeTruthy();
-    expect(screen.getByText(/That code is not a match/)).toBeTruthy();
-    expect(screen.queryByText(/Alex/)).toBeNull();
-    press('Back to my invite');
-    expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
+    expect(screen.queryByRole('textbox', { name: 'Their email' })).toBeNull();
   });
 });
 
@@ -140,11 +109,13 @@ describe('Plan', () => {
     expect(await screen.findByText('Nothing on the list yet')).toBeTruthy();
   });
 
-  it('opens Settings from the header', async () => {
+  it('opens Settings from the header, and its back link returns to Meal plan', async () => {
     await open('/plan', true);
     await screen.findByText('This week');
     press('Settings');
     expect(await screen.findByText('Notifications')).toBeTruthy();
+    press('Meal plan');
+    expect(await screen.findByText('This week')).toBeTruthy();
   });
 
   it('opens Add a meal from a day', async () => {
@@ -239,7 +210,7 @@ describe('Groceries samples (dev-only route)', () => {
 });
 
 describe('the mushroom host (R40)', () => {
-  const SCREENS = ['/', '/plan', '/add-meal?dayId=2026-10-19', '/quick-add', '/settings', '/household', '/join', '/join?code=MOREL-0042'];
+  const SCREENS = ['/', '/plan', '/add-meal?dayId=2026-10-19', '/quick-add', '/settings', '/household'];
   it.each(SCREENS)('is on %s', async (location) => {
     await open(location, true);
     expect((await screen.findAllByRole('button', { name: /tap to hear a line/ })).length).toBeGreaterThan(0);
@@ -336,6 +307,7 @@ describe('Settings', () => {
     expect(await screen.findByText('U1')).toBeTruthy();
     press('Copy diagnostics');
     await waitFor(() => expect(app.clipboard.copied).toHaveLength(1));
+    expect(await screen.findByRole('button', { name: 'Copied' })).toBeTruthy();
     const copied = app.clipboard.text ?? '';
     expect(copied.split('\n')[0]).toBe('grocs diagnostics - version test, platform test, build 1');
     expect(copied).toContain('AddItem');

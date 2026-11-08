@@ -36,7 +36,7 @@ describe('demo composition', () => {
     expect(await screen.findByText('Plan the week. Shop together.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Try the demo' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Continue with Google' })).toBeNull();
-    expect(screen.queryByText('Got an invite?')).toBeNull();
+    expect(screen.queryByText(/Got an invite/)).toBeNull();
   });
 
   it('has no way in but the real ones in a build that is not the demo', async () => {

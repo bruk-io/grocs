@@ -28,15 +28,17 @@ export interface TextFieldProps {
   actionKind?: 'icon' | 'soft' | 'primary';
   /** The hint shown when the field is empty, when it is not the label. */
   placeholder?: string;
-  /** Sets the typed value in the display font, as for an invite code. */
+  /** Sets the typed value in the display font, for a short code someone reads back. */
   display?: boolean;
   /** Draws a state without the interaction that causes it. For Storybook and tests. */
   forceState?: 'pressed' | 'focus';
   /** Gives the parent the input, so it can take focus back (for example after the field was locked while a value was checked). */
   inputRef?: Ref<TextFieldHandle>;
+  /** An email address: the email keyboard, and no capitals or autocorrect. */
+  email?: boolean;
 }
 
-export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState, inputRef }: TextFieldProps) {
+export function TextField({ value, onChangeText, label, onSubmit, disabled = false, errorMessage, actionLabel, onAction, actionKind = 'icon', placeholder, display = false, forceState, inputRef, email = false }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
   const invalid = errorMessage !== undefined;
   const lit = focused || forceState === 'focus';
@@ -68,6 +70,7 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           returnKeyType="done"
+          {...(email ? { keyboardType: 'email-address' as const, autoCapitalize: 'none' as const, autoCorrect: false, autoComplete: 'email' as const } : {})}
           style={[styles.input, actionLabel !== undefined && styles.inputInline, display && styles.inputDisplay, disabled && styles.inputDisabled]}
         />
         {actionLabel !== undefined ? (
@@ -79,9 +82,11 @@ export function TextField({ value, onChangeText, label, onSubmit, disabled = fal
       {invalid ? (
         <View style={styles.error} role="alert">
           <Alert color={tokens.color.error} size={tokens.size.iconChip} />
-          <Text variant="caption" tone="error">
-            {errorMessage}
-          </Text>
+          <View style={styles.errorText}>
+            <Text variant="caption" tone="error">
+              {errorMessage}
+            </Text>
+          </View>
         </View>
       ) : null}
     </View>
@@ -122,4 +127,6 @@ const styles = StyleSheet.create({
   invalid: { borderColor: tokens.color.error },
   disabled: { backgroundColor: tokens.color.disabled, borderColor: tokens.color.lineSoft },
   error: { flexDirection: 'row', alignItems: 'center', gap: tokens.space[6] },
+  // Takes what is left of the row, so a long message wraps rather than running off the screen (TASK-61).
+  errorText: { flex: 1, minWidth: 0 },
 });

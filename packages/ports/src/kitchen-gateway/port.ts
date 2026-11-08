@@ -1,41 +1,57 @@
 /**
- * Creating a kitchen and joining one by invite go through server-side functions (R2, R3): they
- * need a connection anyway, and the server is the only place that can look up an invite code
- * without already being a member. This port is the phone's one way in.
+ * Creating a kitchen, inviting a partner by email and joining go through server-side functions
+ * (R2, R3): they need a connection anyway, and only the server can match an invite to the verified
+ * email on a person's sign-in without letting them read other kitchens. This port is the phone's
+ * one way in.
  */
 export interface KitchenGateway {
   /** Makes a kitchen named `name`, with the caller as its first member (R2). */
   createKitchen(name: string, timeZone: string): Promise<CreatedKitchen>;
-  /** Uses an invite code to join a kitchen (R3). */
-  joinKitchen(code: string): Promise<JoinOutcome>;
+  /**
+   * Invites the caller's partner by email to a kitchen the caller belongs to (R2, TASK-78), replacing
+   * any earlier invite. The answer never depends on whether the address has signed in to Grocs.
+   * Rejects when the caller is not a member of the kitchen.
+   */
+  inviteByEmail(kitchenId: string, email: string): Promise<InviteByEmailOutcome>;
+  /** Takes back the kitchen's invite, if it has one. Rejects when the caller is not a member. */
+  cancelInvite(kitchenId: string): Promise<void>;
+  /** The invites waiting for the caller's verified sign-in email, oldest first (R3, TASK-78). */
+  invitesForMe(): Promise<readonly InviteOffer[]>;
+  /**
+   * Joins the kitchen that invited the caller (R3). A caller who already belongs to another kitchen
+   * leaves it in the same step.
+   */
+  acceptInvite(kitchenId: string): Promise<AcceptOutcome>;
   /** The caller's kitchen, found on any phone after signing in - or null if they have none yet. */
   findMyKitchen(): Promise<string | null>;
-  /** A kitchen's name and members, for a kitchen the caller belongs to - or null for an id nobody has. */
+  /** A kitchen's name, members and pending invite, for a kitchen the caller belongs to - or null otherwise. */
   getKitchen(kitchenId: string): Promise<KitchenDetails | null>;
-  /**
-   * The invite a member shares to bring their partner in (TASK-56): the kitchen's pending invite if it
-   * still works, or a fresh one when the last expired or was used - or 'full' once the kitchen has
-   * both its members (R3). Rejects when the caller is not a member of the kitchen.
-   */
-  inviteForKitchen(kitchenId: string): Promise<KitchenInvite>;
-  /**
-   * Who invited the caller and to which kitchen, from the server's own records, before they join
-   * (TASK-70) - or null for a code that would not let them in. The names never come from the link.
-   */
-  previewInvite(code: string): Promise<InvitePreview | null>;
 }
-
-export interface InvitePreview {
-  readonly inviter: string;
-  readonly kitchen: string;
-}
-
-export type KitchenInvite = { readonly kind: 'open'; readonly code: string; readonly expiresAt: number } | { readonly kind: 'full' };
 
 export interface CreatedKitchen {
   readonly kitchenId: string;
-  readonly inviteCode: string;
 }
+
+export type InviteByEmailOutcome =
+  | { readonly kind: 'invited'; readonly email: string }
+  | { readonly kind: 'rejected'; readonly reason: InviteByEmailRejectedReason };
+
+/** `invalid-email` is not an address, `own-email` is the caller's, `full` means both members are in (R3). */
+export type InviteByEmailRejectedReason = 'invalid-email' | 'own-email' | 'full';
+
+/** An invite waiting for the caller: which kitchen, what it is called, and who sent it. Names come from the server's records. */
+export interface InviteOffer {
+  readonly kitchenId: string;
+  readonly kitchen: string;
+  readonly inviter: string;
+}
+
+export type AcceptOutcome =
+  | { readonly kind: 'joined'; readonly kitchenId: string }
+  | { readonly kind: 'rejected'; readonly reason: AcceptRejectedReason };
+
+/** `not-found`: no invite for this caller (cancelled, replaced or never theirs); `full` and `already-member` describe the kitchen. */
+export type AcceptRejectedReason = 'not-found' | 'full' | 'already-member';
 
 export interface KitchenMemberDetails {
   readonly uid: string;
@@ -45,15 +61,6 @@ export interface KitchenMemberDetails {
 export interface KitchenDetails {
   readonly name: string;
   readonly members: readonly KitchenMemberDetails[];
+  /** The email invited and not yet joined, or null. */
+  readonly invitedEmail: string | null;
 }
-
-export type JoinOutcome =
-  | { readonly kind: 'joined'; readonly kitchenId: string }
-  | { readonly kind: 'rejected'; readonly reason: JoinRejectedReason };
-
-/**
- * `not-found`, `expired` and `used` describe the invite; `full` and `already-member` describe the
- * kitchen it points to. Kept as one union because the screen shows one inline error either way
- * (R3) and does not need to tell the two kinds apart.
- */
-export type JoinRejectedReason = 'not-found' | 'expired' | 'used' | 'full' | 'already-member';

@@ -28,7 +28,8 @@ export async function seed(env: NodeJS.ProcessEnv = process.env): Promise<void> 
     await db.doc(`kitchens/${kitchen.id}`).set(kitchen);
     for (const uid of kitchen.members) await db.doc(`memberships/${uid}`).set({ kitchenId: kitchen.id });
   }
-  // Pat starts with no kitchen on every seed, so the invite flow can join Jo's kitchen again (TASK-56).
+  // Pat starts with no kitchen on every seed, and Jo's kitchen (rewritten above) with no invite, so the
+  // invite flow can run again (TASK-56, TASK-78).
   await db.doc(`memberships/${inviteSeedUsers[1].uid}`).delete();
 }
 
@@ -64,12 +65,17 @@ type Auth = ReturnType<typeof getAuth>;
 // Creating first and treating "already exists" as success has no such gap. The
 // Admin SDK reports that case only as an error, so that one code is handled; any
 // other error is rethrown.
+//
+// The emails are marked verified: these accounts stand in for Google ones, whose emails always are,
+// and an email invite is only matched to a verified email (TASK-78). An account seeded before that
+// rule is brought up to it.
 async function createOrGetUser(auth: Auth, u: SeedUser): Promise<Awaited<ReturnType<Auth['getUser']>>> {
   try {
-    return await auth.createUser({ uid: u.uid, email: u.email, password: u.password, displayName: u.displayName });
+    return await auth.createUser({ uid: u.uid, email: u.email, emailVerified: true, password: u.password, displayName: u.displayName });
   } catch (error) {
     if (!isAlreadyExists(error)) throw error;
-    return auth.getUser(u.uid);
+    const existing = await auth.getUser(u.uid);
+    return existing.emailVerified ? existing : auth.updateUser(u.uid, { emailVerified: true });
   }
 }
 

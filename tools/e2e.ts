@@ -9,7 +9,7 @@
 // from tools/emulator-config.ts's demo-project config, which a dev build must carry to see the seed data.
 // Starts the emulators if they are not running, and reseeds them either way.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,8 +23,6 @@ export interface Run {
   readonly device: string;
   readonly flow: string;
   readonly env: Readonly<Record<string, string>>;
-  /** Set CODE to Jo's pending invite, read from the emulator, before this run (TASK-56). */
-  readonly needsInviteCode?: boolean;
 }
 
 const PAIR_ADD = 'second-device-add.yaml';
@@ -41,16 +39,30 @@ export function planRuns(devices: Devices, flows: readonly string[], runId: stri
     const env = { RUN_ID: runId, ITEM: `E2E from Alex ${runId}` };
     runs.push({ device: devices.android, flow: PAIR_ADD, env }, { device: devices.ios, flow: PAIR_SEE, env });
   }
-  // Jo invites on one device, Pat joins with that code on the other, then Jo sees the kitchen full.
+  // Jo invites Pat's email on one device, Pat is offered it and joins on the other, then Jo sees the kitchen full.
   if (devices.android && devices.ios && HOUSEHOLD.every((f) => flows.includes(f))) {
     const env = { RUN_ID: runId };
     runs.push(
       { device: devices.android, flow: HOUSEHOLD[0], env },
-      { device: devices.ios, flow: HOUSEHOLD[1], env, needsInviteCode: true },
+      { device: devices.ios, flow: HOUSEHOLD[1], env },
       { device: devices.android, flow: HOUSEHOLD[2], env },
     );
   }
   return runs;
+}
+
+/**
+ * Runs step and then deletes a file it created that was not there before. expo prebuild writes
+ * apps/mobile/tsconfig.json extending expo/tsconfig.base, which this hoisted layout cannot resolve,
+ * and 15 vitest files fail until it is removed (TASK-65). A file someone put there themselves stays.
+ */
+export function removingWhatItCreates<T>(path: string, step: () => T, fs: { exists: (p: string) => boolean; remove: (p: string) => void }): T {
+  const was = fs.exists(path);
+  try {
+    return step();
+  } finally {
+    if (!was && fs.exists(path)) fs.remove(path);
+  }
 }
 
 export function parseArgs(args: readonly string[]): Devices & { readonly build: boolean } {
@@ -67,19 +79,6 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const appDir = join(root, 'apps', 'mobile');
 const adb = join(process.env['ANDROID_HOME'] ?? join(homedir(), 'Library/Android/sdk'), 'platform-tools/adb');
 const configDir = join(root, 'apps/mobile/.emulator-config');
-
-/** Jo's kitchen's newest pending invite code, straight from the Firestore emulator. */
-function pendingInviteCode(): string {
-  const script = `
-    import('firebase-admin/app').then(async ({ initializeApp }) => {
-      const { getFirestore } = await import('firebase-admin/firestore');
-      const db = getFirestore(initializeApp({ projectId: 'demo-grocs' }));
-      const snap = await db.collection('inviteCodes').where('kitchenId', '==', 'seed-open-kitchen').where('status', '==', 'pending').get();
-      const newest = snap.docs.sort((a, b) => b.data().createdAt - a.data().createdAt)[0];
-      process.stdout.write(newest ? newest.id : '');
-    });`;
-  return execFileSync('node', ['-e', script], { cwd: root, encoding: 'utf8', env: { ...process.env, FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' } }).trim();
-}
 
 const up = (port: number) => spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN'], { encoding: 'utf8' }).stdout.trim() !== '';
 const sh = (cmd: string, args: readonly string[], env: Readonly<Record<string, string>> = {}, cwd = root) =>
@@ -106,12 +105,7 @@ function runFlows(devices: Devices): number {
   const failed: string[] = [];
   for (const run of planRuns(devices, flows, runId)) {
     console.log(`\n== ${run.flow} on ${run.device}`);
-    const code = run.needsInviteCode ? pendingInviteCode() : '';
-    if (run.needsInviteCode && !code) {
-      failed.push(`${run.flow} on ${run.device} (no pending invite for Jo's kitchen to join with)`);
-      continue;
-    }
-    const env = Object.entries({ ...run.env, ...(code ? { CODE: code } : {}) }).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
+    const env = Object.entries(run.env).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
     if (sh('maestro', ['--device', run.device, 'test', ...env, `e2e/${run.flow}`], {}, appDir) !== 0) failed.push(`${run.flow} on ${run.device}`);
   }
   console.log(failed.length === 0 ? '\ne2e: every flow passed' : `\ne2e: FAILED ${failed.join('; ')}`);
@@ -132,7 +126,7 @@ function main(args: readonly string[]): number {
     console.error('e2e: Metro is not running on :8081. Start it in apps/mobile with `npx expo start`, then rerun.');
     return 1;
   }
-  if (opts.build && build(opts) !== 0) return 1;
+  if (opts.build && removingWhatItCreates(join(appDir, 'tsconfig.json'), () => build(opts), { exists: existsSync, remove: (p) => rmSync(p) }) !== 0) return 1;
   if (args.includes('--inside') || up(8080)) return runFlows(opts);
   // Start the emulators for this run only, and run the flows inside them.
   return sh('pnpm', ['exec', 'firebase', 'emulators:exec', '--only', 'firestore,auth,functions', '--project', 'demo-grocs', ['node', 'tools/e2e.ts', ...args.filter((a) => a !== '--build'), '--inside'].join(' ')]);

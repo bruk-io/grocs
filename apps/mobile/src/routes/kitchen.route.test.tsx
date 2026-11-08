@@ -1,26 +1,37 @@
-// TASK-1.20.2 (decision-13): the kitchen setup and join screens dispatch CreateKitchen and JoinKitchen,
-// proved through the real routes on the fake kitchen gateway. Sign-in routing uses findMyKitchen (TASK-14).
+// Kitchen setup and sharing by email (TASK-1.20.2, TASK-78), proved through the real routes on the fake
+// kitchen gateway. Sign-in routing uses findMyKitchen (TASK-14).
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import type { JoinOutcome } from '@grocs/ports';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FakeClock, FakeKitchenGateway } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
-import Join from '../../app/join.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
-import { JOIN_REJECTION_MESSAGES } from '../screens/JoinInviteScreen.tsx';
+import { COULD_NOT_JOIN, JOIN_REJECTION_MESSAGES } from '../screens/InviteOfferScreen.tsx';
+import { INVITE_REJECTION_MESSAGES } from '../screens/use-email-invite.ts';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
-const ROUTES = { index: Home, join: Join };
-const DAY_MS = 24 * 60 * 60 * 1000;
+const ROUTES = { index: Home };
+const U1 = { uid: 'u1', name: 'U1', email: 'u1@grocs.test' };
 
-/** A partner (u2) who has made a kitchen, and u1's view of the same server. */
-async function partnerWithKitchen() {
+/** u1's view of a server where Shazya (u2) has made a kitchen and, unless told not to, invited u1's email. */
+async function shazyaInvitesU1({ invite = true } = {}) {
   const clock = new FakeClock();
-  const mine = new FakeKitchenGateway('u1', undefined, clock);
-  const partner = mine.asMember('u2');
-  const { inviteCode, kitchenId } = await partner.createKitchen('Partner kitchen', 'UTC');
-  return { clock, mine, partner, inviteCode, kitchenId };
+  const mine = new FakeKitchenGateway(U1, undefined, clock);
+  const shazya = mine.asMember({ uid: 'u2', name: 'Shazya', email: 'shazya@grocs.test' });
+  const { kitchenId } = await shazya.createKitchen("Shazya's kitchen", 'UTC');
+  if (invite) await shazya.inviteByEmail(kitchenId, 'U1@grocs.test');
+  return { clock, mine, shazya, kitchenId };
+}
+
+/** Presses Start planning on kitchen setup and waits until the kitchen exists and its email field can be used. */
+async function makeKitchen() {
+  await screen.findByText('Your kitchen');
+  fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
+  await waitFor(() => expect(screen.queryByText('You can invite them once your kitchen is made.')).toBeNull());
+  return screen.getByRole('textbox', { name: 'Their email' });
 }
 
 describe('sign-in routing', () => {
@@ -35,7 +46,7 @@ describe('sign-in routing', () => {
     expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeTruthy();
   });
 
-  it('sends a member with no kitchen to kitchen setup', async () => {
+  it('sends a member with no kitchen and no invite to kitchen setup', async () => {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
     expect(await screen.findByText('Your kitchen')).toBeTruthy();
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
@@ -50,17 +61,17 @@ describe('sign-in routing', () => {
 });
 
 describe('creating a kitchen', () => {
-  it('shows the invite link and code, then Groceries works on that kitchen', async () => {
-    const { mine, partner } = await partnerWithKitchen();
+  it("makes the kitchen, invites the partner's email, then Groceries works on that kitchen", async () => {
+    const mine = new FakeKitchenGateway(U1);
+    const partner = mine.asMember({ uid: 'u2', email: 'shazya@grocs.test' });
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine }) });
-    await screen.findByText('Your kitchen');
-    fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
-    expect(await screen.findByText(/^[A-Z]+-\d{4}$/)).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Share link' })).toBeTruthy();
-    expect(screen.getByText('Waiting for your partner to join')).toBeTruthy();
-    // The kitchen exists on the server for its owner.
-    expect(await mine.findMyKitchen()).not.toBeNull();
-    expect(await partner.findMyKitchen()).not.toBe(await mine.findMyKitchen());
+    const field = await makeKitchen();
+    fireEvent.change(field, { target: { value: 'Shazya@grocs.test' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
+    expect(await screen.findByText('Invited shazya@grocs.test. Waiting for them to join.')).toBeTruthy();
+    // The partner is offered it on the server.
+    const kitchenId = await mine.findMyKitchen();
+    expect(await partner.invitesForMe()).toEqual([{ kitchenId, kitchen: 'Our kitchen', inviter: 'U1' }]);
 
     fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
     await screen.findByText('Nothing on the list yet');
@@ -70,18 +81,25 @@ describe('creating a kitchen', () => {
     expect(await screen.findByRole('checkbox', { name: 'Oat milk' })).toBeTruthy();
   });
 
-  it('puts the invite code on the clipboard when Copy code is pressed', async () => {
-    const app = await appOnFakes({ signedIn: true, kitchen: false });
-    renderRoute(ROUTES, { app });
-    await screen.findByText('Your kitchen');
-    fireEvent.click(screen.getByRole('button', { name: 'Start planning' }));
-    const code = (await screen.findByText(/^[A-Z]+-\d{4}$/)).textContent;
-    fireEvent.click(screen.getByRole('button', { name: 'Copy code' }));
-    await waitFor(() => expect(app.clipboard.copied).toEqual([code]));
+  it('says why an address is refused, under the field', async () => {
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
+    fireEvent.change(await makeKitchen(), { target: { value: 'u1@grocs.test' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
+    expect(await screen.findByText(INVITE_REJECTION_MESSAGES['own-email'])).toBeTruthy();
+  });
+
+  it('takes an invite back', async () => {
+    const mine = new FakeKitchenGateway(U1);
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine }) });
+    fireEvent.change(await makeKitchen(), { target: { value: 'shazya@grocs.test' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel invite' }));
+    expect(await screen.findByRole('textbox', { name: 'Their email' })).toBeTruthy();
+    expect(await mine.asMember({ uid: 'u2', email: 'shazya@grocs.test' }).invitesForMe()).toEqual([]);
   });
 
   it('does not make a kitchen with no name', async () => {
-    const mine = new FakeKitchenGateway('u1');
+    const mine = new FakeKitchenGateway(U1);
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine }) });
     await screen.findByText('Your kitchen');
     fireEvent.change(screen.getByRole('textbox', { name: 'Name your kitchen' }), { target: { value: '   ' } });
@@ -89,115 +107,80 @@ describe('creating a kitchen', () => {
     expect(await mine.findMyKitchen()).toBeNull();
   });
 
-  it('hides Share link and Copy code until the kitchen exists', async () => {
+  it('cannot invite until the kitchen exists, and says which email a partner should add instead', async () => {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }) });
-    expect(await screen.findByText('Your code appears after Start planning.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /Share link/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Copy code' })).toBeNull();
+    expect(await screen.findByText('You can invite them once your kitchen is made.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Invite' }).getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText("Joining your partner's kitchen? Ask them to add u1@grocs.test in Household.")).toBeTruthy();
   });
 });
 
-describe('joining a kitchen', () => {
-  it('joins from kitchen setup, for someone who signed in before opening their invite (TASK-56)', async () => {
-    const { mine, clock, inviteCode, kitchenId } = await partnerWithKitchen();
+describe('an invite waiting on opening the app (TASK-78)', () => {
+  it('is offered to someone with no kitchen, naming who sent it, and joining lands on Groceries', async () => {
+    const { mine, clock, kitchenId } = await shazyaInvitesU1();
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }) });
-    fireEvent.click(await screen.findByRole('button', { name: 'Open it to join' }));
-    fireEvent.change(await screen.findByRole('textbox'), { target: { value: inviteCode } });
-    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+    expect(await screen.findByText('Shazya invited you to')).toBeTruthy();
+    expect(screen.queryByText(/takes you out of/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: "Join Shazya's kitchen" }));
     await screen.findByText('Nothing on the list yet');
     expect(await mine.findMyKitchen()).toBe(kitchenId);
   });
 
-  it('joins from the invite link and lands on Groceries', async () => {
-    const { mine, clock, inviteCode, kitchenId } = await partnerWithKitchen();
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: `/join?code=${inviteCode}` });
-    fireEvent.click(await screen.findByRole('button', { name: 'Join with Google' }));
+  it('is offered to someone who has a kitchen of their own, says they leave it, and moves them (the bug that started TASK-78)', async () => {
+    const { mine, clock, kitchenId } = await shazyaInvitesU1();
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: true, kitchens: mine, clock }) });
+    const own = await mine.findMyKitchen();
+    expect(await screen.findByText('Joining takes you out of Our kitchen. Its list and meals stay there.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: "Join Shazya's kitchen" }));
     await screen.findByText('Nothing on the list yet');
     expect(await mine.findMyKitchen()).toBe(kitchenId);
+    expect(await mine.getKitchen(own!)).toBeNull();
   });
 
-  it('joins from a code typed in', async () => {
-    const { mine, clock, inviteCode, kitchenId } = await partnerWithKitchen();
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: '/join' });
-    fireEvent.change(await screen.findByRole('textbox'), { target: { value: inviteCode.toLowerCase() } });
-    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
+  it('can be put aside with Not now, which opens their own kitchen and leaves the invite in place', async () => {
+    const { mine, clock } = await shazyaInvitesU1();
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: true, kitchens: mine, clock }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }));
     await screen.findByText('Nothing on the list yet');
-    expect(await mine.findMyKitchen()).toBe(kitchenId);
+    expect(await mine.invitesForMe()).toHaveLength(1);
   });
 
-  it('opens /join with a neutral code entry, and says the code did not work only after a rejection', async () => {
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false }), location: '/join' });
-    expect(await screen.findByText('Enter your invite code')).toBeTruthy();
-    expect(screen.queryByText("Code didn't work")).toBeNull();
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'NOPE-0000' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
-    expect(await screen.findByText("Code didn't work")).toBeTruthy();
-    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('NOPE-0000');
+  it('is found by Check for an invite on kitchen setup, once the partner has added the email', async () => {
+    const { mine, clock, shazya, kitchenId } = await shazyaInvitesU1({ invite: false });
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }) });
+    await screen.findByText('Your kitchen');
+    await shazya.inviteByEmail(kitchenId, 'u1@grocs.test');
+    fireEvent.click(screen.getByRole('button', { name: 'Check for an invite' }));
+    expect(await screen.findByText('Shazya invited you to')).toBeTruthy();
   });
 
-  async function enterCode(mine: FakeKitchenGateway, clock: FakeClock, code: string) {
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: '/join' });
-    fireEvent.change(await screen.findByRole('textbox'), { target: { value: code } });
-    fireEvent.click(screen.getByRole('button', { name: 'Check code' }));
-  }
+  it('is offered after signing in with Google as the invited address', async () => {
+    const { mine, clock } = await shazyaInvitesU1();
+    const googleAccount = { uid: 'u1', email: 'u1@grocs.test', displayName: 'U1' };
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false, kitchen: false, kitchens: mine, clock, googleAccount }) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue with Google' }));
+    expect(await screen.findByText('Shazya invited you to')).toBeTruthy();
+  });
 
-  it('shows its own inline error for a code that is not found', async () => {
-    const { mine, clock } = await partnerWithKitchen();
-    await enterCode(mine, clock, 'NOPE-0000');
+  it('says so when the invite was taken back before Join was pressed', async () => {
+    const { mine, clock, shazya, kitchenId } = await shazyaInvitesU1();
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }) });
+    await screen.findByText('Shazya invited you to');
+    await shazya.cancelInvite(kitchenId);
+    fireEvent.click(screen.getByRole('button', { name: "Join Shazya's kitchen" }));
     expect(await screen.findByText(JOIN_REJECTION_MESSAGES['not-found'])).toBeTruthy();
-    expect(screen.getByRole('textbox')).toBeTruthy();
-  });
-
-  it('shows its own inline error for an expired invite', async () => {
-    const { mine, clock, inviteCode } = await partnerWithKitchen();
-    clock.advance(DAY_MS + 1);
-    await enterCode(mine, clock, inviteCode);
-    expect(await screen.findByText(JOIN_REJECTION_MESSAGES.expired)).toBeTruthy();
-  });
-
-  it('shows its own inline error for an invite that was used', async () => {
-    const { mine, clock, inviteCode, partner } = await partnerWithKitchen();
-    const third = partner.asMember('u3');
-    expect((await third.joinKitchen(inviteCode)).kind).toBe('joined');
-    await enterCode(mine, clock, inviteCode);
-    expect(await screen.findByText(JOIN_REJECTION_MESSAGES.used)).toBeTruthy();
-  });
-
-  it('shows its own inline error when you are already a member', async () => {
-    const { mine, clock } = await partnerWithKitchen();
-    // u1 owns a kitchen of their own and opens an invite code that points at it.
-    const own = await mine.createKitchen('Mine', 'UTC');
-    await enterCode(mine, clock, own.inviteCode);
-    expect(await screen.findByText(JOIN_REJECTION_MESSAGES['already-member'])).toBeTruthy();
-  });
-
-  it('shows its own inline error when the kitchen is full', async () => {
-    // A server that says the kitchen has no room; a full kitchen cannot be reached through the fake once its invite is used.
-    const { mine, clock, inviteCode } = await partnerWithKitchen();
-    const full: FakeKitchenGateway = Object.assign(Object.create(mine) as FakeKitchenGateway, {
-      joinKitchen: async (): Promise<JoinOutcome> => ({ kind: 'rejected', reason: 'full' }),
-    });
-    await enterCode(full, clock, inviteCode);
-    expect(await screen.findByText(JOIN_REJECTION_MESSAGES.full)).toBeTruthy();
-  });
-
-  it('asks to sign in first when opened from a link while signed out, and says so inline if that fails', async () => {
-    const { mine, clock, inviteCode } = await partnerWithKitchen();
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: false, kitchen: false, kitchens: mine, clock }), location: `/join?code=${inviteCode}` });
-    fireEvent.click(await screen.findByRole('button', { name: 'Join with Google' }));
-    expect(await screen.findByText(/could not check that code/)).toBeTruthy();
     expect(await mine.findMyKitchen()).toBeNull();
   });
 
-  it('keeps the five messages different from one another', () => {
-    expect(new Set(Object.values(JOIN_REJECTION_MESSAGES)).size).toBe(5);
+  it('says to check the connection when joining fails outright', async () => {
+    const { mine, clock } = await shazyaInvitesU1();
+    vi.spyOn(mine, 'acceptInvite').mockRejectedValue(new Error('offline'));
+    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }) });
+    fireEvent.click(await screen.findByRole('button', { name: "Join Shazya's kitchen" }));
+    await waitFor(() => expect(screen.getByText(COULD_NOT_JOIN)).toBeTruthy());
   });
 
-  it('shows the rejection where the code was entered, after opening an invite link', async () => {
-    const { mine, clock } = await partnerWithKitchen();
-    renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, kitchen: false, kitchens: mine, clock }), location: '/join?code=NOPE-0000' });
-    fireEvent.click(await screen.findByRole('button', { name: 'Join with Google' }));
-    await waitFor(() => expect(screen.getByText(JOIN_REJECTION_MESSAGES['not-found'])).toBeTruthy());
-    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('NOPE-0000');
+  it('keeps the three refusal messages different from one another', () => {
+    expect(new Set(Object.values(JOIN_REJECTION_MESSAGES)).size).toBe(3);
   });
 });

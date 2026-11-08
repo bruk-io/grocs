@@ -52,7 +52,7 @@ export interface GroceryListTemplateProps {
   weekLabel: string;
   members: readonly StackMember[];
   onSettings?: () => void;
-  /** Which mushroom sits beside the title (Ollie when offline, the enoki when done). */
+  /** Which mushroom sits beside the title (Ollie when offline, the enoki when done). Left out while the list is empty, since the empty card brings its own. */
   mascot: MascotName;
   /** Items still to buy and items in the cart, counted from the list. */
   toGo: number;
@@ -111,7 +111,7 @@ export function GroceryListTemplate({
           title="Groceries"
           eyebrow={weekLabel}
           members={members}
-          mascot={mascot}
+          {...(empty ? {} : { mascot })}
           progress={{ toGo, inCart }}
           addBar={{ value: addValue, onChangeText: onAddValueChange, ...(onAdd ? { onAdd, onSubmit: onAdd } : {}) }}
           {...(onSettings ? { onSettings } : {})}

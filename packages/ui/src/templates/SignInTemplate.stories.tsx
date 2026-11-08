@@ -17,10 +17,10 @@ type Story = StoryObj<typeof meta>;
 /** Welcome. */
 export const Rest: Story = {};
 
-/** Welcome with one primary action in place of Continue with Google and the invite row (the demo). */
+/** Welcome with one primary action in place of Continue with Google and the invite line (the demo). */
 export const PrimaryAction: Story = { args: { primaryLabel: 'Try the demo', onPrimary: () => {} } };
 
-/** Welcome with Google sign-in's error in the sheet's footer, below the invite row. */
+/** Welcome with Google sign-in's error in the sheet's footer, below the invite line. */
 export const WithFooter: Story = {
   args: { footer: <Text variant="muted">auth/google-sign-in-cancelled</Text> },
 };
