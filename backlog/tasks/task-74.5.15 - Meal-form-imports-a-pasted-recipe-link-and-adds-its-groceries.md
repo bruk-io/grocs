@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.15
 title: Meal form imports a pasted recipe link and adds its groceries
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 04:00'
+updated_date: '2026-11-08 04:06'
 labels:
   - size-3
   - layer-app
@@ -28,12 +28,12 @@ Split key: app-import-flow. Layer: app. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Route test on fakes: typing a name and a link with tracking parameters, then choosing import, leaves the store holding the recipe, the meal's link equal to the normalised sourceUrl, one item per ingredient on the meal's week with the meal's badge and decision-16's name and amount, and the screen on the recipe route
-- [ ] #2 Route test: after an import on an existing meal, going back and tapping Save keeps meal.link === recipe.sourceUrl, and 'View recipe' still shows
-- [ ] #3 Route test: a failed import on a new meal, then a successful retry, leaves exactly one meal
-- [ ] #4 A route test for each RecipeImportError and for recipe-deleted shows its message from §17's table, and the store holds no recipe, no new items and no link change from the import
-- [ ] #5 A blank name shows the empty-name message and makes no importer call. A meal whose link matches a saved recipe shows 'View recipe' and navigates to it with no importer call
-- [ ] #6 An AddItem failure stops the loop and shows the 'other' message, recorded as known behaviour in the task notes. At this commit, pnpm -s typecheck passes repo-wide and vitest --project app passes
+- [x] #1 Route test on fakes: typing a name and a link with tracking parameters, then choosing import, leaves the store holding the recipe, the meal's link equal to the normalised sourceUrl, one item per ingredient on the meal's week with the meal's badge and decision-16's name and amount, and the screen on the recipe route
+- [x] #2 Route test: after an import on an existing meal, going back and tapping Save keeps meal.link === recipe.sourceUrl, and 'View recipe' still shows
+- [x] #3 Route test: a failed import on a new meal, then a successful retry, leaves exactly one meal
+- [x] #4 A route test for each RecipeImportError and for recipe-deleted shows its message from §17's table, and the store holds no recipe, no new items and no link change from the import
+- [x] #5 A blank name shows the empty-name message and makes no importer call. A meal whose link matches a saved recipe shows 'View recipe' and navigates to it with no importer call
+- [x] #6 An AddItem failure stops the loop and shows the 'other' message, recorded as known behaviour in the task notes. At this commit, pnpm -s typecheck passes repo-wide and vitest --project app passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -284,4 +284,6 @@ board-only - this task's own frontmatter/notes - resolved as described above; no
 conflicts). Files touched in this resumed session:
 apps/mobile/src/routes/recipe-import.route.test.tsx (TickingClock removed, FakeClock
 used directly, `clock.advance(60_000)` added to `openEditMeal`).
+
+Reviewer (philosophy:reviewer): closed. AC#1-#6 each map to a named route test in apps/mobile/src/routes/recipe-import.route.test.tsx (15 tests, no skip/only; AC#4 it.each over all six RecipeImportError codes plus recipe-deleted). Evidence: orchestrator's run on merged main d148f00 (vitest app+tools 20 files/132 tests green, repo-wide typecheck clean, pre-commit 16 checks green). The prior blocker (TickingClock masking a same-ms stamp tie) is fixed at source by TASK-74.5.17; 77de4bf leaves plain FakeClock with one explicit clock.advance in openEditMeal before any dispatch, which is fixture setup, not masking. Findings: (low) AC#2 'going back' is simulated by remounting the route, acceptable on fakes; (low) accepted deviations - import offered only with non-empty link, View recipe only once a meal id exists; (info) reviewer could not rerun the file locally: the main checkout lacks apps/mobile/node_modules/expo (TSCONFIG_ERROR on every app route test, environmental, not this change). Reviewer-app's non-blocking notes already filed as a draft; no new drafts.
 <!-- SECTION:NOTES:END -->
