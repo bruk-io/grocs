@@ -31,20 +31,27 @@ describe('aisle memory document (R30)', () => {
     expect(!r.ok && r.error.kind).toBe('unsupported-version');
   });
 
+  it('rejects data with missing schemaVersion', () => {
+    const r = decodeAisleMemory({ aisle: encodeAisleMemory(make()).aisle });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.error.kind).toBe('unsupported-version');
+  });
+
   it('rejects documents with a wrong or missing field and names the path', () => {
     const doc = encodeAisleMemory(make());
-    const cases: [unknown, string][] = [
-      [null, ''],
-      [{ ...doc, aisle: { ...doc.aisle, v: 3 } }, 'aisle.v'],
-      [{ ...doc, aisle: { ...doc.aisle, by: '' } }, 'aisle.by'],
-      [{ ...doc, aisle: { ...doc.aisle, at: 'now' } }, 'aisle.at'],
-      [{ ...doc, aisle: { ...doc.aisle, at: NaN } }, 'aisle.at'],
-      [{ ...doc, aisle: undefined }, 'aisle'],
+    const cases: [unknown, string, 'invalid' | 'unsupported-version'][] = [
+      [null, '', 'invalid'],
+      [{ ...doc, aisle: { ...doc.aisle, v: 3 } }, 'aisle.v', 'invalid'],
+      [{ ...doc, aisle: { ...doc.aisle, by: '' } }, 'aisle.by', 'invalid'],
+      [{ ...doc, aisle: { ...doc.aisle, at: 'now' } }, 'aisle.at', 'invalid'],
+      [{ ...doc, aisle: { ...doc.aisle, at: NaN } }, 'aisle.at', 'invalid'],
+      [{ ...doc, aisle: undefined }, 'aisle', 'invalid'],
     ];
-    for (const [raw, path] of cases) {
+    for (const [raw, path, kind] of cases) {
       const r = decodeAisleMemory(raw);
       expect(r.ok, path).toBe(false);
       expect(!r.ok && r.error.path, path).toBe(path);
+      expect(!r.ok && r.error.kind, path).toBe(kind);
     }
   });
 });
