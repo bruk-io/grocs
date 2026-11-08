@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 20:29'
+updated_date: '2026-11-08 20:49'
 labels:
   - layer-ui
   - size-3
@@ -20,6 +20,14 @@ modified_files:
   - packages/ui/src/templates/GroceryListTemplate.tsx
   - packages/ui/src/templates/GroceryListTemplate.stories.tsx
   - packages/ui/src/templates/GroceryListTemplate.behaviour.test.tsx
+  - packages/ui/src/molecules/ItemRow.tsx
+  - packages/ui/src/molecules/ItemRow.stories.tsx
+  - packages/ui/src/molecules/ItemRow.test.tsx
+  - packages/ui/src/molecules/AisleChipGroup.tsx
+  - packages/ui/src/molecules/AisleChipGroup.stories.tsx
+  - packages/ui/src/molecules/AisleChipGroup.behaviour.test.tsx
+  - packages/ui/src/atoms/aisle-option.ts
+  - packages/ui/src/index.ts
 parent_task_id: TASK-1.22
 type: task
 ---
@@ -58,6 +66,14 @@ Cites R9, R11, R38. See TASK-1.22's slice contract. Baselines come from the work
 - `pnpm check`
 - `pnpm typecheck`
 - New behaviour tests assert: ItemPickerTemplate shows an amount field and aisle chips and reports changes to both; a to-buy row's press reveals aisle chips and choosing one calls back with (itemId, aisleId); existing ItemPickerTemplate/ListSection/GroceryListTemplate behaviour tests continue to pass unmodified (proving existing stories/baselines are untouched).
+
+### Review follow-up (layer review before baselines)
+- Replaced ItemRow's onPress/pressLabel with a single press?: { label; onPress; expanded } prop. When present, the name+amount target is 44x44 (minHeight/minWidth tokens.size.target, alignSelf 'stretch', justifyContent 'center', gated on press being given), has its own focus ring (pressFocused local state, same pattern as removeFocused) and its own forceState route ('pressPressed' | 'pressFocus', distinct from the existing 'pressed' | 'focus' which still route to the Checkbox), aria-expanded={press.expanded}, and aria-disabled/disabled from the row's own disabled prop. The accessible label folds in amount, meal badges and "Waiting to send" (joined after press.label), since a labelled button's accessible name would otherwise hide that descendant text from a screen reader.
+- Extracted the aisle chip row into a new molecule, AisleChipGroup (role="group", aria-label, one Chip per aisle, selectedId, disabled, forceState on its first chip), with its own full states (rest/pressed/focus/disabled), stories and behaviour tests. This was necessary, not cosmetic: a literal role="group" or <Pressable in ListSection.tsx itself trips the story-coverage/interactive-states check (R61), which otherwise correctly asks any file with that literal text to document pressed/focus/disabled; pulling the chip group into its own fully-stated molecule is how ServingsStepper (also role="group") already satisfies the same check.
+- ListSection/GroceryListTemplate: pressing a row now requires both onPressItem and non-empty aisleOptions (canPressAisle), and never on a cart row (!item.inCart) for both the press affordance and the chip group render. Added selectedAisleId to ListItem (shared by ListSection and GroceryListTemplate's section data) so the open row's current aisle chip shows pressed; ItemRow itself still takes no aisle-specific prop.
+- ItemPickerTemplate: onSelectAisle now takes string | undefined and toggles off on a second press of the selected chip, like the meal chips. The amount field submits via Enter the same way the name field does (onSubmit={onAdd}).
+- Replaced the duplicated AisleOption (ListSection) and PickerAisle (ItemPickerTemplate) with one shared AisleOption, defined in packages/ui/src/atoms/aisle-option.ts and exported from packages/ui/src/index.ts (same pattern as MealTone in atoms/meal-tone.ts); ItemRowPress is also now exported from the index.
+- New/changed stories only; no existing story's args changed. New: ItemRow Pressable/PressPressed/PressFocus/PressDisabled; AisleChipGroup Rest/Selected/Pressed/Focus/Disabled. ListSection.AisleOpen and GroceryListTemplate.AisleOpen now set onPressItem (required for the chip group to render at all, since it is gated on it) and selectedAisleId on the open item.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -72,4 +88,44 @@ New stories only, no existing story args changed: ItemPickerTemplate.WithAmountA
 `pnpm check`: checks passed (16 checks, all mode, 589 ms).
 
 Did not generate/commit baselines (orchestrator's job via the workflow); did not run the emulator suite.
+
+test note single line
+
+Review follow-up (before baselines), implemented:
+
+1. Set onPressItem on both ListSection.AisleOpen and GroceryListTemplate.AisleOpen stories; added ItemRow stories Pressable/PressPressed/PressFocus/PressDisabled.
+
+2. ItemRow's press target is 44x44 (minHeight/minWidth tokens.size.target, alignSelf stretch, justifyContent center), gated on press being supplied so existing renders are unchanged.
+
+3. Press target has its own focus ring (pressFocused local state, mirroring removeFocused), aria-disabled/disabled from the row's disabled prop, styles.pressTargetPressed on a real press, and its own forceState route: pressPressed/pressFocus (forceState pressed/focus still route to the Checkbox, unchanged). Stories added for all four.
+
+4. The press target's aria-label now folds in amount, meal badges and Waiting to send after press.label, since a labelled button's accessible name otherwise hides that descendant text from a screen reader. All matching tests updated to the exact computed name.
+
+5. aria-expanded equals press.expanded on the trigger. Extracted the chip row into a new molecule, AisleChipGroup (role group, aria-label Aisle for + name, as ServingsStepper.tsx line 28), with its own full states (rest/pressed/focus/disabled), stories and behaviour tests - necessary because a literal role=group directly in ListSection.tsx trips story-coverage/interactive-states (R61); the fix is the same shape ServingsStepper already uses, not a check change.
+
+6. Added tests: a swiped row's press, toggle and remove each fire only their own callback (ItemRow.test.tsx); a stateful harness in ListSection.behaviour.test.tsx presses a row, sees its chips, chooses one and gets the row id and aisle id back; cart rows cannot be pressed (ListSection and GroceryListTemplate).
+
+7. Pressing is gated on non-empty aisleOptions as well as onPressItem (canPressAisle in ListSection), with a test. Replaced ItemRow's onPress and pressLabel with one press object prop: label, onPress, expanded.
+
+8. Replaced the duplicated AisleOption (ListSection) and PickerAisle (ItemPickerTemplate) with one shared AisleOption in packages/ui/src/atoms/aisle-option.ts, exported from packages/ui/src/index.ts, alongside the new ItemRowPress type.
+
+Judgement calls as decided: selectedAisleId added to ListItem (shared by ListSection and GroceryListTemplate's section data), not a new prop on ItemRow. ItemPickerTemplate's onSelectAisle now takes string or undefined and toggles off on a second press, like the meal chips. Inline chips and the press affordance are both gated on the item not being in the cart. The amount field submits via onAdd on Enter, like the name field.
+
+Final prop names for the app builder to code against:
+
+ItemRow: press, an optional object of label (string), onPress (function) and expanded (boolean), type exported as ItemRowPress. forceState now accepts pressed, focus, pressPressed or pressFocus. No aisle-specific prop.
+
+ListItem (organisms/ListSection.tsx, used by both ListSection and GroceryListTemplate) adds an optional selectedAisleId (string).
+
+ListSection and GroceryListTemplate add optional aisleOptions (readonly AisleOption array), openAisleItemId (string or null), onPressItem (id to void) and onChooseAisle (id and aisleId to void). A row is pressable, and its chip group renders, only when onPressItem is given, aisleOptions is non-empty, and the item is not in the cart.
+
+ItemPickerTemplate adds optional amountValue, onAmountChange, aisleOptions, selectedAisleId, and onSelectAisle (now id or undefined to void).
+
+AisleOption is the new shared type in packages/ui/src/atoms/aisle-option.ts, exported from the index: id and label, both strings.
+
+New molecule AisleChipGroup, exported from the index: label, options, optional selectedId, onSelect, disabled and forceState (pressed or focus).
+
+Reran after the changes: vitest for the ui project: 53 test files passed, 1036 tests passed. typecheck: clean. pnpm check: 16 checks passed.
+
+Still did not generate or commit baselines; still did not run the emulator suite.
 <!-- SECTION:NOTES:END -->

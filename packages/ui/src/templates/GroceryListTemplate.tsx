@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import type { AisleOption } from '../atoms/aisle-option.ts';
 import type { MealTone } from '../atoms/meal-tone.ts';
 import type { IconName } from '../icons/index.ts';
 import type { MascotName } from '../mascots/art/index.ts';
@@ -13,7 +14,7 @@ import { CartSection } from '../organisms/CartSection.tsx';
 import { CelebrationBanner } from '../organisms/CelebrationBanner.tsx';
 import { EmptyList } from '../organisms/EmptyList.tsx';
 import { ListSection } from '../organisms/ListSection.tsx';
-import type { AisleOption, ListItem } from '../organisms/ListSection.tsx';
+import type { ListItem } from '../organisms/ListSection.tsx';
 import { MainHeader } from '../organisms/MainHeader.tsx';
 import { MealRail } from '../organisms/MealRail.tsx';
 import type { MealRailProps } from '../organisms/MealRail.tsx';

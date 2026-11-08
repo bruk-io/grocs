@@ -72,19 +72,24 @@ describe('ItemPickerTemplate', () => {
     expect(screen.queryByText(/Aisle/)).toBeNull();
   });
 
-  it('shows the amount field and reports what is typed in it', async () => {
+  it('shows the amount field, reports what is typed in it, and adds from its Enter like the name field', async () => {
     const onAmountChange = vi.fn();
-    render(<WithAmountAndAisle onAmountChange={onAmountChange} />);
+    const onAdd = vi.fn();
+    render(<WithAmountAndAisle onAmountChange={onAmountChange} onAdd={onAdd} />);
     expect((screen.getByRole('textbox', { name: 'Amount' }) as HTMLInputElement).value).toBe('2 cartons');
     await user.type(screen.getByRole('textbox', { name: 'Amount' }), 's');
     expect(onAmountChange).toHaveBeenCalledExactlyOnceWith('2 cartonss');
+    await user.type(screen.getByRole('textbox', { name: 'Amount' }), '{Enter}');
+    expect(onAdd).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the aisle chips and chooses one', async () => {
+  it('chooses an aisle for the item and chooses none again by pressing it twice', async () => {
     const onSelectAisle = vi.fn();
     render(<WithAmountAndAisle onSelectAisle={onSelectAisle} />);
     expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('true');
     await user.click(screen.getByRole('button', { name: 'Produce' }));
     expect(onSelectAisle).toHaveBeenCalledExactlyOnceWith('produce');
+    await user.click(screen.getByRole('button', { name: 'Dairy & eggs' }));
+    expect(onSelectAisle).toHaveBeenLastCalledWith(undefined);
   });
 });

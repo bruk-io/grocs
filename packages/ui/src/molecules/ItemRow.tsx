@@ -16,6 +16,15 @@ export const ITEMROW_STATES = ['rest', 'inCart', 'pressed', 'focus', 'disabled',
 /** A meal an item is for: its name, or its name and colour. */
 export type MealBadge = string | { label: string; tone?: MealTone };
 
+/** Makes the row's name and amount (not the checkbox) a press target, such as to open aisle chips. */
+export interface ItemRowPress {
+  /** What the target is for, such as "Change the aisle for Lemon"; ItemRow adds the amount, meal badges and waiting state itself, since they would otherwise be hidden from a screen reader once this is a labelled button. */
+  label: string;
+  onPress: () => void;
+  /** Whether what this opens is currently showing. */
+  expanded: boolean;
+}
+
 export interface ItemRowProps {
   name: string;
   /** Free text such as "2 cartons". */
@@ -37,17 +46,21 @@ export interface ItemRowProps {
   onRemove?: () => void;
   /** The row is a placeholder while the list loads (the import skeleton). */
   loading?: boolean;
-  /** Pressing the row's name and amount, not the checkbox, calls this. Left out, nothing is pressable there. */
-  onPress?: () => void;
-  /** What a screen reader says for that press target. Required alongside onPress. */
-  pressLabel?: string;
-  forceState?: 'pressed' | 'focus';
+  /** Left out, the row's name and amount are not pressable. */
+  press?: ItemRowPress;
+  /** pressed and focus route to the checkbox, as before; pressPressed and pressFocus route to the press target. */
+  forceState?: 'pressed' | 'focus' | 'pressPressed' | 'pressFocus';
 }
 
 const REMOVE_WIDTH = 88;
 
-export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, onPress, pressLabel, forceState }: ItemRowProps) {
+function badgeLabel(badge: MealBadge): string {
+  return typeof badge === 'string' ? badge : badge.label;
+}
+
+export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, press, forceState }: ItemRowProps) {
   const [removeFocused, setRemoveFocused] = useState(false);
+  const [pressFocused, setPressFocused] = useState(false);
   if (loading) {
     return (
       <View role="status" aria-busy aria-label="Loading an item" style={[styles.row, styles.card]}>
@@ -98,8 +111,23 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = fals
   const body = (
     <View style={[styles.row, styles.card, forceState === 'pressed' && styles.pressed]}>
       {check}
-      {onPress ? (
-        <Pressable role="button" aria-label={pressLabel} onPress={onPress} style={styles.body}>
+      {press ? (
+        <Pressable
+          role="button"
+          aria-label={[press.label, ...(amount ? [amount] : []), ...mealBadges.map(badgeLabel), ...(waiting ? ['Waiting to send'] : [])].join(', ')}
+          aria-expanded={press.expanded}
+          aria-disabled={disabled}
+          disabled={disabled}
+          onPress={() => press.onPress()}
+          onFocus={() => setPressFocused(true)}
+          onBlur={() => setPressFocused(false)}
+          style={({ pressed }) => [
+            styles.body,
+            styles.pressTarget,
+            (pressed || forceState === 'pressPressed') && !disabled && styles.pressTargetPressed,
+            (pressFocused || forceState === 'pressFocus') && focusRing,
+          ]}
+        >
           {nameAndMeta}
         </Pressable>
       ) : (
@@ -145,6 +173,8 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: tokens.color.surfaceTint },
   done: { minHeight: tokens.size.rowDone, borderStyle: 'dashed', borderColor: tokens.color.lineDone, backgroundColor: tokens.color.surfaceDone },
   body: { flex: 1, minWidth: 0, gap: tokens.space[4] },
+  pressTarget: { minHeight: tokens.size.target, minWidth: tokens.size.target, alignSelf: 'stretch', justifyContent: 'center' },
+  pressTargetPressed: { backgroundColor: tokens.color.surfaceTint },
   meta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: tokens.space[6] },
   swipeFrame: { borderRadius: tokens.radius[20], backgroundColor: tokens.color.errorTint, overflow: 'hidden' },
   remove: {

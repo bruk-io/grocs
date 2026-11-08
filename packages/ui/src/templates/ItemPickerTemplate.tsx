@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import type { AisleOption } from '../atoms/aisle-option.ts';
 import { Chip } from '../atoms/Chip.tsx';
 import type { MealTone } from '../atoms/meal-tone.ts';
 import { Text } from '../atoms/Text.tsx';
@@ -29,12 +30,6 @@ export interface PickerFrequent {
   label: string;
 }
 
-/** An aisle the item could go in, as data: an id and the label to show on its chip. */
-export interface PickerAisle {
-  id: string;
-  label: string;
-}
-
 export interface ItemPickerTemplateProps {
   /** The week as it should read, such as "Week of Oct 19". */
   weekLabel: string;
@@ -56,9 +51,10 @@ export interface ItemPickerTemplateProps {
   amountValue?: string;
   onAmountChange?: (text: string) => void;
   /** The aisles to choose from, as data. Left out (or empty) to leave the chip group off the screen. */
-  aisleOptions?: readonly PickerAisle[];
+  aisleOptions?: readonly AisleOption[];
   selectedAisleId?: string;
-  onSelectAisle?: (id: string) => void;
+  /** Pressing the chosen aisle again sends undefined, as choosing a meal twice does. */
+  onSelectAisle?: (id: string | undefined) => void;
   /** Goes back to Groceries. */
   onBack?: () => void;
 }
@@ -104,6 +100,7 @@ export function ItemPickerTemplate({
             value={amountValue}
             onChangeText={(text) => onAmountChange?.(text)}
             label="Amount"
+            {...(onAdd ? { onSubmit: onAdd } : {})}
           />
         </View>
       ) : null}
@@ -137,7 +134,7 @@ export function ItemPickerTemplate({
                 label={aisle.label}
                 tone="neutral"
                 selected={aisle.id === selectedAisleId}
-                onPress={() => onSelectAisle?.(aisle.id)}
+                onPress={() => onSelectAisle?.(aisle.id === selectedAisleId ? undefined : aisle.id)}
               />
             ))}
           </View>

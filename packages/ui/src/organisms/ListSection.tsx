@@ -1,7 +1,8 @@
 import { Fragment } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Chip } from '../atoms/Chip.tsx';
+import type { AisleOption } from '../atoms/aisle-option.ts';
 import type { IconName } from '../icons/index.ts';
+import { AisleChipGroup } from '../molecules/AisleChipGroup.tsx';
 import { ItemRow } from '../molecules/ItemRow.tsx';
 import type { MealBadge } from '../molecules/ItemRow.tsx';
 import { SectionHeader } from '../molecules/SectionHeader.tsx';
@@ -24,12 +25,8 @@ export interface ListItem {
   isNew?: boolean;
   /** Slid aside, with Remove showing. */
   swiped?: boolean;
-}
-
-/** An aisle an item could sit in, as data: an id and the label to show on its chip. */
-export interface AisleOption {
-  id: string;
-  label: string;
+  /** The id of the aisle it is currently in, so its chip shows pressed when its aisle chips are open. */
+  selectedAisleId?: string;
 }
 
 export interface ListSectionProps {
@@ -49,34 +46,41 @@ export interface ListSectionProps {
 
 /** A group of things still to buy: its header and one row each (section.header, item.row x n). */
 export function ListSection({ icon, title, items, onToggleItem, onRemoveItem, aisleOptions, openAisleItemId, onPressItem, onChooseAisle }: ListSectionProps) {
+  const canPressAisle = Boolean(onPressItem && aisleOptions && aisleOptions.length > 0);
   return (
     <View style={styles.section}>
       <SectionHeader icon={icon} title={title} count={items.length} />
       <View style={styles.rows}>
-        {items.map((item) => (
-          <Fragment key={item.id}>
-            <ItemRow
-              name={item.name}
-              amount={item.amount ?? null}
-              {...(item.mealBadges ? { mealBadges: item.mealBadges } : {})}
-              {...(item.addedBy ? { addedBy: item.addedBy } : {})}
-              {...(item.waiting ? { waiting: true } : {})}
-              {...(item.isNew ? { isNew: true } : {})}
-              {...(item.swiped ? { swiped: true } : {})}
-              inCart={item.inCart}
-              onToggle={(next) => onToggleItem?.(item.id, next)}
-              {...(onRemoveItem ? { onRemove: () => onRemoveItem(item.id) } : {})}
-              {...(onPressItem && !item.inCart ? { onPress: () => onPressItem(item.id), pressLabel: `Change the aisle for ${item.name}` } : {})}
-            />
-            {aisleOptions && aisleOptions.length > 0 && openAisleItemId === item.id ? (
-              <View style={styles.chips}>
-                {aisleOptions.map((aisle) => (
-                  <Chip key={aisle.id} label={aisle.label} tone="neutral" onPress={() => onChooseAisle?.(item.id, aisle.id)} />
-                ))}
-              </View>
-            ) : null}
-          </Fragment>
-        ))}
+        {items.map((item) => {
+          const open = canPressAisle && !item.inCart && openAisleItemId === item.id;
+          return (
+            <Fragment key={item.id}>
+              <ItemRow
+                name={item.name}
+                amount={item.amount ?? null}
+                {...(item.mealBadges ? { mealBadges: item.mealBadges } : {})}
+                {...(item.addedBy ? { addedBy: item.addedBy } : {})}
+                {...(item.waiting ? { waiting: true } : {})}
+                {...(item.isNew ? { isNew: true } : {})}
+                {...(item.swiped ? { swiped: true } : {})}
+                inCart={item.inCart}
+                onToggle={(next) => onToggleItem?.(item.id, next)}
+                {...(onRemoveItem ? { onRemove: () => onRemoveItem(item.id) } : {})}
+                {...(canPressAisle && !item.inCart
+                  ? { press: { label: `Change the aisle for ${item.name}`, onPress: () => onPressItem?.(item.id), expanded: open } }
+                  : {})}
+              />
+              {open && aisleOptions ? (
+                <AisleChipGroup
+                  label={`Aisle for ${item.name}`}
+                  options={aisleOptions}
+                  {...(item.selectedAisleId ? { selectedId: item.selectedAisleId } : {})}
+                  onSelect={(aisleId) => onChooseAisle?.(item.id, aisleId)}
+                />
+              ) : null}
+            </Fragment>
+          );
+        })}
       </View>
     </View>
   );
@@ -85,5 +89,4 @@ export function ListSection({ icon, title, items, onToggleItem, onRemoveItem, ai
 const styles = StyleSheet.create({
   section: { gap: tokens.space[8] },
   rows: { gap: tokens.space[6] },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.space[8], paddingLeft: tokens.space[16] },
 });
