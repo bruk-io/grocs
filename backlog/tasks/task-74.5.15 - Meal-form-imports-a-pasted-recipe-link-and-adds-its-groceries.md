@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:48'
+updated_date: '2026-11-08 04:00'
 labels:
   - size-3
   - layer-app
@@ -170,12 +170,21 @@ recipe-import.route.test.tsx:
   touched from this worktree; it still needs clearing by the orchestrator (e.g.
   `git -C /Users/brukhabtu/src/github.com/bruk-io/grocs checkout -- "backlog/tasks/task-74.5.15 - Meal-form-imports-a-pasted-recipe-link-and-adds-its-groceries.md"`).
 
-## Cross-layer finding: TickingClock masks a real LWW stamp collision (blocking, needs orchestrator decision)
+## Cross-layer finding: TickingClock masks a real LWW stamp collision (resolved by TASK-74.5.17)
 
-Per the reviewer: kept TickingClock (removing it would make AC#1/AC#2 fail, since
+RESOLVED: TASK-74.5.17 closed this gap in core/application (contract §8 amendment:
+ImportRecipe stamps the relink at `max(clock.now(), meal.link.stamp.at + 1)`, so the
+relink's stamp always sorts after the link stamp it replaces, regardless of clock
+granularity). After merging that fix into this worktree, TickingClock was removed from
+recipe-import.route.test.tsx entirely (see "TickingClock removed" below); AC#1 and AC#2
+now pass on the standard FakeClock the app's other route tests use. The history below is
+kept as the record of how the defect was found and proven; it is no longer a live
+blocker.
+
+Per the reviewer (at the time): kept TickingClock (removing it would make AC#1/AC#2 fail, since
 nothing else in this layer can fix the underlying collision), corrected its comment to
 state the real defect rather than the false "a real clock always moves between two
-dispatches" claim, and I am stopping to report this rather than silently accepting the
+dispatches" claim, and stopped to report this rather than silently accepting the
 test-only workaround as a fix.
 
 The defect: `mergeStamped` (packages/core/src/merge/lww.ts) breaks a tie between two
@@ -199,12 +208,13 @@ the raw typed link (`...chana-masala?utm_source=ig`), not the normalised sourceU
 clean of that temporary change; `git diff` confirms no stray edit remains).
 
 This is an app-layer test masking a core/application defect, not a test-only fix, per
-decision-3 mediation. Requesting: the orchestrator decide how to close the gap in
-core/application - e.g. having ImportRecipe stamp the relink strictly later than the
-meal link's current stamp (so the relink's `at` is always >= the save's `at` + 1,
-regardless of clock granularity), or another core/application-level fix. This app-layer
-task cannot fix it without reaching into core/application, which is out of this layer's
-write scope (apps/** only).
+decision-3 mediation. At the time, this was flagged as requesting the orchestrator
+decide how to close the gap in core/application - e.g. having ImportRecipe stamp the
+relink strictly later than the meal link's current stamp (so the relink's `at` is
+always >= the save's `at` + 1, regardless of clock granularity), or another
+core/application-level fix, since this app-layer task could not fix it without reaching
+into core/application (out of this layer's write scope, apps/** only). TASK-74.5.17
+implemented exactly the stamp-ordering fix suggested here; see "RESOLVED" above.
 
 ## Proof (full suite, after all fixes)
 
@@ -213,4 +223,65 @@ write scope (apps/** only).
 plus the new in-flight-Save race test and the new invalid-link-routing test).
 
 `mise exec -- pnpm -s typecheck` (repo-wide): passes, no errors.
+
+## TickingClock removed, after merging TASK-74.5.17's fix (builder-app, resumed)
+
+Merged local `main` (commit dff98c7, merge-only; the single real conflict was in this
+task's own board frontmatter/notes, resolved keeping main's `updated_date` and this
+task's full notes history - see below). `main` brought in TASK-74.5.17: ImportRecipe
+now stamps the relink at `max(clock.now(), meal.link.stamp.at + 1)`
+(packages/application/src/commands/import-recipe.ts), which strictly orders the relink
+after the link stamp it replaces.
+
+With that fix present, `TickingClock` (the FakeClock subclass that advanced 1ms per
+`now()` call) was removed from recipe-import.route.test.tsx entirely - both call sites
+(`openNewMeal`, `openEditMeal`) now construct a plain `new FakeClock()`, the same class
+the app's other route tests (e.g. meal-plan.route.test.tsx) use, and the class
+definition and its explanatory comment were deleted. This is the proof the defect is
+fixed at its source, not re-hidden by a different test-only clock trick: every test in
+the file, including AC#1 and AC#2 (the two the collision could break), passes on a
+clock that never advances on its own.
+
+One unrelated, separate clock collision surfaced once TickingClock was gone:
+`openEditMeal`'s fixture (`createMeal`, merged via `syncStore.mergeMeal`) and the
+route's first real write (`EditMeal`) were both stamped from the same un-advanced
+`FakeClock`, so they tied `{at, by}`, and `mergeStamped`'s tie-break
+(`JSON.stringify(a.value) >= JSON.stringify(b.value)`) kept the fixture's `null` link
+over `EditMeal`'s typed link (`JSON.stringify(null)` is `"null"`, which sorts higher
+than a quoted string) - this broke all 7 AC#4 cases with `meals[0]?.link.value` coming
+back `null` instead of the typed URL. This is the same class of bug TASK-74.5.17 fixed,
+but between the test's own fixture setup and its first real dispatch, not between
+ImportRecipe and a meal save, so TASK-74.5.17's production fix does not reach it. Fixed
+the same way `meal-plan.route.test.tsx`'s existing EditMeal case already does: added a
+named `clock` to `openEditMeal` and one explicit `clock.advance(60_000)` right after the
+fixture meal is merged and before the route renders - "the fixture was planned a minute
+ago, so the route's own writes are later." This is a one-time, explicit tick between
+two fixed points (test setup, then the route under test), not a clock that silently
+advances on every read; `openNewMeal` (which AC#1 runs on, and which has no pre-existing
+fixture to collide with) has no `advance` call at all, and the advance in `openEditMeal`
+sits before any AddMeal/EditMeal/ImportRecipe dispatch, never between them, so it does
+not touch the TASK-74.5.17 collision this task originally reported.
+
+Full suite after the fix (clean, no TickingClock anywhere in the repo):
+
+`mise exec -- pnpm exec vitest run --project app --project tools apps`: 20 test files,
+132 tests, all passed (recipe-import.route.test.tsx: 15/15, including every AC#1-#6
+case).
+
+`mise exec -- pnpm -s typecheck` (repo-wide): passes, no errors.
+
+Known behaviour, confirmed still true and already recorded above (AC#6): an AddItem
+failure stops the fan-out loop (the groceries already added and the recipe/relink
+stay; only the fan-out stops) and shows the 'other' message.
+
+'Get recipe and groceries' is offered only when the link field is non-empty
+(confirmed still true, already recorded above under "Review response"); there is
+nothing to import without a link, and the orchestrator's resume instructions for this
+task accept that as reasonable app-layer behaviour, not a contract gap.
+
+Merge commit: dff98c7 (merge main into this worktree's branch; the conflict was
+board-only - this task's own frontmatter/notes - resolved as described above; no code
+conflicts). Files touched in this resumed session:
+apps/mobile/src/routes/recipe-import.route.test.tsx (TickingClock removed, FakeClock
+used directly, `clock.advance(60_000)` added to `openEditMeal`).
 <!-- SECTION:NOTES:END -->

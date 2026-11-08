@@ -17,23 +17,6 @@ afterEach(cleanup);
 const ROUTES = { plan: Plan, 'add-meal': AddMeal, recipe: Recipe_ };
 const DAY_ID = '2026-10-19'; // Monday of the fixed "This week" the other route tests use
 
-// AddMealScreen's own save (AddMeal/EditMeal) and ImportRecipe's relink both write the same
-// meal's link field in one test tick. FakeClock.now() does not advance on its own, so the two
-// dispatches land on an identical {at, by} stamp; mergeStamped (packages/core/src/merge/lww.ts)
-// then breaks the tie on JSON.stringify order, which keeps the raw pasted link over its
-// normalised sourceUrl whenever the raw link sorts higher (e.g. a tracking parameter adds a `?`,
-// which sorts above the closing `"`). This is not a test-only quirk: SystemClock is Date.now(),
-// millisecond-grained, so the demo build (MemoryRecipeImporter, an in-memory store) can hit the
-// same collision for real. Ticking the clock here only avoids the tie in this test; it does not
-// fix the underlying collision. Tracked as a cross-layer finding in TASK-74.5.15's notes.
-class TickingClock extends FakeClock {
-  override now(): number {
-    const at = super.now();
-    this.advance(1);
-    return at;
-  }
-}
-
 const nameField = () => screen.getByRole('textbox', { name: 'What are you making?' });
 const linkField = () => screen.getByRole('textbox', { name: 'Recipe link (optional)' });
 const getRecipeButton = () => screen.getByRole('button', { name: 'Get recipe and groceries' });
@@ -75,7 +58,7 @@ async function openNewMeal(entries: ReadonlyArray<readonly [string, RecipeImport
   const kitchens = new FakeKitchenGateway('u1');
   const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
   const recipeImporter = new FakeRecipeImporter(entries);
-  const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, recipeImporter, clock: new TickingClock() });
+  const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, recipeImporter, clock: new FakeClock() });
   const weekId = weekIdFor(app.app.now());
   renderRoute(ROUTES, { app, location: `/add-meal?dayId=${DAY_ID}` });
   await screen.findByText('Add a meal');
@@ -87,12 +70,14 @@ async function openEditMeal(mealId: string, meal: { name: string; link?: string 
   const kitchens = new FakeKitchenGateway('u1');
   const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
   const recipeImporter = new FakeRecipeImporter(entries);
-  const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, recipeImporter, clock: new TickingClock() });
+  const clock = new FakeClock();
+  const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, recipeImporter, clock });
   const weekId = weekIdFor(app.app.now());
   const made = createMeal({ id: mealId, weekId, dayIndex: 0, ...meal }, { at: app.app.now(), by: 'u1' });
   if (!made.ok) throw new Error('fixture meal is invalid');
   await syncStore.mergeMeal(kitchenId, made.value);
   for (const recipe of recipes) await syncStore.mergeRecipe(kitchenId, recipe);
+  clock.advance(60_000); // the fixture was planned a minute ago, so the route's own writes are later (matches meal-plan.route.test.tsx)
   renderRoute(ROUTES, { app, location: `/add-meal?dayId=${DAY_ID}&mealId=${mealId}` });
   await screen.findByText('Edit a meal');
   // Waits for the meal's data to have arrived and prefilled the form (a race against
