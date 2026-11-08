@@ -107,6 +107,8 @@ export default defineConfig({
           // project id. A file that calls clearFirestore() (firestore.rules.test.ts) can wipe
           // data a concurrently-running file is mid-test with - run one file at a time.
           fileParallelism: false,
+          // That only holds inside one vitest run, so a second run on this machine is refused (TASK-85).
+          globalSetup: ['tools/emulator-run-lock.ts'],
         },
       },
     ],
