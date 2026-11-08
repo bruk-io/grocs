@@ -5,12 +5,13 @@ status: In Progress
 assignee:
   - '@builder-providers'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 20:49'
+updated_date: '2026-11-08 20:56'
 labels:
   - layer-providers
   - size-2
 dependencies:
   - TASK-1.22.5
+  - TASK-1.22.10
 modified_files:
   - packages/providers-firebase/src/sdk.ts
   - packages/providers-firebase/src/firestore-sync-store.ts
