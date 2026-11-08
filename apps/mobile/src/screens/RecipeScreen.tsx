@@ -67,25 +67,13 @@ export function RecipeScreen({ app, kitchenId, dayId, mealId }: RecipeScreenProp
   const meal = meals.find((m) => m.id === mealId);
   const recipe = recipeForLink(recipes, meal?.link.value ?? null);
 
-  if (loadError) {
-    return (
-      <View style={styles.screen}>
-        <SubHeader lead={{ kind: 'back', label: 'Meal plan', onPress: go.plan }} title="Recipe" mascot="chanty" />
-        <Text variant="body" tone="muted">
-          Could not load this recipe: {loadError}
-        </Text>
-      </View>
-    );
-  }
-
-  if (!mealsLoaded || !recipesLoaded) return null;
-
   if (!recipe) {
+    if (!loadError && (!mealsLoaded || !recipesLoaded)) return null;
     return (
       <View style={styles.screen}>
         <SubHeader lead={{ kind: 'back', label: 'Meal plan', onPress: go.plan }} title="Recipe" mascot="chanty" />
         <Text variant="body" tone="muted">
-          No recipe is saved for this meal yet.
+          {loadError ? `Could not load this recipe: ${loadError}` : 'No recipe is saved for this meal yet.'}
         </Text>
       </View>
     );
