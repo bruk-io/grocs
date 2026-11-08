@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5
 title: Paste a recipe link in the app and get its recipe and groceries
-status: To Do
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-08 04:21'
+updated_date: '2026-11-08 04:22'
 labels:
   - size-5
   - app
@@ -26,12 +26,12 @@ The app half of TASK-74. The app knows nothing about recipe sites or parsing: it
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A member can paste a recipe URL and see its title, ingredients, steps and yield saved in their kitchen
-- [ ] #2 Importing adds all of the recipe's ingredients to the kitchen's grocery list as TASK-74.2 decides; the app does not combine or convert units (R12's combine prompt is not built yet, so an ingredient matching a list item is added as a separate item; follow-up TASK-1.26)
-- [ ] #3 Each import error (not a recipe, page needs a login, site unreachable, not found) shows the member a message saying why, and nothing is saved
-- [ ] #4 Viewing a saved recipe never calls the function or a recipe site
-- [ ] #5 The app's import port has a contract test, and its provider talks only to the import function
-- [ ] #6 A locally run app imports a real recipe through the function in the emulator (manual local run by the orchestrator; no automated test fetches a live site, decision-15)
+- [x] #1 A member can paste a recipe URL and see its title, ingredients, steps and yield saved in their kitchen
+- [x] #2 Importing adds all of the recipe's ingredients to the kitchen's grocery list as TASK-74.2 decides; the app does not combine or convert units (R12's combine prompt is not built yet, so an ingredient matching a list item is added as a separate item; follow-up TASK-1.26)
+- [x] #3 Each import error (not a recipe, page needs a login, site unreachable, not found) shows the member a message saying why, and nothing is saved
+- [x] #4 Viewing a saved recipe never calls the function or a recipe site
+- [x] #5 The app's import port has a contract test, and its provider talks only to the import function
+- [x] #6 A locally run app imports a real recipe through the function in the emulator (manual local run by the orchestrator; no automated test fetches a live site, decision-15)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -54,4 +54,6 @@ Local proof (TASK-74.5.16), 2026-11-07, main at 39457f7. The iOS dev build (io.b
 - Error case: 'Proof banana bread' with https://www.allrecipes.com/recipe/20144/banana-banana-bread/ - the callable logged {error:'blocked'} only (no URL), Metro logged 'command ImportRecipe rejected' errorCode blocked, the form shows "That site needs a login or blocked us, so we can't read it." under the link, and no AddItem followed (10).
 Deviation from the plan's step 3: the first attempts imported straight from the new-meal form, and the import tap landed on 'Add to <day>' because, with the keyboard open, the raised action bar (TASK-73) covers the 'Get recipe and groceries' button; iOS hideKeyboard presses return (which submits) and tapping the heading does not close the keyboard. So the proof saves the meal with its link first and imports from the reopened meal, a path a person has. The covered button is filed as a draft bug. Also seen: grocery item names keep broken parentheses ('yellow onion (small dice' from '1 yellow onion (small dice, (about 2 cups) $0.74)'), filed as a draft.
 AC#2 on main at 39457f7: pnpm check 16 passed; pnpm typecheck clean; pnpm test 157 files / 2110 tests passed; pnpm test:emulator 11 files / 144 tests passed.
+
+Review (philosophy:reviewer, 2026-11-07): closed. Parent judged on its own criteria from its 17 Done children (each closed by an independent reviewer) and the local proof. AC#1: 74.5.13 (ImportRecipe saves), 74.5.14 (recipe route), proof shows title, '6 servings (1 cup each)', ingredients, steps. AC#2: 74.5.2 (decision-16 grocery lines), 74.5.15 (one AddItem per ingredient, no combining), proof 17 AddItem for 17 ingredients. AC#3: 74.5.15 route tests per RecipeImportError and recipe-deleted with nothing stored; proof's blocked case shows the message and no AddItem. AC#4: 74.5.14 route test asserts no importer calls. AC#5: 74.5.3 contract suite; 74.5.4/74.5.5 provider calls only importRecipe. AC#6: 74.5.16 and the proof notes. Gate relied on the orchestrator's run at 39457f7 (check 16, typecheck, 2110 unit, 144 emulator); full tier not rerun to avoid emulator port collisions with parallel reviewers. Findings: proof deviated from plan step 3 (imported from reopened meal, not new-meal form) because the keyboard-raised action bar covers the import button - already a draft; broken parentheses in grocery names and no feedback on Save during import - already drafts. No new drafts filed.
 <!-- SECTION:NOTES:END -->
