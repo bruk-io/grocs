@@ -1,7 +1,7 @@
 ---
-id: DRAFT-32
+id: TASK-80
 title: Resolve a recipe's relative image against the page's final URL
-status: Draft
+status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 04:15'

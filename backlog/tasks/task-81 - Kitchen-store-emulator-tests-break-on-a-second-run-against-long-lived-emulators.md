@@ -1,9 +1,9 @@
 ---
-id: DRAFT-33
+id: TASK-81
 title: >-
   Kitchen store emulator tests break on a second run against long-lived
   emulators
-status: Draft
+status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 05:07'
