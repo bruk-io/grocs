@@ -3,11 +3,11 @@ id: TASK-1.22.9
 title: >-
   App: Groceries groups by aisle and shows who added; Quick add suggests an
   aisle
-status: In Progress
+status: Done
 assignee:
   - '@builder-app'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 22:26'
+updated_date: '2026-11-08 22:35'
 labels:
   - layer-app
   - size-3
@@ -40,10 +40,10 @@ Cites R9, R11, R14. See TASK-1.22's slice contract.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Groceries groups items to buy under their aisle, including with a meal filter on, by route test
-- [ ] #2 A row shows who added it by name from the kitchen's members, by route test
-- [ ] #3 Choosing an aisle from a row moves the item for this and later adds of that name, by route test
-- [ ] #4 Quick add takes an amount, and suggests an aisle that a person's own choice is not overwritten by, by route test
+- [x] #1 Groceries groups items to buy under their aisle, including with a meal filter on, by route test
+- [x] #2 A row shows who added it by name from the kitchen's members, by route test
+- [x] #3 Choosing an aisle from a row moves the item for this and later adds of that name, by route test
+- [x] #4 Quick add takes an amount, and suggests an aisle that a person's own choice is not overwritten by, by route test
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -115,4 +115,37 @@ Proved by mutation (QuickAddScreen.tsx's suggestion effect), one change at a tim
 Small fixes: GroceriesScreen.tsx's nameOf comment and compose-demo.ts's seed comment now cite R9 (who-added's unknown-uid case), not R11; the seed comment now says GroceriesScreen's nameOf finds no member for demo-sam, and drops the isn't monotonous rationale for alternating the seed's uids.
 
 Check output: pnpm exec vitest run --project app --project tools: 45 files, 464 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed.
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+(47 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/aisles/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  164 passed (164)
+      Tests  2245 passed (2245)
+   Start at  17:34:34
+   Duration  9.71s (transform 36.77s, setup 4.47s, import 122.21s, tests 49.05s, environment 24.25s)
+```
+
+Closed by review at b74b106 on the fast tier (exit 0: 16 checks, typecheck, 2245 tests); full tier is left to the parent's reviewer, as instructed. All four criteria met by route tests in screens.route.test.tsx, read against the code. Confirmed in code: (1) a suggestion cannot be remembered: QuickAddScreen sends aisle only when aisleTouched is set, and rememberAisle is called only from AddItem with an explicit aisle and from SetItemAisle. (2) addedBy never shows a uid: GroceriesScreen nameOf is the only source for both sections and cart, returns nothing for a non-member and for name === uid, which is every gateway's fallback. (3) Aisle sections stay under a meal filter: groupByAisle runs over shownItems either way. (4) R57 holds: net removals are import or fixture renames, a selector scoped to the rail, 'This week' replaced by 'Other', and waitFor guards replaced by a flush and a synchronous assert. The own-choice test is back and stronger than the 20 ms sleep. Findings, none blocking and no draft filed: LOW: clearing a suggested chip then adding still files the item under the remembered aisle, because AddItem with no aisle looks it up; this follows the contract, the plan's 'including explicitly clearing it' holds only on screen, and no test covers it; Bruk decides whether to change it, and choosing Other is the workaround. LOW: the header avatars still use a uid-as-name fallback, and a route test records that; it predates this task and is outside addedBy. LOW: the demo's demo-sam items show no who-added avatar, documented in the seed comment. TRIVIAL: the restored own-choice test no longer asserts Produce unpressed right after the click, which single selection already guarantees. TRIVIAL: a lone-surrogate name would make aisleNameKey throw, leaving an uncaught rejection on QuickAddScreen's suggestAisle call. The mutation results in the worker's notes were not re-run, since this review changes no code; the guards were read instead. Live proof at 3994a66 includes these commits; not proved on a device: VoiceOver speech, Android, native offline (TASK-1.16).
 <!-- SECTION:NOTES:END -->

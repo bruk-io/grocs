@@ -2,7 +2,7 @@
 import { composeStories } from '@storybook/react-native-web-vite';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Platform } from 'react-native';
 import * as stories from './ItemRow.stories.tsx';
 
