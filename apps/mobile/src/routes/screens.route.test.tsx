@@ -3,7 +3,7 @@
 import { FakeClock, FakeKitchenGateway } from '@grocs/ports/testing';
 import type { AddItem } from '@grocs/application';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from '../../app/index.tsx';
 import AddMeal from '../../app/add-meal.tsx';
 import GroceriesSamples from '../../app/groceries-samples.tsx';
@@ -42,6 +42,18 @@ describe('Welcome', () => {
 });
 
 describe('Household', () => {
+  let getKitchenSpy: ReturnType<typeof vi.spyOn> | null = null;
+
+  beforeEach(() => {
+    getKitchenSpy = null;
+  });
+
+  afterEach(() => {
+    if (getKitchenSpy) {
+      getKitchenSpy.mockRestore();
+    }
+  });
+
   it("shows the kitchen's real name, members and the partner's email to add, and Back leads to Settings (TASK-56, TASK-78)", async () => {
     await open('/household', true);
     expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
@@ -55,6 +67,24 @@ describe('Household', () => {
     await open('/settings', true);
     fireEvent.click(await screen.findByRole('button', { name: 'Household' }));
     expect(await screen.findByRole('heading', { name: 'Our kitchen' })).toBeTruthy();
+  });
+
+  it('shows the failed state when getKitchenInfo rejects (TASK-69)', async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock);
+    const app = await appOnFakes({ signedIn: true, kitchens, clock });
+    getKitchenSpy = vi.spyOn(kitchens, 'getKitchen' as any).mockRejectedValue(new Error('Network error'));
+    renderRoute(ROUTES, { app, location: '/household' });
+    expect(await screen.findByText('Could not check your kitchen: check your connection and try again')).toBeTruthy();
+  });
+
+  it('shows the failed state when getKitchenInfo resolves null (TASK-69)', async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock);
+    const app = await appOnFakes({ signedIn: true, kitchens, clock });
+    getKitchenSpy = vi.spyOn(kitchens, 'getKitchen' as any).mockResolvedValue(null);
+    renderRoute(ROUTES, { app, location: '/household' });
+    expect(await screen.findByText('Could not check your kitchen: check your connection and try again')).toBeTruthy();
   });
 
   it('invites by email and shows who is invited, also after coming back to it (TASK-78)', async () => {
