@@ -7,6 +7,8 @@ export { isMealDeleted, mergeMeal } from './merge/meal-merge.ts';
 export { isRecipeDeleted, mergeRecipe } from './merge/recipe-merge.ts';
 export { clearFromCart, createExtraItem, DEFAULT_AISLE, normaliseName, setItemState } from './model/item.ts';
 export type { Item, ItemState, NewItemError, NewItemInput } from './model/item.ts';
+export { AISLES, aisleNameKey, aisleSection, groupByAisle, setItemAisle } from './model/aisle.ts';
+export type { AisleDef, AisleGroup, AisleId } from './model/aisle.ts';
 export { createMeal, moveMeal, relinkMeal, removeMeal, renameMeal, toDayIndex } from './model/meal.ts';
 export type { DayIndex, Meal, MealLinkError, MealNameError, NewMealInput } from './model/meal.ts';
 export type { ParsedIngredient, ParsedRecipe, Recipe, RecipeImportError } from './model/recipe.ts';

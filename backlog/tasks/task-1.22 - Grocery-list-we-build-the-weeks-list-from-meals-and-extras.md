@@ -4,7 +4,7 @@ title: 'Grocery list: we build the week''s list from meals and extras'
 status: In Progress
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-11-08 20:21'
+updated_date: '2026-11-08 20:31'
 labels:
   - size-5
   - slice
@@ -60,6 +60,10 @@ core, then ports, then providers and application, with ui alongside; then app; t
 
 ### Proof
 Route tests for grouping, suggestion, changing an aisle and who-added; the R14 scenario test; the provider contract on the emulator; a live iOS simulator run with screenshots.
+### Contract additions from core's review
+- suggestAisle returns null without calling aisleFor when aisleNameKey(name) is empty, for a name such as '!!': an empty document id is not valid in Firestore, and the query runs as the name is typed.
+- SetItemAisle and AddItem pass only an AisleId from AISLES; anything else is an error result. setItemAisle itself does not trim or fall back.
+- Section icons: the ids produce, dairy, meat, bakery and pantry are icon names. other has no icon; the app uses 'cart' for it. Do not cast AisleId to IconName.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
