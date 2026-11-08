@@ -69,6 +69,8 @@ function offlineStore(shared: SyncStore): { store: SyncStore; goOnline: () => Pr
     },
     getRecipes: (k) => shared.getRecipes(k),
     watchRecipes: (k, cb, onError) => shared.watchRecipes(k, cb, onError),
+    rememberAisle: (k, key, aisle) => shared.rememberAisle(k, key, aisle),
+    aisleFor: (k, key) => shared.aisleFor(k, key),
   };
   return {
     store,

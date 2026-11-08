@@ -53,15 +53,10 @@ export interface SyncStore {
    * Remember that `nameKey` (core's `aisleNameKey(name)`) goes to this aisle, so a later add of
    * the same name can be suggested it (R11, R14). The later stamp wins; the same stamp and value
    * twice, or an older stamp arriving after a newer one already stored, changes nothing.
-   *
-   * Optional only until TASK-1.22.6 implements this in both providers; a ports follow-up then
-   * makes it required, since every real SyncStore must offer it.
    */
-  rememberAisle?(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void>;
+  rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void>;
   /**
    * The aisle last remembered for `nameKey`, or null if none has been.
-   *
-   * Optional only until TASK-1.22.6; required after that, same as `rememberAisle`.
    */
-  aisleFor?(kitchenId: string, nameKey: string): Promise<string | null>;
+  aisleFor(kitchenId: string, nameKey: string): Promise<string | null>;
 }

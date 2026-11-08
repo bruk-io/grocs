@@ -360,24 +360,9 @@ export function syncStoreRecipeContract(t: TestApi, make: () => Promise<SyncStor
 
 const aisleStamp = (aisle: string, at: number, by: string): Stamped<string> => stamped(aisle, { at, by });
 
-/**
- * A SyncStore that has implemented the aisle-memory methods, which are optional on SyncStore
- * itself only until TASK-1.22.6 gives both providers an implementation.
- */
-export type AisleMemoryStore = SyncStore & Required<Pick<SyncStore, 'rememberAisle' | 'aisleFor'>>;
-
-export interface AisleMemoryStoreSubject extends Omit<SyncStoreSubject, 'store'> {
-  readonly store: AisleMemoryStore;
-}
-
-/**
- * The aisle-memory half of the SyncStore contract (R11, R14), kept separate from
- * syncStoreContract: a provider that has not yet implemented rememberAisle/aisleFor can keep
- * running the item suite without failing on methods it does not have. Call this once a provider
- * (or the fake) implements aisle memory.
- */
-export function syncStoreAisleContract(t: TestApi, make: () => Promise<AisleMemoryStoreSubject>): void {
-  const withStore = (body: (s: AisleMemoryStoreSubject) => Promise<void>) => async (): Promise<void> => {
+/** The aisle-memory half of the SyncStore contract (R11, R14). */
+export function syncStoreAisleContract(t: TestApi, make: () => Promise<SyncStoreSubject>): void {
+  const withStore = (body: (s: SyncStoreSubject) => Promise<void>) => async (): Promise<void> => {
     const subject = await make();
     try {
       await body(subject);

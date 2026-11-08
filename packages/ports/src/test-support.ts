@@ -24,7 +24,7 @@ export { syncStoreContract } from './sync-store/contract.ts';
 export { syncStoreMealContract } from './sync-store/contract.ts';
 export { syncStoreRecipeContract } from './sync-store/contract.ts';
 export { syncStoreAisleContract } from './sync-store/contract.ts';
-export type { SyncStoreSubject, AisleMemoryStore, AisleMemoryStoreSubject } from './sync-store/contract.ts';
+export type { SyncStoreSubject } from './sync-store/contract.ts';
 
 export { FakeKitchenGateway } from './kitchen-gateway/fake.ts';
 export { kitchenGatewayContract } from './kitchen-gateway/contract.ts';
