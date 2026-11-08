@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.17
 title: ImportRecipe's relink loses to a meal save stamped in the same millisecond
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-08 03:48'
-updated_date: '2026-11-08 03:55'
+updated_date: '2026-11-08 03:56'
 labels:
   - size-1
   - layer-application
@@ -24,9 +24,9 @@ Fix (orchestrator ruling, contract §8 amendment): ImportRecipe stamps the relin
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A scenario test with a FakeClock that does not advance saves a meal whose link is 'https://recipe.invalid/a?utm_source=ig', imports a recipe whose sourceUrl is 'https://recipe.invalid/a', and asserts the stored meal's link is the sourceUrl; it fails before the fix and passes after (repro recorded)
-- [ ] #2 import-recipe.ts stamps the relink at max(clock.now(), meal.link.stamp.at + 1) with the caller's uid, and the recipe's createdAt stays clock.now(); every existing import-recipe scenario test, including the three R47 cases, still passes
-- [ ] #3 pnpm -s typecheck passes repo-wide and vitest --project unit packages/application passes
+- [x] #1 A scenario test with a FakeClock that does not advance saves a meal whose link is 'https://recipe.invalid/a?utm_source=ig', imports a recipe whose sourceUrl is 'https://recipe.invalid/a', and asserts the stored meal's link is the sourceUrl; it fails before the fix and passes after (repro recorded)
+- [x] #2 import-recipe.ts stamps the relink at max(clock.now(), meal.link.stamp.at + 1) with the caller's uid, and the recipe's createdAt stays clock.now(); every existing import-recipe scenario test, including the three R47 cases, still passes
+- [x] #3 pnpm -s typecheck passes repo-wide and vitest --project unit packages/application passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -80,4 +80,6 @@ Received: "https://recipe.invalid/a?utm_source=ig"
 ```
 
 Orchestrator: merged at 76bf812 (fix 98a05f4, repro test c859741). The repro above was recorded on main with import-recipe.ts temporarily restored to c859741's (pre-fix) version: 1 failed / 19 passed. With the fix restored: vitest --project unit packages/application 20 files / 118 tests passed. reviewer-application approved; its optional note (clientWithMeal's clock.advance(1) comment is now stale) is left as-is because AC #2 asks the existing tests to stay unchanged.
+
+Closed by reviewer. AC1: repro test with non-advancing FakeClock(5000), raw '?utm_source=ig' link vs normalised sourceUrl; recorded failing pre-fix (1 failed/19 passed), passes now (20/20, rerun by reviewer). AC2: 98a05f4 stamps relink at max(now, meal.link.stamp.at+1) by user.uid, recipe keeps now; all existing scenario tests incl. R47 pass. AC3: orchestrator ran application unit project 118/118 and repo-wide typecheck in merge pre-commit, green. Findings: low - clientWithMeal's clock.advance(1) comment is now stale; left as-is, no draft (cosmetic). General same-ms issue tracked by DRAFT-24.
 <!-- SECTION:NOTES:END -->
