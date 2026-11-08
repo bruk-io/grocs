@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-08 03:48'
+updated_date: '2026-11-08 04:24'
 labels:
   - size-8
   - core
@@ -60,20 +60,20 @@ A logged-out probe of six NYT Cooking recipes on 2026-11-06 (same browser User-A
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A member can paste a public recipe URL and get a recipe with its title, ingredients, steps and yield saved in their kitchen
-- [ ] #2 Each imported ingredient is parsed into quantity, unit and item, with the line as written kept alongside; the app does not combine or convert units yet
-- [ ] #3 Importing a recipe adds all of its ingredients to the kitchen's grocery list
-- [ ] #4 The imported recipe is a copy in the kitchen's data; viewing it later never fetches the source site
-- [ ] #5 A site with valid schema.org Recipe JSON-LD imports without any site-specific code
-- [ ] #6 A page with no usable recipe (no ingredients or no steps) is never saved, and the member is told why; pages that need a login are not supported
-- [ ] #7 The apps never contact a recipe site: they send a URL to the Cloud Function and receive a parsed recipe or an error
-- [ ] #8 The apps contain no fetching or parsing code: they share only the parsed recipe type and error kinds, and an import-layer check fails the build if app code imports the server-only recipe code
-- [ ] #9 A URL any kitchen has already imported is served from the shared server cache without fetching the site again
-- [ ] #10 The server keeps each imported page's raw Recipe JSON-LD separately from the parsed recipe, and can re-parse from it without fetching the site
-- [ ] #11 A URL whose fetch failed is not fetched again for 1 day
-- [ ] #12 Recipe and ingredient-line parsing are pure and tested against saved pages from at least five sites
-- [ ] #13 The import function runs locally in the Functions emulator started by pnpm emulators, and a locally run app imports recipes through it
-- [ ] #14 Must not break: kitchen data stays readable and writable only by its members (R4), and no recipe URL or content is written to logs (R36)
+- [x] #1 A member can paste a public recipe URL and get a recipe with its title, ingredients, steps and yield saved in their kitchen
+- [x] #2 Each imported ingredient is parsed into quantity, unit and item, with the line as written kept alongside; the app does not combine or convert units yet
+- [x] #3 Importing a recipe adds all of its ingredients to the kitchen's grocery list
+- [x] #4 The imported recipe is a copy in the kitchen's data; viewing it later never fetches the source site
+- [x] #5 A site with valid schema.org Recipe JSON-LD imports without any site-specific code
+- [x] #6 A page with no usable recipe (no ingredients or no steps) is never saved, and the member is told why; pages that need a login are not supported
+- [x] #7 The apps never contact a recipe site: they send a URL to the Cloud Function and receive a parsed recipe or an error
+- [x] #8 The apps contain no fetching or parsing code: they share only the parsed recipe type and error kinds, and an import-layer check fails the build if app code imports the server-only recipe code
+- [x] #9 A URL any kitchen has already imported is served from the shared server cache without fetching the site again
+- [x] #10 The server keeps each imported page's raw Recipe JSON-LD separately from the parsed recipe, and can re-parse from it without fetching the site
+- [x] #11 A URL whose fetch failed is not fetched again for 1 day
+- [x] #12 Recipe and ingredient-line parsing are pure and tested against saved pages from at least five sites
+- [x] #13 The import function runs locally in the Functions emulator started by pnpm emulators, and a locally run app imports recipes through it
+- [x] #14 Must not break: kitchen data stays readable and writable only by its members (R4), and no recipe URL or content is written to logs (R36)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -538,4 +538,6 @@ Contract amended 2026-11-07 (orchestrator, decision-3 mediation): section 9 step
 2026-11-07 (orchestrator): after wave 3, pnpm test:emulator has 4 expected failures in packages/providers-firebase/src/recipe-importer.emulator.test.ts. That suite runs FirebaseRecipeImporter through the real importRecipe callable, which TASK-74.4.7 adds; TASK-74.5.9 runs it green. Not skipped (tests are never weakened).
 
 Contract amendment §8 (2026-11-07, orchestrator, TASK-74.5.17): ImportRecipe stamps the meal relink at max(clock.now(), meal.link.stamp.at + 1), strictly after the link it replaces, so a meal save in the same millisecond cannot win the LWW tie by JSON order. The recipe's createdAt stays clock.now().
+
+Review (philosophy:reviewer, 2026-11-07, main at 337a5d9): NOT closed. All 14 criteria are met and ticked: children 74.1-74.7 Done under independent review; #10 holds (recipeSources/{key} stores the Recipe JSON-LD as a string beside PARSER_VERSION on recipes/{key}, and import-recipe.test.ts asserts parseRecipeJsonLd(cached source) equals the cached recipe without a fetch); #12 holds with five real sites (nyt-cooking, serious-eats, allrecipes, recipetineats, food52) table-driven in json-ld.test.ts and recipe-schema.test.ts, plus six hand-made edge pages. Deviation to note, not a blocker: fixtures keep each page's ld+json blocks in a minimal wrapper, not the full page, for redistribution reasons (fixtures/README.md). Blocker: this task's own notes (d6723fd) say 'this intent cannot close until the import function deploys from code', depending on the infrastructure intent 'Grocs' Firebase project and deploys are code', which is still only a draft (DRAFT-31). Nothing on the board supersedes that line. To close: either the import function deploys from code (DRAFT-31 accepted and done), or Bruk records that deployment moves out of this intent's close condition into its own intent. Gate: the orchestrator's full run at 39457f7; 39457f7..337a5d9 touches only board files.
 <!-- SECTION:NOTES:END -->
