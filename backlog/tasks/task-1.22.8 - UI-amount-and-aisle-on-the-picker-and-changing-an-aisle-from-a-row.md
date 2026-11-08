@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-ui'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 20:49'
+updated_date: '2026-11-08 21:09'
 labels:
   - layer-ui
   - size-3
@@ -74,6 +74,8 @@ Cites R9, R11, R38. See TASK-1.22's slice contract. Baselines come from the work
 - ItemPickerTemplate: onSelectAisle now takes string | undefined and toggles off on a second press of the selected chip, like the meal chips. The amount field submits via Enter the same way the name field does (onSubmit={onAdd}).
 - Replaced the duplicated AisleOption (ListSection) and PickerAisle (ItemPickerTemplate) with one shared AisleOption, defined in packages/ui/src/atoms/aisle-option.ts and exported from packages/ui/src/index.ts (same pattern as MealTone in atoms/meal-tone.ts); ItemRowPress is also now exported from the index.
 - New/changed stories only; no existing story's args changed. New: ItemRow Pressable/PressPressed/PressFocus/PressDisabled; AisleChipGroup Rest/Selected/Pressed/Focus/Disabled. ListSection.AisleOpen and GroceryListTemplate.AisleOpen now set onPressItem (required for the chip group to render at all, since it is gated on it) and selectedAisleId on the open item.
+
+Second review follow-up: remove the row press target's aria-label (its accessible name now comes from its own visible text: name, amount, meal badges, waiting tag, as SuggestionRow does). Add a hint via accessibilityHint (native) plus aria-describedby pointing to a visually-hidden sibling Text (web); never fold the hint into the name. Give the press target's pressed tint and focus ring a radius (tokens.radius[14]) and padding (tokens.space[8]/[4]) instead of hard corners flush to the row's edge. Add pressPressed/pressFocus/pressDisabled to ITEMROW_STATES with their stories. Add a cart-row-with-openAisleItemId-set test asserting no chip group. Run build-storybook and visual before handing back.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -128,4 +130,16 @@ New molecule AisleChipGroup, exported from the index: label, options, optional s
 Reran after the changes: vitest for the ui project: 53 test files passed, 1036 tests passed. typecheck: clean. pnpm check: 16 checks passed.
 
 Still did not generate or commit baselines; still did not run the emulator suite.
+
+Second review follow-up (label-content-name-mismatch before baselines):
+
+1. Removed the row press target's aria-label; its accessible name now comes from its own visible content (name, amount, meal badges, Waiting to send), same mechanism as SuggestionRow. Added a hint via accessibilityHint (native) and aria-describedby referencing a visually-hidden sibling Text (web) carrying press.label, which is now a plain hint like Change the aisle, never folded into the name. Added a test asserting amount, meal badges and the waiting text stay in the pressable row's textContent.
+
+2. Added a test rendering a cart row with its id in openAisleItemId and asserting no chip group (role=group) and no chip buttons appear, in both ListSection and GroceryListTemplate.
+
+3. Gave the press target's pressed tint and focus ring a radius (tokens.radius[14]) and padding (tokens.space[8] horizontal, tokens.space[4] vertical) instead of hard corners flush to the row's edge.
+
+4. Added pressPressed, pressFocus and pressDisabled to ITEMROW_STATES (already had matching PressPressed/PressFocus/PressDisabled stories); corrected the stories comment that called the base Pressable story 'Not a state' to describe only that one (the three variants are now declared states, not demo-only).
+
+5. Reran: pnpm exec vitest run --project ui: 53 files, 1039 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed. pnpm --filter @grocs/ui build-storybook: succeeded. pnpm --filter @grocs/ui visual -- --no-build: 'visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.' then 'visual: 474 story views checked (axe, 44 x 44, images not compared)', exit code 0 - no axe violations, including no label-content-name-mismatch on the press target.
 <!-- SECTION:NOTES:END -->

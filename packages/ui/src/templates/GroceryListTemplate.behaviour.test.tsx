@@ -152,16 +152,21 @@ describe('GroceryListTemplate', () => {
     expect(screen.getByText('Nothing on the list for Green salad yet.')).toBeTruthy();
   });
 
-  it('presses a to-buy row and reports which one, folding the amount and meal badges into the label', async () => {
+  it('presses a to-buy row and reports which one, named from its own visible name, amount and meal badges', async () => {
     const onPressItem = vi.fn();
     render(<Groceries onPressItem={onPressItem} aisleOptions={[{ id: 'produce', label: 'Produce' }]} />);
-    await user.click(screen.getByRole('button', { name: 'Change the aisle for Yellow onions, 2, Chana masala, Sheet-pan chicken' }));
+    await user.click(screen.getByRole('button', { name: 'Yellow onions 2 Chana masala Sheet-pan chicken' }));
     expect(onPressItem).toHaveBeenCalledExactlyOnceWith('i1');
   });
 
   it('cannot press a row that is in the cart', () => {
     render(<AllDone onPressItem={() => undefined} aisleOptions={[{ id: 'produce', label: 'Produce' }]} />);
-    expect(screen.queryByRole('button', { name: /Change the aisle/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Bananas/ })).toBeNull();
+  });
+
+  it('shows no chip group for a cart row even when its id is the open one', () => {
+    render(<AllDone onPressItem={() => undefined} aisleOptions={[{ id: 'produce', label: 'Produce' }]} openAisleItemId="c1" />);
+    expect(screen.queryByRole('group', { name: /Aisle for/ })).toBeNull();
   });
 
   it('shows the open row\'s aisle chips in a labelled group with its current aisle pressed, and chooses one, reporting the row and the aisle', async () => {
@@ -169,7 +174,7 @@ describe('GroceryListTemplate', () => {
     render(<AisleOpen onChooseAisle={onChooseAisle} />);
     expect(screen.getByRole('group', { name: 'Aisle for Yellow onions' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: /^Change the aisle for Yellow onions/ }).getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: /^Yellow onions/ }).getAttribute('aria-expanded')).toBe('true');
     await user.click(screen.getByRole('button', { name: 'Meat' }));
     expect(onChooseAisle).toHaveBeenCalledExactlyOnceWith('i1', 'meat');
   });

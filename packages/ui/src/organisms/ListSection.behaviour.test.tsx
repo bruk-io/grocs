@@ -59,22 +59,22 @@ describe('ListSection', () => {
     expect(onRemoveItem).toHaveBeenCalledExactlyOnceWith('b');
   });
 
-  it('presses a to-buy row to report which one, folding the amount into the label', async () => {
+  it('presses a to-buy row to report which one, named from its own visible name and amount', async () => {
     const onPressItem = vi.fn();
     render(<Rest onPressItem={onPressItem} aisleOptions={[{ id: 'pantry', label: 'Pantry' }]} />);
-    await user.click(screen.getByRole('button', { name: 'Change the aisle for Basmati rice, 2 kg' }));
+    await user.click(screen.getByRole('button', { name: 'Basmati rice 2 kg' }));
     expect(onPressItem).toHaveBeenCalledExactlyOnceWith('b');
   });
 
   it('has no press target when there is nothing to press it with', () => {
     render(<Rest />);
-    expect(screen.queryByRole('button', { name: /Change the aisle/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Basmati rice/ })).toBeNull();
   });
 
   it('has no press target when onPressItem is given but there are no aisle options', () => {
     const onPressItem = vi.fn();
     render(<Rest onPressItem={onPressItem} aisleOptions={[]} />);
-    expect(screen.queryByRole('button', { name: /Change the aisle/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Basmati rice/ })).toBeNull();
   });
 
   it('shows the open row\'s aisle chips in a labelled group, the current aisle pressed, and chooses one', async () => {
@@ -90,8 +90,8 @@ describe('ListSection', () => {
 
   it('says aria-expanded on the row that is open, and not on the one that is not', () => {
     render(<AisleOpen />);
-    expect(screen.getByRole('button', { name: /Change the aisle for Basmati rice/ }).getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByRole('button', { name: /Change the aisle for Chickpeas/ }).getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByRole('button', { name: 'Basmati rice 2 kg' }).getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('button', { name: /^Chickpeas/ }).getAttribute('aria-expanded')).toBe('false');
   });
 
   it('leaves the chips closed when no row is open', () => {
@@ -107,14 +107,27 @@ describe('ListSection', () => {
         items={[{ id: 'c', name: 'Coffee', inCart: true }]}
       />,
     );
-    expect(screen.queryByRole('button', { name: /Change the aisle/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Coffee/ })).toBeNull();
+  });
+
+  it('shows no chip group for a cart row even when its id is the open one', () => {
+    render(
+      <Rest
+        onPressItem={() => undefined}
+        aisleOptions={[{ id: 'pantry', label: 'Pantry' }]}
+        openAisleItemId="c"
+        items={[{ id: 'c', name: 'Coffee', inCart: true }]}
+      />,
+    );
+    expect(screen.queryByRole('group', { name: 'Aisle for Coffee' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Pantry' })).toBeNull();
   });
 
   it('presses a row, sees its chips, and chooses one, getting the row and the aisle back', async () => {
     const onChosen = vi.fn();
     render(<StatefulAisleHarness onChosen={onChosen} />);
     expect(screen.queryByRole('group', { name: 'Aisle for Chickpeas' })).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Change the aisle for Chickpeas, 2 cans' }));
+    await user.click(screen.getByRole('button', { name: 'Chickpeas 2 cans' }));
     expect(screen.getByRole('group', { name: 'Aisle for Chickpeas' })).toBeTruthy();
     await user.click(screen.getByRole('button', { name: 'Pantry' }));
     expect(onChosen).toHaveBeenCalledExactlyOnceWith('a', 'pantry');

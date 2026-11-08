@@ -99,27 +99,43 @@ describe('ItemRow (R50, R65)', () => {
 
   it('has no press target when none is given', () => {
     render(<Rest />);
-    expect(screen.queryByRole('button', { name: /Change the aisle/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Yellow onions/ })).toBeNull();
   });
 
-  it('presses the name and amount, with the amount and badges folded into the label, and reports it', async () => {
+  it('names the press target from the row\'s own visible name and amount, not the hint, and reports a press', async () => {
     const onPress = vi.fn();
-    render(<Pressable press={{ label: 'Change the aisle for Lemon', onPress, expanded: false }} />);
-    const target = screen.getByRole('button', { name: 'Change the aisle for Lemon, 1' });
+    render(<Pressable press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
     expect(target.getAttribute('aria-expanded')).toBe('false');
     await user.click(target);
     expect(onPress).toHaveBeenCalledExactlyOnceWith();
   });
 
+  it('keeps the amount, meal badges and waiting text exposed (not hidden by a label) on a pressable row', () => {
+    render(
+      <Pressable
+        name="Lemon"
+        amount="1"
+        mealBadges={[{ label: 'Chana masala' }]}
+        waiting
+        press={{ label: 'Change the aisle', onPress: () => undefined, expanded: false }}
+      />,
+    );
+    const target = screen.getByRole('button', { name: /Lemon/ });
+    expect(target.textContent).toContain('1');
+    expect(target.textContent).toContain('Chana masala');
+    expect(target.textContent).toContain('Waiting to send');
+  });
+
   it('says aria-expanded true when what the press target opens is showing', () => {
-    render(<Pressable press={{ label: 'Change the aisle for Lemon', onPress: () => undefined, expanded: true }} />);
-    expect(screen.getByRole('button', { name: 'Change the aisle for Lemon, 1' }).getAttribute('aria-expanded')).toBe('true');
+    render(<Pressable press={{ label: 'Change the aisle', onPress: () => undefined, expanded: true }} />);
+    expect(screen.getByRole('button', { name: 'Lemon 1' }).getAttribute('aria-expanded')).toBe('true');
   });
 
   it('does not press the target when disabled, and says so', async () => {
     const onPress = vi.fn();
-    render(<PressDisabled press={{ label: 'Change the aisle for Lemon', onPress, expanded: false }} />);
-    const target = screen.getByRole('button', { name: 'Change the aisle for Lemon, 1' });
+    render(<PressDisabled press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    const target = screen.getByRole('button', { name: 'Lemon 1' });
     expect(target.getAttribute('aria-disabled')).toBe('true');
     await user.click(target);
     expect(onPress).not.toHaveBeenCalled();
@@ -129,8 +145,8 @@ describe('ItemRow (R50, R65)', () => {
     const onPress = vi.fn();
     const onToggle = vi.fn();
     const onRemove = vi.fn();
-    render(<Swiped onToggle={onToggle} onRemove={onRemove} press={{ label: 'Change the aisle for Oat milk', onPress, expanded: false }} />);
-    await user.click(screen.getByRole('button', { name: /Change the aisle for Oat milk/ }));
+    render(<Swiped onToggle={onToggle} onRemove={onRemove} press={{ label: 'Change the aisle', onPress, expanded: false }} />);
+    await user.click(screen.getByRole('button', { name: 'Oat milk 1 carton' }));
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onToggle).not.toHaveBeenCalled();
     expect(onRemove).not.toHaveBeenCalled();

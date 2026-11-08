@@ -67,7 +67,7 @@ export function ListSection({ icon, title, items, onToggleItem, onRemoveItem, ai
                 onToggle={(next) => onToggleItem?.(item.id, next)}
                 {...(onRemoveItem ? { onRemove: () => onRemoveItem(item.id) } : {})}
                 {...(canPressAisle && !item.inCart
-                  ? { press: { label: `Change the aisle for ${item.name}`, onPress: () => onPressItem?.(item.id), expanded: open } }
+                  ? { press: { label: 'Change the aisle', onPress: () => onPressItem?.(item.id), expanded: open } }
                   : {})}
               />
               {open && aisleOptions ? (

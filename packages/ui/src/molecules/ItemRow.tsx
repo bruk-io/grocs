@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useId, useState } from 'react';
+import { Pressable, StyleSheet, Text as NativeText, View } from 'react-native';
 import { Avatar } from '../atoms/Avatar.tsx';
 import { Badge } from '../atoms/Badge.tsx';
 import { Checkbox } from '../atoms/Checkbox.tsx';
@@ -10,15 +10,15 @@ import { Tag } from '../atoms/Tag.tsx';
 import { Text } from '../atoms/Text.tsx';
 import { tokens } from '../tokens/tokens.ts';
 
-/** The states of ItemRow (item.row rest, pressed, done, swiped, loading, and the focus and disabled the rules ask for); each has a story (R61, R63). */
-export const ITEMROW_STATES = ['rest', 'inCart', 'pressed', 'focus', 'disabled', 'swiped', 'loading', 'waiting', 'new'] as const;
+/** The states of ItemRow (item.row rest, pressed, done, swiped, loading, waiting, new, and the focus/disabled the rules ask for, for both the checkbox and the row's own press target); each has a story (R61, R63). */
+export const ITEMROW_STATES = ['rest', 'inCart', 'pressed', 'focus', 'disabled', 'swiped', 'loading', 'waiting', 'new', 'pressPressed', 'pressFocus', 'pressDisabled'] as const;
 
 /** A meal an item is for: its name, or its name and colour. */
 export type MealBadge = string | { label: string; tone?: MealTone };
 
 /** Makes the row's name and amount (not the checkbox) a press target, such as to open aisle chips. */
 export interface ItemRowPress {
-  /** What the target is for, such as "Change the aisle for Lemon"; ItemRow adds the amount, meal badges and waiting state itself, since they would otherwise be hidden from a screen reader once this is a labelled button. */
+  /** What pressing it does, such as "Change the aisle". Read as a hint, never the target's name: the name stays the row's own visible text, so it is never hidden from a screen reader. */
   label: string;
   onPress: () => void;
   /** Whether what this opens is currently showing. */
@@ -54,13 +54,10 @@ export interface ItemRowProps {
 
 const REMOVE_WIDTH = 88;
 
-function badgeLabel(badge: MealBadge): string {
-  return typeof badge === 'string' ? badge : badge.label;
-}
-
 export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = false, isNew = false, inCart, onToggle, disabled = false, swiped = false, onRemove, loading = false, press, forceState }: ItemRowProps) {
   const [removeFocused, setRemoveFocused] = useState(false);
   const [pressFocused, setPressFocused] = useState(false);
+  const hintId = useId();
   if (loading) {
     return (
       <View role="status" aria-busy aria-label="Loading an item" style={[styles.row, styles.card]}>
@@ -112,24 +109,31 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = fals
     <View style={[styles.row, styles.card, forceState === 'pressed' && styles.pressed]}>
       {check}
       {press ? (
-        <Pressable
-          role="button"
-          aria-label={[press.label, ...(amount ? [amount] : []), ...mealBadges.map(badgeLabel), ...(waiting ? ['Waiting to send'] : [])].join(', ')}
-          aria-expanded={press.expanded}
-          aria-disabled={disabled}
-          disabled={disabled}
-          onPress={() => press.onPress()}
-          onFocus={() => setPressFocused(true)}
-          onBlur={() => setPressFocused(false)}
-          style={({ pressed }) => [
-            styles.body,
-            styles.pressTarget,
-            (pressed || forceState === 'pressPressed') && !disabled && styles.pressTargetPressed,
-            (pressFocused || forceState === 'pressFocus') && focusRing,
-          ]}
-        >
-          {nameAndMeta}
-        </Pressable>
+        <>
+          <Pressable
+            role="button"
+            aria-expanded={press.expanded}
+            aria-disabled={disabled}
+            aria-describedby={hintId}
+            accessibilityHint={press.label}
+            disabled={disabled}
+            onPress={() => press.onPress()}
+            onFocus={() => setPressFocused(true)}
+            onBlur={() => setPressFocused(false)}
+            style={({ pressed }) => [
+              styles.body,
+              styles.pressTarget,
+              (pressed || forceState === 'pressPressed') && !disabled && styles.pressTargetPressed,
+              (pressFocused || forceState === 'pressFocus') && focusRing,
+            ]}
+          >
+            {nameAndMeta}
+          </Pressable>
+          {/* The hint text for the press target above, read by its aria-describedby; never part of its name (R65). */}
+          <NativeText id={hintId} style={styles.hint}>
+            {press.label}
+          </NativeText>
+        </>
       ) : (
         <View style={styles.body}>{nameAndMeta}</View>
       )}
@@ -173,8 +177,18 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: tokens.color.surfaceTint },
   done: { minHeight: tokens.size.rowDone, borderStyle: 'dashed', borderColor: tokens.color.lineDone, backgroundColor: tokens.color.surfaceDone },
   body: { flex: 1, minWidth: 0, gap: tokens.space[4] },
-  pressTarget: { minHeight: tokens.size.target, minWidth: tokens.size.target, alignSelf: 'stretch', justifyContent: 'center' },
+  pressTarget: {
+    minHeight: tokens.size.target,
+    minWidth: tokens.size.target,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    borderRadius: tokens.radius[14],
+    paddingHorizontal: tokens.space[8],
+    paddingVertical: tokens.space[4],
+  },
   pressTargetPressed: { backgroundColor: tokens.color.surfaceTint },
+  // Visually hidden; read by the press target's aria-describedby, never part of its name.
+  hint: { position: 'absolute', width: 1, height: 1, overflow: 'hidden' },
   meta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: tokens.space[6] },
   swipeFrame: { borderRadius: tokens.radius[20], backgroundColor: tokens.color.errorTint, overflow: 'hidden' },
   remove: {
