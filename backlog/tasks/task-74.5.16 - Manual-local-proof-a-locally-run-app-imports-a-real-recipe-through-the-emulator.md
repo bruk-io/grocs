@@ -3,11 +3,11 @@ id: TASK-74.5.16
 title: >-
   Manual local proof: a locally run app imports a real recipe through the
   emulator
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-07 02:28'
+updated_date: '2026-11-08 04:21'
 labels:
   - size-1
   - orchestrator

@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-11-07 01:00'
-updated_date: '2026-11-08 02:48'
+updated_date: '2026-11-08 04:21'
 labels:
   - size-5
   - app
@@ -44,4 +44,14 @@ Deleted design/reference/RecipeImport.dc.html: superseded by decision-16 (no tic
 TASK-74.5.9 (orchestrator, 2026-11-07) on main at 7fccb40: pnpm test:emulator 11 files / 148 tests passed, including recipe-importer.emulator.test.ts (FirebaseRecipeImporter through the real importRecipe callable, 5 tests) - the 4 failures expected since wave 3 are gone. No outbound host besides the local Functions emulator. pnpm check 16 passed.
 
 Deviation (Group B, TASK-74.5.12): TASK-74.5.10 and TASK-74.5.11 were built in one shared integration worktree without committing, sequentially, and the orchestrator committed them together as 26782b0, because widening Deps breaks every construction site at once. Same deviation and reason as Group A (6bcb2fc, recorded on TASK-74 and TASK-74.7).
+
+Local proof (TASK-74.5.16), 2026-11-07, main at 39457f7. The iOS dev build (io.bruk.grocs.dev, simulator 'iPhone 18 Pro (grocs)') ran against `pnpm emulators` (Firestore, Auth, the real importRecipe callable in the Functions emulator) with Metro serving main, driven by Maestro flows kept in the session scratchpad (proof-app/*.yaml); screenshots in proof-app/shots/.
+- Alex (grocs://dev-sign-in?as=alex) planned 'Proof chili p3' on Wed with the real link https://www.budgetbytes.com/basic-chili/?utm_source=proof, saved, reopened it and chose 'Get recipe and groceries'. Metro: 'command ImportRecipe ok', then 17 x 'command AddItem ok'.
+- Recipe saved and shown: the recipe route shows 'Homemade Chili Recipe', '6 servings (1 cup each)', 'From www.budgetbytes.com', ingredients and steps (screens 04, 05).
+- Meal relinked: the plan shows the meal's link as https://www.budgetbytes.com/basic-chili, utm_source stripped (06).
+- Groceries: '17 to go', every item carrying the 'Proof chili p3' badge (09).
+- Save afterwards keeps the recipe: reopened, tapped Save, reopened again - 'Saved recipe: Homemade Chili Recipe / View recipe' still shows and opens the recipe (07, 08).
+- Error case: 'Proof banana bread' with https://www.allrecipes.com/recipe/20144/banana-banana-bread/ - the callable logged {error:'blocked'} only (no URL), Metro logged 'command ImportRecipe rejected' errorCode blocked, the form shows "That site needs a login or blocked us, so we can't read it." under the link, and no AddItem followed (10).
+Deviation from the plan's step 3: the first attempts imported straight from the new-meal form, and the import tap landed on 'Add to <day>' because, with the keyboard open, the raised action bar (TASK-73) covers the 'Get recipe and groceries' button; iOS hideKeyboard presses return (which submits) and tapping the heading does not close the keyboard. So the proof saves the meal with its link first and imports from the reopened meal, a path a person has. The covered button is filed as a draft bug. Also seen: grocery item names keep broken parentheses ('yellow onion (small dice' from '1 yellow onion (small dice, (about 2 cups) $0.74)'), filed as a draft.
+AC#2 on main at 39457f7: pnpm check 16 passed; pnpm typecheck clean; pnpm test 157 files / 2110 tests passed; pnpm test:emulator 11 files / 144 tests passed.
 <!-- SECTION:NOTES:END -->
