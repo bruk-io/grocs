@@ -6,6 +6,7 @@ import { cancelInvite } from './cancel-invite.ts';
 import { clearCart } from './clear-cart.ts';
 import { createKitchen } from './create-kitchen.ts';
 import { editMeal } from './edit-meal.ts';
+import { importRecipe } from './import-recipe.ts';
 import { inviteByEmail } from './invite-by-email.ts';
 import { moveMealCommand } from './move-meal.ts';
 import { removeMealCommand } from './remove-meal.ts';
@@ -20,6 +21,7 @@ export const commandHandlers: Readonly<Record<string, Handler<never>>> = {
   ClearCart: clearCart as Handler<never>,
   CreateKitchen: createKitchen as Handler<never>,
   EditMeal: editMeal as Handler<never>,
+  ImportRecipe: importRecipe as Handler<never>,
   InviteByEmail: inviteByEmail as Handler<never>,
   MoveMeal: moveMealCommand as Handler<never>,
   RemoveMeal: removeMealCommand as Handler<never>,

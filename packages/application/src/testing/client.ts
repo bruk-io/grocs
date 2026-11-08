@@ -1,7 +1,7 @@
 // A client built from the in-memory fakes, for scenario tests (R47). Two clients that share
 // one store stand in for the two phones.
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
-import type { KitchenGateway, SyncStore } from '@grocs/ports';
+import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
+import type { KitchenGateway, RecipeImporter, SyncStore } from '@grocs/ports';
 import { commandHandlers } from '../commands/index.ts';
 import { createDispatcher } from '../dispatch/dispatcher.ts';
 import { loggingMiddleware } from '../dispatch/logging-middleware.ts';
@@ -14,6 +14,7 @@ export interface TestClientOptions {
   readonly clock?: FakeClock;
   readonly signedIn?: boolean;
   readonly kitchens?: KitchenGateway;
+  readonly recipeImporter?: RecipeImporter;
 }
 
 export interface TestClient {
@@ -22,6 +23,7 @@ export interface TestClient {
   readonly store: SyncStore;
   readonly clock: FakeClock;
   readonly auth: FakeAuth;
+  readonly recipeImporter: RecipeImporter;
 }
 
 export async function createTestClient(options: TestClientOptions): Promise<TestClient> {
@@ -29,6 +31,7 @@ export async function createTestClient(options: TestClientOptions): Promise<Test
   const store = options.store ?? new InMemorySyncStore();
   const clock = options.clock ?? new FakeClock();
   const kitchens = options.kitchens ?? new FakeKitchenGateway(uid, undefined, clock);
+  const recipeImporter = options.recipeImporter ?? new FakeRecipeImporter();
   const logger = new MemoryLogger();
   const auth = new FakeAuth([{ uid, email: `${uid}@grocs.test`, displayName: uid, password: 'pw' }]);
   if (signedIn) await auth.signInWithTestAccount(`${uid}@grocs.test`, 'pw');
@@ -39,8 +42,8 @@ export async function createTestClient(options: TestClientOptions): Promise<Test
     handlers: commandHandlers,
     runtime,
     ids,
-    depsFor: (correlation) => instrumentDeps({ syncStore: store, auth, clock, ids, kitchens }, logger, clock, correlation),
+    depsFor: (correlation) => instrumentDeps({ syncStore: store, auth, clock, ids, kitchens, recipeImporter }, logger, clock, correlation),
     middleware: [loggingMiddleware(logger, clock)],
   });
-  return { dispatcher, logger, store, clock, auth };
+  return { dispatcher, logger, store, clock, auth, recipeImporter };
 }

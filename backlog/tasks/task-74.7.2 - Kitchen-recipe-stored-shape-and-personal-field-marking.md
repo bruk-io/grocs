@@ -1,0 +1,164 @@
+---
+id: TASK-74.7.2
+title: Kitchen recipe stored shape and personal-field marking
+status: Done
+assignee:
+  - '@claude'
+created_date: '2026-11-07 02:27'
+updated_date: '2026-11-07 03:49'
+labels:
+  - size-2
+  - layer-core
+dependencies:
+  - TASK-74.3.1
+parent_task_id: TASK-74.7
+type: task
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Contract §3 and §5. Content is stored plain, not as {v,at,by}, because decision-16 never restamps it. SchemaError is imported from ./item-doc.ts. Nothing outside core changes, so the commit is green on its own. Covers TASK-74.7 AC#1.
+
+Split key: core-recipe-doc. Layer: core. Contract: TASK-74's plan.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [x] #1 schema/recipe-doc.ts exports RECIPE_SCHEMA_VERSION = 1, RecipeDoc, encodeRecipe and decodeRecipe as in contract §3
+- [x] #2 recipe-doc.test.ts covers: schema version 1 is carried; round-trips, including through JSON; a fast-check round-trip; an unknown version is rejected with 'unsupported-version'; a table of bad documents asserts error.path (including 'steps.1', 'ingredients.0.line' and 'deleted.at')
+- [x] #3 personal.ts has the recipe and ingredient entries from contract §5. personal.test.ts shows no title, URL, image, ingredient or step string leaks from a domain Recipe, a RecipeDoc or a bare ParsedRecipe; recipe docs are not classified as item or meal; and the new attribute keys (recipeTitle, recipeSourceUrl, recipeImage, ingredientLine and the rest) are redacted
+- [x] #4 Exports are added to packages/core/src/index.ts. At this commit, pnpm -s typecheck passes repo-wide and vitest --project unit packages/core passes
+<!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Order of work
+1. packages/core/src/schema/recipe-doc.ts: RECIPE_SCHEMA_VERSION=1, RecipeDoc (plain fields per contract §3, no {v,at,by}), encodeRecipe, decodeRecipe (bad/isObject/readField-style helpers mirroring meal-doc.ts, adapted for plain fields and the ingredients array), importing SchemaError from ./item-doc.ts.
+2. recipe-doc.test.ts: schema version carried; round-trip incl. JSON; fast-check round-trip over title/yield/steps/ingredients/image; unsupported-version rejected; bad-document table asserting error.path including 'steps.1', 'ingredients.0.line', 'deleted.at'.
+3. packages/core/src/schema/personal.ts: add the 'recipe' entry (shape ['sourceUrl','ingredients'], personal ['title','sourceUrl','ingredients','steps','image']) and the 'ingredient' entry (shape ['line','item'], personal ['line','quantity','unit','item']) per contract §5, placed after meal/item so no existing shape matches a recipe doc first.
+4. personal.test.ts additions: no title/URL/image/ingredient/step leaks from a domain Recipe, a RecipeDoc, and a bare ParsedRecipe; recipe docs classify as 'recipe' not 'item'/'meal'; new attribute keys (recipeTitle, recipeSourceUrl, recipeImage, ingredientLine, etc.) are redacted.
+5. Add RecipeDoc/encodeRecipe/decodeRecipe/RECIPE_SCHEMA_VERSION exports to packages/core/src/index.ts.
+6. Run vitest --project unit packages/core and pnpm -s typecheck; record output in notes.
+
+### Risks
+Staying inside packages/core only; no change to recipe.ts (TASK-74.3.1, already on main) or to other layers. If the contract's exact field list or shape keys turn out inconsistent with what's needed, that is a stop-and-ask per decision-3, not an improvisation.
+
+### Proof
+Each AC is shown by a passing test in recipe-doc.test.ts / personal.test.ts and by vitest + typecheck output pasted into the task notes.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review findings addressed (commit 0bb5f60 on worktree-wf_9bb52b74-01a-1):
+
+1. "removes attributes named after a recipe or ingredient personal field" now checks
+   all nine contract §5 keys (recipeTitle, recipeSourceUrl, recipeIngredients, recipeSteps,
+   recipeImage, ingredientLine, ingredientQuantity, ingredientUnit, ingredientItem) in both
+   the PERSONAL_ATTRIBUTE_KEYS.has loop and the redact(...).toEqual object, with
+   recipeIngredients given an array value and recipeSteps a string-array value, each
+   asserted to become REDACTED as a whole.
+2. "removes line, quantity, unit and item from a bare ingredient" now uses a distinctive
+   quantity ('1 1/2' instead of '2') and asserts both quantity ('1 1/2') and unit ('cups')
+   are absent from the redacted output, not just line/item.
+3. redact()'s doc comment updated to name all four entities (item, meal, recipe,
+   ingredient) instead of only item and meal.
+
+Checks rerun in the worktree:
+- mise exec -- pnpm exec vitest run --project unit packages/core -> 14 files, 123 tests passed.
+- mise exec -- pnpm -s typecheck -> tsc --noEmit, no errors.
+- Pre-commit hook (lefthook) on the commit ran checks + typecheck + full unit-tests
+  (4 projects) -> 139 files, 1774 tests passed.
+
+## Implementation
+
+- packages/core/src/schema/recipe-doc.ts: RECIPE_SCHEMA_VERSION=1, RecipeDoc (plain fields, no {v,at,by} per decision-16), encodeRecipe, decodeRecipe (path-naming errors mirroring meal-doc.ts/item-doc.ts).
+- packages/core/src/schema/recipe-doc.test.ts: schema-version check; round-trip incl. JSON; fast-check round-trip over title/yield/steps/ingredients/image; unsupported-version rejection; bad-document table asserting error.path for 'steps.1', 'ingredients.0.line', 'deleted.at' and others.
+- packages/core/src/schema/personal.ts: added 'recipe' (shape ['sourceUrl','ingredients'], personal ['title','sourceUrl','ingredients','steps','image']) and 'ingredient' (shape ['line','item'], personal ['line','quantity','unit','item']) entries after meal/item (no shape overlap).
+- packages/core/src/schema/personal.test.ts: redaction tests for a domain Recipe, a RecipeDoc and a bare ParsedRecipe (no title/URL/image/ingredient/step leaks); a bare ParsedIngredient; classification of recipe docs as 'recipe' not 'item'/'meal'; new attribute keys (recipeTitle, recipeSourceUrl, recipeImage, ingredientLine) redacted.
+- packages/core/src/index.ts: exports RecipeDoc, encodeRecipe, decodeRecipe, RECIPE_SCHEMA_VERSION.
+
+## Proof
+
+`mise exec -- pnpm exec vitest run --project unit packages/core`:
+```
+ Test Files  14 passed (14)
+      Tests  123 passed (123)
+```
+
+`mise exec -- pnpm -s typecheck`:
+```
+$ tsc --noEmit
+```
+(exits 0, no output)
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+(20 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/SharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/SharedRef.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/Platform.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/environment/browser.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeViewManagerAdapter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/errors/UnavailabilityError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/errors/CodedError.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/requireNativeModule.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/registerWebModule.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/TypedArrays.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/PermissionsInterface.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/PermissionsHook.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/Refs.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/hooks/useReleasingSharedObject.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/hooks/useReleasingSharedObjectWithLifecycle.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/reload.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/LegacyEventEmitter.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/NativeModulesProxy.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-modules-core/build/worklets/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/ExpoLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/RNLinking.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/createURL.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/validateURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Linking.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/Schemes.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-linking/build/devLaunchURL.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/serverContext.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontLoader.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/index.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.fx.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-font/build/FontHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/node_modules/expo-router/build/testing-library/context-stubs.js" points to missing source files
+
+ Test Files  151 passed (151)
+      Tests  2018 passed (2018)
+   Start at  22:48:43
+   Duration  13.63s (transform 71.57s, setup 4.74s, import 181.86s, tests 63.98s, environment 31.16s)
+```
+
+Closed by philosophy:reviewer. AC1: recipe-doc.ts exports RECIPE_SCHEMA_VERSION=1, RecipeDoc, encodeRecipe, decodeRecipe. AC2: recipe-doc.test.ts has version, JSON round-trip, fast-check round-trip, unsupported-version, and a bad-doc path table incl. steps.1, ingredients.0.line, deleted.at. AC3: personal.ts recipe/ingredient entries per contract section 5; personal.test.ts covers Recipe/RecipeDoc/ParsedRecipe leaks, classification as recipe, all nine attribute keys. AC4: exports in core index.ts; orchestrator typecheck clean at 6b10c7c; vitest unit packages/core 143 passed; record-check fast passed. The 4 emulator failures are in recipe-importer, outside this task. No findings.
+<!-- SECTION:NOTES:END -->

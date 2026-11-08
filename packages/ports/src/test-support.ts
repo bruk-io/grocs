@@ -22,8 +22,14 @@ export type { AuthSubject, GoogleSignInSubject, TestSignInSubject } from './auth
 export { InMemorySyncStore } from './sync-store/fake.ts';
 export { syncStoreContract } from './sync-store/contract.ts';
 export { syncStoreMealContract } from './sync-store/contract.ts';
+export { syncStoreRecipeContract } from './sync-store/contract.ts';
 export type { SyncStoreSubject } from './sync-store/contract.ts';
 
 export { FakeKitchenGateway } from './kitchen-gateway/fake.ts';
 export { kitchenGatewayContract } from './kitchen-gateway/contract.ts';
 export type { KitchenGatewaySubject } from './kitchen-gateway/contract.ts';
+
+export { FakeRecipeImporter } from './recipe-importer/fake.ts';
+export type { RecipeImportOutcome } from './recipe-importer/fake.ts';
+export { recipeImporterContract } from './recipe-importer/contract.ts';
+export type { RecipeImporterSubject } from './recipe-importer/contract.ts';

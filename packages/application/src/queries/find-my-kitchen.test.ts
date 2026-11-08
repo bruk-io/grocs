@@ -1,4 +1,4 @@
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it, vi } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
 import { findMyKitchen } from './find-my-kitchen.ts';
@@ -9,6 +9,7 @@ const make = (kitchens = new FakeKitchenGateway('u1')): Deps => ({
   clock: new FakeClock(),
   ids: new SequentialIds(),
   kitchens,
+  recipeImporter: new FakeRecipeImporter(),
 });
 
 describe('findMyKitchen', () => {

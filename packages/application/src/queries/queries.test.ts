@@ -1,5 +1,5 @@
 import { createExtraItem } from '@grocs/core';
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
 import { watchSession, signOut } from './watch-session.ts';
@@ -11,6 +11,7 @@ const make = (): Deps => ({
   clock: new FakeClock(),
   ids: new SequentialIds(),
   kitchens: new FakeKitchenGateway('u1'),
+  recipeImporter: new FakeRecipeImporter(),
 });
 const item = (id: string, at: number, deleted = false) => {
   const r = createExtraItem({ id, weekId: 'w', name: id }, { at, by: 'u1' });

@@ -7,7 +7,8 @@ import { randomUUID } from 'node:crypto';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
-import { KitchenStore, NotAMemberError } from '@grocs/providers-server';
+import { info } from 'firebase-functions/logger';
+import { createLiveFetchPage, FirestoreRecipeCache, importRecipeOnServer, KitchenStore, NotAMemberError } from '@grocs/providers-server';
 import type { Caller } from '@grocs/providers-server';
 import type { CallableRequest } from 'firebase-functions/v2/https';
 
@@ -97,4 +98,22 @@ export const acceptInvite = onCall(async (request) => {
 export const findMyKitchen = onCall(async (request) => {
   const uid = requireUid(request);
   return store().findKitchenForUid(uid);
+});
+
+/**
+ * Turns a recipe link into a parsed recipe, or an error kind, cached by the server (decision-15,
+ * contract TASK-74 §12). The result comes back as data, ok or not, never as a thrown error: onCall
+ * logs an uncaught error's message (R36), and that message could carry the caller's URL. A failure
+ * is logged by its error kind only, never the URL.
+ */
+export const importRecipe = onCall(async (request) => {
+  requireUid(request);
+  const url = requireString(request.data, 'url');
+  const result = await importRecipeOnServer(url, {
+    fetchPage: createLiveFetchPage(),
+    cache: new FirestoreRecipeCache(getFirestore()),
+    now: Date.now,
+  });
+  if (!result.ok) info('importRecipe failed', { error: result.error });
+  return result;
 });

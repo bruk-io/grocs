@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hand-made: image as a bare @id reference</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "name": "Hand-made Lentil Soup",
+  "recipeYield": "6 servings",
+  "image": { "@id": "https://example.invalid/images/lentil-soup#primary" },
+  "recipeIngredient": [
+    "2 cups dried lentils",
+    "1 onion, chopped",
+    "2 carrots, chopped",
+    "6 cups vegetable stock"
+  ],
+  "recipeInstructions": [
+    { "@type": "HowToStep", "text": "Saute the onion and carrots until soft." },
+    { "@type": "HowToStep", "text": "Add the lentils and stock and bring to a boil." },
+    { "@type": "HowToStep", "text": "Simmer until the lentils are tender, about 30 minutes." }
+  ]
+}
+</script>
+</head>
+<body></body>
+</html>

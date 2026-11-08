@@ -3,6 +3,7 @@ import {
   createMeal,
   isDeleted,
   isMealDeleted,
+  isRecipeDeleted,
   mergeItem,
   moveMeal,
   relinkMeal,
@@ -10,7 +11,7 @@ import {
   renameMeal,
   stamped,
 } from '@grocs/core';
-import type { DayIndex, Item, Meal } from '@grocs/core';
+import type { DayIndex, Item, Meal, Recipe } from '@grocs/core';
 import { eventually, sleep } from '../testing.ts';
 import type { TestApi } from '../testing.ts';
 import type { SyncStore } from './port.ts';
@@ -41,6 +42,29 @@ function meal(id: string, name: string, dayIndex: DayIndex, at: number, by: stri
 }
 
 const byMealId = (meals: readonly Meal[]): Meal[] => [...meals].sort((a, b) => (a.id < b.id ? -1 : 1));
+
+function recipe(
+  id: string,
+  title: string,
+  createdAt: number,
+  addedBy: string,
+  deleted: { at: number; by: string } | null = null,
+): Recipe {
+  return {
+    id,
+    addedBy,
+    createdAt,
+    sourceUrl: `https://recipe.invalid/${id}`,
+    title,
+    yield: '4 servings',
+    steps: ['Step one'],
+    ingredients: [{ line: '1 cup flour', quantity: '1', unit: 'cup', item: 'flour' }],
+    image: null,
+    deleted,
+  };
+}
+
+const byRecipeId = (recipes: readonly Recipe[]): Recipe[] => [...recipes].sort((a, b) => (a.id < b.id ? -1 : 1));
 
 /**
  * Every SyncStore provider passes this suite (R29, R49): the in-memory fake in unit tests and the
@@ -247,6 +271,89 @@ export function syncStoreMealContract(t: TestApi, make: () => Promise<SyncStoreS
       } finally {
         stop();
       }
+    }));
+  });
+}
+
+/**
+ * The kitchen recipe half of the SyncStore contract (R29, R49, decision-16), kept separate from
+ * syncStoreContract: a provider that has not yet implemented the recipe methods can keep running
+ * the item and meal suites without failing on methods it does not have. Call this once a provider
+ * (or the fake) implements kitchen recipes. Recipes are kitchen-wide (no weekId).
+ */
+export function syncStoreRecipeContract(t: TestApi, make: () => Promise<SyncStoreSubject>): void {
+  const withStore = (body: (s: SyncStoreSubject) => Promise<void>) => async (): Promise<void> => {
+    const subject = await make();
+    try {
+      await body(subject);
+    } finally {
+      await subject.dispose?.();
+    }
+  };
+
+  t.describe('SyncStore recipe contract', () => {
+    t.it('stores a merged recipe and returns it unchanged', withStore(async ({ store, kitchenId }) => {
+      const tacos = recipe('r1', 'Tacos', 100, 'alex');
+      await store.mergeRecipe(kitchenId, tacos);
+      t.expect(await store.getRecipes(kitchenId)).toEqual([tacos]);
+    }));
+
+    t.it('merging the same copy of a recipe twice changes nothing', withStore(async ({ store, kitchenId }) => {
+      const tacos = recipe('r1', 'Tacos', 100, 'alex');
+      await store.mergeRecipe(kitchenId, tacos);
+      await store.mergeRecipe(kitchenId, tacos);
+      t.expect(await store.getRecipes(kitchenId)).toEqual([tacos]);
+    }));
+
+    t.it('two members importing the same recipeId give one record with the earlier createdAt', withStore(async ({ store, kitchenId }) => {
+      const first = recipe('r1', 'Tacos', 100, 'alex');
+      const second = recipe('r1', 'Tacos', 200, 'sam');
+      await store.mergeRecipe(kitchenId, second);
+      await store.mergeRecipe(kitchenId, first);
+      const [stored] = await store.getRecipes(kitchenId);
+      t.expect(stored?.createdAt).toBe(100);
+      t.expect(stored?.addedBy).toBe('alex');
+    }));
+
+    t.it('a delete wins, and a later deleted:null copy does not undo it (R20)', withStore(async ({ store, kitchenId }) => {
+      const tacos = recipe('r1', 'Tacos', 100, 'alex');
+      await store.mergeRecipe(kitchenId, tacos);
+      await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 100, 'alex', { at: 200, by: 'sam' }));
+      await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 300, 'alex'));
+      const [stored] = await store.getRecipes(kitchenId);
+      t.expect(stored !== undefined && isRecipeDeleted(stored)).toBe(true);
+    }));
+
+    t.it('does not mix the recipes of two kitchens', withStore(async ({ store, kitchenId, otherKitchenId }) => {
+      if (!otherKitchenId) return;
+      await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 100, 'alex'));
+      await store.mergeRecipe(otherKitchenId, recipe('r2', 'Pasta', 100, 'alex'));
+      t.expect((await store.getRecipes(kitchenId)).map((r) => r.id)).toEqual(['r1']);
+      t.expect((await store.getRecipes(otherKitchenId)).map((r) => r.id)).toEqual(['r2']);
+    }));
+
+    t.it('tells a watcher the current recipes, then every change', withStore(async ({ store, kitchenId }) => {
+      await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 100, 'alex'));
+      const seen: Recipe[][] = [];
+      const stop = store.watchRecipes(kitchenId, (recipes) => seen.push(byRecipeId(recipes)));
+      try {
+        await eventually(() => t.expect(seen[seen.length - 1]?.map((r) => r.id)).toEqual(['r1']));
+        await store.mergeRecipe(kitchenId, recipe('r2', 'Pasta', 200, 'sam'));
+        await eventually(() => t.expect(seen[seen.length - 1]?.map((r) => r.id)).toEqual(['r1', 'r2']));
+      } finally {
+        stop();
+      }
+    }));
+
+    t.it('stops telling a watcher of recipes after it unsubscribes', withStore(async ({ store, kitchenId }) => {
+      const seen: number[] = [];
+      const stop = store.watchRecipes(kitchenId, (recipes) => seen.push(recipes.length));
+      await eventually(() => t.expect(seen.length).toBeGreaterThanOrEqual(1));
+      stop();
+      const count = seen.length;
+      await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 100, 'alex'));
+      await sleep(300);
+      t.expect(seen.length).toBe(count);
     }));
   });
 }

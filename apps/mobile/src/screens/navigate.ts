@@ -14,5 +14,7 @@ export function useGo() {
     /** Opens Settings with its back link returning to Meal plan. */
     settingsFromPlan: () => router.navigate({ pathname: '/settings', params: { from: 'plan' } }),
     household: () => router.navigate('/household'),
+    /** Opens the meal's saved recipe. */
+    recipe: (dayId: string, mealId: string) => router.navigate({ pathname: '/recipe', params: { dayId, mealId } }),
   };
 }

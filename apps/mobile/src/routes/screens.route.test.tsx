@@ -10,6 +10,7 @@ import GroceriesSamples from '../../app/groceries-samples.tsx';
 import Household from '../../app/household.tsx';
 import Plan from '../../app/plan.tsx';
 import QuickAdd from '../../app/quick-add.tsx';
+import Recipe from '../../app/recipe.tsx';
 import Settings from '../../app/settings.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 
@@ -20,6 +21,7 @@ const ROUTES = {
   'add-meal': AddMeal,
   'groceries-samples': GroceriesSamples,
   'quick-add': QuickAdd,
+  recipe: Recipe,
   settings: Settings,
 };
 

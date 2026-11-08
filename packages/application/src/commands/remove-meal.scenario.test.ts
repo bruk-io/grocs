@@ -1,4 +1,4 @@
-import { FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { watchWeekMeals } from '../queries/watch-week-meals.ts';
 import { createTestClient } from '../testing/client.ts';
@@ -52,7 +52,14 @@ describe('RemoveMeal scenarios (R47)', () => {
     const [after] = await store.getMeals(KITCHEN, WEEK);
     expect(after?.deleted).not.toBeNull();
 
-    const deps = { syncStore: store, auth: client.auth, clock: client.clock, ids: new SequentialIds(), kitchens: new FakeKitchenGateway('alex') };
+    const deps = {
+      syncStore: store,
+      auth: client.auth,
+      clock: client.clock,
+      ids: new SequentialIds(),
+      kitchens: new FakeKitchenGateway('alex'),
+      recipeImporter: new FakeRecipeImporter(),
+    };
     const seen: string[][] = [];
     const stop = watchWeekMeals(deps, KITCHEN, WEEK, (meals) => seen.push(meals.map((m) => m.id)));
     await new Promise((r) => setTimeout(r, 10));

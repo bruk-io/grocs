@@ -120,6 +120,36 @@ describe('kitchens/{kitchenId}/meals/{mealId} (R4, same rule as items)', () => {
   });
 });
 
+describe('kitchens/{k}/recipes (decision-16, R49)', () => {
+  const recipe = (addedBy: string) => ({
+    schemaVersion: 1,
+    id: 'r1',
+    addedBy,
+    createdAt: 1,
+    sourceUrl: 'https://recipe.invalid/a',
+    title: 'T',
+    yield: null,
+    steps: ['s'],
+    ingredients: [{ line: 'l', quantity: null, unit: null, item: null }],
+    image: null,
+    deleted: null,
+  });
+
+  it('a member can read and write a recipe in their kitchen', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const alex = testEnv.authenticatedContext('alex');
+    await assertSucceeds(setDoc(doc(alex.firestore(), 'kitchens/k1/recipes/r1'), recipe('alex')));
+    await assertSucceeds(getDoc(doc(alex.firestore(), 'kitchens/k1/recipes/r1')));
+  });
+
+  it('a non-member cannot read or write a recipe in a kitchen they do not belong to', async () => {
+    await seedKitchen('k1', ['alex', 'sam']);
+    const carl = testEnv.authenticatedContext('carl');
+    await assertFails(getDoc(doc(carl.firestore(), 'kitchens/k1/recipes/r1')));
+    await assertFails(setDoc(doc(carl.firestore(), 'kitchens/k1/recipes/r1'), recipe('carl')));
+  });
+});
+
 describe('an email invite on a kitchen (TASK-78)', () => {
   async function seedInvitedKitchen(): Promise<void> {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {
@@ -145,6 +175,35 @@ describe('an email invite on a kitchen (TASK-78)', () => {
     await assertFails(updateDoc(doc(alex.firestore(), 'kitchens/k1'), { invite: { email: 'carl@example.com', invitedBy: 'alex', createdAt: 2 } }));
   });
 });
+
+// The recipe-import cache (decision-15): written only by the Admin SDK inside the import function.
+// No match block, so default deny keeps every app client out - the same shape as inviteCodes above.
+for (const collection of ['recipes', 'recipeSources', 'recipeFailures'] as const) {
+  describe(`${collection}/{key} (decision-15)`, () => {
+    const cached = { schemaVersion: 1, fetchedAt: 1 };
+
+    async function seedCache(): Promise<void> {
+      await seedKitchen('k1', ['alex', 'sam']);
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), `${collection}/k1`), cached);
+      });
+    }
+
+    it('a signed-in kitchen member cannot read or write a cache doc (default-deny, no match block)', async () => {
+      await seedCache();
+      const alex = testEnv.authenticatedContext('alex');
+      await assertFails(getDoc(doc(alex.firestore(), `${collection}/k1`)));
+      await assertFails(setDoc(doc(alex.firestore(), `${collection}/k1`), cached));
+    });
+
+    it('a signed-out request cannot read or write a cache doc', async () => {
+      await seedCache();
+      const anon = testEnv.unauthenticatedContext();
+      await assertFails(getDoc(doc(anon.firestore(), `${collection}/k1`)));
+      await assertFails(setDoc(doc(anon.firestore(), `${collection}/k1`), cached));
+    });
+  });
+}
 
 describe('memberships/{uid} (TASK-14)', () => {
   async function seedMembership(uid: string, kitchenId: string): Promise<void> {

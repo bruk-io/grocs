@@ -1,5 +1,5 @@
-import { mergeItem, mergeMeal } from '@grocs/core';
-import type { Item, Meal } from '@grocs/core';
+import { mergeItem, mergeMeal, mergeRecipe } from '@grocs/core';
+import type { Item, Meal, Recipe } from '@grocs/core';
 import type { Unsubscribe } from '../unsubscribe.ts';
 import type { SyncStore } from './port.ts';
 
@@ -15,12 +15,19 @@ interface MealWatcher {
   readonly onMeals: (meals: readonly Meal[]) => void;
 }
 
+interface RecipeWatcher {
+  readonly kitchenId: string;
+  readonly onRecipes: (recipes: readonly Recipe[]) => void;
+}
+
 /** A sync store held in memory. Two clients can share one instance to stand in for two phones. */
 export class InMemorySyncStore implements SyncStore {
   readonly #items = new Map<string, Item>();
   readonly #itemWatchers = new Set<ItemWatcher>();
   readonly #meals = new Map<string, Meal>();
   readonly #mealWatchers = new Set<MealWatcher>();
+  readonly #recipes = new Map<string, Recipe>();
+  readonly #recipeWatchers = new Set<RecipeWatcher>();
 
   async mergeItem(kitchenId: string, item: Item): Promise<void> {
     const key = `${kitchenId}/${item.id}`;
@@ -80,6 +87,34 @@ export class InMemorySyncStore implements SyncStore {
     };
   }
 
+  async mergeRecipe(kitchenId: string, recipe: Recipe): Promise<void> {
+    const key = `${kitchenId}/${recipe.id}`;
+    const existing = this.#recipes.get(key);
+    this.#recipes.set(key, existing ? mergeRecipe(existing, recipe) : recipe);
+    for (const w of [...this.#recipeWatchers]) {
+      if (w.kitchenId === kitchenId) this.#notifyRecipes(w);
+    }
+  }
+
+  async getRecipes(kitchenId: string): Promise<readonly Recipe[]> {
+    return this.#selectRecipes(kitchenId);
+  }
+
+  watchRecipes(
+    kitchenId: string,
+    onRecipes: (recipes: readonly Recipe[]) => void,
+    _onError?: (error: Error) => void,
+  ): Unsubscribe {
+    const watcher: RecipeWatcher = { kitchenId, onRecipes };
+    this.#recipeWatchers.add(watcher);
+    queueMicrotask(() => {
+      if (this.#recipeWatchers.has(watcher)) this.#notifyRecipes(watcher);
+    });
+    return () => {
+      this.#recipeWatchers.delete(watcher);
+    };
+  }
+
   #selectItems(kitchenId: string, weekId: string): Item[] {
     return [...this.#items.entries()]
       .filter(([key, item]) => key.startsWith(`${kitchenId}/`) && item.weekId === weekId)
@@ -101,6 +136,18 @@ export class InMemorySyncStore implements SyncStore {
   #notifyMeals(w: MealWatcher): void {
     queueMicrotask(() => {
       if (this.#mealWatchers.has(w)) w.onMeals(this.#selectMeals(w.kitchenId, w.weekId));
+    });
+  }
+
+  #selectRecipes(kitchenId: string): Recipe[] {
+    return [...this.#recipes.entries()]
+      .filter(([key]) => key.startsWith(`${kitchenId}/`))
+      .map(([, recipe]) => recipe);
+  }
+
+  #notifyRecipes(w: RecipeWatcher): void {
+    queueMicrotask(() => {
+      if (this.#recipeWatchers.has(w)) w.onRecipes(this.#selectRecipes(w.kitchenId));
     });
   }
 }

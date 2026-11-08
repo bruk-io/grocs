@@ -10,7 +10,7 @@ import { ExpoRoot, Slot } from 'expo-router';
 import { inMemoryContext } from 'expo-router/build/testing-library/context-stubs';
 import type { ComponentType } from 'react';
 import { BufferLogger } from '@grocs/providers-device';
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { PlatformStyleProvider } from '@grocs/ui';
 import { AppProvider } from '../src/app-context.tsx';
 import { composeApp } from '../src/composition/compose-app.ts';
@@ -29,6 +29,7 @@ export async function appOnFakes({
   kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock),
   googleAccount = null,
   devSignIn = null,
+  recipeImporter = new FakeRecipeImporter(),
 }: {
   signedIn: boolean;
   /** Gates dev-only routes like /groceries-samples (R53); carries no account or sign-in capability. */
@@ -45,7 +46,9 @@ export async function appOnFakes({
   googleAccount?: { uid: string; email: string; displayName: string | null } | null;
   /** Stands in for the development build's seed-account sign-in (TASK-62); null, the default, is a release build or one on live Firebase. */
   devSignIn?: ((auth: FakeAuth, name: string) => Promise<void>) | null;
-}): Promise<NativeApp & { readonly clipboard: FakeClipboard }> {
+  /** The recipe importer, seeded by the test. */
+  recipeImporter?: FakeRecipeImporter;
+}): Promise<NativeApp & { readonly clipboard: FakeClipboard; readonly recipeImporter: FakeRecipeImporter }> {
   const auth = new FakeAuth([{ uid: 'u1', email: 'u1@grocs.test', displayName: 'U1', password: 'pw' }], googleAccount);
   if (signedIn) await auth.signInWithTestAccount('u1@grocs.test', 'pw');
   if (kitchen) await kitchens.createKitchen('Our kitchen', 'UTC');
@@ -53,12 +56,21 @@ export async function appOnFakes({
   // The release build's own logger, so a test of the diagnostics copy reads what a phone would copy.
   const logger = new BufferLogger();
   const app = composeApp({
-    ports: { syncStore, auth, clock, ids: new SequentialIds('t'), kitchens },
+    ports: { syncStore, auth, clock, ids: new SequentialIds('t'), kitchens, recipeImporter },
     logger,
     runtime: { appVersion: 'test', platform: 'test', kitchenRole: 'member' },
     copyText: clipboard.copyText,
   });
-  return { clipboard, app, isDevBuild, demo: null, devSignIn: devSignIn ? (name) => devSignIn(auth, name) : null, diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()), signInWithGoogle: () => auth.signInWithGoogle() };
+  return {
+    clipboard,
+    app,
+    isDevBuild,
+    demo: null,
+    devSignIn: devSignIn ? (name) => devSignIn(auth, name) : null,
+    diagnostics: () => diagnosticsText({ appVersion: 'test', platform: 'test', build: '1' }, logger.dump()),
+    signInWithGoogle: () => auth.signInWithGoogle(),
+    recipeImporter,
+  };
 }
 
 /**

@@ -1,11 +1,16 @@
 // Tests must exist for domain functions and for commands (R46, R47).
 import type { Check, CheckContext, Finding, RuleInfo } from './lib.ts';
+import { PURE_ROOT } from './import-layers.ts';
 import { isStoryFile, isTestFile } from './lib.ts';
+
+/** Where domain modules live: the core package, and the server-only recipe parsing (decision-15). Saved pages under pure/fixtures/ are data, not modules. */
+const isDomainModule = (file: string): boolean =>
+  file.startsWith('packages/core/src/') || (file.startsWith(PURE_ROOT) && !file.startsWith(`${PURE_ROOT}fixtures/`));
 
 export const rules: Readonly<Record<string, RuleInfo>> = {
   'test-presence/domain-unit-test': {
     req: 'R46',
-    summary: 'Every domain module with functions has a unit test beside it',
+    summary: 'Every domain module with functions (packages/core/src/, packages/providers-server/src/recipe/pure/) has a unit test beside it',
     why: 'The domain rules are shared by both apps and decide what a member sees. A function with no test can change behaviour without anything failing.',
     fix: 'Add <module>.test.ts beside the module. Merge rules (R17 to R20) also need property tests.',
   },
@@ -24,7 +29,7 @@ export function run(ctx: CheckContext): Finding[] {
   const files = new Set(ctx.files);
   for (const file of ctx.files) {
     if (isTestFile(file) || isStoryFile(file)) continue;
-    if (file.startsWith('packages/core/src/') && !file.endsWith('/index.ts')) {
+    if (isDomainModule(file) && !file.endsWith('/index.ts')) {
       if (EXPORTED_FUNCTION.test(ctx.readSource(file)) && !files.has(file.replace(/\.ts$/, '.test.ts'))) {
         out.push({ rule: 'test-presence/domain-unit-test', file, detail: `${file.replace(/\.ts$/, '.test.ts')} does not exist` });
       }

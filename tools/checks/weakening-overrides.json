@@ -150,5 +150,53 @@
     "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07",
     "reason": "TASK-78 replaces invite codes with sharing by email; the code-entry and link tests in this file are removed with that behaviour, and the file now tests the email flow instead.",
     "date": "2026-11-07"
+  },
+  {
+    "file": "apps/mobile/src/routes/kitchen.route.test.tsx",
+    "beforeHash": "0f6ad49eeddb1ef6b54137c289fb4612e724949eff5a7e787f109f05dae6456d",
+    "afterHash": "ef2401b02856503f3421a84595dbdfeb2476f378bfe187603b239ee9ef096dc9",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "apps/mobile/src/routes/screens.route.test.tsx",
+    "beforeHash": "11a7c89791442f153bb591959b80aa748cdd7c73abaa67e3783f3b8187755d8e",
+    "afterHash": "a350fa52439d89390fae62d3976f132e955a7f0c0200895abc2b42eb9e90d8d8",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/application/src/queries/get-invite-preview.test.ts",
+    "beforeHash": "00dd6bf69a611e4de7d8c6b0448ff3c5c25c98583e4ebd9c20de9c80a469123c",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/application/src/queries/get-kitchen-invite.test.ts",
+    "beforeHash": "ea0b1616e0407903867e58625fa7ac9cbf3b05142d21502322f45314023fe5ce",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/templates/InviteRetryTemplate.behaviour.test.tsx",
+    "beforeHash": "a0803268302cb6452bdc6e60cde93d76865e04ece23bdb47c2267156cb2b8470",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
+  },
+  {
+    "file": "packages/ui/src/templates/InviteRetryTemplate.stories.tsx",
+    "beforeHash": "1770c10a126d1d4f5188db246a25950d64901e4ef2bd13c4664138db1c17d597",
+    "afterHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvedBy": "Bruk Habtu, via AskUserQuestion, 2026-11-07 (the TASK-78 entry for this file above, recorded upstream in 36694c2); re-keyed by the orchestrator when merging origin/main into the recipe-import work, under Bruk's instruction of 2026-11-07 to own the remaining items",
+    "reason": "Same TASK-78 removal Bruk approved upstream, merged verbatim: the staged file equals origin/main's. Only the before-content differs from the upstream entry's key, because local main's copy predates PR #31's edits to the file or carries Group B's FakeRecipeImporter line (TASK-74.5.10), so the upstream approval's hash does not match this merge commit's diff.",
+    "date": "2026-11-07"
   }
 ]

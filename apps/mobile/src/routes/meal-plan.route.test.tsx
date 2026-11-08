@@ -8,11 +8,12 @@ import { createMeal, weekIdFor } from '@grocs/core';
 import { FakeClock, FakeKitchenGateway, InMemorySyncStore } from '@grocs/ports/testing';
 import AddMeal from '../../app/add-meal.tsx';
 import Plan from '../../app/plan.tsx';
+import Recipe from '../../app/recipe.tsx';
 import { appOnFakes, renderRoute } from '../../testing/render-route.tsx';
 
 afterEach(cleanup);
 
-const ROUTES = { plan: Plan, 'add-meal': AddMeal };
+const ROUTES = { plan: Plan, 'add-meal': AddMeal, recipe: Recipe };
 
 async function openPlan(syncStore = new InMemorySyncStore()) {
   const kitchens = new FakeKitchenGateway('u1');

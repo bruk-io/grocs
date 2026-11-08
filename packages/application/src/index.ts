@@ -25,6 +25,8 @@ export { createKitchen } from './commands/create-kitchen.ts';
 export type { CreateKitchen, KitchenCreated } from './commands/create-kitchen.ts';
 export { editMeal } from './commands/edit-meal.ts';
 export type { EditMeal, MealEdited } from './commands/edit-meal.ts';
+export { importRecipe } from './commands/import-recipe.ts';
+export type { ImportRecipe, RecipeImported } from './commands/import-recipe.ts';
 export { acceptInvite } from './commands/accept-invite.ts';
 export type { AcceptInvite, KitchenJoined, KitchenJoinRejected } from './commands/accept-invite.ts';
 export { cancelInvite } from './commands/cancel-invite.ts';
@@ -40,6 +42,7 @@ export type { ItemMovedBack, ItemMovedToCart, SetItemState } from './commands/se
 export { commandHandlers } from './commands/index.ts';
 export { watchWeekItems } from './queries/watch-week.ts';
 export { watchWeekMeals } from './queries/watch-week-meals.ts';
+export { watchKitchenRecipes } from './queries/watch-kitchen-recipes.ts';
 export { signOut, watchSession } from './queries/watch-session.ts';
 export { findMyKitchen } from './queries/find-my-kitchen.ts';
 export { getKitchenInfo } from './queries/get-kitchen-info.ts';
