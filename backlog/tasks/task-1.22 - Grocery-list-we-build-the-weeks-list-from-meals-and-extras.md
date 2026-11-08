@@ -1,10 +1,10 @@
 ---
 id: TASK-1.22
 title: 'Grocery list: we build the week''s list from meals and extras'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-11-08 19:22'
+updated_date: '2026-11-08 20:21'
 labels:
   - size-5
   - slice
@@ -27,6 +27,40 @@ Waits on the meal plan slice. Cites R9, R10, R11.
 - [ ] #2 Items to buy are grouped by aisle, and a new item's aisle is suggested from our earlier choices
 - [ ] #3 Each item shows its name, amount, aisle, badges and who added it
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Slice contract
+Bruk delegated these calls on 2026-11-08 ("take care of all these open problems"); any can be changed in review.
+
+Aisles. core exports AISLES, a fixed ordered list: produce 'Produce', dairy 'Dairy & eggs', meat 'Meat', bakery 'Bakery', pantry 'Pantry', other 'Other'. The ids match the existing section icons. Item.aisle stays a string; an id not in the list groups as other, so stored data never breaks.
+
+core: AISLES and AisleId; aisleSection(aisle) mapping any string to an AisleId; groupByAisle(items) returning sections in AISLES order, empty ones left out; aisleNameKey(name) = encodeURIComponent(normaliseName(name)); setItemAisle(item, aisle, stamp) returning a new item.
+
+ports: SyncStore gains rememberAisle(kitchenId, nameKey, aisle: Stamped<string>) and aisleFor(kitchenId, nameKey): Promise<string | null>. Later stamp wins; the same stamp twice changes nothing. Fake and contract suite cover both, including that a later call with an older stamp does not overwrite.
+
+providers: FirestoreSyncStore stores kitchens/{k}/aisles/{nameKey} in decision-7's shape ({schemaVersion, aisle: stored stamped value}); the memory provider matches. decision-7 is still proposed, and this document is the one piece of it this slice adopts, so it stands either way. aisleFor must work offline from the cache. A rules test proves a non-member cannot read or write it.
+
+application: AddItem with no aisle takes aisleFor(name), else the default. AddItem with an aisle also calls rememberAisle. New SetItemAisle command {kitchenId, weekId, itemId, aisle} stamps the item and remembers the aisle. New suggestAisle(kitchenId, name) query. Clearing the cart does not touch aisle memory, so cleared items keep informing suggestions (R14); a scenario test proves it: add with an aisle, clear, add the same name with none, get that aisle. Import inherits all this because it dispatches AddItem.
+
+ui, with new stories and behaviour tests: ItemPickerTemplate gains optional amount field and an aisle chip group (value, onChange, options). ListSection and GroceryListTemplate gain a way to press a to-buy row, and an inline aisle chip group under the chosen row. No aisle prop on ItemRow: a row sits under its aisle's heading, which is how #3's 'shows its aisle' is met. ui takes aisle options as data and does not import core.
+
+app: GroceriesScreen builds sections with groupByAisle, keeps them when a meal filter is on, passes addedBy as the member's name from KitchenInfo members by uid (nothing while loading or for an unknown uid), and dispatches SetItemAisle from the inline chips. QuickAddScreen adds amount and aisle inputs; the chip preselects suggestAisle as the name changes, and an aisle the person chose is not overwritten. App facade gains suggestAisle. Correct GroceriesScreen's stale doc comment. Demo items get aisles.
+
+Baselines. New and changed stories need baselines from the visual baselines workflow; the orchestrator does that and the live proof after the app leaf.
+
+### Order of work
+core, then ports, then providers and application, with ui alongside; then app; then baselines and proof.
+
+### Risks
+- TASK-1.26's combine prompt and TASK-1.27's activity build on this list and must not need rework; this slice adds no merging of items.
+- If decision-7 is later accepted, aisle memory moves into its append batch; the document shape already matches.
+- A meal-filtered list now shows several sections, which earlier tests may have assumed was one.
+
+### Proof
+Route tests for grouping, suggestion, changing an aisle and who-added; the R14 scenario test; the provider contract on the emulator; a live iOS simulator run with screenshots.
+<!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
@@ -176,4 +210,6 @@ Check: record-check full exited 1 on both runs. pnpm check, typecheck and unit (
 Findings, none filed as drafts because the remaining work belongs under this task: (medium) AC2 and AC3 have no subtasks, so nothing queued delivers them; split them here. (low) GroceriesScreen's doc comment still says the Item model holds no meal badges or who-added, which is false. (low) The Groceries inline add ignores an active meal filter, so an item added while filtered is an extra and disappears from the filtered view; R10 allows this, but it may surprise.
 
 From TASK-1.23's review, 2026-11-08: #2 must read cleared items for its suggestions, or R14 is still not delivered; TASK-1.23 #3 proved retention only. From this task's review: no open subtask delivers #2 or #3, so it needs splitting before it can move.
+
+Split 2026-11-08 from the review's finding that nothing delivered #2 and #3.
 <!-- SECTION:NOTES:END -->
