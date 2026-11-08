@@ -1,4 +1,9 @@
-import { syncStoreContract, syncStoreMealContract, syncStoreRecipeContract } from '@grocs/ports/testing';
+import {
+  syncStoreAisleContract,
+  syncStoreContract,
+  syncStoreMealContract,
+  syncStoreRecipeContract,
+} from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { MemorySyncStore } from './memory-sync-store.ts';
 
@@ -16,6 +21,12 @@ syncStoreMealContract({ describe, it, expect }, async () => ({
 }));
 
 syncStoreRecipeContract({ describe, it, expect }, async () => ({
+  store: new MemorySyncStore(),
+  kitchenId: 'kitchen-a',
+  otherKitchenId: 'kitchen-b',
+}));
+
+syncStoreAisleContract({ describe, it, expect }, async () => ({
   store: new MemorySyncStore(),
   kitchenId: 'kitchen-a',
   otherKitchenId: 'kitchen-b',

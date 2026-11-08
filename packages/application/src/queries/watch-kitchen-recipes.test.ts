@@ -56,6 +56,8 @@ describe('watchKitchenRecipes', () => {
       getMeals: notUsed,
       watchMeals: notUsed,
       mergeRecipe: notUsed,
+      rememberAisle: notUsed,
+      aisleFor: notUsed,
       getRecipes: notUsed,
       watchRecipes: (_kitchenId, _onRecipes, onError): Unsubscribe => {
         capturedOnError = onError;
