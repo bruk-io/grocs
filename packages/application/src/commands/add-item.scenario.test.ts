@@ -7,7 +7,32 @@ import { createTestClient } from '../testing/client.ts';
 
 const KITCHEN = 'k1';
 const WEEK = '2026-W42';
-const add = (name: string, extra: { amount?: string; mealId?: string } = {}) => ({ type: 'AddItem' as const, kitchenId: KITCHEN, weekId: WEEK, name, ...extra });
+const add = (name: string, extra: { amount?: string; mealId?: string; aisle?: string } = {}) => ({
+  type: 'AddItem' as const,
+  kitchenId: KITCHEN,
+  weekId: WEEK,
+  name,
+  ...extra,
+});
+const clear = () => ({ type: 'ClearCart' as const, kitchenId: KITCHEN, weekId: WEEK });
+
+/** A SyncStore that delegates every method to `store`, except the ones overridden. */
+function wrapSyncStore(store: SyncStore, overrides: Partial<SyncStore>): SyncStore {
+  return {
+    mergeItem: (...a) => store.mergeItem(...a),
+    getItems: (...a) => store.getItems(...a),
+    watchItems: (...a) => store.watchItems(...a),
+    mergeMeal: (...a) => store.mergeMeal(...a),
+    getMeals: (...a) => store.getMeals(...a),
+    watchMeals: (...a) => store.watchMeals(...a),
+    mergeRecipe: (...a) => store.mergeRecipe(...a),
+    getRecipes: (...a) => store.getRecipes(...a),
+    watchRecipes: (...a) => store.watchRecipes(...a),
+    rememberAisle: (...a) => store.rememberAisle(...a),
+    aisleFor: (...a) => store.aisleFor(...a),
+    ...overrides,
+  };
+}
 
 describe('AddItem scenarios (R47)', () => {
   it('adds the item to the store and returns an ItemAdded event', async () => {
@@ -200,6 +225,89 @@ describe('AddItem scenarios (R47)', () => {
       const text = JSON.stringify(client.logger.records());
       expect(text).not.toContain('Oat milk');
       expect(text).not.toContain('2 cartons');
+    });
+  });
+
+  describe('aisle memory (R11, R14)', () => {
+    it('with no aisle, takes the one remembered for the name', async () => {
+      const store = new InMemorySyncStore();
+      await store.rememberAisle(KITCHEN, encodeURIComponent('oat milk'), { value: 'dairy', stamp: { at: 1, by: 'alex' } });
+      const client = await createTestClient({ uid: 'alex', store });
+      await client.dispatcher.dispatch(add('Oat milk'));
+      const [item] = await store.getItems(KITCHEN, WEEK);
+      expect(item?.aisle.value).toBe('dairy');
+    });
+
+    it('with no aisle and nothing remembered, takes the default', async () => {
+      const client = await createTestClient({ uid: 'alex' });
+      await client.dispatcher.dispatch(add('Kale'));
+      const [item] = await client.store.getItems(KITCHEN, WEEK);
+      expect(item?.aisle.value).toBe('other');
+    });
+
+    it('with an aisle, stamps the item and remembers it for next time', async () => {
+      const client = await createTestClient({ uid: 'alex' });
+      await client.dispatcher.dispatch(add('Garlic', { aisle: 'produce' }));
+      const [item] = await client.store.getItems(KITCHEN, WEEK);
+      expect(item?.aisle.value).toBe('produce');
+      expect(await client.store.aisleFor(KITCHEN, encodeURIComponent('garlic'))).toBe('produce');
+    });
+
+    it('rejects an aisle that is not one of the fixed list, and stores nothing', async () => {
+      const client = await createTestClient({ uid: 'alex' });
+      const result = await client.dispatcher.dispatch(add('Garlic', { aisle: 'household' }));
+      expect(!result.ok && result.error.code).toBe('invalid-aisle');
+      expect(await client.store.getItems(KITCHEN, WEEK)).toEqual([]);
+    });
+
+    it('a cleared item still informs later suggestions (R14)', async () => {
+      const client = await createTestClient({ uid: 'alex' });
+      await client.dispatcher.dispatch(add('Milk', { aisle: 'dairy' }));
+      const [firstItem] = await client.store.getItems(KITCHEN, WEEK);
+      const tick = { type: 'SetItemState' as const, kitchenId: KITCHEN, weekId: WEEK, itemId: firstItem?.id ?? '', inCart: true };
+      await client.dispatcher.dispatch(tick);
+      await client.dispatcher.dispatch(clear());
+
+      await client.dispatcher.dispatch(add('Milk'));
+      const items = await client.store.getItems(KITCHEN, WEEK);
+      const second = items.find((i) => i.state.value !== 'cleared');
+      expect(second?.aisle.value).toBe('dairy');
+    });
+
+    it('a failing aisleFor still adds the item, with the default aisle', async () => {
+      const store = new InMemorySyncStore();
+      const broken = wrapSyncStore(store, { aisleFor: () => Promise.reject(new Error('aisle lookup is down')) });
+      const client = await createTestClient({ uid: 'alex', store: broken });
+      const result = await client.dispatcher.dispatch(add('Kale'));
+      expect(result.ok).toBe(true);
+      const [item] = await client.store.getItems(KITCHEN, WEEK);
+      expect(item?.aisle.value).toBe('other');
+    });
+
+    it('a failing rememberAisle still lets the add succeed', async () => {
+      const store = new InMemorySyncStore();
+      const broken = wrapSyncStore(store, { rememberAisle: () => Promise.reject(new Error('remember is down')) });
+      const client = await createTestClient({ uid: 'alex', store: broken });
+      const result = await client.dispatcher.dispatch(add('Garlic', { aisle: 'produce' }));
+      expect(result.ok).toBe(true);
+      const [item] = await client.store.getItems(KITCHEN, WEEK);
+      expect(item?.aisle.value).toBe('produce');
+    });
+
+    it('a stalled rememberAisle does not delay the result (R16)', async () => {
+      const store = new InMemorySyncStore();
+      let attempted = false;
+      const stalled = wrapSyncStore(store, {
+        rememberAisle: () =>
+          new Promise<void>(() => {
+            // Never settles within this test: the command must not wait on it to finish.
+            attempted = true;
+          }),
+      });
+      const client = await createTestClient({ uid: 'alex', store: stalled });
+      const result = await client.dispatcher.dispatch(add('Garlic', { aisle: 'produce' }));
+      expect(result.ok).toBe(true);
+      expect(attempted).toBe(true);
     });
   });
 });

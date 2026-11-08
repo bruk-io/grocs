@@ -1,15 +1,25 @@
 ---
 id: TASK-1.22.7
 title: 'Application: AddItem uses the aisle memory; SetItemAisle; suggestAisle'
-status: To Do
+status: In Progress
 assignee:
   - '@builder-application'
 created_date: '2026-11-08 20:21'
+updated_date: '2026-11-08 20:56'
 labels:
   - layer-application
   - size-3
 dependencies:
   - TASK-1.22.5
+modified_files:
+  - packages/application/src/commands/add-item.ts
+  - packages/application/src/commands/add-item.scenario.test.ts
+  - packages/application/src/commands/set-item-aisle.ts
+  - packages/application/src/commands/set-item-aisle.scenario.test.ts
+  - packages/application/src/commands/index.ts
+  - packages/application/src/queries/suggest-aisle.ts
+  - packages/application/src/queries/suggest-aisle.test.ts
+  - packages/application/src/index.ts
 parent_task_id: TASK-1.22
 type: task
 ---
@@ -27,3 +37,51 @@ Cites R11, R14. See TASK-1.22's slice contract.
 - [ ] #3 A scenario test proves a cleared item's aisle is still suggested (R14)
 - [ ] #4 suggestAisle returns the remembered aisle or null
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+### Order of work
+1. AddItem (add-item.ts): validate an explicit `aisle` against core's AISLES (else `invalid-aisle` error); when none is given, look up aisleFor(aisleNameKey(name)) and fall back to the default on a null or a rejection; when one is given, write the item first, then fire-and-forget rememberAisle (caught, not awaited) so a stalled write can't delay the result (R16).
+2. New command SetItemAisle (set-item-aisle.ts): same aisle validation, find the item (item-not-found otherwise), setItemAisle + mergeItem (awaited), then fire-and-forget rememberAisle the same way. Register in commands/index.ts and index.ts.
+3. New query suggestAisle (queries/suggest-aisle.ts): aisleNameKey(name) === '' returns null without calling aisleFor (core's review addition, e.g. for '!!'); otherwise reads aisleFor. Register in index.ts.
+4. Tests: extend add-item.scenario.test.ts (suggestion taken, default when none remembered, explicit aisle remembers it, aisleFor rejection still adds with default, rememberAisle rejection still succeeds, a stalled rememberAisle doesn't delay the result, invalid aisle is an error, R14 scenario via ClearCart then re-add). New set-item-aisle.scenario.test.ts (stamps + remembers, item-not-found, not-signed-in, invalid aisle, rememberAisle rejection doesn't fail the command). New suggest-aisle.test.ts (remembered aisle, null when none, '!!' returns null without calling aisleFor).
+5. Run vitest (application project), pnpm check, pnpm typecheck; fix; record in notes; commit.
+
+### Risks
+- Not awaiting rememberAisle while still proving it was attempted needs a test that can observe the attempt (e.g. a store whose rememberAisle resolves after a flushable delay, or records a call) without re-adding a timing race; I will use a controllable promise and assert the command resolves before it settles.
+- AddItem's existing error-shape tests construct a full fake SyncStore inline; adding aisleFor/rememberAisle already appears in those fakes, so only the add-item.ts logic changes, not those tests.
+- suggestAisle and the application-level AISLES check must only use what core already exports (AISLES, aisleNameKey, setItemAisle) - no new core work in this task.
+
+### Proof
+pnpm exec vitest run --project unit packages/application output pasted into notes; pnpm check and pnpm typecheck output pasted into notes.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented, not closed (reviewer closes).
+
+AddItem (add-item.ts): an explicit aisle must be one of core's AISLES, else `invalid-aisle`. With no aisle, awaits aisleFor(aisleNameKey(name)) and falls back to the default on null or a rejection (caught). The item write is awaited first; only then, if an aisle was explicitly given, rememberAisle is fired without awaiting and its rejection is caught, so a stalled or failing write never delays or fails the add (R16). Both ports are already wrapped by instrumentPort at the composition root, so rememberAisle's outcome is logged the same way every other port call is.
+
+New SetItemAisle command (set-item-aisle.ts, registered in commands/index.ts and index.ts): same aisle validation, item-not-found if the item isn't on the list, setItemAisle + mergeItem awaited, then the same fire-and-forget, caught rememberAisle.
+
+New suggestAisle query (queries/suggest-aisle.ts, registered in index.ts): aisleNameKey(name) === '' (e.g. '!!') returns null without calling aisleFor, per core's review addition. Otherwise reads aisleFor directly.
+
+Exported names: addItem/AddItem/ItemAdded (unchanged), setItemAisleCommand/SetItemAisle/ItemAisleChanged, suggestAisle.
+
+Tests added: add-item.scenario.test.ts gained an "aisle memory (R11, R14)" describe block - takes the remembered aisle, falls back to default with nothing remembered, an explicit aisle stamps and remembers, an invalid aisle is rejected and stores nothing, the R14 scenario (add with an aisle, tick, ClearCart, add the same name with none, get that aisle back), a failing aisleFor still adds with the default, a failing rememberAisle still succeeds, and a stalled (never-settling) rememberAisle does not delay the result. New set-item-aisle.scenario.test.ts mirrors SetItemState's scenario tests plus the same aisle-memory-never-blocks cases. New suggest-aisle.test.ts covers the remembered aisle, null when none, and '!!' returning null without calling aisleFor (asserted via a spy wrapper).
+
+Evidence:
+$ mise exec -- pnpm exec vitest run --project unit packages/application
+ Test Files  22 passed (22)
+      Tests  136 passed (136)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(no output, exit 0)
+
+$ mise exec -- pnpm check
+$ node tools/checks/run.ts --mode all
+checks passed (16 checks, all mode, 507 ms)
+<!-- SECTION:NOTES:END -->
