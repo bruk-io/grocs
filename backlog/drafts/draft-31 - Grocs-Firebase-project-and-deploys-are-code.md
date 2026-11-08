@@ -5,7 +5,7 @@ status: Draft
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:58'
-updated_date: '2026-11-07 01:01'
+updated_date: '2026-11-08 19:43'
 labels: []
 dependencies: []
 type: intent
@@ -48,4 +48,6 @@ Grocs runs on a real Firebase project (io-bruk-grocs-dev), but everything about 
 
 <!-- SECTION:NOTES:BEGIN -->
 Order (Bruk, 2026-11-06): the recipe import (TASK-74) is proven locally in the Functions emulator first; this deployment work follows once the parsing and client code work.
+
+2026-11-08: firebase-isolation/no-production (R52, R51) forbids a firebase deploy command or a real project id anywhere in the repo, including CI config and comments. #3 here (deploy from CI on merge) cannot pass without changing that rule. That is a spec decision to make with this intent, not a check to work around. TASK-48's build is done bar a real deploy.
 <!-- SECTION:NOTES:END -->

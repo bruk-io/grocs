@@ -1,0 +1,13 @@
+{
+  "functions": [
+    {
+      "source": "apps/functions/deploy",
+      "codebase": "default",
+      "predeploy": ["node tools/build-functions.ts"]
+    }
+  ],
+  "firestore": {
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  }
+}
