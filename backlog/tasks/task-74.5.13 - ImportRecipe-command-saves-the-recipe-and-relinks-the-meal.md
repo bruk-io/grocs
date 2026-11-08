@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:01'
+updated_date: '2026-11-08 03:09'
 labels:
   - size-3
   - layer-application
@@ -70,4 +70,23 @@ $ node tools/checks/run.ts --mode staged
 checks passed (16 checks, staged mode)
 
 Pre-merge note: this worktree's branch had diverged from local main (TASK-78/79 email-invite work landed on main after this branch's TASK-74 wave started). Per the advisor's reading of CLAUDE.md's merge-refresh guidance, I ran `git merge --no-edit main` before starting (twice, as main advanced again mid-session with the Group B close), resolving 9 mechanical conflicts (kept HEAD's invite-code deletions, took in the recipe-wave additions; dropped two invite-code query tests TASK-78 already removed; widened get-invite-offers.test.ts's Deps with FakeRecipeImporter, the one test the prior Group B sweep had not reached). Committed as a separate commit from this task's own work, both already included above in the green runs.
+
+Merge-scope note for the reviewer: the main-merge (commits d144527, 384200e) restructured firebase/firestore.rules.test.ts (dropped main's inviteCodes describe whose body git had interleaved with HEAD's seedInvitedKitchen, re-inserted the recipes describe by hand) and apps/functions/src/index.ts (dropped inviteForKitchen/previewInvite, kept the importRecipe callable). Both files are exercised only by pnpm test:emulator (needs Java), which is outside this layer's command set and was not re-run after the merge; TASK-74.5.9's last recorded green emulator run was against main at 7fccb40, before this merge. AC#4's checks (repo-wide typecheck, vitest --project unit packages/application) are green and cover this task's own files; the emulator suite re-run for the merged rules/functions files is the orchestrator's call.
+
+Commit SHAs (oldest first): d144527 (merge main into this branch, resolving TASK-78/79 vs TASK-74 conflicts), 384200e (second merge, main had advanced further mid-session to close TASK-74.5.8/.10/.11/.12), e898bcc (this task's own commands/import-recipe.ts + scenario test + registration/exports).
+
+Review findings addressed (TASK-74.5.13 review round):
+1. meal lookup now requires a live meal: `meals.find((m) => m.id === command.mealId && !isMealDeleted(m))` (import-recipe.ts), matching contract §8 step 2's "Find the live meal" literally (edit-meal.ts/remove-meal.ts's bare lookup is a separate question, not changed here since the contract text for this handler is explicit).
+2. Added scenario test: clientWithMeal, RemoveMeal, then ImportRecipe -> meal-not-found, importer.calls [], getRecipes [].
+3. Two-member same-URL dedup test: sam (clock 2000) now imports before alex (clock 1001 after clientWithMeal's advance(1)), so the earlier-createdAt assertion no longer coincides with arrival order.
+4. Impossible-relink (ftp://x) test now also asserts the meal is unchanged (link.value null), not just that no recipe was saved.
+5. Offline-relink R47 case: alex's clock is widened (advance(99) after clientWithMeal) so the import lands at 2100; bAt changed from 500 to 2050, landing strictly between the meal's creation stamp (2000) and the import (2100), isolating the import-vs-relink stamp race from the meal's own creation stamp.
+6. Merge-commits d144527/384200e reconciliation: left for the orchestrator per the review note (out of this layer's scope); confirmed this task's own commit e898bcc touches only packages/application/** and the task's own board file.
+
+Checks after fix:
+$ mise exec -- pnpm exec vitest run --project unit packages/application
+ Test Files  20 passed (20)
+      Tests  117 passed (117)
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit   (clean, no output)
 <!-- SECTION:NOTES:END -->

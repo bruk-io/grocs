@@ -1,4 +1,4 @@
-import { err, groceryLineFor, isRecipeDeleted, ok, recipeFromImport, relinkMeal } from '@grocs/core';
+import { err, groceryLineFor, isMealDeleted, isRecipeDeleted, ok, recipeFromImport, relinkMeal } from '@grocs/core';
 import type { GroceryLine } from '@grocs/core';
 import type { CommandContext, CommandResult, DomainEvent } from '../dispatch/types.ts';
 
@@ -30,7 +30,7 @@ export async function importRecipe(command: ImportRecipe, ctx: CommandContext): 
   if (!user) return err({ code: 'not-signed-in', message: 'importing a recipe needs a signed-in member' });
 
   const meals = await syncStore.getMeals(command.kitchenId, command.weekId);
-  const meal = meals.find((m) => m.id === command.mealId);
+  const meal = meals.find((m) => m.id === command.mealId && !isMealDeleted(m));
   if (!meal) return err({ code: 'meal-not-found', message: "the meal is not on this week's plan" });
 
   const imported = await recipeImporter.importRecipe(command.url);

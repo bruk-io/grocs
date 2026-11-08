@@ -146,6 +146,8 @@ describe('ImportRecipe scenarios (contract TASK-74 §8, R47)', () => {
 
     expect(result).toEqual({ ok: false, error: { code: 'internal', message: expect.any(String) } });
     expect(await client.store.getRecipes(KITCHEN)).toEqual([]);
+    const [meal] = await client.store.getMeals(KITCHEN, WEEK);
+    expect(meal?.link.value).toBeNull();
   });
 
   it('needs a signed-in member and never calls the importer', async () => {
@@ -166,6 +168,18 @@ describe('ImportRecipe scenarios (contract TASK-74 §8, R47)', () => {
 
     expect(!result.ok && result.error.code).toBe('meal-not-found');
     expect(importer.calls).toEqual([]);
+  });
+
+  it('refuses a meal removed on this device without calling the importer (§8 step 2: only a live meal)', async () => {
+    const importer = new FakeRecipeImporter([[URL, parsedRecipe()]]);
+    const { client, mealId } = await clientWithMeal('alex', { recipeImporter: importer });
+    await client.dispatcher.dispatch(removeMealCmd(mealId));
+
+    const result = await client.dispatcher.dispatch(importCmd(mealId));
+
+    expect(!result.ok && result.error.code).toBe('meal-not-found');
+    expect(importer.calls).toEqual([]);
+    expect(await client.store.getRecipes(KITCHEN)).toEqual([]);
   });
 
   it('turns a throwing importer into an internal error result, logged', async () => {
@@ -209,8 +223,8 @@ describe('ImportRecipe scenarios (contract TASK-74 §8, R47)', () => {
       const { client: alex, mealId } = await clientWithMeal('alex', { store: shared, recipeImporter: importer, clock: new FakeClock(1_000) });
       const sam = await createTestClient({ uid: 'sam', store: shared, recipeImporter: importer, clock: new FakeClock(2_000) });
 
-      await alex.dispatcher.dispatch(importCmd(mealId));
       await sam.dispatcher.dispatch(importCmd(mealId));
+      await alex.dispatcher.dispatch(importCmd(mealId));
 
       const recipes = await shared.getRecipes(KITCHEN);
       expect(recipes).toHaveLength(1);
@@ -219,12 +233,16 @@ describe('ImportRecipe scenarios (contract TASK-74 §8, R47)', () => {
     });
 
     it.each([
-      { bAt: 500, winner: 'alex' as const },
+      { bAt: 2_050, winner: 'alex' as const },
       { bAt: 3_000, winner: 'sam' as const },
     ])('an offline relink stamped $bAt merges against A\'s import by stamp, not arrival order', async ({ bAt, winner }) => {
       const shared = new InMemorySyncStore();
       const importer = new FakeRecipeImporter([[URL, parsedRecipe()]]);
       const { client: alex, mealId } = await clientWithMeal('alex', { store: shared, recipeImporter: importer, clock: new FakeClock(2_000) });
+      // Widen the gap between the meal's own creation stamp and alex's import, so a bAt
+      // between them (2_050) isolates the import-vs-relink race instead of also losing to
+      // the meal's creation stamp.
+      alex.clock.advance(99);
 
       const { store: samStore, goOnline } = offlineStore(shared);
       const sam = await createTestClient({ uid: 'sam', store: samStore, clock: new FakeClock(bAt) });
