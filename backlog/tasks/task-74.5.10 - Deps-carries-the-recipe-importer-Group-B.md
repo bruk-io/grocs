@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.10
 title: Deps carries the recipe importer - Group B
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 02:39'
+updated_date: '2026-11-08 02:49'
 labels:
   - size-2
   - layer-application
@@ -28,10 +28,10 @@ Split key: application-recipe-deps. Layer: application. Contract: TASK-74's plan
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Deps has a required readonly recipeImporter: RecipeImporter, and instrumentDeps wraps it as port 'recipeImporter'. instrument.test.ts asserts the port name and that the method is 'importRecipe'
-- [ ] #2 createTestClient accepts recipeImporter? (default FakeRecipeImporter) and returns it
-- [ ] #3 Every application Deps construction site listed in the description supplies a FakeRecipeImporter
-- [ ] #4 vitest --project unit packages/application passes in the shared worktree, and no commit is made
+- [x] #1 Deps has a required readonly recipeImporter: RecipeImporter, and instrumentDeps wraps it as port 'recipeImporter'. instrument.test.ts asserts the port name and that the method is 'importRecipe'
+- [x] #2 createTestClient accepts recipeImporter? (default FakeRecipeImporter) and returns it
+- [x] #3 Every application Deps construction site listed in the description supplies a FakeRecipeImporter
+- [x] #4 vitest --project unit packages/application passes in the shared worktree, and no commit is made
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -76,4 +76,6 @@ No contract change was needed; FakeRecipeImporter/RecipeImporter were already ex
 `mise exec -- pnpm -s typecheck` (repo-wide, as expected still red mid-group): no errors in packages/application. The three remaining errors are all in apps/mobile (compose-firebase.ts:34, compose-demo.ts:48, render-route.tsx:56) — each is `Property 'recipeImporter' is missing in type ... but required in type 'Deps'`, which is exactly the break surface TASK-74.5.11 (app-compose-recipes, next in Group B) is scoped to fix. No commit made; shared worktree left for the next Group B member.
 
 Verified Group B precondition (contract §0.7) before finishing: watch-kitchen-recipes.ts exists, watchKitchenRecipes is exported from packages/application/src/index.ts, and SyncStore port.ts has getRecipes/mergeRecipe — Group A is present in this worktree.
+
+Reviewed by philosophy:reviewer on main at dbcc97b. Closed: all four criteria met. AC1: Deps.recipeImporter is a required readonly field (dispatch/types.ts); instrumentDeps wraps it as 'recipeImporter'; instrument.test.ts checks the port order and {port:'recipeImporter', method:'importRecipe'}. AC2: createTestClient defaults to FakeRecipeImporter and returns it. AC3: all 8 listed construction sites supply FakeRecipeImporter (checked with grep). AC4: vitest --project unit packages/application re-run by the reviewer: 98/98 passed. The builder made no commit; the orchestrator committed Group B as 26782b0 under TASK-74.5.12, a deviation recorded on TASK-74.5. Orchestrator evidence: typecheck clean, pnpm check passed, 2073 tests passed. Findings: none. No drafts filed.
 <!-- SECTION:NOTES:END -->

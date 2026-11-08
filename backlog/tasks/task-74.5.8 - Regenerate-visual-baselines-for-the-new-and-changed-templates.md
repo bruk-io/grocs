@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.8
 title: Regenerate visual baselines for the new and changed templates
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-08 02:42'
+updated_date: '2026-11-08 02:49'
 labels:
   - size-1
   - orchestrator
@@ -26,7 +26,7 @@ Split key: orch-visual-baselines. Layer: orchestrator. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 packages/ui/visual-baselines/ holds workflow-generated PNGs for every RecipeTemplate state and every MealFormTemplate state, reviewed by eye, and pnpm check visual-baselines passes
+- [x] #1 packages/ui/visual-baselines/ holds workflow-generated PNGs for every RecipeTemplate state and every MealFormTemplate state, reviewed by eye, and pnpm check visual-baselines passes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -54,4 +54,6 @@ Files expected to change:
 
 <!-- SECTION:NOTES:BEGIN -->
 Pushed branch recipe-import-baselines (main at c9b6edc; origin/main not moved) and ran the visual baselines workflow: run 42439124508, success. Downloaded the artifact over packages/ui/visual-baselines/: 21 new PNGs (templates-recipe: rest, no-yield, long; templates-meal-form: with-import, importing, import-error, with-recipe; each at phone, fold-inner and fold-outer) plus manifest.json. No existing PNG changed. Reviewed by eye: recipe header, servings chip, source host, ingredients and numbered steps; long recipe grows without clipping; the import button's rest, 'Getting recipe' spinner and error states; the 'Saved recipe ... View recipe' row. pnpm check visual-baselines passes.
+
+Closed by reviewer. AC1 met: b885268 adds 21 workflow-generated PNGs + manifest (run 42439124508) covering RecipeTemplate Rest/NoYield/Long and MealFormTemplate WithImport/Importing/ImportError/WithRecipe at three sizes; the older meal-form stories already had baselines and none changed. Reviewed by eye by worker and orchestrator. pnpm check visual-baselines re-run by reviewer at dbcc97b: 16 checks passed. No findings.
 <!-- SECTION:NOTES:END -->

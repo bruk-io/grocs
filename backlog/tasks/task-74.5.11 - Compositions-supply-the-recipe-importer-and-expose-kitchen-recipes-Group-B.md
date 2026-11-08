@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.11
 title: Compositions supply the recipe importer and expose kitchen recipes - Group B
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 02:47'
+updated_date: '2026-11-08 02:49'
 labels:
   - size-2
   - layer-app
@@ -29,9 +29,9 @@ Split key: app-compose-recipes. Layer: app. Contract: TASK-74's plan.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 composeApp's App exposes watchKitchenRecipes(kitchenId, onRecipes, onError?) via the application query
-- [ ] #2 compose-firebase and compose-demo supply recipeImporter. appOnFakes takes `recipeImporter?: FakeRecipeImporter` (default new FakeRecipeImporter()), passes it into ports and returns it, the same way it takes syncStore and kitchens
-- [ ] #3 apps/mobile imports nothing from providers-server, and vitest --project app passes in the shared worktree. No commit is made
+- [x] #1 composeApp's App exposes watchKitchenRecipes(kitchenId, onRecipes, onError?) via the application query
+- [x] #2 compose-firebase and compose-demo supply recipeImporter. appOnFakes takes `recipeImporter?: FakeRecipeImporter` (default new FakeRecipeImporter()), passes it into ports and returns it, the same way it takes syncStore and kitchens
+- [x] #3 apps/mobile imports nothing from providers-server, and vitest --project app passes in the shared worktree. No commit is made
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -95,4 +95,6 @@ mise exec -- pnpm --dir .claude/worktrees/group-b exec vitest run --project app 
 mise exec -- pnpm --dir .claude/worktrees/group-b -s typecheck
   $ tsc --noEmit
   (clean)
+
+Reviewed by philosophy:reviewer on main at dbcc97b (Group B commit 26782b0). Closed: all 3 ACs met. AC#1: compose-app.ts App.watchKitchenRecipes delegates to @grocs/application watchKitchenRecipes(session.syncStore, ...); compose-app.test.tsx proves live-only delivery. AC#2: compose-firebase supplies FirebaseRecipeImporter(firebase.functions.fns, .instance), compose-demo supplies MemoryRecipeImporter(demoRecipes); appOnFakes takes recipeImporter?: FakeRecipeImporter (default new), passes into ports and returns it. AC#3: git grep providers-server in apps/mobile finds nothing; reviewer ran pnpm exec vitest run --project app apps: 13 files / 104 tests passed; orchestrator's full run on merged tree 2073 tests, typecheck, pnpm check, check:demo all green. Findings (low, none filed): plan step 3 said distinct per-meal demo links; worker kept the shared 'https://example.com' link and one fixture, explained in notes - no AC requires distinct links, so every linked demo meal imports the same 'Weeknight dinner' recipe; worth revisiting when TASK-74.5.15 builds the demo import flow if the demo should look realistic. Did not run record-check --tier full per orchestrator instruction (emulator port collisions).
 <!-- SECTION:NOTES:END -->
