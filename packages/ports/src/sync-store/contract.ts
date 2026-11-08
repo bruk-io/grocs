@@ -11,7 +11,7 @@ import {
   renameMeal,
   stamped,
 } from '@grocs/core';
-import type { DayIndex, Item, Meal, Recipe } from '@grocs/core';
+import type { DayIndex, Item, Meal, Recipe, Stamped } from '@grocs/core';
 import { eventually, sleep } from '../testing.ts';
 import type { TestApi } from '../testing.ts';
 import type { SyncStore } from './port.ts';
@@ -354,6 +354,64 @@ export function syncStoreRecipeContract(t: TestApi, make: () => Promise<SyncStor
       await store.mergeRecipe(kitchenId, recipe('r1', 'Tacos', 100, 'alex'));
       await sleep(300);
       t.expect(seen.length).toBe(count);
+    }));
+  });
+}
+
+const aisleStamp = (aisle: string, at: number, by: string): Stamped<string> => stamped(aisle, { at, by });
+
+/** The aisle-memory half of the SyncStore contract (R11, R14). */
+export function syncStoreAisleContract(t: TestApi, make: () => Promise<SyncStoreSubject>): void {
+  const withStore = (body: (s: SyncStoreSubject) => Promise<void>) => async (): Promise<void> => {
+    const subject = await make();
+    try {
+      await body(subject);
+    } finally {
+      await subject.dispose?.();
+    }
+  };
+
+  t.describe('SyncStore aisle contract', () => {
+    t.it('reads null for a name it has never been told', withStore(async ({ store, kitchenId }) => {
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBeNull();
+    }));
+
+    t.it('remembers an aisle and reads it back', withStore(async ({ store, kitchenId }) => {
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('dairy');
+    }));
+
+    t.it('a later stamp wins over an earlier one', withStore(async ({ store, kitchenId }) => {
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('pantry', 200, 'sam'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('pantry');
+    }));
+
+    t.it('an older stamp arriving after a newer one does not overwrite it', withStore(async ({ store, kitchenId }) => {
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('pantry', 200, 'sam'));
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('pantry');
+    }));
+
+    t.it('remembering the same stamp and value twice changes nothing', withStore(async ({ store, kitchenId }) => {
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('dairy');
+    }));
+
+    t.it('does not mix the aisle memory of two kitchens', withStore(async ({ store, kitchenId, otherKitchenId }) => {
+      if (!otherKitchenId) return;
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      await store.rememberAisle(otherKitchenId, 'milk', aisleStamp('pantry', 100, 'alex'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('dairy');
+      t.expect(await store.aisleFor(otherKitchenId, 'milk')).toBe('pantry');
+    }));
+
+    t.it('keeps names apart', withStore(async ({ store, kitchenId }) => {
+      await store.rememberAisle(kitchenId, 'milk', aisleStamp('dairy', 100, 'alex'));
+      t.expect(await store.aisleFor(kitchenId, 'eggs')).toBeNull();
+      await store.rememberAisle(kitchenId, 'eggs', aisleStamp('pantry', 200, 'sam'));
+      t.expect(await store.aisleFor(kitchenId, 'milk')).toBe('dairy');
     }));
   });
 }

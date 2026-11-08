@@ -1,5 +1,5 @@
-import { mergeItem, mergeMeal, mergeRecipe } from '@grocs/core';
-import type { Item, Meal, Recipe } from '@grocs/core';
+import { mergeItem, mergeMeal, mergeRecipe, mergeStamped } from '@grocs/core';
+import type { Item, Meal, Recipe, Stamped } from '@grocs/core';
 import type { SyncStore, Unsubscribe } from '@grocs/ports';
 
 interface ItemWatcher {
@@ -27,6 +27,7 @@ export class MemorySyncStore implements SyncStore {
   readonly #mealWatchers = new Set<MealWatcher>();
   readonly #recipes = new Map<string, Recipe>();
   readonly #recipeWatchers = new Set<RecipeWatcher>();
+  readonly #aisles = new Map<string, Stamped<string>>();
 
   async mergeItem(kitchenId: string, item: Item): Promise<void> {
     const key = `${kitchenId}/${item.id}`;
@@ -112,6 +113,17 @@ export class MemorySyncStore implements SyncStore {
     return () => {
       this.#recipeWatchers.delete(watcher);
     };
+  }
+
+  /** Remembers `nameKey`'s aisle (R11, R14): a later stamp wins, same as every stamped field. */
+  async rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void> {
+    const key = `${kitchenId}/${nameKey}`;
+    const existing = this.#aisles.get(key);
+    this.#aisles.set(key, existing ? mergeStamped(existing, aisle) : aisle);
+  }
+
+  async aisleFor(kitchenId: string, nameKey: string): Promise<string | null> {
+    return this.#aisles.get(`${kitchenId}/${nameKey}`)?.value ?? null;
   }
 
   #selectItems(kitchenId: string, weekId: string): Item[] {

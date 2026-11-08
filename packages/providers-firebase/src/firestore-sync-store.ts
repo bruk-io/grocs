@@ -8,10 +8,20 @@ import {
   mergeItem,
   mergeMeal,
   mergeRecipe,
+  mergeStamped,
+  stamped,
 } from '@grocs/core';
-import type { Item, Meal, Recipe } from '@grocs/core';
+import type { Item, Meal, Recipe, Stamped } from '@grocs/core';
 import type { SyncStore, Unsubscribe } from '@grocs/ports';
 import type { FirestoreFns, QuerySnapshotLike } from './sdk.ts';
+
+/**
+ * The schema version of the aisle-memory document (decision-7, still proposed, is the one shape
+ * this slice adopts). No codec for it lives in core (unlike items, meals and recipes): the shape
+ * is one stamped field, so the translation stays here rather than adding a one-field schema
+ * module for a document whose home may move once decision-7 lands.
+ */
+const AISLE_MEMORY_SCHEMA_VERSION = 1;
 
 /**
  * The kitchen's items, meals and recipes in Firestore: `kitchens/{kitchenId}/items/{itemId}`,
@@ -23,6 +33,10 @@ import type { FirestoreFns, QuerySnapshotLike } from './sdk.ts';
  * changing different fields at the same moment keep both changes. A Firestore transaction needs
  * a connection, so a merge made offline fails instead of queueing; making R16 work is part of
  * design question D4.
+ *
+ * rememberAisle and aisleFor keep the aisle-suggestion memory (R11, R14) at
+ * `kitchens/{kitchenId}/aisles/{nameKey}`, in decision-7's shape. They read and write plain
+ * documents rather than a transaction, by design: decision-7 found transactions fail offline.
  */
 export class FirestoreSyncStore implements SyncStore {
   readonly #fs: FirestoreFns;
@@ -143,6 +157,40 @@ export class FirestoreSyncStore implements SyncStore {
     });
   }
 
+  /**
+   * Remembers `nameKey`'s aisle at `kitchens/{kitchenId}/aisles/{nameKey}` (decision-7's shape,
+   * R11, R14). No transaction: a transaction needs a connection and would fail offline (decision-7),
+   * so this reads, merges with core's last-write-wins rule and writes a plain document instead.
+   * `setDoc` resolves only once the write reaches the server, so this still awaits the round trip
+   * when online; offline it applies to the local cache and queues, same as `getDoc`/`setDoc`
+   * elsewhere in this file.
+   */
+  async rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void> {
+    const ref = this.#aisleRef(kitchenId, nameKey);
+    const snapshot = await this.#fs.getDoc(ref);
+    let merged = aisle;
+    if (snapshot.exists()) {
+      const stored = decodeAisleMemory(snapshot.data());
+      if (stored) merged = mergeStamped(stored, aisle);
+    }
+    await this.#fs.setDoc(ref, encodeAisleMemory(merged));
+  }
+
+  /**
+   * The aisle last remembered for `nameKey`, or null if none has been. `getDoc` falls back to the
+   * local cache when offline, which is what lets this work offline (decision-7's spike, TASK-1.16,
+   * covers how quickly a stale cache catches up once the native SDK reconnects).
+   */
+  async aisleFor(kitchenId: string, nameKey: string): Promise<string | null> {
+    const snapshot = await this.#fs.getDoc(this.#aisleRef(kitchenId, nameKey));
+    if (!snapshot.exists()) return null;
+    return decodeAisleMemory(snapshot.data())?.value ?? null;
+  }
+
+  #aisleRef(kitchenId: string, nameKey: string): unknown {
+    return this.#fs.doc(this.#db, 'kitchens', kitchenId, 'aisles', nameKey);
+  }
+
   #weekQuery(kitchenId: string, weekId: string): unknown {
     return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'items'), this.#fs.where('weekId', '==', weekId));
   }
@@ -156,6 +204,26 @@ export class FirestoreSyncStore implements SyncStore {
   #recipesQuery(kitchenId: string): unknown {
     return this.#fs.query(this.#fs.collection(this.#db, 'kitchens', kitchenId, 'recipes'));
   }
+}
+
+/** `{schemaVersion, aisle: {v, at, by}}` (decision-7). Not core's StoredField shape by name, same fields. */
+function encodeAisleMemory(aisle: Stamped<string>): unknown {
+  return {
+    schemaVersion: AISLE_MEMORY_SCHEMA_VERSION,
+    aisle: { v: aisle.value, at: aisle.stamp.at, by: aisle.stamp.by },
+  };
+}
+
+/** Returns null for a document that is missing, of a different schema version, or malformed, so a bad read is never mistaken for "never remembered". */
+function decodeAisleMemory(raw: unknown): Stamped<string> | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const data = raw as Record<string, unknown>;
+  if (data['schemaVersion'] !== AISLE_MEMORY_SCHEMA_VERSION) return null;
+  const aisle = data['aisle'];
+  if (typeof aisle !== 'object' || aisle === null) return null;
+  const { v, at, by } = aisle as Record<string, unknown>;
+  if (typeof v !== 'string' || typeof at !== 'number' || typeof by !== 'string') return null;
+  return stamped(v, { at, by });
 }
 
 function decodeAll(snapshot: QuerySnapshotLike): { items: Item[]; problems: string[] } {

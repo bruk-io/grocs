@@ -1,4 +1,4 @@
-import type { Item, Meal, Recipe } from '@grocs/core';
+import type { Item, Meal, Recipe, Stamped } from '@grocs/core';
 import type { Unsubscribe } from '../unsubscribe.ts';
 
 
@@ -49,4 +49,14 @@ export interface SyncStore {
     onRecipes: (recipes: readonly Recipe[]) => void,
     onError?: (error: Error) => void,
   ): Unsubscribe;
+  /**
+   * Remember that `nameKey` (core's `aisleNameKey(name)`) goes to this aisle, so a later add of
+   * the same name can be suggested it (R11, R14). The later stamp wins; the same stamp and value
+   * twice, or an older stamp arriving after a newer one already stored, changes nothing.
+   */
+  rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void>;
+  /**
+   * The aisle last remembered for `nameKey`, or null if none has been.
+   */
+  aisleFor(kitchenId: string, nameKey: string): Promise<string | null>;
 }
