@@ -25,6 +25,8 @@ export { createKitchen } from './commands/create-kitchen.ts';
 export type { CreateKitchen, KitchenCreated } from './commands/create-kitchen.ts';
 export { editMeal } from './commands/edit-meal.ts';
 export type { EditMeal, MealEdited } from './commands/edit-meal.ts';
+export { importRecipe } from './commands/import-recipe.ts';
+export type { ImportRecipe, RecipeImported } from './commands/import-recipe.ts';
 export { acceptInvite } from './commands/accept-invite.ts';
 export type { AcceptInvite, KitchenJoined, KitchenJoinRejected } from './commands/accept-invite.ts';
 export { cancelInvite } from './commands/cancel-invite.ts';

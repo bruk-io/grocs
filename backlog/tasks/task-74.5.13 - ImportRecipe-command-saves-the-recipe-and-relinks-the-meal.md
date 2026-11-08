@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.13
 title: ImportRecipe command saves the recipe and relinks the meal
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-07 02:28'
+updated_date: '2026-11-08 03:01'
 labels:
   - size-3
   - layer-application
@@ -37,18 +37,37 @@ Split key: application-import-recipe. Layer: application. Contract: TASK-74's pl
 
 <!-- SECTION:PLAN:BEGIN -->
 ### Order of work
-1. Write the scenario tests, modelled on create-kitchen and add-item.
-2. Write the handler, then register it.
+1. Merged main into this worktree first (resolved 9 conflicts between origin/main's TASK-78/79 email-invite work and this branch's TASK-74 recipe wave: kept HEAD's invite-code deletions, took main's recipe additions; dropped two resurrected invite-code query tests; widened get-invite-offers.test.ts's Deps with recipeImporter, the one spot Group B's sweep had not reached since that test postdates it). Committed separately from this task's work, then merged again to pick up main's further advance (TASK-74.5.8/.10/.11/.12 closed).
+2. Write packages/application/src/commands/import-recipe.ts implementing contract TASK-74 §8's seven steps in order (not-signed-in, meal lookup before calling the importer, importRecipe call, recipe-deleted tombstone check via syncStore.getRecipes + isRecipeDeleted, relinkMeal with the normalised sourceUrl, mergeRecipe then mergeMeal, RecipeImported event with groceries from core groceryLineFor).
+3. Write import-recipe.scenario.test.ts modelled on add-item.scenario.test.ts (offline-store two-client pattern for R47) and edit-meal/add-meal (meal lookup, stamp) and invite-by-email.scenario.test.ts (instrumented-port assertion, R36 text check): happy path, every RecipeImportError code, recipe-deleted tombstone, relinkMeal failure (ftp:// stub), not-signed-in, meal-not-found (importer not called), throwing importer -> internal with error log, instrumented-port check, R36 log-text check, and the three R47 two-member cases.
+4. Register importRecipe in commands/index.ts and export importRecipe/ImportRecipe/RecipeImported from src/index.ts (watchKitchenRecipes already exported by the prior merge).
+5. Run vitest --project unit packages/application and pnpm -s typecheck repo-wide; record output in the task notes.
 
 ### Risks
-Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation).
+Follow TASK-74's slice contract exactly; a needed contract change goes in this task's notes and the work stops (decision-3 mediation). The merge above was mechanical reconciliation of two already-reviewed branches, not a contract change, per the advisor's reading of CLAUDE.md's "or the orchestrator, if the agent can't resolve its own merge" line.
 
 ### Proof
 Each acceptance criterion is shown by a test or command output recorded in the notes.
-
-Files expected to change:
-- packages/application/src/commands/import-recipe.ts
-- packages/application/src/commands/import-recipe.scenario.test.ts
-- packages/application/src/commands/index.ts
-- packages/application/src/index.ts
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation (contract TASK-74 §8, §0.1, §0.2, §0.6):
+- packages/application/src/commands/import-recipe.ts: importRecipe follows the seven steps in order (not-signed-in; meal lookup before calling the importer; recipeImporter.importRecipe(url); getRecipes + isRecipeDeleted tombstone check -> 'recipe-deleted'; relinkMeal with parsed.sourceUrl, 'internal' on its (impossible-in-practice) failure; mergeRecipe then mergeMeal; RecipeImported with groceries from core groceryLineFor). Registered in commands/index.ts; importRecipe, ImportRecipe and RecipeImported exported from src/index.ts (watchKitchenRecipes was already exported by the branch this task built on).
+- packages/application/src/commands/import-recipe.scenario.test.ts: 18 cases - happy path; each of the 6 RecipeImportError codes stores nothing; recipe-deleted tombstone leaves the meal unrelinked; a non-http(s) sourceUrl (ftp://x) maps to internal; not-signed-in and meal-not-found never call the importer; a throwing importer becomes internal with a logged error; the call is checked through the instrumented port {port:'recipeImporter', method:'importRecipe'}; R36 (title/URL/ingredient/step text absent from JSON.stringify(logger.records())); three R47 two-member cases (same-URL import from both clients keeps one recipe at the earlier createdAt; an offline relink merges against the import by stamp, not arrival order, in both directions, with recipeForLink confirming the detached case; a concurrent remove beats a concurrent import - meal stays deleted, recipe still saves, per R20).
+
+Checks (AC#4):
+$ mise exec -- pnpm exec vitest run --project unit packages/application
+ Test Files  20 passed (20)
+      Tests  116 passed (116)
+
+$ mise exec -- pnpm -s typecheck
+$ tsc --noEmit
+(clean, no output - exit 0, repo-wide)
+
+$ node tools/checks/run.ts --mode staged
+checks passed (16 checks, staged mode)
+
+Pre-merge note: this worktree's branch had diverged from local main (TASK-78/79 email-invite work landed on main after this branch's TASK-74 wave started). Per the advisor's reading of CLAUDE.md's merge-refresh guidance, I ran `git merge --no-edit main` before starting (twice, as main advanced again mid-session with the Group B close), resolving 9 mechanical conflicts (kept HEAD's invite-code deletions, took in the recipe-wave additions; dropped two invite-code query tests TASK-78 already removed; widened get-invite-offers.test.ts's Deps with FakeRecipeImporter, the one test the prior Group B sweep had not reached). Committed as a separate commit from this task's own work, both already included above in the green runs.
+<!-- SECTION:NOTES:END -->
