@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@bruk'
 created_date: '2026-11-07 00:38'
-updated_date: '2026-11-07 05:30'
+updated_date: '2026-11-08 03:48'
 labels:
   - size-8
   - core
@@ -536,4 +536,6 @@ Split into 40 leaf tasks on 2026-11-07 (orchestrator, from a map, draft, three-c
 Contract amended 2026-11-07 (orchestrator, decision-3 mediation): section 9 step 4 strips every trailing slash, not one, so normaliseRecipeUrl stays idempotent for paths like '//'. The code fix is the size-1 bug under TASK-74.4.
 
 2026-11-07 (orchestrator): after wave 3, pnpm test:emulator has 4 expected failures in packages/providers-firebase/src/recipe-importer.emulator.test.ts. That suite runs FirebaseRecipeImporter through the real importRecipe callable, which TASK-74.4.7 adds; TASK-74.5.9 runs it green. Not skipped (tests are never weakened).
+
+Contract amendment §8 (2026-11-07, orchestrator, TASK-74.5.17): ImportRecipe stamps the meal relink at max(clock.now(), meal.link.stamp.at + 1), strictly after the link it replaces, so a meal save in the same millisecond cannot win the LWW tie by JSON order. The recipe's createdAt stays clock.now().
 <!-- SECTION:NOTES:END -->
