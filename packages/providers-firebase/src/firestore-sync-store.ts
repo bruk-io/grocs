@@ -181,12 +181,12 @@ export class FirestoreSyncStore implements SyncStore {
    * with no connection - but only within two limits: a `nameKey` this phone has never read online
    * has nothing cached to fall back to (the SDK rejects with "unavailable" rather than resolving
    * to a missing snapshot; that is read the same as "never remembered" and gives null), and once
-   * cached, the value can still be stale after this phone's own `rememberAisle` succeeds offline
-   * on another client sharing the cache (decision-7's spike, TASK-1.16, covers how quickly a stale
-   * cache catches up once the native SDK reconnects). An undecodable document throws, the same
-   * `invalid aisle document {nameKey}: ...` error `rememberAisle` throws for one, since this
-   * promise is the only error channel `aisleFor` has; TASK-1.22.7's suggestAisle and AddItem catch
-   * the rejection, log it and fall back.
+   * cached, the value can still be stale after a `rememberAisle` on this phone, because a
+   * transaction's write does not refresh the cache this read uses (decision-7's spike, TASK-1.16,
+   * covers how quickly a stale cache catches up once the native SDK reconnects). An undecodable
+   * document throws, the same `invalid aisle document {nameKey}: ...` error `rememberAisle` throws
+   * for one, since this promise is the only error channel `aisleFor` has. Callers fall back to no
+   * suggestion; port instrumentation logs the failure.
    */
   async aisleFor(kitchenId: string, nameKey: string): Promise<string | null> {
     let snapshot: Awaited<ReturnType<FirestoreFns['getDoc']>>;
