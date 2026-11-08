@@ -64,9 +64,9 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
 
 /**
  * This week's list and plan, from the sample Groceries and Plan screens. Items alternate between the
- * 'demo-alex' and 'demo-sam' uids so the list isn't monotonous, but only demo-alex is a member of the
- * one demo kitchen, so a 'demo-sam' item shows no avatar for who added it: the kitchen's own gateway
- * cannot resolve a name for a uid that isn't one of its members (R11's unknown-uid case), by design.
+ * 'demo-alex' and 'demo-sam' uids, but only demo-alex is a member of the one demo kitchen, so a
+ * 'demo-sam' item shows no avatar for who added it: GroceriesScreen's nameOf finds no member for that
+ * uid in the kitchen's own members (R9's unknown-uid case), by design.
  */
 function seed(syncStore: MemorySyncStore, clock: Clock): void {
   const at = clock.now();

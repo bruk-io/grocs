@@ -122,7 +122,7 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   };
 
   // Nothing while the kitchen has not loaded, for a uid that is not (or is no longer) a member, or for a
-  // member the gateway could not resolve a name for: its own fallback is the uid itself (R11's "unknown" case).
+  // member the gateway could not resolve a name for: its own fallback is the uid itself (R9's "unknown" case).
   const nameOf = (uid: string): string | undefined => {
     const member = kitchen?.members.find((m) => m.uid === uid);
     return member && member.name !== member.uid ? member.name : undefined;

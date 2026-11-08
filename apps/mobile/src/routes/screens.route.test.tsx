@@ -624,6 +624,33 @@ describe('QuickAdd', () => {
     dispatchSpy.mockRestore();
   });
 
+  it("a person's own choice of aisle is never overwritten by a later suggestion", async () => {
+    const app = await appOnFakes({ signedIn: true });
+    const kitchenId = (await app.app.findMyKitchen())!;
+    const weekId = weekIdFor(app.app.now());
+    const garlic: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Garlic', aisle: 'produce' };
+    expect((await app.app.dispatch(garlic)).ok).toBe(true);
+    const oatMilk: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Oat milk', aisle: 'dairy' };
+    expect((await app.app.dispatch(oatMilk)).ok).toBe(true);
+
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    const nameField = await screen.findByRole('textbox', { name: 'Add an item' });
+    fireEvent.change(nameField, { target: { value: 'Garlic' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pantry' })); // overrides the suggestion
+
+    // Changing the name to another also-remembered one would otherwise suggest Dairy & eggs; flush
+    // that lookup, then assert synchronously, so the choice already made is proven to hold against it
+    // actually landing, not merely checked before it had a chance to.
+    await act(async () => {
+      fireEvent.change(nameField, { target: { value: 'Oat milk' } });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.getByRole('button', { name: 'Pantry' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
   it("still suggests a cleared item's aisle for the same name (R14)", async () => {
     const app = await appOnFakes({ signedIn: true });
     const kitchenId = (await app.app.findMyKitchen())!;
@@ -676,11 +703,15 @@ describe('Quick add aisle suggestion guards (R11, R14)', () => {
     syncStore.resolveOldest('Banana', 'produce'); // the newer lookup answers first
     await waitFor(() => expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true'));
 
-    syncStore.resolveOldest('Apple', 'dairy'); // the older, now-stale lookup answers late
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true');
-      expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('false');
+    // Flushes the older lookup's own answer landing, then asserts synchronously: waitFor's first,
+    // immediate check would otherwise pass trivially on the state from before this answer arrived at
+    // all, proving nothing about whether it was actually guarded against.
+    await act(async () => {
+      syncStore.resolveOldest('Apple', 'dairy'); // the older, now-stale lookup answers late
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('a person choosing an aisle while a lookup is in flight keeps that choice when it answers', async () => {
@@ -691,12 +722,32 @@ describe('Quick add aisle suggestion guards (R11, R14)', () => {
 
     fireEvent.change(nameField, { target: { value: 'Apple' } });
     fireEvent.click(screen.getByRole('button', { name: 'Pantry' }));
-    syncStore.resolveOldest('Apple', 'produce');
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Pantry' }).getAttribute('aria-pressed')).toBe('true');
-      expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('false');
+    // Flushes the lookup's own answer landing, then asserts synchronously: see the comment above.
+    await act(async () => {
+      syncStore.resolveOldest('Apple', 'produce');
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    expect(screen.getByRole('button', { name: 'Pantry' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('a lookup still in flight when the name is blanked leaves the chip clear when it answers', async () => {
+    const syncStore = new DeferredAisleStore();
+    const app = await appOnFakes({ signedIn: true, syncStore });
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    const nameField = await screen.findByRole('textbox', { name: 'Add an item' });
+
+    fireEvent.change(nameField, { target: { value: 'Apple' } });
+    fireEvent.change(nameField, { target: { value: '' } }); // blanked while Apple's lookup is still pending
+
+    await act(async () => {
+      syncStore.resolveOldest('Apple', 'produce');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    for (const label of ['Produce', 'Dairy & eggs', 'Meat', 'Bakery', 'Pantry', 'Other']) {
+      expect(screen.getByRole('button', { name: label }).getAttribute('aria-pressed')).toBe('false');
+    }
   });
 
   it('deselecting a chip and then typing never lets a later suggestion apply', async () => {

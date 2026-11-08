@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 22:00'
+updated_date: '2026-11-08 22:26'
 labels:
   - layer-app
   - size-3
@@ -100,4 +100,19 @@ Cleanups: QuickAddScreen's aisleTouched comment now cites R11, not R14; its 'sug
 Not changed, by design, with the seed comment corrected to say so: compose-demo.ts's seed() still alternates items between 'demo-alex' and 'demo-sam' uids, but only demo-alex is a member of the one demo kitchen, so a 'demo-sam' item now shows no avatar for who added it (R11's unknown-uid case) in the demo build. The old comment claiming they were 'added by Alex and Sam' was corrected to say this plainly, rather than changing the seed's behaviour.
 
 Check output after this round: pnpm exec vitest run --project app --project tools: 45 files, 462 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed.
+
+Review follow-up (round 3): two test gaps, no code defect; correcting round 2's notes.
+
+Correction: round 2's notes claimed replacing the old sleep-based 'own choice' test was 'not a shrink', but it was removed outright rather than kept alongside the new guard tests; that claim was wrong. Restored it in apps/mobile/src/routes/screens.route.test.tsx under 'QuickAdd' as a person's own choice of aisle is never overwritten by a later suggestion: seeds Garlic as produce and Oat milk as dairy (AddItem dispatch), types Garlic, waits for the Produce suggestion, chooses Pantry, changes the name to Oat milk inside act() with a flushing microtask, then asserts synchronously that Pantry stays pressed and Dairy and eggs does not.
+
+Fixed the two guard tests the re-review named (previously at :679 and :694, now in the Quick add aisle suggestion guards describe): both called syncStore.resolveOldest(...) then went straight into waitFor, whose first synchronous check runs before the resolved promise's own then has had a chance to run, so it could pass on the state from before the answer even landed, proving nothing about the guard. Both now flush with act(async that resolves the lookup and awaits a zero-length timeout), then assert synchronously, outside waitFor's retry-forgiving first check. Added the asked-for case: a lookup still in flight when the name is blanked, answered later, leaves every chip clear.
+
+Proved by mutation (QuickAddScreen.tsx's suggestion effect), one change at a time, run against apps/mobile/src/routes/screens.route.test.tsx, then restored (diffed byte-identical against a saved copy before committing):
+- Removed the seq-mismatch check from the then guard (kept only the aisleTouched check): 2 tests failed - an older answer landing after a newer one never overrides it, and a lookup still in flight when the name is blanked leaves the chip clear when it answers.
+- Removed the inner aisleTouched check from the same then guard (kept only the seq check): 1 test failed - a person choosing an aisle while a lookup is in flight keeps that choice when it answers.
+- Removed the outer early-return on aisleTouched at the top of the effect (QuickAddScreen.tsx line 44): 1 test failed - a person's own choice of aisle is never overwritten by a later suggestion (the just-restored test above; the deferred-store deselect-and-type test did not catch this one, since nothing was ever queued to resolve for the name it types).
+
+Small fixes: GroceriesScreen.tsx's nameOf comment and compose-demo.ts's seed comment now cite R9 (who-added's unknown-uid case), not R11; the seed comment now says GroceriesScreen's nameOf finds no member for demo-sam, and drops the isn't monotonous rationale for alternating the seed's uids.
+
+Check output: pnpm exec vitest run --project app --project tools: 45 files, 464 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed.
 <!-- SECTION:NOTES:END -->
