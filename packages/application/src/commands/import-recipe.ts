@@ -43,11 +43,14 @@ export async function importRecipe(command: ImportRecipe, ctx: CommandContext): 
     return err({ code: 'recipe-deleted', message: 'that recipe was removed from this kitchen' });
   }
 
-  const stamp = { at: clock.now(), by: user.uid };
-  const relinked = relinkMeal(meal, parsed.sourceUrl, stamp);
+  const now = clock.now();
+  // Relink must sort after the link it replaces; a same-millisecond save would otherwise win by JSON order.
+  const relinkStamp = { at: Math.max(now, meal.link.stamp.at + 1), by: user.uid };
+  const relinked = relinkMeal(meal, parsed.sourceUrl, relinkStamp);
   if (!relinked.ok) return err({ code: 'internal', message: IMPORT_FAILED });
 
-  await syncStore.mergeRecipe(command.kitchenId, recipeFromImport(parsed, stamp));
+  const recipeStamp = { at: now, by: user.uid };
+  await syncStore.mergeRecipe(command.kitchenId, recipeFromImport(parsed, recipeStamp));
   await syncStore.mergeMeal(command.kitchenId, relinked.value);
 
   const event: RecipeImported = {

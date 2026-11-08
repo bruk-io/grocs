@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:46'
+updated_date: '2026-11-08 03:48'
 labels:
   - size-3
   - layer-app
@@ -13,6 +13,7 @@ dependencies:
   - TASK-74.5.14
   - TASK-74.5.7
   - TASK-74.5.13
+  - TASK-74.5.17
 parent_task_id: TASK-74.5
 type: task
 ---
