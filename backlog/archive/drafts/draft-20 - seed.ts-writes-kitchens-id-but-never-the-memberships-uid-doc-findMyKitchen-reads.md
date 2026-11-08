@@ -6,6 +6,7 @@ title: >-
 status: Draft
 assignee: []
 created_date: '2026-10-23 03:52'
+updated_date: '2026-11-08 17:56'
 labels: []
 dependencies: []
 type: bug
@@ -29,3 +30,9 @@ firebase/seed/seed.ts, firebase/seed/data.ts; anyone manually testing the real a
 <!-- AC:BEGIN -->
 - [ ] #1 Signing in as a seeded account (bruk@grocs.test or sam@grocs.test) against pnpm emulators lands on the seeded kitchen's Groceries screen, not a not-found state
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-08: already fixed. firebase/seed/seed.ts now writes memberships/{uid} for each member. Archived.
+<!-- SECTION:NOTES:END -->

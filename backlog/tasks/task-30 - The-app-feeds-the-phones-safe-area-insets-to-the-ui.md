@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-20 22:33'
-updated_date: '2026-10-21 11:22'
+updated_date: '2026-11-08 17:55'
 labels:
   - size-2
   - layer-app
@@ -42,7 +42,16 @@ apps/mobile root layout; every screen.
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
+### Order of work
 DeviceSafeArea (apps/mobile/src/platform): wraps children in react-native-safe-area-context's SafeAreaProvider (aliased NativeSafeAreaProvider), and an inner component reads useSafeAreaInsets and passes them to @grocs/ui's SafeAreaProvider. Root layout wraps Slot in it. Tests: the safe-area stub honours initialMetrics; renderRoute takes optional insets; route-setup mocks the library for the app's own import; safe-area.route.test renders Groceries with top 40 and finds the padding; a source test checks the root layout wiring. #3 needs a device.
+
+### Risks
+- The route tests stub react-native-safe-area-context, so they cannot prove real device insets.
+- A wrong provider order would leave the ui's insets at zero with no error.
+
+### Proof
+- safe-area.route.test renders Groceries with non-zero insets; a source test checks the root layout wiring (#1, #2).
+- #3 needs a demo APK on an Android phone with a screenshot. Not done yet.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -121,4 +130,6 @@ visual: 353 story views checked (axe, 44 x 44, 353 images compared)
 Review (philosophy:reviewer, 2026-10-20): NOT CLOSED - #3 needs a demo APK and screenshot. #1 met: _layout.tsx wraps Slot in DeviceSafeArea, which feeds react-native-safe-area-context's useSafeAreaInsets into @grocs/ui's SafeAreaProvider; the source-text test is weak (it pins the JSX shape, not behaviour) but acceptable since route tests never render the root layout, and DeviceSafeArea itself is exercised by every route test through renderRoute. #2 met: safe-area.route.test.tsx finds padding-top 40 with top inset 40, and under 40 without. Harness change: the stub's defaults (zero insets, 393x852) are unchanged and now come from context defaults, so existing route tests see the same values; the vi.mock gives the app's import the same stub expo-router already got. Full check exited 0 in one run, including the kitchen and error-boundary route tests (no timeouts). Low findings, no drafts: expo-router's ExpoRoot already mounts a SafeAreaProvider, so DeviceSafeArea's is a nested one - harmless at the screen origin, and the #3 device check will confirm; the layout test would pass if DeviceSafeArea were swapped for a no-op. Code is ready to merge to main for the demo APK.
 
 2026-10-21: Bruk reported on his Fold with the demo APK from run 39545258100: 'I can tap settings.' His Welcome screenshot shows the wordmark clear of the status bar. A Groceries screenshot is still wanted for #3.
+
+2026-11-08 board cleanup: plan reshaped into the sections board-check asks for. Order of work is the original text; Risks and Proof were written afterwards from the notes above, not before the work.
 <!-- SECTION:NOTES:END -->

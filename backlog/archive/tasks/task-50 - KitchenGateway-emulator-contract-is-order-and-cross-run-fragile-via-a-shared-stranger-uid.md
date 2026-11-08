@@ -7,7 +7,7 @@ status: To Do
 assignee:
   - '@claude'
 created_date: '2026-10-24 22:33'
-updated_date: '2026-10-24 22:33'
+updated_date: '2026-11-08 19:22'
 labels:
   - layer-providers
   - size-2
@@ -26,3 +26,11 @@ Found by reviewer-providers tonight (Oct 24, 2026) while reviewing TASK-1.21.4: 
 - [ ] #1 The KitchenGateway emulator contract either gives stranger a unique uid per test run (matching how other emulator suites avoid shared fixture state), or explicitly clears any state stranger-uid could have left before each run that depends on it reading as a stranger
 - [ ] #2 The emulator project run is deterministic across repeated clean runs - no intermittent failures from cross-file state bleed
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-11-08: duplicate of TASK-81 (same test file, same cross-run state). Commit 36694c2 (TASK-78.1) replaced the fixed stranger-uid with person(), which gives each person a per-run uid. Archived in favour of TASK-81, which carries the evidence.
+
+2026-11-08 correction: 'duplicate' overstated this. TASK-81's review found criterion 1 (the fixed stranger uid) covered, but criterion 2 (deterministic repeated runs) not shown: a full check hit an intermittent 403 in kitchen-gateway.emulator.test.ts, cause unknown. That is now the draft 'KitchenGateway contract over Functions intermittently fails with not a member right after createKitchen'. Archived again in favour of that draft.
+<!-- SECTION:NOTES:END -->

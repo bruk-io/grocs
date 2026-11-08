@@ -1,11 +1,11 @@
 ---
 id: TASK-1.37.1
 title: Atoms from the design reference
-status: In Progress
+status: Done
 assignee:
   - '@builder-ui'
 created_date: '2026-10-19 03:12'
-updated_date: '2026-10-19 05:29'
+updated_date: '2026-11-08 19:22'
 labels:
   - size-5
   - layer-ui
@@ -14,6 +14,58 @@ labels:
 milestone: m-2
 dependencies:
   - TASK-1.37.6
+modified_files:
+  - apps/mobile/app/_layout.tsx
+  - apps/mobile/package.json
+  - apps/mobile/src/layout-fonts.test.ts
+  - packages/ui/src/atoms/atoms.test.tsx
+  - packages/ui/src/atoms/Avatar.stories.tsx
+  - packages/ui/src/atoms/Avatar.tsx
+  - packages/ui/src/atoms/Badge.stories.tsx
+  - packages/ui/src/atoms/Badge.tsx
+  - packages/ui/src/atoms/Button.behaviour.test.tsx
+  - packages/ui/src/atoms/Button.stories.tsx
+  - packages/ui/src/atoms/Button.tsx
+  - packages/ui/src/atoms/Checkbox.behaviour.test.tsx
+  - packages/ui/src/atoms/Checkbox.stories.tsx
+  - packages/ui/src/atoms/Checkbox.tsx
+  - packages/ui/src/atoms/Chip.behaviour.test.tsx
+  - packages/ui/src/atoms/Chip.stories.tsx
+  - packages/ui/src/atoms/Chip.tsx
+  - packages/ui/src/atoms/Count.stories.tsx
+  - packages/ui/src/atoms/Count.tsx
+  - packages/ui/src/atoms/focus.ts
+  - packages/ui/src/atoms/IconTile.stories.tsx
+  - packages/ui/src/atoms/IconTile.tsx
+  - packages/ui/src/atoms/InviteCode.stories.tsx
+  - packages/ui/src/atoms/InviteCode.tsx
+  - packages/ui/src/atoms/keyboard.ts
+  - packages/ui/src/atoms/meal-tone.ts
+  - packages/ui/src/atoms/Meter.stories.tsx
+  - packages/ui/src/atoms/Meter.tsx
+  - packages/ui/src/atoms/Skeleton.stories.tsx
+  - packages/ui/src/atoms/Skeleton.tsx
+  - packages/ui/src/atoms/SpeechBubble.stories.tsx
+  - packages/ui/src/atoms/SpeechBubble.tsx
+  - packages/ui/src/atoms/Spinner.stories.tsx
+  - packages/ui/src/atoms/Spinner.tsx
+  - packages/ui/src/atoms/Switch.behaviour.test.tsx
+  - packages/ui/src/atoms/Switch.stories.tsx
+  - packages/ui/src/atoms/Switch.tsx
+  - packages/ui/src/atoms/Tag.stories.tsx
+  - packages/ui/src/atoms/Tag.tsx
+  - packages/ui/src/atoms/Text.stories.tsx
+  - packages/ui/src/atoms/Text.tsx
+  - packages/ui/src/atoms/TextField.behaviour.test.tsx
+  - packages/ui/src/atoms/TextField.stories.tsx
+  - packages/ui/src/atoms/TextField.tsx
+  - packages/ui/src/atoms/Tile.stories.tsx
+  - packages/ui/src/atoms/Tile.tsx
+  - packages/ui/src/index.ts
+  - packages/ui/src/platform/font-face.ts
+  - packages/ui/src/platform/reduce-motion.ts
+  - packages/ui/src/tokens/tokens.json
+  - packages/ui/src/tokens/tokens.ts
 parent_task_id: TASK-1.37
 type: task
 ---
@@ -196,4 +248,84 @@ Not closed: AC #6 unmet for lack of device evidence. ACs 1-5 ticked.
 Finish moved on 2026-10-19 at review: criterion 6 (fonts load on both phones) needs a phone, which the cloud session doesn't have. It moved, with the review's silent-fallback finding, to TASK-1.37.7, assigned to Bruk, so this task closes on what it proved and the molecules can start.
 
 2026-10-19: philosophy:reviewer ticked all five criteria, but its close-task run was blocked by the workspace's permission check (External System Writes), both in the main checkout and in the task's worktree. The orchestrator did not run it on the reviewer's behalf. Waiting on Bruk to run close-task or approve it.
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(1021 earlier lines omitted)
+```text
+│  3.73 kB │ gzip:   1.49 kB
+│  storybook-static/assets/KitchenSetupTemplate.stories-DNMss1pw.js
+│  4.34 kB │ gzip:   1.73 kB
+│  storybook-static/assets/ItemPickerTemplate.stories-BhqMxZMn.js
+│  4.45 kB │ gzip:   1.58 kB
+│  storybook-static/assets/Button.stories-Btl_3CFU.js
+│  4.47 kB │ gzip:   1.31 kB
+│  storybook-static/assets/ItemRow-DvUMp8hC.js
+│  5.19 kB │ gzip:   1.99 kB
+│  storybook-static/assets/PreferencesTemplate.stories-D5Odmrfs.js
+│  5.30 kB │ gzip:   2.04 kB
+│  storybook-static/assets/TextField-BnPWFEqF.js
+│  5.35 kB │ gzip:   2.03 kB
+│  storybook-static/assets/MealFormTemplate.stories-hbL71utF.js
+│  6.26 kB │ gzip:   2.11 kB
+│  storybook-static/assets/Button-BoEyW2D8.js
+│  6.43 kB │ gzip:   2.04 kB
+│  storybook-static/assets/react-BWPDF9mI.js
+│  7.87 kB │ gzip:   3.00 kB
+│  storybook-static/assets/GroceryListTemplate.stories-B6FC8Y0H.js
+│  9.46 kB │ gzip:   3.16 kB
+│  storybook-static/assets/Mascot-9qzfYchL.js
+│  12.29 kB │ gzip:   4.47 kB
+│  storybook-static/assets/icons-D9-RnOgP.js
+│  15.62 kB │ gzip:   2.56 kB
+│  storybook-static/assets/KitchenScene-ksyHI9MX.js
+│  18.10 kB │ gzip:   5.05 kB
+│  storybook-static/vite-inject-mocker-entry.js
+│  27.81 kB │ gzip:   9.67 kB
+│  storybook-static/assets/module-Bk-jiIm0.js
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-C68uENE-.js
+│  167.09 kB │ gzip:  49.81 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-COUQCjPE.js
+│  1,361.35 kB │ gzip: 392.25 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.37s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 458 story views checked (axe, 44 x 44, images not compared)
+```
+
+Review (philosophy:reviewer), 2026-11-08: NOT CLOSED. All five criteria hold on current code, nothing left to tick, but close-task refuses: .claude/checks.json changed since acceptance (81a13b9) and this task has no 'Checks changed:' note. As on TASK-1.37.6, the reviewer does not write that note. The orchestrator adds it, then close-task is re-run. The change itself is additive: 5a3cecc (TASK-1.37.6, criterion 6) appended the visual pass to the full tier. Fast tier unchanged, nothing removed or loosened.
+
+Evidence: record-check --tier full exited 0 with no files rewritten outside backlog/, but on darwin, so it ran axe and 44 x 44 over 458 story views and did NOT compare images. Baseline evidence is CI instead: ci succeeded at 4fe6de0 (ci.yml runs the visual pass on Linux), and 4fe6de0..HEAD changes nothing under packages/ui/src/atoms or packages/ui/src/tokens and no atoms-* baseline. Every atom story file has one baseline per exported story. DS-Atoms.dc.html and its shot are deleted; the only live mention is a fixture in design-system-checks.test.ts. AC #3's side-by-side with DS-Atoms.png was the 2026-10-19 review's and was not repeated; atoms changed since through later tasks with workflow-generated baselines.
+
+Findings (none blocks, no new drafts):
+- AC #1, low: InviteCode, the invite.code row in the atom map above, no longer exists. TASK-78.1 deleted it on 2026-11-07 when Bruk replaced invite codes with sharing by email, with the test removal recorded in weakening-overrides.json. It was built here; the later removal was deliberate, so do not restore it. The modified-files list still names its two files as history. Avatar has since gained xl and xlOnline, also not in the map.
+- AC #1, low: mascot.* lives in packages/ui/src/mascots under TASK-1.30 (Done), not in atoms, as the plan said.
+- AC #5, medium: Button.tsx:47 and Chip.tsx:33 still use disabledInk on the disabled background, the pair TASK-49 fixed in TextField. Axe exempts disabled controls, so the pass stays clean. Already DRAFT-22; not duplicated.
+- Device fonts stay with TASK-1.37.7 (To Do, Bruk).
+
+Checks changed: .claude/checks.json, full tier only. 5a3cecc (TASK-1.37.6, its criterion #6) appended '&& pnpm --filter @grocs/ui visual -- --no-build' after build-storybook so the browser pass runs in the full tier. The fast tier is unchanged and no existing command was removed or loosened. TASK-1.37.1 depends on TASK-1.37.6 and was built against that pass.
+
+Closed on the independent review recorded above, which found all five criteria hold on the current code and named the Checks changed note as the only blocker. The note was verified against git diff 81a13b9 HEAD -- .claude/checks.json: one additive change. Follow-ups: the disabledInk draft, and InviteCode removed by TASK-78.1.
 <!-- SECTION:NOTES:END -->

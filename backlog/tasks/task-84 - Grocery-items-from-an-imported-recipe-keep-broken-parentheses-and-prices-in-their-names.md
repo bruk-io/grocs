@@ -1,9 +1,9 @@
 ---
-id: DRAFT-34
+id: TASK-84
 title: >-
   Grocery items from an imported recipe keep broken parentheses and prices in
   their names
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-11-08 04:21'
 labels:

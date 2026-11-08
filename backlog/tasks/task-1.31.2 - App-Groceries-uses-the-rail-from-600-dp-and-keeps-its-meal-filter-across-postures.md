@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-10-21 15:38'
-updated_date: '2026-10-22 04:03'
+updated_date: '2026-11-08 17:55'
 labels:
   - size-2
   - layer-app
@@ -40,7 +40,7 @@ Cites R43. Builds the app half of decision-14: the width switch (600 dp and wide
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-Plan
+### Order of work
 1. GroceriesScreen: useWindowDimensions; width >= 600 renders layout='inner' with rail (MealRail from the sample week, counts from the list) else phone. One component instance, so the meal filter (useState selectedMealId) survives a width change.
 2. Filter: items carry Item.badges (meal ids); toListItem maps ids to sample-week meals as mealBadges. Choosing a meal narrows sections to its to-buy items, passes filter {mealName,count,tone,onShowAll}; template hides In the cart while filtered (Bruk's decision). Phone layout shows the same filter line.
 3. Rail wiring: onSelectSection plan -> go.plan; onPlanMeal -> go.addMeal.
@@ -48,6 +48,14 @@ Plan
 5. Tests: route tests at 411 and 791 wide, filter survives resize, demo route test choosing a meal. route-setup pins the default window at 412 so existing tests keep the phone layout.
 6. Criterion 4 needs the Fold: cannot be met here; recorded in notes.
 Modified files: apps/mobile/src/screens/GroceriesScreen.tsx, apps/mobile/src/sample/sample-data.ts, apps/mobile/src/demo/compose-demo.ts, apps/mobile/src/demo/demo.route.test.tsx, apps/mobile/src/routes/groceries-rail.route.test.tsx, apps/mobile/testing/route-setup.ts
+
+### Risks
+- Route tests prove the logic in jsdom only; react-native-web reads the window width differently from a real fold.
+- route-setup changes the default window width for every route test, so it must stay at the phone width.
+
+### Proof
+- Route tests at both widths and across a width change (#1, #2); the demo route test (#3).
+- #4 needs a Pixel 10 Fold with screenshots in the notes. Not done yet.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -138,4 +146,6 @@ Findings (none filed as drafts):
 - Low (accepted): live lists show the sample week in the rail with zero counts, and choosing a meal shows an empty list. Decision-14's consequences (line 30) accept this explicitly until TASK-1.21, so nothing is filed. TASK-1.21 should replace weekMeals in GroceriesScreen.
 - Info: the route-setup change lost no coverage. Before it, react-native-web read width 0, which already gave the phone layout, and no existing test depended on width. Pinning 412 keeps them on the phone layout, and only the new tests widen the window.
 - Info: the compose-demo badge mapping matches meals by name, so a renamed sample meal would silently drop its badges. Acceptable for demo seed data.
+
+2026-11-08 board cleanup: plan reshaped into the sections board-check asks for. Order of work is the original text; Risks and Proof were written afterwards from the notes above, not before the work.
 <!-- SECTION:NOTES:END -->

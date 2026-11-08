@@ -6,7 +6,7 @@ title: >-
 status: Draft
 assignee: []
 created_date: '2026-10-23 03:52'
-updated_date: '2026-10-24 03:46'
+updated_date: '2026-11-08 17:56'
 labels: []
 dependencies: []
 modified_files:
@@ -52,4 +52,6 @@ Full suite green after the fix: pnpm check, pnpm typecheck, pnpm test (117 files
 One unrelated thing found and fixed along the way, same session: `expo run:android`/`expo start` auto-generates a local apps/mobile/tsconfig.json that's gitignored specifically because it's known to break vitest/typecheck (see the .gitignore comment right above that line) - hit this, deleted it (not edited it) each time it reappeared, matching what the comment already says to do.
 
 Not yet done: AC1 only covers Android (this session's device access). iOS wasn't re-tested against this fix. Nothing commits itself - all of this is still uncommitted locally, ready for review.
+
+2026-11-08: already fixed. Its own notes record the root cause and fix from 2026-10-24, and tools/emulators.ts now starts functions. Archived.
 <!-- SECTION:NOTES:END -->

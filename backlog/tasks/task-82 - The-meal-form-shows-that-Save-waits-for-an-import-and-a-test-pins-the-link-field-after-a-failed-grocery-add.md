@@ -1,9 +1,9 @@
 ---
-id: DRAFT-32
+id: TASK-82
 title: >-
   The meal form shows that Save waits for an import, and a test pins the link
   field after a failed grocery add
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-11-08 04:05'
 labels:
