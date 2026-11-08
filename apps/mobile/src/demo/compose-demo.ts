@@ -80,7 +80,7 @@ function seed(syncStore: MemorySyncStore, clock: Clock): void {
   }
   for (const [index, sample] of [...produce, ...meat].entries()) {
     const made = createExtraItem(
-      { id: `demo-${sample.id}`, weekId, name: sample.name, ...(sample.amount ? { amount: sample.amount } : {}) },
+      { id: `demo-${sample.id}`, weekId, name: sample.name, ...(sample.amount ? { amount: sample.amount } : {}), ...(sample.aisle ? { aisle: sample.aisle } : {}) },
       { at, by: index % 2 === 0 ? 'demo-alex' : 'demo-sam' },
     );
     if (!made.ok) throw new Error(`the demo sample item ${sample.id} is not a valid item`);

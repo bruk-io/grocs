@@ -1,6 +1,6 @@
 // Level 4 of decision-11 on the demo composition (decision-12): the real routes, rendered over
 // composeDemoApp, which runs on the in-memory provider and the sample data.
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { FakeClock, MemoryLogger, SequentialIds } from '@grocs/ports/testing';
 import Home from '../../app/index.tsx';
@@ -63,7 +63,9 @@ describe('demo composition', () => {
     // Yellow onions is for two meals, so both badges show beside it.
     expect(screen.getAllByText('Chana masala').length).toBeGreaterThan(1);
     expect(screen.getAllByText('Sheet-pan chicken').length).toBeGreaterThan(1);
-    fireEvent.click(screen.getByRole('button', { name: /Sheet-pan chicken/ }));
+    // A to-buy row is now itself pressable (to change its aisle), so its accessible name can also
+    // match a meal's name through its badge; the rail's own meal button is scoped to the rail.
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Sections and meals' })).getByRole('button', { name: /Sheet-pan chicken/ }));
     expect(screen.getByRole('checkbox', { name: 'Chicken thighs' })).toBeTruthy();
     expect(screen.queryByRole('checkbox', { name: 'Garlic' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Show all' }));

@@ -1,8 +1,9 @@
 // Level 4 of decision-11 for the screens that render a template with sample data: each route shows its
 // screen, and its links lead to the routes the design shows.
-import { FakeClock, FakeKitchenGateway } from '@grocs/ports/testing';
-import type { AddItem } from '@grocs/application';
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { FakeClock, FakeKitchenGateway, InMemorySyncStore } from '@grocs/ports/testing';
+import type { AddItem, AddMeal as AddMealCommand, ClearCart, ItemAdded, MealAdded, SetItemState } from '@grocs/application';
+import { createExtraItem, weekIdFor } from '@grocs/core';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from '../../app/index.tsx';
 import AddMeal from '../../app/add-meal.tsx';
@@ -204,6 +205,103 @@ describe('Groceries (live, at /)', () => {
   });
 });
 
+describe('Groceries by aisle (R9, R11, R18)', () => {
+  async function appWithItems(clock = new FakeClock()) {
+    const app = await appOnFakes({ signedIn: true, clock });
+    const kitchenId = (await app.app.findMyKitchen())!;
+    const weekId = weekIdFor(app.app.now());
+    return { app, kitchenId, weekId, clock };
+  }
+
+  it('groups items to buy under their aisle, kept when a meal filter is on', async () => {
+    const { app, kitchenId, weekId } = await appWithItems();
+    const apples: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Apples', aisle: 'produce' };
+    expect((await app.app.dispatch(apples)).ok).toBe(true);
+    const milk: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Milk', aisle: 'dairy' };
+    expect((await app.app.dispatch(milk)).ok).toBe(true);
+    const addMeal: AddMealCommand = { type: 'AddMeal', kitchenId, weekId, dayIndex: 0, name: 'Tacos' };
+    const meal = await app.app.dispatch(addMeal);
+    expect(meal.ok).toBe(true);
+    const mealId = meal.ok ? (meal.value[0] as MealAdded).mealId : '';
+    const cheese: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Cheese', aisle: 'dairy', mealId };
+    expect((await app.app.dispatch(cheese)).ok).toBe(true);
+
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByText('Apples')).toBeTruthy();
+    expect(screen.getByText('Produce')).toBeTruthy();
+    expect(screen.getByText('Dairy & eggs')).toBeTruthy();
+    expect(screen.getByText('Milk')).toBeTruthy();
+    expect(screen.getByText('Cheese')).toBeTruthy();
+
+    // The rail that chooses a meal only shows at the inner width (decision-14).
+    act(() => {
+      window.innerWidth = 791;
+      window.dispatchEvent(new Event('resize'));
+    });
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Sections and meals' })).getByRole('button', { name: /Tacos/ }));
+    // Narrowed to Tacos: Cheese (dairy, for Tacos) stays under its aisle heading; Apples and plain Milk drop out.
+    expect(screen.getByText('Dairy & eggs')).toBeTruthy();
+    expect(screen.getByText('Cheese')).toBeTruthy();
+    expect(screen.queryByText('Apples')).toBeNull();
+    expect(screen.queryByText('Milk')).toBeNull();
+    expect(screen.queryByText('Produce')).toBeNull();
+  });
+
+  it("shows who added an item by the kitchen member's name, and nothing for an unknown uid", async () => {
+    const clock = new FakeClock();
+    const kitchens = new FakeKitchenGateway({ uid: 'u1', name: 'U1', email: 'u1@grocs.test' }, undefined, clock);
+    const { kitchenId } = await kitchens.createKitchen('Our kitchen', 'UTC');
+    await kitchens.inviteByEmail(kitchenId, 'shazya@grocs.test');
+    await kitchens.asMember({ uid: 'u2', name: 'Shazya', email: 'shazya@grocs.test' }).acceptInvite(kitchenId);
+    const syncStore = new InMemorySyncStore();
+    const weekId = weekIdFor(clock.now());
+    const bySam = createExtraItem({ id: 'by-partner', weekId, name: 'Oat milk' }, { at: clock.now(), by: 'u2' });
+    if (!bySam.ok) throw new Error('bad fixture');
+    await syncStore.mergeItem(kitchenId, bySam.value);
+    const byUnknown = createExtraItem({ id: 'by-unknown', weekId, name: 'Mystery item' }, { at: clock.now(), by: 'not-a-member' });
+    if (!byUnknown.ok) throw new Error('bad fixture');
+    await syncStore.mergeItem(kitchenId, byUnknown.value);
+
+    const app = await appOnFakes({ signedIn: true, syncStore, kitchen: false, kitchens, clock });
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByText('Oat milk')).toBeTruthy();
+    expect(screen.getByText('Mystery item')).toBeTruthy();
+    // The header's own avatars already draw one 'Shazya'; her added-Oat-milk row draws a second.
+    expect(screen.getAllByRole('img', { name: 'Shazya' })).toHaveLength(2);
+    // 'not-a-member' is nobody in this kitchen, so Mystery item's row draws no avatar at all; U1 stays header-only.
+    expect(screen.getAllByRole('img', { name: 'U1' })).toHaveLength(1);
+  });
+
+  it("changing an item's aisle from a row moves it under that aisle and closes the row", async () => {
+    const { app, kitchenId, weekId, clock } = await appWithItems();
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Milk' };
+    expect((await app.app.dispatch(command)).ok).toBe(true);
+
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByText('Other')).toBeTruthy();
+    press('Milk');
+    const group = screen.getByRole('group', { name: 'Aisle for Milk' });
+    clock.advance(60_000); // changing the aisle is a later action than adding the item
+    fireEvent.click(within(group).getByRole('button', { name: 'Dairy & eggs' }));
+
+    expect(screen.queryByRole('group', { name: 'Aisle for Milk' })).toBeNull();
+    expect(await screen.findByText('Dairy & eggs')).toBeTruthy();
+    expect(screen.queryByText('Other')).toBeNull();
+  });
+
+  it('pressing the open row again closes it without choosing an aisle', async () => {
+    const { app, kitchenId, weekId } = await appWithItems();
+    const command: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Milk' };
+    expect((await app.app.dispatch(command)).ok).toBe(true);
+    renderRoute(ROUTES, { app, location: '/' });
+    await screen.findByText('Milk');
+    press('Milk');
+    expect(await screen.findByRole('group', { name: 'Aisle for Milk' })).toBeTruthy();
+    press('Milk');
+    expect(screen.queryByRole('group', { name: 'Aisle for Milk' })).toBeNull();
+  });
+});
+
 describe('Groceries samples (dev-only route)', () => {
   async function openSample(location: string) {
     renderRoute(ROUTES, { app: await appOnFakes({ signedIn: true, isDevBuild: true }), location });
@@ -307,6 +405,66 @@ describe('QuickAdd', () => {
     renderRoute(ROUTES, { app, location: '/' });
     expect(await screen.findByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
     expect(screen.queryByText('Tacos')).toBeNull();
+  });
+
+  it('adds with an amount and the aisle picked from the chips (R11)', async () => {
+    const app = await appOnFakes({ signedIn: true });
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Add an item' }), { target: { value: 'Paper towels' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount' }), { target: { value: '2 rolls' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Pantry' }));
+    press('Add');
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Add an item' })).toBeNull());
+    cleanup();
+
+    renderRoute(ROUTES, { app, location: '/' });
+    expect(await screen.findByRole('checkbox', { name: 'Paper towels' })).toBeTruthy();
+    expect(screen.getByText('2 rolls')).toBeTruthy();
+    expect(screen.getByText('Pantry')).toBeTruthy();
+  });
+
+  it("suggests the aisle remembered for the name, and a person's own choice is never overwritten by a later suggestion (R11, R14)", async () => {
+    const app = await appOnFakes({ signedIn: true });
+    const kitchenId = (await app.app.findMyKitchen())!;
+    const weekId = weekIdFor(app.app.now());
+    const garlic: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Garlic', aisle: 'produce' };
+    expect((await app.app.dispatch(garlic)).ok).toBe(true);
+    const oatMilk: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Oat milk', aisle: 'dairy' };
+    expect((await app.app.dispatch(oatMilk)).ok).toBe(true);
+
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    const nameField = await screen.findByRole('textbox', { name: 'Add an item' });
+    fireEvent.change(nameField, { target: { value: 'Garlic' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('true'));
+
+    // Overrides the suggestion.
+    fireEvent.click(screen.getByRole('button', { name: 'Pantry' }));
+    expect(screen.getByRole('button', { name: 'Pantry' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Produce' }).getAttribute('aria-pressed')).toBe('false');
+
+    // Typing a different, also-remembered name would otherwise suggest Dairy & eggs next; the choice already made holds.
+    fireEvent.change(nameField, { target: { value: 'Oat milk' } });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByRole('button', { name: 'Pantry' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it("still suggests a cleared item's aisle for the same name (R14)", async () => {
+    const app = await appOnFakes({ signedIn: true });
+    const kitchenId = (await app.app.findMyKitchen())!;
+    const weekId = weekIdFor(app.app.now());
+    const yogurt: AddItem = { type: 'AddItem', kitchenId, weekId, name: 'Yogurt', aisle: 'dairy' };
+    const added = await app.app.dispatch(yogurt);
+    expect(added.ok).toBe(true);
+    const itemId = added.ok ? (added.value[0] as ItemAdded).itemId : '';
+    const toCart: SetItemState = { type: 'SetItemState', kitchenId, weekId, itemId, inCart: true };
+    expect((await app.app.dispatch(toCart)).ok).toBe(true);
+    const clearCart: ClearCart = { type: 'ClearCart', kitchenId, weekId };
+    expect((await app.app.dispatch(clearCart)).ok).toBe(true);
+
+    renderRoute(ROUTES, { app, location: '/quick-add' });
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Add an item' }), { target: { value: 'Yogurt' } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dairy & eggs' }).getAttribute('aria-pressed')).toBe('true'));
   });
 });
 

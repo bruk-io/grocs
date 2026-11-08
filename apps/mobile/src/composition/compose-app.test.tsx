@@ -35,3 +35,19 @@ describe("composeApp's App.watchKitchenRecipes", () => {
     expect(seen[seen.length - 1]).toEqual(['a']);
   });
 });
+
+describe("composeApp's App.suggestAisle", () => {
+  it('resolves null for a rejected lookup, but still logs it through the instrumented syncStore (R31)', async () => {
+    class FailingAisleStore extends InMemorySyncStore {
+      override aisleFor(): Promise<string | null> {
+        return Promise.reject(new Error('offline'));
+      }
+    }
+    const syncStore = new FailingAisleStore();
+    const { app, diagnostics } = await appOnFakes({ signedIn: true, syncStore });
+
+    await expect(app.suggestAisle(KITCHEN, 'Milk')).resolves.toBeNull();
+
+    expect(diagnostics()).toContain('syncStore.aisleFor failed');
+  });
+});
