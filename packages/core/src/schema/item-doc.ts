@@ -8,7 +8,7 @@ import type { Result } from '../result/result.ts';
 
 export const ITEM_SCHEMA_VERSION = 1;
 
-interface StoredField<T> {
+export interface StoredField<T> {
   readonly v: T;
   readonly at: number;
   readonly by: string;
@@ -35,7 +35,7 @@ export interface SchemaError {
   readonly message: string;
 }
 
-const toStored = <T>(f: Stamped<T>): StoredField<T> => ({ v: f.value, at: f.stamp.at, by: f.stamp.by });
+export const toStored = <T>(f: Stamped<T>): StoredField<T> => ({ v: f.value, at: f.stamp.at, by: f.stamp.by });
 
 export function encodeItem(item: Item): ItemDoc {
   return {
@@ -53,17 +53,17 @@ export function encodeItem(item: Item): ItemDoc {
   };
 }
 
-const bad = (path: string, message: string): Result<never, SchemaError> => err({ kind: 'invalid', path, message });
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+export const bad = (path: string, message: string): Result<never, SchemaError> => err({ kind: 'invalid', path, message });
+export const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-function readStamp(raw: unknown, path: string): Result<Stamp, SchemaError> {
+export function readStamp(raw: unknown, path: string): Result<Stamp, SchemaError> {
   if (!isObject(raw)) return bad(path, 'expected an object');
   if (typeof raw['at'] !== 'number' || !Number.isFinite(raw['at'])) return bad(`${path}.at`, 'expected a number');
   if (typeof raw['by'] !== 'string' || raw['by'] === '') return bad(`${path}.by`, 'expected a non-empty string');
   return ok({ at: raw['at'], by: raw['by'] });
 }
 
-function readField<T>(raw: unknown, path: string, value: (v: unknown) => v is T, what: string): Result<Stamped<T>, SchemaError> {
+export function readField<T>(raw: unknown, path: string, value: (v: unknown) => v is T, what: string): Result<Stamped<T>, SchemaError> {
   if (!isObject(raw)) return bad(path, 'expected an object');
   if (!value(raw['v'])) return bad(`${path}.v`, `expected ${what}`);
   const stamp = readStamp(raw, path);
