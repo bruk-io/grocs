@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:09'
+updated_date: '2026-11-08 03:11'
 labels:
   - size-3
   - layer-application
@@ -89,4 +89,8 @@ $ mise exec -- pnpm exec vitest run --project unit packages/application
       Tests  117 passed (117)
 $ mise exec -- pnpm -s typecheck
 $ tsc --noEmit   (clean, no output)
+
+Verified the removed-meal test is load-bearing: temporarily reverted the §8 step-2 filter to the bare `m.id === command.mealId` lookup and reran the suite — the new "refuses a meal removed on this device" case failed as expected (`!result.ok` was false: the import succeeded, called the importer and saved r1), confirming the production edit (not just the test) matters. Restored the fix (`&& !isMealDeleted(m)`); working tree is clean and matches commit 4a9b269; vitest (117/117) and typecheck are green again.
+
+Correction to the review's item 6 (merge-commit guidance): that note said "take only the task commit e898bcc" before this round's fixes landed. After this round there are two task commits on this branch: e898bcc (the original handler + scenario tests) and 4a9b269 (this round's review fixes). Both are application-layer only (confirmed via `git show --stat` on each). If the orchestrator cherry-picks only e898bcc per the stale instruction, it silently drops every fix in this note. Cherry-pick (or merge) both e898bcc and 4a9b269, or reconcile local main with origin/main 4fe6de0 directly and re-run pnpm test:emulator, as the original note already asked.
 <!-- SECTION:NOTES:END -->
