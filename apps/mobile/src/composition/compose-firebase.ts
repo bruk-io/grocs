@@ -1,6 +1,6 @@
 import type { RuntimeInfo } from '@grocs/application';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
-import { FirebaseAuth, FirebaseKitchenGateway, FirestoreSyncStore } from '@grocs/providers-firebase';
+import { FirebaseAuth, FirebaseKitchenGateway, FirebaseRecipeImporter, FirestoreSyncStore } from '@grocs/providers-firebase';
 import type { AuthFns, FirestoreFns, FunctionsFns } from '@grocs/providers-firebase';
 import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { composeApp } from './compose-app.ts';
@@ -35,6 +35,7 @@ export function composeFirebaseApp({ firebase, logger, runtime, copyText, clock,
       syncStore: new FirestoreSyncStore(firebase.firestore, firebase.db),
       auth: new FirebaseAuth(firebase.auth, firebase.authInstance),
       kitchens: new FirebaseKitchenGateway(firebase.functions.fns, firebase.functions.instance, firebase.firestore, firebase.db),
+      recipeImporter: new FirebaseRecipeImporter(firebase.functions.fns, firebase.functions.instance),
       clock: clock ?? new SystemClock(),
       ids: ids ?? new RandomIds(),
     },

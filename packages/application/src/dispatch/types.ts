@@ -1,5 +1,5 @@
 import type { Result } from '@grocs/core';
-import type { AuthPort, Clock, IdGenerator, KitchenGateway, Logger, SyncStore } from '@grocs/ports';
+import type { AuthPort, Clock, IdGenerator, KitchenGateway, Logger, RecipeImporter, SyncStore } from '@grocs/ports';
 
 export interface Command {
   readonly type: string;
@@ -24,6 +24,7 @@ export interface Deps {
   readonly clock: Clock;
   readonly ids: IdGenerator;
   readonly kitchens: KitchenGateway;
+  readonly recipeImporter: RecipeImporter;
 }
 
 /** Facts attached to every log record written while a command runs (R32). */

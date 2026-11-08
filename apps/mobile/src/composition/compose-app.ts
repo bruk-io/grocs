@@ -1,8 +1,8 @@
 // The composition root's wiring: ports in, an App for the screens out (R26). This is the one place
 // where providers meet the application layer, and the one place that instruments them (R31).
-import { commandHandlers, createDispatcher, findMyKitchen, getInvitePreview, getKitchenInfo, getKitchenInvite, instrumentDeps, loggingMiddleware, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
+import { commandHandlers, createDispatcher, findMyKitchen, getInvitePreview, getKitchenInfo, getKitchenInvite, instrumentDeps, loggingMiddleware, watchKitchenRecipes, watchSession, watchWeekItems, watchWeekMeals, signOut } from '@grocs/application';
 import type { Command, CommandResult, Deps, KitchenInfo, RuntimeInfo } from '@grocs/application';
-import type { Item, Meal } from '@grocs/core';
+import type { Item, Meal, Recipe } from '@grocs/core';
 import type { InvitePreview, KitchenInvite, Logger, Unsubscribe, User } from '@grocs/ports';
 
 export interface AppOptions {
@@ -19,6 +19,8 @@ export interface App {
   dispatch(command: Command): Promise<CommandResult>;
   watchWeekItems(kitchenId: string, weekId: string, onItems: (items: readonly Item[]) => void, onError?: (error: Error) => void): Unsubscribe;
   watchWeekMeals(kitchenId: string, weekId: string, onMeals: (meals: readonly Meal[]) => void, onError?: (error: Error) => void): Unsubscribe;
+  /** The kitchen's live recipes (tombstones hidden), now and on every change. */
+  watchKitchenRecipes(kitchenId: string, onRecipes: (recipes: readonly Recipe[]) => void, onError?: (error: Error) => void): Unsubscribe;
   watchSession(onUser: (user: User | null) => void): Unsubscribe;
   signOut(): Promise<void>;
   /** The signed-in member's kitchen id, or null when they have none yet (or nobody is signed in). */
@@ -55,6 +57,7 @@ export function composeApp({ ports, logger, runtime, copyText }: AppOptions): Ap
     dispatch: (command) => dispatcher.dispatch(command),
     watchWeekItems: (kitchenId, weekId, onItems, onError) => watchWeekItems(session, kitchenId, weekId, onItems, onError),
     watchWeekMeals: (kitchenId, weekId, onMeals, onError) => watchWeekMeals(session, kitchenId, weekId, onMeals, onError),
+    watchKitchenRecipes: (kitchenId, onRecipes, onError) => watchKitchenRecipes(session.syncStore, kitchenId, onRecipes, onError),
     watchSession: (onUser) => watchSession(session, onUser),
     signOut: () => signOut(session),
     findMyKitchen: () => findMyKitchen(session),
