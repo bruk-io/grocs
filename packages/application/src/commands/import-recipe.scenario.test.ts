@@ -216,6 +216,28 @@ describe('ImportRecipe scenarios (contract TASK-74 §8, R47)', () => {
     expect(text).not.toContain('Warm the tortillas');
   });
 
+  it('relink must win over a meal save stamped in the same millisecond (TASK-74.5.17 repro)', async () => {
+    const rawUrl = 'https://recipe.invalid/a?utm_source=ig';
+    const normalisedUrl = 'https://recipe.invalid/a';
+    const clock = new FakeClock(5_000);
+    const importer = new FakeRecipeImporter([[rawUrl, parsedRecipe({ sourceUrl: normalisedUrl })]]);
+    const client = await createTestClient({ uid: 'alex', recipeImporter: importer, clock });
+
+    // AddMeal with the raw link, on a clock that will not advance
+    const addCmd = { type: 'AddMeal' as const, kitchenId: KITCHEN, weekId: WEEK, dayIndex: 0, name: 'Tacos night', link: rawUrl };
+    const added = await client.dispatcher.dispatch(addCmd);
+    const event = added.ok ? added.value[0] : undefined;
+    const mealId = event?.type === 'MealAdded' ? (event as MealAdded).mealId : '';
+    if (!mealId) throw new Error('meal was not added');
+
+    // ImportRecipe on the same clock instant; without the fix, the raw link's JSON order wins
+    const result = await client.dispatcher.dispatch(importCmd(mealId, rawUrl));
+
+    expect(result.ok).toBe(true);
+    const [meal] = await client.store.getMeals(KITCHEN, WEEK);
+    expect(meal?.link.value).toBe(normalisedUrl);
+  });
+
   describe('two members (R47)', () => {
     it('importing the same URL from both clients leaves one recipe with the earlier createdAt', async () => {
       const shared = new InMemorySyncStore();
