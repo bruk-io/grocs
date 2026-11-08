@@ -60,8 +60,7 @@ describe('Firestore sync store: aisle memory offline (R11, R14, decision-7)', ()
     const kitchenId = await createKitchen();
     await store.rememberAisle(kitchenId, 'milk', stamped('dairy', { at: 100, by: 'seed-alex' }));
     // rememberAisle's transaction does not itself populate the local cache a plain getDoc reads
-    // from; warm the cache with one online read first, same as a real screen would have done by
-    // reading this document (or a watched one) before ever going offline.
+    // from, so warm it with one online read first.
     await store.aisleFor(kitchenId, 'milk');
     await client.firestoreFns.disableNetwork(client.db);
     try {
@@ -141,6 +140,30 @@ describe('Firestore sync store: stored shape (R30)', () => {
     const raw = (await readRaw(`kitchens/${kitchenId}/aisles/milk`)) as Record<string, unknown>;
     expect(raw).toEqual({ schemaVersion: 1, aisle: { v: 'dairy', at: 100, by: 'seed-alex' } });
   });
+
+  const badAisleDocs: Record<string, Record<string, unknown>> = {
+    'a newer schema version': { schemaVersion: 2, aisle: { v: 'dairy', at: 1, by: 'seed-alex' } },
+    'a malformed document': { schemaVersion: 1, aisle: 'dairy' },
+  };
+
+  for (const [label, badDoc] of Object.entries(badAisleDocs)) {
+    it(`rememberAisle rejects and leaves the document unchanged for ${label}`, async () => {
+      const store = await signedInStore();
+      const kitchenId = await createKitchen();
+      await writeRaw(`kitchens/${kitchenId}/aisles/milk`, badDoc);
+      await expect(store.rememberAisle(kitchenId, 'milk', stamped('pantry', { at: 2, by: 'seed-alex' }))).rejects.toThrow(
+        /invalid aisle document milk/,
+      );
+      await expect(readRaw(`kitchens/${kitchenId}/aisles/milk`)).resolves.toEqual(badDoc);
+    });
+
+    it(`aisleFor rejects for ${label}`, async () => {
+      const store = await signedInStore();
+      const kitchenId = await createKitchen();
+      await writeRaw(`kitchens/${kitchenId}/aisles/milk`, badDoc);
+      await expect(store.aisleFor(kitchenId, 'milk')).rejects.toThrow(/invalid aisle document milk/);
+    });
+  }
 });
 
 describe('Firestore sync store: recipe stored shape (R30, decision-16)', () => {

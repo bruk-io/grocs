@@ -159,7 +159,7 @@ export class FirestoreSyncStore implements SyncStore {
    * earlier one that happens to write second) and writes inside a transaction, the same pattern
    * as mergeItem, mergeMeal and mergeRecipe. A Firestore transaction needs a connection, so this
    * rejects instead of queueing when made offline, same open part of design question D4 as the
-   * other three merges; TASK-1.22.7's AddItem already tolerates that.
+   * other three merges; a caller must tolerate that rejection (TASK-1.22.7's AddItem does).
    */
   async rememberAisle(kitchenId: string, nameKey: string, aisle: Stamped<string>): Promise<void> {
     const ref = this.#aisleRef(kitchenId, nameKey);
@@ -177,16 +177,16 @@ export class FirestoreSyncStore implements SyncStore {
 
   /**
    * The aisle last remembered for `nameKey`, or null if none has been. This is a plain `getDoc`,
-   * not a transaction, so once this document has been read online at least once (a transaction's
-   * own write does not by itself populate the cache a plain read serves from), a later call falls
-   * back to that local cache when offline: a suggestion already seen can still be read with no
-   * connection, unlike rememberAisle's write (decision-7's spike, TASK-1.16, covers how quickly a
-   * stale cache catches up once the native SDK reconnects). Offline with no cached document for
-   * this `nameKey`, the SDK rejects with an "unavailable" error rather than resolving to a missing
-   * snapshot; that is read the same as "never remembered" and gives null, since neither tells
-   * rememberAisle anything to merge against. An undecodable document (wrong schema version, or
-   * malformed) also gives null; `aisleFor`'s signature has no error channel the way `watchItems`'s
-   * `onError` does, so the problem has nowhere else to go (noted in TASK-1.22.6).
+   * not a transaction, so it can fall back to the local cache when offline and read a suggestion
+   * with no connection - but only within two limits: a `nameKey` this phone has never read online
+   * has nothing cached to fall back to (the SDK rejects with "unavailable" rather than resolving
+   * to a missing snapshot; that is read the same as "never remembered" and gives null), and once
+   * cached, the value can still be stale after this phone's own `rememberAisle` succeeds offline
+   * on another client sharing the cache (decision-7's spike, TASK-1.16, covers how quickly a stale
+   * cache catches up once the native SDK reconnects). An undecodable document throws, the same
+   * `invalid aisle document {nameKey}: ...` error `rememberAisle` throws for one, since this
+   * promise is the only error channel `aisleFor` has; TASK-1.22.7's suggestAisle and AddItem catch
+   * the rejection, log it and fall back.
    */
   async aisleFor(kitchenId: string, nameKey: string): Promise<string | null> {
     let snapshot: Awaited<ReturnType<FirestoreFns['getDoc']>>;
@@ -198,7 +198,8 @@ export class FirestoreSyncStore implements SyncStore {
     }
     if (!snapshot.exists()) return null;
     const decoded = decodeAisleMemory(snapshot.data());
-    return decoded.ok ? decoded.value.value : null;
+    if (!decoded.ok) throw new Error(`invalid aisle document ${nameKey}: ${decoded.error.path} ${decoded.error.message}`);
+    return decoded.value.value;
   }
 
   #aisleRef(kitchenId: string, nameKey: string): unknown {
