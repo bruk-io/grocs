@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ItemPickerTemplate, Text } from '@grocs/ui';
-import type { AisleOption } from '@grocs/ui';
 import type { AddItem } from '@grocs/application';
-import { AISLES, weekIdFor } from '@grocs/core';
+import { weekIdFor } from '@grocs/core';
 import type { Meal } from '@grocs/core';
 import type { App } from '../composition/compose-app.ts';
+import { AISLE_OPTIONS, isAisleId } from './aisle-options.ts';
 import { useGo } from './navigate.ts';
 import { mealTone, weekLabelFor } from './week-days.ts';
 
@@ -13,8 +13,6 @@ export interface QuickAddScreenProps {
   app: App;
   kitchenId: string;
 }
-
-const AISLE_OPTIONS: readonly AisleOption[] = AISLES.map((a) => ({ id: a.id, label: a.label }));
 
 /** Add an item to the real grocery list. "For a meal" reads the same watchWeekMeals data as Groceries and Plan (AC4), so the chips never disagree with their badges. */
 export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
@@ -26,7 +24,7 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
   const [amount, setAmount] = useState('');
   const [mealId, setMealId] = useState<string | undefined>(undefined);
   const [aisleId, setAisleId] = useState<string | undefined>(undefined);
-  // Set once the person chooses (or clears) an aisle themselves, so a later suggestion never overwrites it (R14).
+  // Set once the person chooses (or clears) an aisle themselves, so a later suggestion never overwrites it (R11).
   const aisleTouched = useRef(false);
   // Guards a suggestAisle answer that comes back after a newer name's has already landed or the person has chosen.
   const suggestionSeq = useRef(0);
@@ -43,12 +41,15 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
   );
 
   useEffect(() => {
-    if (aisleTouched.current || value.trim() === '') return;
+    if (aisleTouched.current) return;
+    // Every name change invalidates any lookup still in flight and clears what it would have shown, so a
+    // name with nothing remembered (or a blank one) never keeps a now-stale suggestion selected (R11, R14).
     const seq = ++suggestionSeq.current;
+    setAisleId(undefined);
+    if (value.trim() === '') return;
     app.suggestAisle(kitchenId, value).then((suggested) => {
-      // Stale if a newer name's lookup has started, or the person chose one while this was in flight.
       if (seq !== suggestionSeq.current || aisleTouched.current) return;
-      if (suggested) setAisleId(suggested);
+      if (suggested && isAisleId(suggested)) setAisleId(suggested);
     });
   }, [app, kitchenId, value]);
 
@@ -61,7 +62,9 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
       weekId,
       name: value,
       ...(amount.trim() !== '' ? { amount } : {}),
-      ...(aisleId ? { aisle: aisleId } : {}),
+      // Only the person's own choice is sent; a suggestion applies through AddItem's own memory lookup
+      // instead, so it is never re-remembered as if it had been chosen just now (R11, R14).
+      ...(aisleTouched.current && aisleId ? { aisle: aisleId } : {}),
       ...(mealId ? { mealId } : {}),
     };
     const result = await app.dispatch(command);
@@ -85,7 +88,8 @@ export function QuickAddScreen({ app, kitchenId }: QuickAddScreenProps) {
           aisleTouched.current = true;
           setAisleId(id);
         }}
-        // No suggestions yet: there is nothing real to suggest from (TASK-57). The picker hides both sections when empty.
+        // The recipe-suggestion and frequent-items sections are a different feature (TASK-57) with
+        // nothing real behind them yet; the picker hides both when empty. Unrelated to the aisle chip above.
         suggestions={[]}
         frequent={[]}
         onAdd={() => void add()}

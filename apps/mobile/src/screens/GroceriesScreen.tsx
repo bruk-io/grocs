@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import type { AddItem, ClearCart, SetItemAisle, SetItemState } from '@grocs/application';
-import { AISLES, groupByAisle, aisleSection, visibleItems, weekIdFor } from '@grocs/core';
+import { groupByAisle, aisleSection, visibleItems, weekIdFor } from '@grocs/core';
 import type { AisleId, Item, Meal } from '@grocs/core';
 import { GroceryListTemplate } from '@grocs/ui';
-import type { AisleOption, GrocerySection, IconName, ListItem } from '@grocs/ui';
+import type { GrocerySection, IconName, ListItem } from '@grocs/ui';
 import type { App } from '../composition/compose-app.ts';
+import { AISLE_OPTIONS } from './aisle-options.ts';
 import { useGo } from './navigate.ts';
 import { avatarsFor, useKitchenInfo } from './use-kitchen-info.ts';
 import { mealTone, todayId, weekDays, weekLabelFor } from './week-days.ts';
@@ -31,8 +32,6 @@ function iconForAisle(id: AisleId): IconName {
   return id === 'other' ? 'cart' : AISLE_ICONS[id];
 }
 
-const AISLE_OPTIONS: readonly AisleOption[] = AISLES.map((a) => ({ id: a.id, label: a.label }));
-
 const toListItem = (item: Item, weekMeals: readonly { id: string; name: string; tone: ReturnType<typeof mealTone> }[], addedByName: string | undefined): ListItem => {
   const mealBadges = weekMeals.filter((meal) => item.badges.includes(meal.id)).map((meal) => ({ label: meal.name, tone: meal.tone }));
   return {
@@ -48,10 +47,10 @@ const toListItem = (item: Item, weekMeals: readonly { id: string; name: string; 
 };
 
 /**
- * Groceries from the live list (R9, R10, R11, R50): GroceryListTemplate fed by the app facade. Things
- * to buy are grouped by aisle (core's groupByAisle), each row shows who added it by name from the
- * kitchen's members, and a row is pressable to change its aisle with the chips core and application
- * teach the memory for next time.
+ * Groceries from the live list (R9, R10, R11, R50): GroceryListTemplate fed by the app facade. Things to
+ * buy are grouped by aisle (core's groupByAisle); each row shows who added it by name from the kitchen's
+ * members; and a row is pressable to open chips that change its aisle, dispatching SetItemAisle, which
+ * also teaches the memory for next time.
  */
 export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
   const kitchen = useKitchenInfo(app, kitchenId);
@@ -122,8 +121,12 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
     setProblem(result.ok ? undefined : 'Could not change the aisle');
   };
 
-  // Nothing while the kitchen has not loaded, or for a uid that is not (or is no longer) a member.
-  const nameOf = (uid: string): string | undefined => kitchen?.members.find((m) => m.uid === uid)?.name;
+  // Nothing while the kitchen has not loaded, for a uid that is not (or is no longer) a member, or for a
+  // member the gateway could not resolve a name for: its own fallback is the uid itself (R11's "unknown" case).
+  const nameOf = (uid: string): string | undefined => {
+    const member = kitchen?.members.find((m) => m.uid === uid);
+    return member && member.name !== member.uid ? member.name : undefined;
+  };
 
   const banner = problem ?? (loadError ? `Could not load the list: ${loadError}` : undefined);
   const visible = visibleItems({ weekId, items: Object.fromEntries(items.map((i) => [i.id, i])) });
@@ -140,6 +143,15 @@ export function GroceriesScreen({ app, kitchenId }: GroceriesScreenProps) {
     items: group.items.map((item) => toListItem(item, weekMeals, nameOf(item.addedBy))),
   }));
   const showAll = () => setMealId(undefined);
+
+  // A row's open chips close themselves if the row they belong to leaves what is shown, such as being
+  // ticked into the cart or filtered out by a meal, so they never reopen stale over a later row of the
+  // same id (e.g. after unticking it back) without the person pressing it again.
+  useEffect(() => {
+    if (openAisleItemId !== null && !shownItems.some((item) => item.id === openAisleItemId)) {
+      setOpenAisleItemId(null);
+    }
+  }, [openAisleItemId, shownItems]);
 
   return (
     <GroceryListTemplate

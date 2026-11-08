@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - '@builder-app'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 21:41'
+updated_date: '2026-11-08 22:00'
 labels:
   - layer-app
   - size-3
@@ -18,11 +18,16 @@ dependencies:
   - TASK-1.22.4
 modified_files:
   - apps/mobile/src/composition/compose-app.ts
+  - apps/mobile/src/composition/compose-app.test.tsx
   - apps/mobile/src/screens/GroceriesScreen.tsx
   - apps/mobile/src/screens/QuickAddScreen.tsx
+  - apps/mobile/src/screens/aisle-options.ts
   - apps/mobile/src/sample/sample-data.ts
   - apps/mobile/src/demo/compose-demo.ts
+  - apps/mobile/src/demo/demo.route.test.tsx
   - apps/mobile/src/routes/screens.route.test.tsx
+  - apps/mobile/src/routes/index.route.test.tsx
+  - apps/mobile/src/routes/groceries-rail.route.test.tsx
 parent_task_id: TASK-1.22
 type: task
 ---
@@ -75,4 +80,24 @@ Check output:
 - pnpm exec vitest run --project app --project tools: 45 files, 451 tests passed.
 - pnpm -s typecheck: clean.
 - pnpm check: 16 checks passed.
+
+Review follow-up (round 2), on top of merging feat/aisles (baselines untouched):
+
+1. QuickAddScreen.tsx: fixed the suggestion-outlives-its-name bug. The effect now bumps suggestionSeq and clears the chip on every name change (including to blank) before looking anything up, so a name with nothing remembered, or a blank name, never keeps a stale selection; a still-current answer is also checked against isAisleId (aisle-options.ts) before it is ever shown. add() now sends an explicit aisle only when aisleTouched.current && aisleId, i.e. only the person's own choice; a suggestion is left to AddItem's own memory lookup so it is never re-remembered as if just chosen. Route tests added: remembered name -> unremembered name clears the chip; blank name clears the chip; adding after a suggestion applied sends no explicit aisle (spied on app.app.dispatch).
+
+2. Gateways' own fallback for an unresolved member name is the uid itself (memory/Firestore/fake kitchen-gateway: memberNames[uid] ?? uid). GroceriesScreen's nameOf now also treats member.name === member.uid as unknown, matching that fallback. Route tests: a member who joined with no display name of their own (name falls back to their uid) shows no avatar on their row, though the header still draws that fallback name as-is (Household/Settings show it verbatim); and a dedicated 'still loading' case (a kitchen gateway whose getKitchen never resolves) shows no avatar at all, anywhere, confirming 'nothing while loading'.
+
+3. Added a route test for criterion 3's later adds: choose an aisle from a row, wait for the fire-and-forget remember to actually land (polled through app.suggestAisle, not a sleep), add the same name again, assert both rows land under the chosen aisle and no 'Other' heading remains.
+
+4. Added a 'Quick add aisle suggestion guards' describe block with a DeferredAisleStore (subclasses InMemorySyncStore like compose-app.test.tsx's FailingAisleStore, but holds every aisleFor call open until the test resolves it, in call order per name) for: an older answer landing after a newer one; a person choosing while a lookup is in flight; deselecting a chip and then typing (touched short-circuits the effect entirely, so there is nothing left pending to even resolve). Replaced the old sleep-based 'person's own choice' test with these plus the two suggests/clears tests under point 1 (R57: a net increase in tests and assertions, not a shrink). The who-added unknown-uid test now also asserts no img is drawn named for the raw uid; the loading case is its own new test per point 2.
+
+5. demo.route.test.tsx now asserts the Produce and Meat headings on the unfiltered list, and that both stay under the Sheet-pan chicken filter (Bell peppers is produce, Chicken thighs is meat). The unfiltered grouping route test (screens.route.test.tsx) now also asserts items sit under their own aisle heading by document order (text.indexOf comparisons: Produce < Apples < Dairy & eggs < Milk < Cheese).
+
+Also fixed: QuickAddScreen only preselects a suggested aisle that isAisleId (so add() sending only a touched choice can never hit invalid-aisle, since an untouched, invalid suggestion is never selectable in the first place). GroceriesScreen now clears openAisleItemId in a useEffect when the open item leaves shownItems (ticked into the cart, or filtered out by a meal), with a tick-then-untick route test proving the row does not silently reopen when the item returns. Added a route test asserting the 'Could not change the aisle' banner on a failing SetItemAisle, item left under its old heading.
+
+Cleanups: QuickAddScreen's aisleTouched comment now cites R11, not R14; its 'suggestions'/'frequent' comment now says plainly these are the unrelated recipe-suggestion feature (TASK-57), not the aisle chip; GroceriesScreen's doc comment rewritten (it had become grammatically garbled); AISLE_OPTIONS now lives once in apps/mobile/src/screens/aisle-options.ts (also exports isAisleId), imported by both screens instead of being duplicated; the who-added test's 'bySam' fixture is now 'byPartner' (the fixture is 'Shazya', not 'Sam'); modified_files completed.
+
+Not changed, by design, with the seed comment corrected to say so: compose-demo.ts's seed() still alternates items between 'demo-alex' and 'demo-sam' uids, but only demo-alex is a member of the one demo kitchen, so a 'demo-sam' item now shows no avatar for who added it (R11's unknown-uid case) in the demo build. The old comment claiming they were 'added by Alex and Sam' was corrected to say this plainly, rather than changing the seed's behaviour.
+
+Check output after this round: pnpm exec vitest run --project app --project tools: 45 files, 462 tests passed. pnpm -s typecheck: clean. pnpm check: 16 checks passed.
 <!-- SECTION:NOTES:END -->

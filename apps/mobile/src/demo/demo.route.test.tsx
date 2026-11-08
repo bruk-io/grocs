@@ -46,15 +46,18 @@ describe('demo composition', () => {
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeTruthy();
   });
 
-  it('shows the sample list on Groceries after Try the demo', async () => {
+  it('shows the sample list on Groceries, grouped under its aisles, after Try the demo', async () => {
     await openDemo();
     for (const name of ['Garlic', 'Bell peppers', 'Chicken thighs']) {
       expect(screen.getByRole('checkbox', { name })).toBeTruthy();
     }
     expect(screen.queryByText('Nothing on the list yet')).toBeNull();
+    // The sample produce and meat items (apps/mobile/src/sample/sample-data.ts) carry those aisles.
+    expect(screen.getByText('Produce')).toBeTruthy();
+    expect(screen.getByText('Meat')).toBeTruthy();
   });
 
-  it('carries the sample meals badges, and choosing a meal in the rail filters the list', async () => {
+  it('carries the sample meals badges, and choosing a meal in the rail filters the list, keeping both aisles it spans', async () => {
     await openDemo();
     act(() => {
       window.innerWidth = 791;
@@ -68,6 +71,9 @@ describe('demo composition', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Sections and meals' })).getByRole('button', { name: /Sheet-pan chicken/ }));
     expect(screen.getByRole('checkbox', { name: 'Chicken thighs' })).toBeTruthy();
     expect(screen.queryByRole('checkbox', { name: 'Garlic' })).toBeNull();
+    // Sheet-pan chicken's items span two aisles (Bell peppers is produce, Chicken thighs is meat); both headings stay.
+    expect(screen.getByText('Produce')).toBeTruthy();
+    expect(screen.getByText('Meat')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
     expect(screen.getByRole('checkbox', { name: 'Garlic' })).toBeTruthy();
   });
