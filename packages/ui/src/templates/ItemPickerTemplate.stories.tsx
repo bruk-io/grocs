@@ -16,3 +16,14 @@ export const Typing: Story = {};
 
 /** The same screen under a phone's status bar and gesture bar: nothing sits in either band. */
 export const OnPhone: Story = { ...Typing, decorators: [withPhoneInsets] };
+
+const aisleOptions = [
+  { id: 'produce', label: 'Produce' },
+  { id: 'dairy', label: 'Dairy & eggs' },
+  { id: 'other', label: 'Other' },
+];
+
+/** With the amount field filled in and an aisle chosen. */
+export const WithAmountAndAisle: Story = {
+  args: { amountValue: '2 cartons', aisleOptions, selectedAisleId: 'dairy' },
+};

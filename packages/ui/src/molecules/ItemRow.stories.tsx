@@ -29,3 +29,10 @@ export const Loading: Story = { args: { loading: true } };
 export const AmountOnly: Story = { args: { name: 'Oat milk', amount: '2 cartons', mealBadges: [] } };
 export const Waiting: Story = { args: { name: 'Baby spinach', amount: '1 bag', mealBadges: [], addedBy: 'Alex', waiting: true } };
 export const New: Story = { args: { name: 'Oat milk', amount: '1 carton', mealBadges: [], addedBy: 'Sam', isNew: true } };
+
+/** Not a state: a row whose name and amount can be pressed, such as to change its aisle. */
+const pressable = { name: 'Lemon', amount: '1', mealBadges: [], press: { label: 'Change the aisle', onPress: () => undefined, expanded: false } };
+export const Pressable: Story = { args: pressable };
+export const PressPressed: Story = { args: { ...pressable, forceState: 'pressPressed' as const } };
+export const PressFocus: Story = { args: { ...pressable, forceState: 'pressFocus' as const } };
+export const PressDisabled: Story = { args: { ...pressable, disabled: true } };

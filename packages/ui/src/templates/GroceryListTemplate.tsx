@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import type { AisleOption } from '../atoms/aisle-option.ts';
 import type { MealTone } from '../atoms/meal-tone.ts';
 import type { IconName } from '../icons/index.ts';
 import type { MascotName } from '../mascots/art/index.ts';
@@ -76,6 +77,12 @@ export interface GroceryListTemplateProps {
   onAddItem?: () => void;
   /** Goes to Meal plan. */
   onOpenPlan?: () => void;
+  /** The aisles a to-buy row's chips offer, as data. Left out, no row can be pressed to change its aisle. */
+  aisleOptions?: readonly AisleOption[];
+  /** The id of the to-buy item whose aisle chips are open. */
+  openAisleItemId?: string | null;
+  onPressItem?: (id: string) => void;
+  onChooseAisle?: (id: string, aisleId: string) => void;
 }
 
 /** template.main filled for Groceries: header.main, toast, status.banner, list.section x n, cart.section, celebration.banner or list.empty, nav.tabs. */
@@ -101,6 +108,10 @@ export function GroceryListTemplate({
   onClearCart,
   onAddItem,
   onOpenPlan,
+  aisleOptions,
+  openAisleItemId,
+  onPressItem,
+  onChooseAisle,
 }: GroceryListTemplateProps) {
   const filtered = filter !== undefined;
   const nothingForMeal = filtered && sections.length === 0;
@@ -137,6 +148,10 @@ export function GroceryListTemplate({
           items={section.items}
           {...(onToggleItem ? { onToggleItem } : {})}
           {...(onRemoveItem ? { onRemoveItem } : {})}
+          {...(aisleOptions ? { aisleOptions } : {})}
+          {...(openAisleItemId !== undefined ? { openAisleItemId } : {})}
+          {...(onPressItem ? { onPressItem } : {})}
+          {...(onChooseAisle ? { onChooseAisle } : {})}
         />
       ))}
       {!filtered && cartItems.length > 0 ? <CartSection items={cartItems} {...(onToggleItem ? { onToggleItem } : {})} {...(onClearCart ? { onClear: onClearCart } : {})} /> : null}
