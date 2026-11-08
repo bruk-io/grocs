@@ -1,10 +1,11 @@
 ---
 id: TASK-74.5.17
 title: ImportRecipe's relink loses to a meal save stamped in the same millisecond
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-08 03:48'
+updated_date: '2026-11-08 03:55'
 labels:
   - size-1
   - layer-application
@@ -43,3 +44,40 @@ The R47 offline-relink case: B's earlier/later stamps are never in A's view of t
 ### Proof
 The new test fails before step 3 and passes after; the whole application unit project and typecheck pass.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Repro at 76bf812b862a, test files: packages/application/src/commands/import-recipe.scenario.test.ts; command: `pnpm exec vitest run --project unit packages/application/src/commands/import-recipe.scenario.test.ts` exited 1
+
+(4 earlier lines omitted)
+```text
+     × relink must win over a meal save stamped in the same millisecond (TASK-74.5.17 repro) 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |unit| packages/application/src/commands/import-recipe.scenario.test.ts > ImportRecipe scenarios (contract TASK-74 §8, R47) > relink must win over a meal save stamped in the same millisecond (TASK-74.5.17 repro)
+AssertionError: expected 'https://recipe.invalid/a?utm_source=ig' to be 'https://recipe.invalid/a' // Object.is equality
+
+Expected: "https://recipe.invalid/a"
+Received: "https://recipe.invalid/a?utm_source=ig"
+
+ ❯ packages/application/src/commands/import-recipe.scenario.test.ts:238:30
+    236|     expect(result.ok).toBe(true);
+    237|     const [meal] = await client.store.getMeals(KITCHEN, WEEK);
+    238|     expect(meal?.link.value).toBe(normalisedUrl);
+       |                              ^
+    239|   });
+    240|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 19 passed (20)
+   Start at  22:55:14
+   Duration  184ms (transform 81ms, setup 0ms, import 103ms, tests 9ms, environment 0ms)
+```
+
+Orchestrator: merged at 76bf812 (fix 98a05f4, repro test c859741). The repro above was recorded on main with import-recipe.ts temporarily restored to c859741's (pre-fix) version: 1 failed / 19 passed. With the fix restored: vitest --project unit packages/application 20 files / 118 tests passed. reviewer-application approved; its optional note (clientWithMeal's clock.advance(1) comment is now stale) is left as-is because AC #2 asks the existing tests to stay unchanged.
+<!-- SECTION:NOTES:END -->
