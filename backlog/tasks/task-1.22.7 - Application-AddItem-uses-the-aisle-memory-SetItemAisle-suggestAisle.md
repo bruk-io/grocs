@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.7
 title: 'Application: AddItem uses the aisle memory; SetItemAisle; suggestAisle'
-status: In Progress
+status: Done
 assignee:
   - '@builder-application'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 21:06'
+updated_date: '2026-11-08 21:08'
 labels:
   - layer-application
   - size-3
@@ -32,10 +32,10 @@ Cites R11, R14. See TASK-1.22's slice contract.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 AddItem with no aisle takes the remembered one, else the default; with an aisle it remembers it
-- [ ] #2 SetItemAisle stamps the item and remembers the aisle
-- [ ] #3 A scenario test proves a cleared item's aisle is still suggested (R14)
-- [ ] #4 suggestAisle returns the remembered aisle or null
+- [x] #1 AddItem with no aisle takes the remembered one, else the default; with an aisle it remembers it
+- [x] #2 SetItemAisle stamps the item and remembers the aisle
+- [x] #3 A scenario test proves a cleared item's aisle is still suggested (R14)
+- [x] #4 suggestAisle returns the remembered aisle or null
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -109,4 +109,45 @@ $ tsc --noEmit
 $ mise exec -- pnpm check
 $ node tools/checks/run.ts --mode all
 checks passed (16 checks, all mode, 579 ms)
+
+Check `pnpm check && pnpm typecheck && pnpm test` exited 0
+
+(47 earlier lines omitted)
+```text
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/Asset.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/AssetSources.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo/build/utils/getBundleOrigin.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo/build/utils/getBundleUrl.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/AssetSourceResolver.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/PlatformUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/AssetUris.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/ExpoAsset.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/ImageAssets.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/LocalAssets.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/resolveAssetSource.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-asset/build/AssetHooks.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/fontFaceValidation.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/fontSourceFromFace.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/memory.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/server.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/Font.types.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/FontUtils.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/ExpoFontUtils.web.js" points to missing source files
+Sourcemap for "/Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a6eb0ca28c8248f91/node_modules/expo-font/build/FontHooks.js" points to missing source files
+
+ Test Files  163 passed (163)
+      Tests  2172 passed (2172)
+   Start at  16:07:48
+   Duration  10.58s (transform 47.15s, setup 4.84s, import 138.45s, tests 49.87s, environment 25.65s)
+```
+
+Review: closed. 4/4 criteria met, judged against the diff of 558c8f9 and fe4f4e4 and TASK-1.22's contract and additions.
+
+AC1: add-item.ts validates an explicit aisle, takes aisleFor otherwise, falls back to the default on null or rejection, and fires rememberAisle uncaught-free after the write. Scenario tests cover each path. AC2: set-item-aisle.ts stamps through setItemAisle and mergeItem, then remembers; registered and exported; tests assert both the stored aisle and aisleFor. AC3: add-item.scenario.test.ts adds with an aisle, ticks, dispatches ClearCart, adds the same name with none, and gets dairy back. AC4: suggest-aisle.ts returns the remembered aisle or null, including '!!' without calling aisleFor and a failed lookup.
+
+Layer review: all six confirmed in fe4f4e4 (R47 both-order and offline tests; suggestAisle catches; clock set before dispatch; one stamp in AddItem; nameKey guard in SetItemAisle; wrapSyncStore shared).
+
+Check: fast tier only, as the launch directed because another job may hold port 4498: pnpm check, typecheck and test exited 0 (163 files, 2172 tests). The full tier did not run, so emulator, release, storybook and visual are unproven at this commit. Nothing was reformatted; only this task file changed.
+
+Findings, none filed. (low) AddItem and suggestAisle pass a remembered aisle on unvalidated, so a hand-written memory document could stamp an id outside AISLES; aisleSection groups it as other, so nothing breaks. (low) SetItemAisle's empty-nameKey guard has no test; createExtraItem makes it unreachable today. (low) AddItem now awaits aisleFor before its write, so a slow getDoc delays an add with no aisle; bounded in practice by the fallback to cache, not separately tested. (info) Offline, FirestoreSyncStore.mergeItem still uses a transaction, so the awaited item write in both commands has the existing R16 gap that decision-7 addresses; the fire-and-forget memory write does not fix that and is not this task's to fix. (info) The notes' modified-files line omits testing/wrap-sync-store.ts and testing/index.ts.
 <!-- SECTION:NOTES:END -->
