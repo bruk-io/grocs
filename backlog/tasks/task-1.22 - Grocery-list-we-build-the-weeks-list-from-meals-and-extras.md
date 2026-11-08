@@ -4,7 +4,7 @@ title: 'Grocery list: we build the week''s list from meals and extras'
 status: In Progress
 assignee: []
 created_date: '2026-10-18 18:16'
-updated_date: '2026-11-08 20:31'
+updated_date: '2026-11-08 22:33'
 labels:
   - size-5
   - slice
@@ -216,4 +216,6 @@ Findings, none filed as drafts because the remaining work belongs under this tas
 From TASK-1.23's review, 2026-11-08: #2 must read cleared items for its suggestions, or R14 is still not delivered; TASK-1.23 #3 proved retention only. From this task's review: no open subtask delivers #2 or #3, so it needs splitting before it can move.
 
 Split 2026-11-08 from the review's finding that nothing delivered #2 and #3.
+
+Live proof, 2026-11-08, iOS simulator against the emulators, on feat/aisles at 3994a66. Alex adds an item (under Other, with an avatar by name), opens its aisle chips from the row with Other marked, chooses Dairy & eggs and the row moves; adding the same name again lands under Dairy & eggs. Jo uses Quick add: amount field and aisle chips show, Pantry chosen, item under Pantry; ticked and cleared; typing the name again preselects Pantry (R14). The existing flows add-and-tick-item and quick-add-first-tap pass, so the now-pressable row name does not break ticking. Maestro's accessibility tree found 'Change the aisle' as a separate 1x1 element on each row; TASK-1.22.11 fixed it, and after that the tree has none. Baselines: visual baselines workflow run 42526535671, only new images. Screenshots from this session are in the scratchpad, not the repo. Not proved on a device: real VoiceOver speech, Android, native 'firestore/unavailable' offline behaviour (TASK-1.16).
 <!-- SECTION:NOTES:END -->
