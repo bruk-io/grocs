@@ -1,11 +1,11 @@
 ---
 id: TASK-74.5.8
 title: Regenerate visual baselines for the new and changed templates
-status: To Do
+status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:27'
-updated_date: '2026-11-07 02:27'
+updated_date: '2026-11-08 02:42'
 labels:
   - size-1
   - orchestrator
@@ -49,3 +49,9 @@ Files expected to change:
 - packages/ui/visual-baselines/*.png
 - packages/ui/visual-baselines/manifest.json
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Pushed branch recipe-import-baselines (main at c9b6edc; origin/main not moved) and ran the visual baselines workflow: run 42439124508, success. Downloaded the artifact over packages/ui/visual-baselines/: 21 new PNGs (templates-recipe: rest, no-yield, long; templates-meal-form: with-import, importing, import-error, with-recipe; each at phone, fold-inner and fold-outer) plus manifest.json. No existing PNG changed. Reviewed by eye: recipe header, servings chip, source host, ingredients and numbered steps; long recipe grows without clipping; the import button's rest, 'Getting recipe' spinner and error states; the 'Saved recipe ... View recipe' row. pnpm check visual-baselines passes.
+<!-- SECTION:NOTES:END -->
