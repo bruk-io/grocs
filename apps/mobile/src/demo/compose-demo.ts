@@ -5,11 +5,12 @@ import { createExtraItem, createKitchen, createMeal, toDayIndex, weekIdFor } fro
 import type { Kitchen } from '@grocs/core';
 import type { Clock, IdGenerator, Logger } from '@grocs/ports';
 import { RandomIds, SystemClock } from '@grocs/providers-device';
-import { DEMO_MEMBER, MemoryAuth, MemoryKitchenGateway, MemorySyncStore } from '@grocs/providers-memory';
+import { DEMO_MEMBER, MemoryAuth, MemoryKitchenGateway, MemoryRecipeImporter, MemorySyncStore } from '@grocs/providers-memory';
 import { composeApp } from '../composition/compose-app.ts';
 import { diagnosticsText } from '../composition/diagnostics.ts';
 import type { NativeApp } from '../composition/native.ts';
 import { meat, produce, week } from '../sample/sample-data.ts';
+import { demoRecipes } from './recipes.ts';
 
 /** The one kitchen the demo has. */
 export const DEMO_KITCHEN_ID = 'demo-kitchen';
@@ -45,7 +46,8 @@ export function composeDemoApp({ logger, runtime, copyText, clock = new SystemCl
     DEMO_MEMBER.displayName ?? DEMO_MEMBER.uid,
   );
 
-  const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens }, logger, runtime, copyText });
+  const recipeImporter = new MemoryRecipeImporter(demoRecipes);
+  const app = composeApp({ ports: { syncStore, auth, clock, ids, kitchens, recipeImporter }, logger, runtime, copyText });
   return {
     app,
     isDevBuild: false,

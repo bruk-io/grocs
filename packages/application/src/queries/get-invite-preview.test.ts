@@ -1,9 +1,16 @@
-import { FakeAuth, FakeClock, FakeKitchenGateway, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
+import { FakeAuth, FakeClock, FakeKitchenGateway, FakeRecipeImporter, InMemorySyncStore, SequentialIds } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import type { Deps } from '../dispatch/types.ts';
 import { getInvitePreview } from './get-invite-preview.ts';
 
-const make = (kitchens: FakeKitchenGateway): Deps => ({ syncStore: new InMemorySyncStore(), auth: new FakeAuth([]), clock: new FakeClock(), ids: new SequentialIds(), kitchens });
+const make = (kitchens: FakeKitchenGateway): Deps => ({
+  syncStore: new InMemorySyncStore(),
+  auth: new FakeAuth([]),
+  clock: new FakeClock(),
+  ids: new SequentialIds(),
+  kitchens,
+  recipeImporter: new FakeRecipeImporter(),
+});
 
 describe('getInvitePreview', () => {
   it("names the kitchen's member and the kitchen for a code typed in any case", async () => {

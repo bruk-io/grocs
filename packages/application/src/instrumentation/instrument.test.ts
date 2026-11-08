@@ -1,4 +1,4 @@
-import { FakeClock, MemoryLogger, SequentialIds, FakeKitchenGateway } from '@grocs/ports/testing';
+import { FakeClock, MemoryLogger, SequentialIds, FakeKitchenGateway, FakeRecipeImporter } from '@grocs/ports/testing';
 import { describe, expect, it } from 'vitest';
 import { instrumentDeps, instrumentPort } from './instrument.ts';
 import { InMemorySyncStore, FakeAuth } from '@grocs/ports/testing';
@@ -77,7 +77,14 @@ describe('instrumentPort (R31)', () => {
   it('wraps every provider a command uses', async () => {
     const logger = new MemoryLogger();
     const deps = instrumentDeps(
-      { syncStore: new InMemorySyncStore(), auth: new FakeAuth(), clock: new FakeClock(), ids: new SequentialIds(), kitchens: new FakeKitchenGateway('test-user') },
+      {
+        syncStore: new InMemorySyncStore(),
+        auth: new FakeAuth(),
+        clock: new FakeClock(),
+        ids: new SequentialIds(),
+        kitchens: new FakeKitchenGateway('test-user'),
+        recipeImporter: new FakeRecipeImporter(),
+      },
       logger,
       new FakeClock(),
       correlation,
@@ -86,6 +93,8 @@ describe('instrumentPort (R31)', () => {
     deps.ids.newId();
     deps.auth.currentUser();
     await deps.syncStore.getItems('k', 'w');
-    expect(logger.records().map((r) => r.attributes['port'])).toEqual(['clock', 'ids', 'auth', 'syncStore']);
+    await deps.recipeImporter.importRecipe('https://recipe.invalid/x');
+    expect(logger.records().map((r) => r.attributes['port'])).toEqual(['clock', 'ids', 'auth', 'syncStore', 'recipeImporter']);
+    expect(logger.records().at(-1)).toMatchObject({ attributes: { port: 'recipeImporter', method: 'importRecipe' } });
   });
 });
