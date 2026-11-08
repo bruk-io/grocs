@@ -1,11 +1,11 @@
 ---
 id: TASK-1.22.6
 title: 'Providers: Firestore and memory stores keep the aisle memory'
-status: In Progress
+status: Done
 assignee:
   - '@builder-providers'
 created_date: '2026-11-08 20:21'
-updated_date: '2026-11-08 21:11'
+updated_date: '2026-11-08 21:19'
 labels:
   - layer-providers
   - size-2
@@ -31,8 +31,8 @@ Cites R11, R14. See TASK-1.22's slice contract.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Both stores pass the aisle contract, the Firestore one on the emulator, in decision-7's kitchens/{k}/aisles/{nameKey} shape
-- [ ] #2 A rules test proves a non-member cannot read or write the aisle memory
+- [x] #1 Both stores pass the aisle contract, the Firestore one on the emulator, in decision-7's kitchens/{k}/aisles/{nameKey} shape
+- [x] #2 A rules test proves a non-member cannot read or write the aisle memory
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -86,4 +86,44 @@ Evidence (latest run, after all review rounds):
 Not touched: firebase/firestore.rules (no change needed); packages/core and packages/ports (owned by TASK-1.22.4/.5/.10, only merged in via feat/aisles).
 
 Modified files: packages/providers-firebase/src/sdk.ts, packages/providers-firebase/src/firestore-sync-store.ts, packages/providers-firebase/src/firestore-sync-store.emulator.test.ts, packages/providers-memory/src/memory-sync-store.ts, packages/providers-memory/src/memory-sync-store.test.ts, firebase/firestore.rules.test.ts
+
+Check `pnpm check && pnpm typecheck && pnpm test && pnpm test:emulator && pnpm check:release && pnpm --filter @grocs/ui build-storybook && pnpm --filter @grocs/ui visual -- --no-build` exited 0
+
+(845 earlier lines omitted)
+```text
+│  35.63 kB │ gzip:  10.09 kB
+│  storybook-static/assets/art-C68uENE-.js
+│  167.09 kB │ gzip:  49.81 kB
+│  storybook-static/assets/react-18-CZ7Uj1bU.js
+│  211.29 kB │ gzip:  66.04 kB
+│  storybook-static/assets/iframe-COUQCjPE.js
+│  1,361.35 kB │ gzip: 392.25 kB
+
+│
+▲  Vite [plugin builtin:vite-reporter]
+│  (!) Some chunks are larger than 500 kB after minification. Consider:
+│  - Using dynamic import() to code-split the application
+│  - Use build.rolldownOptions.output.codeSplitting to improve chunking:
+│  ]8;;https://rolldown.rs/reference/OutputOptions.codeSplittinghttps://rolldown.rs/reference/OutputOptions.codeSplitting]8;;
+│  - Adjust chunk size limit for this warning via
+│  build.chunkSizeWarningLimit.
+│
+▲  Vite [33m[SHIMMED_EXPORT] [0mMissing export "TurboModuleRegistry" has been
+│  shimmed in module "../../node_modules/react-native-web/dist/index.js".
+
+│  Vite ✓ built in 1.46s
+│
+◇  Output directory:
+│  /Users/brukhabtu/src/github.com/bruk-io/grocs/.claude/worktrees/agent-a3b084393c70dcf3a/packages/ui/storybook-static
+│
+└  Storybook build completed successfully
+
+$ node ../../tools/visual.ts -- --no-build
+visual: image comparison skipped on darwin; baselines are compared on Linux only. The axe and 44 x 44 checks still run.
+visual: 458 story views checked (axe, 44 x 44, images not compared)
+```
+
+Closed. Both criteria met. Full check exit 0 (image comparison skipped on darwin; no UI change here). pnpm test:emulator run in this worktree: 11 files, 161 tests pass. Verbose run of the store and rules suites: 78 pass, naming all 7 contract cases on Firestore, the stored-shape case, both offline cases, 4 bad-document cases and 3 rules cases. 65f8ea4 confirmed: aisleFor throws on an undecodable document, rememberAisle rejects and the document is unchanged. Findings: (1) medium, drafted: aisleFor's comment and these notes say callers log the rejection; they are bare catches on feat/aisles, so a bad document is silent; the comment's 'succeeds offline on another client' clause is also false. (2) low, not filed: notes header says two review rounds, the plan says three. (3) low, not filed: the notes rewrite dropped the round-by-round list and the admission that the first offline test false-passed. Superseded design only, the cache limit is still stated, and the text remains in 5afd718, so nothing is hidden. (4) low, not filed: 'firestore/unavailable' is not exercised, the emulator test uses the web SDK; proof belongs to the slice's live run. (5) process: 65f8ea4 was already merged to feat/aisles (4f94b20) before this review finished.
+
+Orchestrator, 2026-11-08: the review's draft about silently swallowed bad documents was not filed. Commands wrap syncStore in instrumentDeps, whose failure path logs before rethrowing, so AddItem and SetItemAisle rejections are logged. The comment's false clauses are corrected on feat/aisles. The remaining gap is suggestAisle, a query: TASK-1.22.9 must call it through instrumented access.
 <!-- SECTION:NOTES:END -->
