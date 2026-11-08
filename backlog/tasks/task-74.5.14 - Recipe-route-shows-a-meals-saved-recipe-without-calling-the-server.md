@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-07 02:28'
-updated_date: '2026-11-08 03:06'
+updated_date: '2026-11-08 03:09'
 labels:
   - size-2
   - layer-app
@@ -77,4 +77,28 @@ Checks after the fix commit (d546f96):
 - `mise exec -- pnpm exec vitest run --project app --project tools apps`: Test Files 19 passed (19), Tests 117 passed (117).
 - `mise exec -- pnpm -s typecheck`: tsc --noEmit, no errors.
 - Full pre-commit hook (lefthook) on this commit: checks passed (16 checks, staged mode); typecheck passed; unit-tests (vitest run --project unit --project ui --project app --project tools) Test Files 155 passed (155), Tests 2075 passed (2075).
+
+Follow-up (4344e02), from a second review pass on the fix itself:
+
+The earlier regression test (d546f96) was vacuous: RecipeScreen renders inside KitchenGate,
+which itself returns null until the fake kitchen lookup resolves, so the first-render
+queryByText assertion passed whether or not the mealsLoaded/recipesLoaded gate existed.
+Verified by temporarily deleting the `if (!mealsLoaded || !recipesLoaded) return null;` line
+and rerunning `vitest run --project app recipe.route.test.tsx`: still 3 passed, confirming the
+test proved nothing.
+
+Replaced it with RecipesNeverArrive, an InMemorySyncStore subclass whose watchRecipes never
+calls back, so recipesLoaded can be pinned at false after the meal watch has genuinely
+delivered (awaited with a setTimeout(0) flush). Reran the same delete-the-gate check against
+the new test: it failed (asserted empty-state text appeared) with the gate removed, and passed
+with the gate restored - a real discriminator this time.
+
+Also moved the loadError branch inside the !recipe check, so a late watch failure only
+replaces the empty state (as every sibling screen's onError does) rather than blanking an
+already-rendered recipe.
+
+Checks after 4344e02:
+- `mise exec -- pnpm exec vitest run --project app --project tools apps`: Test Files 19 passed (19), Tests 117 passed (117).
+- `mise exec -- pnpm -s typecheck`: tsc --noEmit, no errors.
+- Pre-commit hook (lefthook) on this commit: checks passed (16 checks, staged mode); typecheck passed; unit-tests (vitest run --project unit --project ui --project app --project tools) Test Files 155 passed (155), Tests 2075 passed (2075).
 <!-- SECTION:NOTES:END -->
