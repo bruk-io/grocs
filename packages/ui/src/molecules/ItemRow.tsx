@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { Pressable, StyleSheet, Text as NativeText, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text as NativeText, View } from 'react-native';
 import { Avatar } from '../atoms/Avatar.tsx';
 import { Badge } from '../atoms/Badge.tsx';
 import { Checkbox } from '../atoms/Checkbox.tsx';
@@ -114,7 +114,7 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = fals
             role="button"
             aria-expanded={press.expanded}
             aria-disabled={disabled}
-            aria-describedby={hintId}
+            {...(Platform.OS === 'web' ? { 'aria-describedby': hintId } : {})}
             accessibilityHint={press.label}
             disabled={disabled}
             onPress={() => press.onPress()}
@@ -129,10 +129,12 @@ export function ItemRow({ name, amount, mealBadges = [], addedBy, waiting = fals
           >
             {nameAndMeta}
           </Pressable>
-          {/* The hint text for the press target above, read by its aria-describedby; never part of its name (R65). */}
-          <NativeText id={hintId} style={styles.hint}>
-            {press.label}
-          </NativeText>
+          {/* The hint text for the press target above, read by its aria-describedby on web only; never part of its name (R65). On native, use accessibilityHint instead. */}
+          {Platform.OS === 'web' && (
+            <NativeText id={hintId} style={styles.hint}>
+              {press.label}
+            </NativeText>
+          )}
         </>
       ) : (
         <View style={styles.body}>{nameAndMeta}</View>
